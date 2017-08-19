@@ -147,14 +147,21 @@ static ALCboolean ALCnullBackend_reset(ALCnullBackend *self)
 
 static ALCboolean ALCnullBackend_start(ALCnullBackend *self)
 {
+// <<< BBi
+#if 0
     self->killNow = 0;
     if(althrd_create(&self->thread, ALCnullBackend_mixerProc, self) != althrd_success)
         return ALC_FALSE;
+#endif // 0
+// >>> BBi
+
     return ALC_TRUE;
 }
 
 static void ALCnullBackend_stop(ALCnullBackend *self)
 {
+// <<< BBi
+#if 0
     int res;
 
     if(self->killNow)
@@ -162,6 +169,8 @@ static void ALCnullBackend_stop(ALCnullBackend *self)
 
     self->killNow = 1;
     althrd_join(self->thread, &res);
+#endif // 0
+// >>> BBi
 }
 
 

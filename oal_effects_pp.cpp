@@ -13,6 +13,12 @@
 #include "AL\efx-presets.h"
 
 
+extern "C" void aluMixData(
+    ALCdevice* device,
+    ALvoid* OutBuffer,
+    ALsizei NumSamples);
+
+
 float mb_to_gain(
     float mb)
 {
@@ -23,26 +29,29 @@ float mb_to_gain(
 int main()
 {
     const auto src_file_name = "f:\\temp\\rev\\in.raw";
+    const auto dst_file_name = "f:\\temp\\rev\\out.raw";
 
-    std::ifstream stream(
+
+    std::ifstream src_stream(
         src_file_name,
         std::ios_base::in | std::ios_base::binary | std::ios_base::ate);
 
-    if (!stream.is_open())
+    if (!src_stream.is_open())
     {
         std::cout << "Failed to open a stream \"" << src_file_name << "\"." << std::endl;
         return 1;
     }
 
-    auto stream_size = stream.tellg();
+    auto stream_size = src_stream.tellg();
 
-    stream.seekg(0);
+    src_stream.seekg(0);
 
-    if (stream.bad() || stream.fail())
+    if (src_stream.bad() || src_stream.fail())
     {
         std::cout << "Failed to seek to beginning." << std::endl;
         return 1;
     }
+
 
     auto data_size = static_cast<std::streamoff>(stream_size);
 
@@ -55,9 +64,9 @@ int main()
     using Buffer = std::vector<char>;
     Buffer buffer(static_cast<size_t>(data_size));
 
-    stream.read(buffer.data(), data_size);
+    src_stream.read(buffer.data(), data_size);
 
-    if (stream.gcount() != data_size)
+    if (src_stream.gcount() != data_size)
     {
         std::cout << "Failed to read data." << std::endl;
         return 1;
@@ -447,12 +456,44 @@ int main()
         }
     }
 
+
+    std::ofstream dst_stream{
+        dst_file_name,
+        std::ios_base::out | std::ios_base::binary | std::ios_base::trunc};
+
     if (is_succeed)
     {
-        std::cout << "Press enter to stop." << std::endl;
+        if (!dst_stream.is_open())
+        {
+            is_succeed = false;
+            std::cout << "Failed to open a destination file." << std::endl;
+        }
+    }
 
-        char enter_key = '\0';
-        std::cin.getline(&enter_key, 1);
+    if (is_succeed)
+    {
+        constexpr auto sample_count = 1024;
+        constexpr auto channel_count = 2;
+
+        using DstBuffer = std::vector<float>;
+        auto dst_buffer = DstBuffer{};
+        dst_buffer.resize(sample_count * channel_count);
+
+        auto remain = static_cast<int>(stream_size) / 2;
+
+        while (remain > 0)
+        {
+            ::aluMixData(oal_device, dst_buffer.data(), sample_count);
+
+            const auto write_sample_count = std::min(sample_count, remain);
+            const auto write_size = write_sample_count * 4 * channel_count;
+
+            dst_stream.write(
+                reinterpret_cast<const char*>(dst_buffer.data()),
+                    write_size);
+
+            remain -= write_sample_count;
+        }
     }
 
     ::alSourceStop(oal_source);
