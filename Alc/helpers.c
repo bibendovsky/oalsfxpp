@@ -112,7 +112,6 @@ DEFINE_PROPERTYKEY(PKEY_AudioEndpoint_GUID, 0x1da5d803, 0xd492, 0x4edd, 0x8c, 0x
 #include "vector.h"
 #include "alstring.h"
 #include "compat.h"
-#include "threads.h"
 
 
 extern inline ALuint NextPowerOf2(ALuint value);
@@ -569,9 +568,6 @@ vector_al_string SearchDataFiles(const char *ext, const char *subdir)
     static RefCount search_lock;
     vector_al_string results = VECTOR_INIT_STATIC();
     size_t i;
-
-    while(ATOMIC_EXCHANGE_SEQ(&search_lock, 1) == 1)
-        althrd_yield();
 
     /* If the path is absolute, use it directly. */
     if(isalpha(subdir[0]) && subdir[1] == ':' && is_slash(subdir[2]))

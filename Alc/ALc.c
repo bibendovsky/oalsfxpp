@@ -41,7 +41,6 @@
 #include "alu.h"
 
 #include "compat.h"
-#include "threads.h"
 #include "alstring.h"
 #include "almalloc.h"
 
@@ -738,7 +737,7 @@ static const ALchar alExtList[] =
 static ATOMIC(ALCenum) LastNullDeviceError = ATOMIC_INIT_STATIC(ALC_NO_ERROR);
 
 /* Thread-local current context */
-static altss_t LocalContext;
+static ALCcontext* LocalContext;
 /* Process-wide current context */
 static ATOMIC(ALCcontext*) GlobalContext = ATOMIC_INIT_STATIC(NULL);
 
@@ -756,7 +755,7 @@ enum LogLevel LogLevel = LogError;
 static ALCboolean TrapALCError = ALC_FALSE;
 
 /* One-time configuration init control */
-static alonce_flag alc_config_once = AL_ONCE_FLAG_INIT;
+static ALCboolean alc_config_once = ALC_FALSE;
 
 /* Default effect that applies to sources that don't have an effect on send 0 */
 static ALeffect DefaultEffect;
@@ -790,16 +789,11 @@ static const ALCint alcEFXMinorVersion = 0;
  ************************************************/
 static ATOMIC(ALCdevice*) DeviceList = ATOMIC_INIT_STATIC(NULL);
 
-static almtx_t ListLock;
 static inline void LockLists(void)
 {
-    int ret = almtx_lock(&ListLock);
-    assert(ret == althrd_success);
 }
 static inline void UnlockLists(void)
 {
-    int ret = almtx_unlock(&ListLock);
-    assert(ret == althrd_success);
 }
 
 /************************************************
@@ -870,7 +864,6 @@ static void ReleaseThreadCtx(void *ptr);
 static void alc_init(void)
 {
     const char *str;
-    int ret;
 
     LogFile = stderr;
 
@@ -884,12 +877,6 @@ static void alc_init(void)
     str = getenv("__ALSOFT_REVERSE_Z");
     if(str && (strcasecmp(str, "true") == 0 || strtol(str, NULL, 0) == 1))
         ZScale *= -1.0f;
-
-    ret = altss_create(&LocalContext, ReleaseThreadCtx);
-    assert(ret == althrd_success);
-
-    ret = almtx_init(&ListLock, almtx_recursive);
-    assert(ret == althrd_success);
 
     ThunkInit();
 }
@@ -1144,7 +1131,14 @@ static void alc_initconfig(void)
     if((str && str[0]) || ConfigValueStr(NULL, NULL, "default-reverb", &str))
         LoadReverbPreset(str, &DefaultEffect);
 }
-#define DO_INITCONFIG() alcall_once(&alc_config_once, alc_initconfig)
+void DO_INITCONFIG()
+{
+    if (!alc_config_once)
+    {
+        alc_config_once = ALC_TRUE;
+        alc_initconfig();
+    }
+}
 
 #ifdef __ANDROID__
 #include <jni.h>
@@ -1251,8 +1245,6 @@ static void alc_deinit_safe(void)
     FreeALConfig();
 
     ThunkExit();
-    almtx_destroy(&ListLock);
-    altss_delete(LocalContext);
 
     if(LogFile != stderr)
         fclose(LogFile);
@@ -1661,8 +1653,6 @@ void ALCcontext_ProcessUpdates(ALCcontext *context)
          * updating to finish, before providing updates.
          */
         ATOMIC_STORE_SEQ(&context->HoldUpdates, AL_TRUE);
-        while((ATOMIC_LOAD(&context->UpdateCount, almemory_order_acquire)&1) != 0)
-            althrd_yield();
 
         UpdateListenerProps(context);
         UpdateAllEffectSlotProps(context);
@@ -2387,8 +2377,6 @@ static ALCvoid FreeDevice(ALCdevice *device)
     DELETE_OBJ(device->Backend);
     device->Backend = NULL;
 
-    almtx_destroy(&device->BackendLock);
-
     if(device->BufferMap.size > 0)
     {
         WARN("(%p) Deleting %d Buffer%s\n", device, device->BufferMap.size,
@@ -2656,13 +2644,6 @@ static bool ReleaseContext(ALCcontext *context, ALCdevice *device)
     ALCcontext *origctx, *newhead;
     bool ret = true;
 
-    if(altss_get(LocalContext) == context)
-    {
-        WARN("%p released while current on thread\n", context);
-        altss_set(LocalContext, NULL);
-        ALCcontext_DecRef(context);
-    }
-
     origctx = context;
     if(ATOMIC_COMPARE_EXCHANGE_PTR_STRONG_SEQ(&GlobalContext, &origctx, NULL))
         ALCcontext_DecRef(context);
@@ -2753,7 +2734,7 @@ ALCcontext *GetContextRef(void)
 {
     ALCcontext *context;
 
-    context = altss_get(LocalContext);
+    context = LocalContext;
     if(context)
         ALCcontext_IncRef(context);
     else
@@ -3030,9 +3011,7 @@ ALC_API const ALCchar* ALC_APIENTRY alcGetString(ALCdevice *Device, ALCenum para
             alcSetError(NULL, ALC_INVALID_DEVICE);
         else
         {
-            almtx_lock(&Device->BackendLock);
             value = (Device->HrtfHandle ? alstr_get_cstr(Device->HrtfName) : "");
-            almtx_unlock(&Device->BackendLock);
             ALCdevice_DecRef(Device);
         }
         break;
@@ -3104,9 +3083,7 @@ static ALCsizei GetIntegerv(ALCdevice *device, ALCenum param, ALCsizei size, ALC
         switch(param)
         {
             case ALC_CAPTURE_SAMPLES:
-                almtx_lock(&device->BackendLock);
                 values[0] = V0(device->Backend,availableSamples)();
-                almtx_unlock(&device->BackendLock);
                 return 1;
 
             case ALC_CONNECTED:
@@ -3151,7 +3128,6 @@ static ALCsizei GetIntegerv(ALCdevice *device, ALCenum param, ALCsizei size, ALC
             }
 
             i = 0;
-            almtx_lock(&device->BackendLock);
             values[i++] = ALC_FREQUENCY;
             values[i++] = device->Frequency;
 
@@ -3201,7 +3177,6 @@ static ALCsizei GetIntegerv(ALCdevice *device, ALCenum param, ALCsizei size, ALC
 
             values[i++] = ALC_OUTPUT_LIMITER_SOFT;
             values[i++] = device->Limiter ? ALC_TRUE : ALC_FALSE;
-            almtx_unlock(&device->BackendLock);
 
             values[i++] = 0;
             return i;
@@ -3216,9 +3191,7 @@ static ALCsizei GetIntegerv(ALCdevice *device, ALCenum param, ALCsizei size, ALC
                 alcSetError(device, ALC_INVALID_DEVICE);
                 return 0;
             }
-            almtx_lock(&device->BackendLock);
             values[0] = device->Frequency / device->UpdateSize;
-            almtx_unlock(&device->BackendLock);
             return 1;
 
         case ALC_SYNC:
@@ -3300,11 +3273,9 @@ static ALCsizei GetIntegerv(ALCdevice *device, ALCenum param, ALCsizei size, ALC
             return 1;
 
         case ALC_NUM_HRTF_SPECIFIERS_SOFT:
-            almtx_lock(&device->BackendLock);
             FreeHrtfList(&device->HrtfList);
             device->HrtfList = EnumerateHrtf(device->DeviceName);
             values[0] = (ALCint)VECTOR_SIZE(device->HrtfList);
-            almtx_unlock(&device->BackendLock);
             return 1;
 
         case ALC_OUTPUT_LIMITER_SOFT:
@@ -3353,7 +3324,6 @@ ALC_API void ALC_APIENTRY alcGetInteger64vSOFT(ALCdevice *device, ALCenum pname,
         ClockLatency clock;
         ALuint64 basecount;
         ALuint samplecount;
-        ALuint refcount;
 
         switch(pname)
         {
@@ -3367,7 +3337,6 @@ ALC_API void ALC_APIENTRY alcGetInteger64vSOFT(ALCdevice *device, ALCenum pname,
                 else
                 {
                     i = 0;
-                    almtx_lock(&device->BackendLock);
                     values[i++] = ALC_FREQUENCY;
                     values[i++] = device->Frequency;
 
@@ -3424,28 +3393,19 @@ ALC_API void ALC_APIENTRY alcGetInteger64vSOFT(ALCdevice *device, ALCenum pname,
 
                     values[i++] = ALC_DEVICE_LATENCY_SOFT;
                     values[i++] = clock.Latency;
-                    almtx_unlock(&device->BackendLock);
 
                     values[i++] = 0;
                 }
                 break;
 
             case ALC_DEVICE_CLOCK_SOFT:
-                almtx_lock(&device->BackendLock);
-                do {
-                    while(((refcount=ReadRef(&device->MixCount))&1) != 0)
-                        althrd_yield();
-                    basecount = device->ClockBase;
-                    samplecount = device->SamplesDone;
-                } while(refcount != ReadRef(&device->MixCount));
+                basecount = device->ClockBase;
+                samplecount = device->SamplesDone;
                 *values = basecount + (samplecount*DEVICE_CLOCK_RES/device->Frequency);
-                almtx_unlock(&device->BackendLock);
                 break;
 
             case ALC_DEVICE_LATENCY_SOFT:
-                almtx_lock(&device->BackendLock);
                 clock = V0(device->Backend,getClockLatency)();
-                almtx_unlock(&device->BackendLock);
                 *values = clock.Latency;
                 break;
 
@@ -3454,9 +3414,7 @@ ALC_API void ALC_APIENTRY alcGetInteger64vSOFT(ALCdevice *device, ALCenum pname,
                     alcSetError(device, ALC_INVALID_VALUE);
                 else
                 {
-                    almtx_lock(&device->BackendLock);
                     clock = V0(device->Backend,getClockLatency)();
-                    almtx_unlock(&device->BackendLock);
                     values[0] = clock.ClockTime;
                     values[1] = clock.Latency;
                 }
@@ -3598,7 +3556,6 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
         if(device) ALCdevice_DecRef(device);
         return NULL;
     }
-    almtx_lock(&device->BackendLock);
     UnlockLists();
 
     ATOMIC_STORE_SEQ(&device->LastError, ALC_NO_ERROR);
@@ -3609,8 +3566,6 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
         ALContext = al_calloc(16, sizeof(ALCcontext)+sizeof(ALlistener));
     if(!ALContext)
     {
-        almtx_unlock(&device->BackendLock);
-
         alcSetError(device, ALC_OUT_OF_MEMORY);
         ALCdevice_DecRef(device);
         return NULL;
@@ -3628,8 +3583,6 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
 
     if((err=UpdateDeviceParams(device, attrList)) != ALC_NO_ERROR)
     {
-        almtx_unlock(&device->BackendLock);
-
         al_free(ALContext);
         ALContext = NULL;
 
@@ -3682,7 +3635,6 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
         } while(ATOMIC_COMPARE_EXCHANGE_PTR_WEAK_SEQ(&device->ContextList, &head,
                                                      ALContext) == 0);
     }
-    almtx_unlock(&device->BackendLock);
 
     if(ALContext->DefaultSlot)
     {
@@ -3717,13 +3669,11 @@ ALC_API ALCvoid ALC_APIENTRY alcDestroyContext(ALCcontext *context)
     Device = context->Device;
     if(Device)
     {
-        almtx_lock(&Device->BackendLock);
         if(!ReleaseContext(context, Device))
         {
             V0(Device->Backend,stop)();
             Device->Flags &= ~DEVICE_RUNNING;
         }
-        almtx_unlock(&Device->BackendLock);
     }
     UnlockLists();
 
@@ -3737,7 +3687,7 @@ ALC_API ALCvoid ALC_APIENTRY alcDestroyContext(ALCcontext *context)
  */
 ALC_API ALCcontext* ALC_APIENTRY alcGetCurrentContext(void)
 {
-    ALCcontext *Context = altss_get(LocalContext);
+    ALCcontext *Context = LocalContext;
     if(!Context) Context = ATOMIC_LOAD_SEQ(&GlobalContext);
     return Context;
 }
@@ -3748,7 +3698,7 @@ ALC_API ALCcontext* ALC_APIENTRY alcGetCurrentContext(void)
  */
 ALC_API ALCcontext* ALC_APIENTRY alcGetThreadContext(void)
 {
-    return altss_get(LocalContext);
+    return LocalContext;
 }
 
 
@@ -3769,9 +3719,9 @@ ALC_API ALCboolean ALC_APIENTRY alcMakeContextCurrent(ALCcontext *context)
     context = ATOMIC_EXCHANGE_PTR_SEQ(&GlobalContext, context);
     if(context) ALCcontext_DecRef(context);
 
-    if((context=altss_get(LocalContext)) != NULL)
+    if((context=LocalContext) != NULL)
     {
-        altss_set(LocalContext, NULL);
+        LocalContext = NULL;
         ALCcontext_DecRef(context);
     }
 
@@ -3793,8 +3743,8 @@ ALC_API ALCboolean ALC_APIENTRY alcSetThreadContext(ALCcontext *context)
         return ALC_FALSE;
     }
     /* context's reference count is already incremented */
-    old = altss_get(LocalContext);
-    altss_set(LocalContext, context);
+    old = LocalContext;
+    LocalContext = context;
     if(old) ALCcontext_DecRef(old);
 
     return ALC_TRUE;
@@ -4024,7 +3974,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
         alcSetError(NULL, err);
         return NULL;
     }
-    almtx_init(&device->BackendLock, almtx_plain);
 
     if(ConfigValueStr(alstr_get_cstr(device->DeviceName), NULL, "ambi-format", &fmt))
     {
@@ -4081,7 +4030,6 @@ ALC_API ALCboolean ALC_APIENTRY alcCloseDevice(ALCdevice *device)
         UnlockLists();
         return ALC_FALSE;
     }
-    almtx_lock(&device->BackendLock);
 
     origdev = device;
     if(!ATOMIC_COMPARE_EXCHANGE_PTR_STRONG_SEQ(&DeviceList, &origdev, device->next))
@@ -4110,7 +4058,6 @@ ALC_API ALCboolean ALC_APIENTRY alcCloseDevice(ALCdevice *device)
     if((device->Flags&DEVICE_RUNNING))
         V0(device->Backend,stop)();
     device->Flags &= ~DEVICE_RUNNING;
-    almtx_unlock(&device->BackendLock);
 
     ALCdevice_DecRef(device);
 
@@ -4218,7 +4165,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcCaptureOpenDevice(const ALCchar *deviceName, 
         alcSetError(NULL, err);
         return NULL;
     }
-    almtx_init(&device->BackendLock, almtx_plain);
 
     {
         ALCdevice *head = ATOMIC_LOAD_SEQ(&DeviceList);
@@ -4275,7 +4221,6 @@ ALC_API void ALC_APIENTRY alcCaptureStart(ALCdevice *device)
         alcSetError(device, ALC_INVALID_DEVICE);
     else
     {
-        almtx_lock(&device->BackendLock);
         if(!device->Connected)
             alcSetError(device, ALC_INVALID_DEVICE);
         else if(!(device->Flags&DEVICE_RUNNING))
@@ -4288,7 +4233,6 @@ ALC_API void ALC_APIENTRY alcCaptureStart(ALCdevice *device)
                 alcSetError(device, ALC_INVALID_DEVICE);
             }
         }
-        almtx_unlock(&device->BackendLock);
     }
 
     if(device) ALCdevice_DecRef(device);
@@ -4300,11 +4244,9 @@ ALC_API void ALC_APIENTRY alcCaptureStop(ALCdevice *device)
         alcSetError(device, ALC_INVALID_DEVICE);
     else
     {
-        almtx_lock(&device->BackendLock);
         if((device->Flags&DEVICE_RUNNING))
             V0(device->Backend,stop)();
         device->Flags &= ~DEVICE_RUNNING;
-        almtx_unlock(&device->BackendLock);
     }
 
     if(device) ALCdevice_DecRef(device);
@@ -4318,10 +4260,8 @@ ALC_API void ALC_APIENTRY alcCaptureSamples(ALCdevice *device, ALCvoid *buffer, 
     {
         ALCenum err = ALC_INVALID_VALUE;
 
-        almtx_lock(&device->BackendLock);
         if(samples >= 0 && V0(device->Backend,availableSamples)() >= (ALCuint)samples)
             err = V(device->Backend,captureSamples)(buffer, samples);
-        almtx_unlock(&device->BackendLock);
 
         if(err != ALC_NO_ERROR)
             alcSetError(device, err);
@@ -4412,7 +4352,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcLoopbackOpenDeviceSOFT(const ALCchar *deviceN
         alcSetError(NULL, ALC_OUT_OF_MEMORY);
         return NULL;
     }
-    almtx_init(&device->BackendLock, almtx_plain);
 
     //Set output format
     device->NumUpdates = 0;
@@ -4534,12 +4473,10 @@ ALC_API void ALC_APIENTRY alcDevicePauseSOFT(ALCdevice *device)
         alcSetError(device, ALC_INVALID_DEVICE);
     else
     {
-        almtx_lock(&device->BackendLock);
         if((device->Flags&DEVICE_RUNNING))
             V0(device->Backend,stop)();
         device->Flags &= ~DEVICE_RUNNING;
         device->Flags |= DEVICE_PAUSED;
-        almtx_unlock(&device->BackendLock);
     }
     if(device) ALCdevice_DecRef(device);
 }
@@ -4554,7 +4491,6 @@ ALC_API void ALC_APIENTRY alcDeviceResumeSOFT(ALCdevice *device)
         alcSetError(device, ALC_INVALID_DEVICE);
     else
     {
-        almtx_lock(&device->BackendLock);
         if((device->Flags&DEVICE_PAUSED))
         {
             device->Flags &= ~DEVICE_PAUSED;
@@ -4571,7 +4507,6 @@ ALC_API void ALC_APIENTRY alcDeviceResumeSOFT(ALCdevice *device)
                 }
             }
         }
-        almtx_unlock(&device->BackendLock);
     }
     if(device) ALCdevice_DecRef(device);
 }
@@ -4625,11 +4560,9 @@ ALC_API ALCboolean ALC_APIENTRY alcResetDeviceSOFT(ALCdevice *device, const ALCi
         if(device) ALCdevice_DecRef(device);
         return ALC_FALSE;
     }
-    almtx_lock(&device->BackendLock);
     UnlockLists();
 
     err = UpdateDeviceParams(device, attribs);
-    almtx_unlock(&device->BackendLock);
 
     if(err != ALC_NO_ERROR)
     {

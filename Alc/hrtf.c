@@ -1024,9 +1024,6 @@ struct Hrtf *GetLoadedHrtf(struct HrtfEntry *entry)
     size_t rsize;
     char ch;
 
-    while(ATOMIC_FLAG_TEST_AND_SET(&LoadedHrtfLock, almemory_order_seq_cst))
-        althrd_yield();
-
     if(entry->handle)
     {
         hrtf = entry->handle;
@@ -1115,9 +1112,6 @@ void Hrtf_DecRef(struct Hrtf *hrtf)
     TRACEREF("%p decreasing refcount to %u\n", hrtf, ref);
     if(ref == 0)
     {
-        while(ATOMIC_FLAG_TEST_AND_SET(&LoadedHrtfLock, almemory_order_seq_cst))
-            althrd_yield();
-
         Hrtf = LoadedHrtfs;
         while(Hrtf != NULL)
         {

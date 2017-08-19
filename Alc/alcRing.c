@@ -24,7 +24,6 @@
 #include <stdlib.h>
 
 #include "alMain.h"
-#include "threads.h"
 #include "almalloc.h"
 #include "compat.h"
 

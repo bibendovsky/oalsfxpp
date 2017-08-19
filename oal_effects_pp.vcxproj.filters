@@ -111,9 +111,6 @@
     <ClCompile Include="common\rwlock.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="common\threads.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="common\uintmap.c">
       <Filter>Source Files</Filter>
     </ClCompile>

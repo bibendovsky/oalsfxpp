@@ -127,8 +127,6 @@ AL_API ALvoid AL_APIENTRY alGenAuxiliaryEffectSlots(ALsizei n, ALuint *effectslo
         newarray = ATOMIC_EXCHANGE_PTR(&context->ActiveAuxSlots, newarray,
                                        almemory_order_acq_rel);
         device = context->Device;
-        while((ATOMIC_LOAD(&device->MixCount, almemory_order_acquire)&1))
-            althrd_yield();
         al_free(newarray);
     }
     UnlockEffectSlotsWrite(context);
@@ -185,8 +183,6 @@ AL_API ALvoid AL_APIENTRY alDeleteAuxiliaryEffectSlots(ALsizei n, const ALuint *
         newarray = ATOMIC_EXCHANGE_PTR(&context->ActiveAuxSlots, newarray,
                                        almemory_order_acq_rel);
         device = context->Device;
-        while((ATOMIC_LOAD(&device->MixCount, almemory_order_acquire)&1))
-            althrd_yield();
         al_free(newarray);
     }
 
@@ -517,17 +513,14 @@ ALenum InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *e
         if(!State) return AL_OUT_OF_MEMORY;
 
         START_MIXER_MODE();
-        almtx_lock(&Device->BackendLock);
         State->OutBuffer = Device->Dry.Buffer;
         State->OutChannels = Device->Dry.NumChannels;
         if(V(State,deviceUpdate)(Device) == AL_FALSE)
         {
-            almtx_unlock(&Device->BackendLock);
             LEAVE_MIXER_MODE();
             ALeffectState_DecRef(State);
             return AL_OUT_OF_MEMORY;
         }
-        almtx_unlock(&Device->BackendLock);
         END_MIXER_MODE();
 
         if(!effect)

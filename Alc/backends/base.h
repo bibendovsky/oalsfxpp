@@ -2,7 +2,6 @@
 #define AL_BACKENDS_BASE_H
 
 #include "alMain.h"
-#include "threads.h"
 
 
 typedef struct ClockLatency {
@@ -26,8 +25,6 @@ typedef struct ALCbackend {
     const struct ALCbackendVtable *vtbl;
 
     ALCdevice *mDevice;
-
-    almtx_t mMutex;
 } ALCbackend;
 
 void ALCbackend_Construct(ALCbackend *self, ALCdevice *device);

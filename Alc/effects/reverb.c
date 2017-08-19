@@ -52,7 +52,7 @@
 static MixerFunc MixSamples = Mix_C;
 static RowMixerFunc MixRowSamples = MixRow_C;
 
-static alonce_flag mixfunc_inited = AL_ONCE_FLAG_INIT;
+static ALCboolean mixfunc_inited = ALC_FALSE;
 static void init_mixfunc(void)
 {
     MixSamples = SelectMixer();
@@ -1898,7 +1898,11 @@ static ALeffectState *ALreverbStateFactory_create(ALreverbStateFactory* UNUSED(f
 {
     ALreverbState *state;
 
-    alcall_once(&mixfunc_inited, init_mixfunc);
+    if (!mixfunc_inited)
+    {
+        mixfunc_inited = ALC_TRUE;
+        init_mixfunc();
+    }
 
     NEW_OBJ0(state, ALreverbState)();
     if(!state) return NULL;

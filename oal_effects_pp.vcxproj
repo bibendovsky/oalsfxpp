@@ -156,7 +156,6 @@
     <ClCompile Include="common\almalloc.c" />
     <ClCompile Include="common\atomic.c" />
     <ClCompile Include="common\rwlock.c" />
-    <ClCompile Include="common\threads.c" />
     <ClCompile Include="common\uintmap.c" />
     <ClCompile Include="oal_effects_pp.cpp" />
     <ClCompile Include="OpenAL32\alAuxEffectSlot.c" />

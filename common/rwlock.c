@@ -5,16 +5,12 @@
 
 #include "bool.h"
 #include "atomic.h"
-#include "threads.h"
 
 
 /* A simple spinlock. Yield the thread while the given integer is set by
  * another. Could probably be improved... */
-#define LOCK(l) do {                                                          \
-    while(ATOMIC_FLAG_TEST_AND_SET(&(l), almemory_order_acq_rel) == true)     \
-        althrd_yield();                                                       \
-} while(0)
-#define UNLOCK(l) ATOMIC_FLAG_CLEAR(&(l), almemory_order_release)
+#define LOCK(l)
+#define UNLOCK(l)
 
 
 void RWLockInit(RWLock *lock)

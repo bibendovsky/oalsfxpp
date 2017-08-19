@@ -7,7 +7,6 @@
 #include "alu.h"
 
 #include "bool.h"
-#include "threads.h"
 #include "almalloc.h"
 
 
@@ -188,7 +187,7 @@ static const ALfloat Ambi3DDecoder[8][FB_Max][MAX_AMBI_COEFFS] = {
 static RowMixerFunc MixMatrixRow = MixRow_C;
 
 
-static alonce_flag bformatdec_inited = AL_ONCE_FLAG_INIT;
+static ALCboolean bformatdec_inited = ALC_FALSE;
 
 static void init_bformatdec(void)
 {
@@ -225,7 +224,12 @@ typedef struct BFormatDec {
 
 BFormatDec *bformatdec_alloc()
 {
-    alcall_once(&bformatdec_inited, init_bformatdec);
+    if (!bformatdec_inited)
+    {
+        bformatdec_inited = ALC_TRUE;
+        init_bformatdec();
+    }
+
     return al_calloc(16, sizeof(BFormatDec));
 }
 
@@ -520,7 +524,12 @@ typedef struct AmbiUpsampler {
 
 AmbiUpsampler *ambiup_alloc()
 {
-    alcall_once(&bformatdec_inited, init_bformatdec);
+    if (!bformatdec_inited)
+    {
+        bformatdec_inited = ALC_TRUE;
+        init_bformatdec();
+    }
+
     return al_calloc(16, sizeof(AmbiUpsampler));
 }
 

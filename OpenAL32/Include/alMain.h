@@ -28,7 +28,6 @@
 #include "vector.h"
 #include "alstring.h"
 #include "almalloc.h"
-#include "threads.h"
 
 #ifndef ALC_SOFT_loopback2
 #define ALC_SOFT_loopback2 1
@@ -801,7 +800,6 @@ struct ALCdevice_struct
     // Contexts created on this device
     ATOMIC(ALCcontext*) ContextList;
 
-    almtx_t BackendLock;
     struct ALCbackend *Backend;
 
     ALCdevice *volatile next;
