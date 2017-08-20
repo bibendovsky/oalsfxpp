@@ -599,7 +599,7 @@ ALenum InitEffectSlot(ALeffectslot *slot)
 
     slot->Gain = 1.0;
     slot->AuxSendAuto = AL_TRUE;
-    ATOMIC_FLAG_TEST_AND_SET(&slot->PropsClean, almemory_order_relaxed);
+    slot->PropsClean = 1;
     slot->ref = 0;
 
     slot->Update = NULL;
@@ -705,7 +705,9 @@ void UpdateAllEffectSlotProps(ALCcontext *context)
     for(i = 0;i < auxslots->count;i++)
     {
         ALeffectslot *slot = auxslots->slot[i];
-        if(!ATOMIC_FLAG_TEST_AND_SET(&slot->PropsClean, almemory_order_acq_rel))
+        int old_props_clean = slot->PropsClean;
+        slot->PropsClean = 1;
+        if(!old_props_clean)
             UpdateEffectSlotProps(slot);
     }
     UnlockEffectSlotsRead(context);

@@ -54,7 +54,9 @@ ALenum NewThunkEntry(ALuint *index)
     ReadLock(&ThunkLock);
     for(i = 0;i < ThunkArraySize;i++)
     {
-        if(!ATOMIC_FLAG_TEST_AND_SET(&ThunkArray[i], almemory_order_acq_rel))
+        int old_thunk = ThunkArray[i];
+        ThunkArray[i] = 1;
+        if(!old_thunk)
         {
             ReadUnlock(&ThunkLock);
             *index = i+1;
@@ -69,7 +71,9 @@ ALenum NewThunkEntry(ALuint *index)
      */
     for(;i < ThunkArraySize;i++)
     {
-        if(!ATOMIC_FLAG_TEST_AND_SET(&ThunkArray[i], almemory_order_acq_rel))
+        int old_thunk = ThunkArray[i];
+        ThunkArray[i] = 1;
+        if(!old_thunk)
         {
             WriteUnlock(&ThunkLock);
             *index = i+1;
@@ -89,7 +93,7 @@ ALenum NewThunkEntry(ALuint *index)
     ThunkArray = NewList;
     ThunkArraySize *= 2;
 
-    ATOMIC_FLAG_TEST_AND_SET(&ThunkArray[i], almemory_order_seq_cst);
+    ThunkArray[i] = 1;
     *index = ++i;
 
     for(;i < ThunkArraySize;i++)

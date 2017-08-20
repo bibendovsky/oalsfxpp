@@ -2518,7 +2518,7 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
             voice = context->Voices[context->VoiceCount++];
         voice->Playing = false;
 
-        ATOMIC_FLAG_TEST_AND_SET(&source->PropsClean, almemory_order_acquire);
+        source->PropsClean = 1;
         UpdateSourceProps(source, voice, device->NumAuxSends);
 
         /* A source that's not playing or paused has any offset applied when it
@@ -3014,7 +3014,7 @@ static void InitSourceParams(ALsource *Source, ALsizei num_sends)
     /* No way to do an 'init' here, so just test+set with relaxed ordering and
      * ignore the test.
      */
-    ATOMIC_FLAG_TEST_AND_SET(&Source->PropsClean, almemory_order_relaxed);
+    Source->PropsClean = 1;
 }
 
 static void DeinitSource(ALsource *source, ALsizei num_sends)
@@ -3146,7 +3146,9 @@ void UpdateAllSourceProps(ALCcontext *context)
     {
         ALvoice *voice = context->Voices[pos];
         ALsource *source = voice->Source;
-        if(source && !ATOMIC_FLAG_TEST_AND_SET(&source->PropsClean, almemory_order_acq_rel))
+        int old_props_clean = source->PropsClean;
+        source->PropsClean = 1;
+        if(source && !old_props_clean)
             UpdateSourceProps(source, voice, num_sends);
     }
 }
