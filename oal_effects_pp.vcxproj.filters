@@ -251,11 +251,5 @@
     <ClInclude Include="OpenAL32\Include\sample_cvt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="utils\alsoft-config\mainwindow.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="router\router.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

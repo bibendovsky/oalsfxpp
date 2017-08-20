@@ -203,8 +203,6 @@
     <ClInclude Include="OpenAL32\Include\alu.h" />
     <ClInclude Include="OpenAL32\Include\bs2b.h" />
     <ClInclude Include="OpenAL32\Include\sample_cvt.h" />
-    <ClInclude Include="router\router.h" />
-    <ClInclude Include="utils\alsoft-config\mainwindow.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
