@@ -30,14 +30,6 @@ ALvoid *RemoveUIntMapKeyNoLock(UIntMap *map, ALuint key);
 ALvoid *LookupUIntMapKey(UIntMap *map, ALuint key);
 ALvoid *LookupUIntMapKeyNoLock(UIntMap *map, ALuint key);
 
-inline void LockUIntMapRead(UIntMap *map)
-{}
-inline void UnlockUIntMapRead(UIntMap *map)
-{}
-inline void LockUIntMapWrite(UIntMap *map)
-{}
-inline void UnlockUIntMapWrite(UIntMap *map)
-{}
 
 #ifdef __cplusplus
 }

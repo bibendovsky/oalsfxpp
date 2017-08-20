@@ -167,14 +167,6 @@ typedef struct ALeffect {
     ALuint id;
 } ALeffect;
 
-inline void LockEffectsRead(ALCdevice *device)
-{ LockUIntMapRead(&device->EffectMap); }
-inline void UnlockEffectsRead(ALCdevice *device)
-{ UnlockUIntMapRead(&device->EffectMap); }
-inline void LockEffectsWrite(ALCdevice *device)
-{ LockUIntMapWrite(&device->EffectMap); }
-inline void UnlockEffectsWrite(ALCdevice *device)
-{ UnlockUIntMapWrite(&device->EffectMap); }
 
 inline struct ALeffect *LookupEffect(ALCdevice *device, ALuint id)
 { return (struct ALeffect*)LookupUIntMapKeyNoLock(&device->EffectMap, id); }

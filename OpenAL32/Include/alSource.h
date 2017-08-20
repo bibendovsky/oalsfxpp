@@ -100,14 +100,6 @@ typedef struct ALsource {
     ALuint id;
 } ALsource;
 
-inline void LockSourcesRead(ALCcontext *context)
-{ LockUIntMapRead(&context->SourceMap); }
-inline void UnlockSourcesRead(ALCcontext *context)
-{ UnlockUIntMapRead(&context->SourceMap); }
-inline void LockSourcesWrite(ALCcontext *context)
-{ LockUIntMapWrite(&context->SourceMap); }
-inline void UnlockSourcesWrite(ALCcontext *context)
-{ UnlockUIntMapWrite(&context->SourceMap); }
 
 inline struct ALsource *LookupSource(ALCcontext *context, ALuint id)
 { return (struct ALsource*)LookupUIntMapKeyNoLock(&context->SourceMap, id); }

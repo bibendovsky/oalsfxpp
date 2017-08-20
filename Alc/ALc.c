@@ -789,12 +789,6 @@ static const ALCint alcEFXMinorVersion = 0;
  ************************************************/
 static ALCdevice* DeviceList = NULL;
 
-static inline void LockLists(void)
-{
-}
-static inline void UnlockLists(void)
-{
-}
 
 /************************************************
  * Library initialization
@@ -1213,13 +1207,10 @@ static void ProbeDevices(al_string *list, struct BackendInfo *backendinfo, enum 
 
     DO_INITCONFIG();
 
-    LockLists();
     alstr_clear(list);
 
     factory = backendinfo->getFactory();
     V(factory,probe)(type);
-
-    UnlockLists();
 }
 static void ProbeAllDevicesList(void)
 { ProbeDevices(&alcAllDevicesList, &PlaybackBackend, ALL_DEVICE_PROBE); }
@@ -1409,17 +1400,6 @@ static ALCboolean IsValidAmbiScaling(ALCenum scaling)
 /************************************************
  * Miscellaneous ALC helpers
  ************************************************/
-
-void ALCdevice_Lock(ALCdevice *device)
-{
-    V0(device->Backend,lock)();
-}
-
-void ALCdevice_Unlock(ALCdevice *device)
-{
-    V0(device->Backend,unlock)();
-}
-
 
 /* SetDefaultWFXChannelOrder
  *
@@ -2012,7 +1992,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
                 UpdateEffectSlotProps(slot);
         }
 
-        LockUIntMapRead(&context->EffectSlotMap);
         for(pos = 0;pos < context->EffectSlotMap.size;pos++)
         {
             ALeffectslot *slot = context->EffectSlotMap.values[pos];
@@ -2025,9 +2004,7 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
             else
                 UpdateEffectSlotProps(slot);
         }
-        UnlockUIntMapRead(&context->EffectSlotMap);
 
-        LockUIntMapRead(&context->SourceMap);
         RelimitUIntMapNoLock(&context->SourceMap, device->SourcesMax);
         for(pos = 0;pos < context->SourceMap.size;pos++)
         {
@@ -2088,7 +2065,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
             if(voice->Source == NULL)
                 continue;
         }
-        UnlockUIntMapRead(&context->SourceMap);
 
         UpdateListenerProps(context);
         UpdateAllSourceProps(context);
@@ -2196,19 +2172,16 @@ static ALCboolean VerifyDevice(ALCdevice **device)
 {
     ALCdevice *tmpDevice;
 
-    LockLists();
     tmpDevice = DeviceList;
     while(tmpDevice)
     {
         if(tmpDevice == *device)
         {
             ALCdevice_IncRef(tmpDevice);
-            UnlockLists();
             return ALC_TRUE;
         }
         tmpDevice = tmpDevice->next;
     }
-    UnlockLists();
 
     *device = NULL;
     return ALC_FALSE;
@@ -2375,7 +2348,6 @@ static bool ReleaseContext(ALCcontext *context, ALCdevice *device)
     if(GlobalContext == origctx ? (GlobalContext = NULL, true) : (origctx = GlobalContext, false))
         ALCcontext_DecRef(context);
 
-    ALCdevice_Lock(device);
     origctx = context;
     newhead = context->next;
     if(!(device->ContextList == origctx ? (device->ContextList = newhead, true) : (origctx = device->ContextList, false)))
@@ -2393,7 +2365,6 @@ static bool ReleaseContext(ALCcontext *context, ALCdevice *device)
     }
     else
         ret = !!newhead;
-    ALCdevice_Unlock(device);
 
     ALCcontext_DecRef(context);
     return ret;
@@ -2428,7 +2399,6 @@ static ALCboolean VerifyContext(ALCcontext **context)
 {
     ALCdevice *dev;
 
-    LockLists();
     dev = DeviceList;
     while(dev)
     {
@@ -2438,14 +2408,12 @@ static ALCboolean VerifyContext(ALCcontext **context)
             if(ctx == *context)
             {
                 ALCcontext_IncRef(ctx);
-                UnlockLists();
                 return ALC_TRUE;
             }
             ctx = ctx->next;
         }
         dev = dev->next;
     }
-    UnlockLists();
 
     *context = NULL;
     return ALC_FALSE;
@@ -2466,11 +2434,9 @@ ALCcontext *GetContextRef(void)
         ALCcontext_IncRef(context);
     else
     {
-        LockLists();
         context = GlobalContext;
         if(context)
             ALCcontext_IncRef(context);
-        UnlockLists();
     }
 
     return context;
@@ -3191,15 +3157,12 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
      * device is asynchronously destropyed, to ensure this new context is
      * properly cleaned up after being made.
      */
-    LockLists();
     if(!VerifyDevice(&device) || device->Type == Capture || !device->Connected)
     {
-        UnlockLists();
         alcSetError(device, ALC_INVALID_DEVICE);
         if(device) ALCdevice_DecRef(device);
         return NULL;
     }
-    UnlockLists();
 
     device->LastError = ALC_NO_ERROR;
 
@@ -3232,9 +3195,7 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
         alcSetError(device, err);
         if(err == ALC_INVALID_DEVICE)
         {
-            V0(device->Backend,lock)();
             aluHandleDisconnect(device);
-            V0(device->Backend,unlock)();
         }
         ALCdevice_DecRef(device);
         return NULL;
@@ -3287,10 +3248,8 @@ ALC_API ALCvoid ALC_APIENTRY alcDestroyContext(ALCcontext *context)
 {
     ALCdevice *Device;
 
-    LockLists();
     if(!VerifyContext(&context))
     {
-        UnlockLists();
         alcSetError(NULL, ALC_INVALID_CONTEXT);
         return;
     }
@@ -3304,7 +3263,6 @@ ALC_API ALCvoid ALC_APIENTRY alcDestroyContext(ALCcontext *context)
             Device->Flags &= ~DEVICE_RUNNING;
         }
     }
-    UnlockLists();
 
     ALCcontext_DecRef(context);
 }
@@ -3541,7 +3499,6 @@ ALC_API ALCboolean ALC_APIENTRY alcCloseDevice(ALCdevice *device)
     ALCdevice *iter, *origdev;
     ALCcontext *ctx;
 
-    LockLists();
     iter = DeviceList;
     do {
         if(iter == device)
@@ -3550,7 +3507,6 @@ ALC_API ALCboolean ALC_APIENTRY alcCloseDevice(ALCdevice *device)
     if(!iter || iter->Type == Capture)
     {
         alcSetError(iter, ALC_INVALID_DEVICE);
-        UnlockLists();
         return ALC_FALSE;
     }
 
@@ -3568,7 +3524,6 @@ ALC_API ALCboolean ALC_APIENTRY alcCloseDevice(ALCdevice *device)
             list = &(*list)->next;
         }
     }
-    UnlockLists();
 
     ctx = device->ContextList;
     while(ctx != NULL)
@@ -3696,7 +3651,6 @@ ALC_API ALCboolean ALC_APIENTRY alcCaptureCloseDevice(ALCdevice *device)
 {
     ALCdevice *iter, *origdev;
 
-    LockLists();
     iter = DeviceList;
     do {
         if(iter == device)
@@ -3705,7 +3659,6 @@ ALC_API ALCboolean ALC_APIENTRY alcCaptureCloseDevice(ALCdevice *device)
     if(!iter || iter->Type != Capture)
     {
         alcSetError(iter, ALC_INVALID_DEVICE);
-        UnlockLists();
         return ALC_FALSE;
     }
 
@@ -3723,7 +3676,6 @@ ALC_API ALCboolean ALC_APIENTRY alcCaptureCloseDevice(ALCdevice *device)
             list = &(*list)->next;
         }
     }
-    UnlockLists();
 
     ALCdevice_DecRef(device);
 
@@ -3929,9 +3881,7 @@ FORCE_ALIGN ALC_API void ALC_APIENTRY alcRenderSamplesSOFT(ALCdevice *device, AL
         alcSetError(device, ALC_INVALID_VALUE);
     else
     {
-        V0(device->Backend,lock)();
         aluMixData(device, buffer, samples);
-        V0(device->Backend,unlock)();
     }
     if(device) ALCdevice_DecRef(device);
 }
@@ -4001,9 +3951,7 @@ ALC_API void ALC_APIENTRY alcDeviceResumeSOFT(ALCdevice *device)
                 else
                 {
                     alcSetError(device, ALC_INVALID_DEVICE);
-                    V0(device->Backend,lock)();
                     aluHandleDisconnect(device);
-                    V0(device->Backend,unlock)();
                 }
             }
         }
@@ -4045,15 +3993,12 @@ ALC_API ALCboolean ALC_APIENTRY alcResetDeviceSOFT(ALCdevice *device, const ALCi
 {
     ALCenum err;
 
-    LockLists();
     if(!VerifyDevice(&device) || device->Type == Capture || !device->Connected)
     {
-        UnlockLists();
         alcSetError(device, ALC_INVALID_DEVICE);
         if(device) ALCdevice_DecRef(device);
         return ALC_FALSE;
     }
-    UnlockLists();
 
     err = UpdateDeviceParams(device, attribs);
 
@@ -4062,9 +4007,7 @@ ALC_API ALCboolean ALC_APIENTRY alcResetDeviceSOFT(ALCdevice *device, const ALCi
         alcSetError(device, err);
         if(err == ALC_INVALID_DEVICE)
         {
-            V0(device->Backend,lock)();
             aluHandleDisconnect(device);
-            V0(device->Backend,unlock)();
         }
         ALCdevice_DecRef(device);
         return ALC_FALSE;

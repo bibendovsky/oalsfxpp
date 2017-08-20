@@ -9,12 +9,6 @@
 #include "almalloc.h"
 
 
-extern inline void LockUIntMapRead(UIntMap *map);
-extern inline void UnlockUIntMapRead(UIntMap *map);
-extern inline void LockUIntMapWrite(UIntMap *map);
-extern inline void UnlockUIntMapWrite(UIntMap *map);
-
-
 void InitUIntMap(UIntMap *map, ALsizei limit)
 {
     map->keys = NULL;
