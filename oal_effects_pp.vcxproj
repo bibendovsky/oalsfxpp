@@ -122,11 +122,6 @@
     <ClCompile Include="Alc\ALc.c" />
     <ClCompile Include="Alc\alcRing.c" />
     <ClCompile Include="Alc\ALu.c" />
-    <ClCompile Include="Alc\backends\base.c" />
-    <ClCompile Include="Alc\backends\loopback.c" />
-    <ClCompile Include="Alc\backends\null.c">
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)2/</ObjectFileName>
-    </ClCompile>
     <ClCompile Include="Alc\bsinc.c" />
     <ClCompile Include="Alc\converter.c" />
     <ClCompile Include="Alc\effects\chorus.c" />
@@ -137,9 +132,7 @@
     <ClCompile Include="Alc\effects\equalizer.c" />
     <ClCompile Include="Alc\effects\flanger.c" />
     <ClCompile Include="Alc\effects\modulator.c" />
-    <ClCompile Include="Alc\effects\null.c">
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)1/</ObjectFileName>
-    </ClCompile>
+    <ClCompile Include="Alc\effects\null.c" />
     <ClCompile Include="Alc\effects\reverb.c" />
     <ClCompile Include="Alc\helpers.c" />
     <ClCompile Include="Alc\mastering.c" />

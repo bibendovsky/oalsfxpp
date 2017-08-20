@@ -732,8 +732,6 @@ struct ALCdevice_struct
     // Contexts created on this device
     ALCcontext* ContextList;
 
-    struct ALCbackend *Backend;
-
     ALCdevice *volatile next;
 };
 

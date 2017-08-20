@@ -48,66 +48,6 @@
 
 
 /************************************************
- * Backends
- ************************************************/
-struct BackendInfo {
-    const char *name;
-    ALCbackendFactory* (*getFactory)(void);
-};
-
-static struct BackendInfo BackendList[] = {
-#ifdef HAVE_JACK
-    { "jack", ALCjackBackendFactory_getFactory },
-#endif
-#ifdef HAVE_PULSEAUDIO
-    { "pulse", ALCpulseBackendFactory_getFactory },
-#endif
-#ifdef HAVE_ALSA
-    { "alsa", ALCalsaBackendFactory_getFactory },
-#endif
-#ifdef HAVE_COREAUDIO
-    { "core", ALCcoreAudioBackendFactory_getFactory },
-#endif
-#ifdef HAVE_OSS
-    { "oss", ALCossBackendFactory_getFactory },
-#endif
-#ifdef HAVE_SOLARIS
-    { "solaris", ALCsolarisBackendFactory_getFactory },
-#endif
-#ifdef HAVE_SNDIO
-    { "sndio", ALCsndioBackendFactory_getFactory },
-#endif
-#ifdef HAVE_QSA
-    { "qsa", ALCqsaBackendFactory_getFactory },
-#endif
-#ifdef HAVE_MMDEVAPI
-    { "mmdevapi", ALCmmdevBackendFactory_getFactory },
-#endif
-#ifdef HAVE_DSOUND
-    { "dsound", ALCdsoundBackendFactory_getFactory },
-#endif
-#ifdef HAVE_WINMM
-    { "winmm", ALCwinmmBackendFactory_getFactory },
-#endif
-#ifdef HAVE_PORTAUDIO
-    { "port", ALCportBackendFactory_getFactory },
-#endif
-#ifdef HAVE_OPENSL
-    { "opensl", ALCopenslBackendFactory_getFactory },
-#endif
-
-    { "null", ALCnullBackendFactory_getFactory },
-#ifdef HAVE_WAVE
-    { "wave", ALCwaveBackendFactory_getFactory },
-#endif
-};
-static ALsizei BackendListSize = COUNTOF(BackendList);
-#undef EmptyFuncs
-
-static struct BackendInfo PlaybackBackend;
-
-
-/************************************************
  * Functions, enums, and errors
  ************************************************/
 #define DECL(x) { #x, (ALCvoid*)(x) }
@@ -895,16 +835,6 @@ static void alc_initconfig(void)
 
     TRACE("Initializing library v%s-%s %s\n", ALSOFT_VERSION,
           ALSOFT_GIT_COMMIT_HASH, ALSOFT_GIT_BRANCH);
-    {
-        char buf[1024] = "";
-        int len = 0;
-
-        if(BackendListSize > 0)
-            len += snprintf(buf, sizeof(buf), "%s", BackendList[0].name);
-        for(i = 1;i < BackendListSize;i++)
-            len += snprintf(buf+len, sizeof(buf)-len, ", %s", BackendList[i].name);
-        TRACE("Supported backends: %s\n", buf);
-    }
 
     str = getenv("__ALSOFT_SUSPEND_CONTEXT");
     if(str && *str)
@@ -960,7 +890,6 @@ static void alc_initconfig(void)
 
     if((devs=getenv("ALSOFT_DRIVERS")) && devs[0])
     {
-        int n;
         size_t len;
         const char *next = devs;
         int endlist, delitem;
@@ -985,58 +914,8 @@ static void alc_initconfig(void)
             len = (next ? ((size_t)(next-devs)) : strlen(devs));
             while(len > 0 && isspace(devs[len-1]))
                 len--;
-            for(n = i;n < BackendListSize;n++)
-            {
-                if(len == strlen(BackendList[n].name) &&
-                   strncmp(BackendList[n].name, devs, len) == 0)
-                {
-                    if(delitem)
-                    {
-                        for(;n+1 < BackendListSize;n++)
-                            BackendList[n] = BackendList[n+1];
-                        BackendListSize--;
-                    }
-                    else
-                    {
-                        struct BackendInfo Bkp = BackendList[n];
-                        for(;n > i;n--)
-                            BackendList[n] = BackendList[n-1];
-                        BackendList[n] = Bkp;
-
-                        i++;
-                    }
-                    break;
-                }
-            }
         } while(next++);
-
-        if(endlist)
-            BackendListSize = i;
     }
-
-    for(i = 0;i < BackendListSize && (!PlaybackBackend.name);i++)
-    {
-        ALCbackendFactory *factory = BackendList[i].getFactory();
-        if(!V0(factory,init)())
-        {
-            WARN("Failed to initialize backend \"%s\"\n", BackendList[i].name);
-            continue;
-        }
-
-        TRACE("Initialized backend \"%s\"\n", BackendList[i].name);
-        if(!PlaybackBackend.name && V(factory,querySupport)(ALCbackend_Playback))
-        {
-            PlaybackBackend = BackendList[i];
-            TRACE("Added \"%s\" for playback\n", PlaybackBackend.name);
-        }
-    }
-    {
-        ALCbackendFactory *factory = ALCloopbackFactory_getFactory();
-        V0(factory,init)();
-    }
-
-    if(!PlaybackBackend.name)
-        WARN("No playback backend available!\n");
 
     InitEffectFactoryMap();
 
@@ -1163,22 +1042,7 @@ static void alc_deinit_safe(void)
 
 static void alc_deinit(void)
 {
-    int i;
-
     alc_cleanup();
-
-    memset(&PlaybackBackend, 0, sizeof(PlaybackBackend));
-
-    for(i = 0;i < BackendListSize;i++)
-    {
-        ALCbackendFactory *factory = BackendList[i].getFactory();
-        V0(factory,deinit)();
-    }
-    {
-        ALCbackendFactory *factory = ALCloopbackFactory_getFactory();
-        V0(factory,deinit)();
-    }
-
     alc_deinit_safe();
 }
 
@@ -1188,17 +1052,10 @@ static void alc_deinit(void)
  ************************************************/
 static void ProbeDevices(al_string *list, struct BackendInfo *backendinfo, enum DevProbe type)
 {
-    ALCbackendFactory *factory;
-
     DO_INITCONFIG();
 
     alstr_clear(list);
-
-    factory = backendinfo->getFactory();
-    V(factory,probe)(type);
 }
-static void ProbeAllDevicesList(void)
-{ ProbeDevices(&alcAllDevicesList, &PlaybackBackend, ALL_DEVICE_PROBE); }
 
 static void AppendDevice(const ALCchar *name, al_string *devnames)
 {
@@ -1709,8 +1566,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
             return ALC_INVALID_VALUE;
         }
 
-        if((device->Flags&DEVICE_RUNNING))
-            V0(device->Backend,stop)();
         device->Flags &= ~DEVICE_RUNNING;
 
         UpdateClockBase(device);
@@ -1740,8 +1595,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
 
         /* If a context is already running on the device, stop playback so the
          * device attributes can be updated. */
-        if((device->Flags&DEVICE_RUNNING))
-            V0(device->Backend,stop)();
         device->Flags &= ~DEVICE_RUNNING;
 
         UpdateClockBase(device);
@@ -1851,9 +1704,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
         (device->Flags&DEVICE_FREQUENCY_REQUEST)?"*":"", device->Frequency,
         device->UpdateSize, device->NumUpdates
     );
-
-    if(V0(device->Backend,reset)() == ALC_FALSE)
-        return ALC_INVALID_DEVICE;
 
     if(device->FmtChans != oldChans && (device->Flags&DEVICE_CHANNELS_REQUEST))
     {
@@ -2058,8 +1908,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
 
     if(!(device->Flags&DEVICE_PAUSED))
     {
-        if(V0(device->Backend,start)() == ALC_FALSE)
-            return ALC_INVALID_DEVICE;
         device->Flags |= DEVICE_RUNNING;
     }
 
@@ -2076,10 +1924,6 @@ static ALCvoid FreeDevice(ALCdevice *device)
     ALsizei i;
 
     TRACE("%p\n", device);
-
-    V0(device->Backend,close)();
-    DELETE_OBJ(device->Backend);
-    device->Backend = NULL;
 
     if(device->BufferMap.size > 0)
     {
@@ -2613,43 +2457,6 @@ ALC_API const ALCchar* ALC_APIENTRY alcGetString(ALCdevice *Device, ALCenum para
         value = alcDefaultName;
         break;
 
-    case ALC_ALL_DEVICES_SPECIFIER:
-        if(VerifyDevice(&Device))
-        {
-            value = alstr_get_cstr(Device->DeviceName);
-            ALCdevice_DecRef(Device);
-        }
-        else
-        {
-            ProbeAllDevicesList();
-            value = alstr_get_cstr(alcAllDevicesList);
-        }
-        break;
-
-    /* Default devices are always first in the list */
-    case ALC_DEFAULT_DEVICE_SPECIFIER:
-        value = alcDefaultName;
-        break;
-
-    case ALC_DEFAULT_ALL_DEVICES_SPECIFIER:
-        if(alstr_empty(alcAllDevicesList))
-            ProbeAllDevicesList();
-
-        VerifyDevice(&Device);
-
-        free(alcDefaultAllDevicesSpecifier);
-        alcDefaultAllDevicesSpecifier = strdup(alstr_get_cstr(alcAllDevicesList));
-        if(!alcDefaultAllDevicesSpecifier)
-            alcSetError(Device, ALC_OUT_OF_MEMORY);
-
-        value = alcDefaultAllDevicesSpecifier;
-        if(Device) ALCdevice_DecRef(Device);
-        break;
-
-    case ALC_CAPTURE_DEFAULT_DEVICE_SPECIFIER:
-        alcSetError(Device, ALC_OUT_OF_MEMORY);
-        break;
-
     case ALC_EXTENSIONS:
         if(!VerifyDevice(&Device))
             value = alcNoDeviceExtList;
@@ -2887,7 +2694,6 @@ ALC_API void ALC_APIENTRY alcGetInteger64vSOFT(ALCdevice *device, ALCenum pname,
     }
     else /* render device */
     {
-        ClockLatency clock;
         ALuint64 basecount;
         ALuint samplecount;
 
@@ -2935,13 +2741,6 @@ ALC_API void ALC_APIENTRY alcGetInteger64vSOFT(ALCdevice *device, ALCenum pname,
                     values[i++] = ALC_OUTPUT_LIMITER_SOFT;
                     values[i++] = device->Limiter ? ALC_TRUE : ALC_FALSE;
 
-                    clock = V0(device->Backend,getClockLatency)();
-                    values[i++] = ALC_DEVICE_CLOCK_SOFT;
-                    values[i++] = clock.ClockTime;
-
-                    values[i++] = ALC_DEVICE_LATENCY_SOFT;
-                    values[i++] = clock.Latency;
-
                     values[i++] = 0;
                 }
                 break;
@@ -2950,22 +2749,6 @@ ALC_API void ALC_APIENTRY alcGetInteger64vSOFT(ALCdevice *device, ALCenum pname,
                 basecount = device->ClockBase;
                 samplecount = device->SamplesDone;
                 *values = basecount + (samplecount*DEVICE_CLOCK_RES/device->Frequency);
-                break;
-
-            case ALC_DEVICE_LATENCY_SOFT:
-                clock = V0(device->Backend,getClockLatency)();
-                *values = clock.Latency;
-                break;
-
-            case ALC_DEVICE_CLOCK_LATENCY_SOFT:
-                if(size < 2)
-                    alcSetError(device, ALC_INVALID_VALUE);
-                else
-                {
-                    clock = V0(device->Backend,getClockLatency)();
-                    values[0] = clock.ClockTime;
-                    values[1] = clock.Latency;
-                }
                 break;
 
             default:
@@ -3197,7 +2980,6 @@ ALC_API ALCvoid ALC_APIENTRY alcDestroyContext(ALCcontext *context)
     {
         if(!ReleaseContext(context, Device))
         {
-            V0(Device->Backend,stop)();
             Device->Flags &= ~DEVICE_RUNNING;
         }
     }
@@ -3306,18 +3088,10 @@ ALC_API ALCdevice* ALC_APIENTRY alcGetContextsDevice(ALCcontext *Context)
  */
 ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
 {
-    ALCbackendFactory *factory;
     ALCdevice *device;
-    ALCenum err;
     ALCsizei i;
 
     DO_INITCONFIG();
-
-    if(!PlaybackBackend.name)
-    {
-        alcSetError(NULL, ALC_INVALID_VALUE);
-        return NULL;
-    }
 
     if(deviceName && (!deviceName[0] || strcasecmp(deviceName, alcDefaultName) == 0 || strcasecmp(deviceName, "openal-soft") == 0
 #ifdef _WIN32
@@ -3384,15 +3158,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     device->NumUpdates = 3;
     device->UpdateSize = 1024;
 
-    factory = PlaybackBackend.getFactory();
-    device->Backend = V(factory,createBackend)(device, ALCbackend_Playback);
-    if(!device->Backend)
-    {
-        al_free(device);
-        alcSetError(NULL, ALC_OUT_OF_MEMORY);
-        return NULL;
-    }
-
     device->NumUpdates = clampu(device->NumUpdates, 2, 16);
     device->UpdateSize = clampu(device->UpdateSize, 64, 8192);
 
@@ -3405,16 +3170,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
 
     device->NumStereoSources = 1;
     device->NumMonoSources = device->SourcesMax - device->NumStereoSources;
-
-    // Find a playback device to open
-    if((err=V(device->Backend,open)(deviceName)) != ALC_NO_ERROR)
-    {
-        DELETE_OBJ(device->Backend);
-        al_free(device);
-        alcSetError(NULL, err);
-        return NULL;
-    }
-
     device->Limiter = CreateDeviceLimiter(device);
 
     {
@@ -3471,8 +3226,6 @@ ALC_API ALCboolean ALC_APIENTRY alcCloseDevice(ALCdevice *device)
         ReleaseContext(ctx, device);
         ctx = next;
     }
-    if((device->Flags&DEVICE_RUNNING))
-        V0(device->Backend,stop)();
     device->Flags &= ~DEVICE_RUNNING;
 
     ALCdevice_DecRef(device);
@@ -3520,103 +3273,7 @@ ALC_API void ALC_APIENTRY alcCaptureSamples(ALCdevice *device, ALCvoid *buffer, 
  */
 ALC_API ALCdevice* ALC_APIENTRY alcLoopbackOpenDeviceSOFT(const ALCchar *deviceName)
 {
-    ALCbackendFactory *factory;
-    ALCdevice *device;
-    ALCsizei i;
-
-    DO_INITCONFIG();
-
-    /* Make sure the device name, if specified, is us. */
-    if(deviceName && strcmp(deviceName, alcDefaultName) != 0)
-    {
-        alcSetError(NULL, ALC_INVALID_VALUE);
-        return NULL;
-    }
-
-    device = al_calloc(16, sizeof(ALCdevice));
-    if(!device)
-    {
-        alcSetError(NULL, ALC_OUT_OF_MEMORY);
-        return NULL;
-    }
-
-    //Validate device
-    device->ref = 1;
-    device->Connected = ALC_TRUE;
-    device->Type = Loopback;
-    device->LastError = ALC_NO_ERROR;
-
-    device->Flags = 0;
-    device->Render_Mode = NormalRender;
-    AL_STRING_INIT(device->DeviceName);
-    device->Dry.Buffer = NULL;
-    device->Dry.NumChannels = 0;
-    device->FOAOut.Buffer = NULL;
-    device->FOAOut.NumChannels = 0;
-    device->RealOut.Buffer = NULL;
-    device->RealOut.NumChannels = 0;
-    device->Limiter = NULL;
-    device->AvgSpeakerDist = 0.0f;
-
-    device->ContextList = NULL;
-
-    device->ClockBase = 0;
-    device->SamplesDone = 0;
-
-    device->SourcesMax = 256;
-    device->AuxiliaryEffectSlotMax = 64;
-    device->NumAuxSends = DEFAULT_SENDS;
-
-    InitUIntMap(&device->BufferMap, INT_MAX);
-    InitUIntMap(&device->EffectMap, INT_MAX);
-    InitUIntMap(&device->FilterMap, INT_MAX);
-
-    for(i = 0;i < MAX_OUTPUT_CHANNELS;i++)
-    {
-        device->ChannelDelay[i].Gain   = 1.0f;
-        device->ChannelDelay[i].Length = 0;
-        device->ChannelDelay[i].Buffer = NULL;
-    }
-
-    factory = ALCloopbackFactory_getFactory();
-    device->Backend = V(factory,createBackend)(device, ALCbackend_Loopback);
-    if(!device->Backend)
-    {
-        al_free(device);
-        alcSetError(NULL, ALC_OUT_OF_MEMORY);
-        return NULL;
-    }
-
-    //Set output format
-    device->NumUpdates = 0;
-    device->UpdateSize = 0;
-
-    device->Frequency = DEFAULT_OUTPUT_RATE;
-    device->FmtChans = DevFmtChannelsDefault;
-    device->FmtType = DevFmtTypeDefault;
-    device->IsHeadphones = AL_FALSE;
-
-    if(device->SourcesMax == 0) device->SourcesMax = 256;
-
-    if(device->AuxiliaryEffectSlotMax == 0) device->AuxiliaryEffectSlotMax = 64;
-
-    device->NumStereoSources = 1;
-    device->NumMonoSources = device->SourcesMax - device->NumStereoSources;
-
-    // Open the "backend"
-    V(device->Backend,open)("Loopback");
-
-    device->Limiter = CreateDeviceLimiter(device);
-
-    {
-        ALCdevice *head = DeviceList;
-        do {
-            device->next = head;
-        } while(!(DeviceList == head ? (DeviceList = device, true) : (head = DeviceList, false)));
-    }
-
-    TRACE("Created device %p\n", device);
-    return device;
+    return NULL;
 }
 
 /* alcIsRenderFormatSupportedSOFT
@@ -3696,8 +3353,6 @@ ALC_API void ALC_APIENTRY alcDevicePauseSOFT(ALCdevice *device)
         alcSetError(device, ALC_INVALID_DEVICE);
     else
     {
-        if((device->Flags&DEVICE_RUNNING))
-            V0(device->Backend,stop)();
         device->Flags &= ~DEVICE_RUNNING;
         device->Flags |= DEVICE_PAUSED;
     }
@@ -3719,13 +3374,7 @@ ALC_API void ALC_APIENTRY alcDeviceResumeSOFT(ALCdevice *device)
             device->Flags &= ~DEVICE_PAUSED;
             if(device->ContextList != NULL)
             {
-                if(V0(device->Backend,start)() != ALC_FALSE)
-                    device->Flags |= DEVICE_RUNNING;
-                else
-                {
-                    alcSetError(device, ALC_INVALID_DEVICE);
-                    aluHandleDisconnect(device);
-                }
+                device->Flags |= DEVICE_RUNNING;
             }
         }
     }

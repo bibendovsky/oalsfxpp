@@ -1080,8 +1080,6 @@ static ALboolean GetSourcedv(ALsource *Source, ALCcontext *Context, SourceProp p
 {
     ALCdevice *device = Context->Device;
     ALbufferlistitem *BufferList;
-    ClockLatency clocktime;
-    ALuint64 srcclock;
     ALint ivals[3];
     ALboolean err;
 
@@ -1179,24 +1177,7 @@ static ALboolean GetSourcedv(ALsource *Source, ALCcontext *Context, SourceProp p
             return AL_TRUE;
 
         case AL_SEC_OFFSET_LATENCY_SOFT:
-            /* Get the source offset with the clock time first. Then get the
-             * clock time with the device latency. Order is important.
-             */
-            values[0] = GetSourceSecOffset(Source, Context, &srcclock);
-            clocktime = V0(device->Backend,getClockLatency)();
-            if(srcclock == (ALuint64)clocktime.ClockTime)
-                values[1] = (ALdouble)clocktime.Latency / 1000000000.0;
-            else
-            {
-                /* If the clock time incremented, reduce the latency by that
-                 * much since it's that much closer to the source offset it got
-                 * earlier.
-                 */
-                ALuint64 diff = clocktime.ClockTime - srcclock;
-                values[1] = (ALdouble)(clocktime.Latency - minu64(clocktime.Latency, diff)) /
-                            1000000000.0;
-            }
-            return AL_TRUE;
+            return AL_FALSE;
 
         case AL_POSITION:
             values[0] = Source->Position[0];
@@ -1476,8 +1457,6 @@ static ALboolean GetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
 static ALboolean GetSourcei64v(ALsource *Source, ALCcontext *Context, SourceProp prop, ALint64 *values)
 {
     ALCdevice *device = Context->Device;
-    ClockLatency clocktime;
-    ALuint64 srcclock;
     ALdouble dvals[6];
     ALint ivals[3];
     ALboolean err;
@@ -1485,23 +1464,7 @@ static ALboolean GetSourcei64v(ALsource *Source, ALCcontext *Context, SourceProp
     switch(prop)
     {
         case AL_SAMPLE_OFFSET_LATENCY_SOFT:
-            /* Get the source offset with the clock time first. Then get the
-             * clock time with the device latency. Order is important.
-             */
-            values[0] = GetSourceSampleOffset(Source, Context, &srcclock);
-            clocktime = V0(device->Backend,getClockLatency)();
-            if(srcclock == (ALuint64)clocktime.ClockTime)
-                values[1] = clocktime.Latency;
-            else
-            {
-                /* If the clock time incremented, reduce the latency by that
-                 * much since it's that much closer to the source offset it got
-                 * earlier.
-                 */
-                ALuint64 diff = clocktime.ClockTime - srcclock;
-                values[1] = clocktime.Latency - minu64(clocktime.Latency, diff);
-            }
-            return AL_TRUE;
+            return AL_FALSE;
 
         /* 1x float/double */
         case AL_CONE_INNER_ANGLE:

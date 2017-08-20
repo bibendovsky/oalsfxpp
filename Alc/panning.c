@@ -504,6 +504,8 @@ void aluInitRenderer(ALCdevice *device)
 
     headphones = device->IsHeadphones;
 
+    SetDefaultWFXChannelOrder(device);
+
     TRACE("HRTF disabled\n");
 
     device->Render_Mode = StereoPair;
