@@ -638,12 +638,6 @@ struct ALCdevice_struct
     enum DevFmtChannels FmtChans;
     enum DevFmtType     FmtType;
     ALboolean IsHeadphones;
-    ALsizei AmbiOrder;
-    /* For DevFmtAmbi* output only, specifies the channel order and
-     * normalization.
-     */
-    enum AmbiLayout AmbiLayout;
-    enum AmbiNorm   AmbiScale;
 
     al_string DeviceName;
 
