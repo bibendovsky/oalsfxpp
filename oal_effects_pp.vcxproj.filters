@@ -57,9 +57,6 @@
     <ClCompile Include="Alc\bsinc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Alc\converter.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Alc\helpers.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -126,9 +123,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Alc\compat.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Alc\converter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Alc\mixer_defs.h">
