@@ -1,3 +1,6 @@
+#define NOMINMAX
+
+
 #include <cassert>
 #include <cmath>
 #include <array>

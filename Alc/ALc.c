@@ -2653,13 +2653,13 @@ static bool ReleaseContext(ALCcontext *context, ALCdevice *device)
     bool ret = true;
 
     origctx = context;
-    if(GlobalContext == origctx ? GlobalContext = NULL, true : false)
+    if(GlobalContext == origctx ? (GlobalContext = NULL, true) : (origctx = GlobalContext, false))
         ALCcontext_DecRef(context);
 
     ALCdevice_Lock(device);
     origctx = context;
     newhead = context->next;
-    if(!(device->ContextList == origctx ? device->ContextList = newhead, true : false))
+    if(!(device->ContextList == origctx ? (device->ContextList = newhead, true) : (origctx = device->ContextList, false)))
     {
         ALCcontext *volatile*list = &origctx->next;
         while(*list)
@@ -3644,7 +3644,7 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
         ALCcontext *head = device->ContextList;
         do {
             ALContext->next = head;
-        } while((device->ContextList == head ? device->ContextList = ALContext, true : false) == 0);
+        } while((device->ContextList == head ? (device->ContextList = ALContext, true) : (head = device->ContextList, false)) == 0);
     }
 
     if(ALContext->DefaultSlot)
@@ -4017,7 +4017,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
         ALCdevice *head = DeviceList;
         do {
             device->next = head;
-        } while(!(DeviceList == head ? DeviceList = device, true : false));
+        } while(!(DeviceList == head ? (DeviceList = device, true) : (head = DeviceList, false)));
     }
 
     TRACE("Created device %p, \"%s\"\n", device, alstr_get_cstr(device->DeviceName));
@@ -4047,7 +4047,7 @@ ALC_API ALCboolean ALC_APIENTRY alcCloseDevice(ALCdevice *device)
     }
 
     origdev = device;
-    if(!(DeviceList == origdev ? DeviceList = device->next, true : false))
+    if(!(DeviceList == origdev ? (DeviceList = device->next, true) : (origdev = DeviceList, false)))
     {
         ALCdevice *volatile*list = &origdev->next;
         while(*list)
@@ -4185,7 +4185,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcCaptureOpenDevice(const ALCchar *deviceName, 
         ALCdevice *head = DeviceList;
         do {
             device->next = head;
-        } while(!(DeviceList == head ? DeviceList = device, true : false));
+        } while(!(DeviceList == head ? (DeviceList = device, true) : (head = DeviceList, false)));
     }
 
     TRACE("Created device %p, \"%s\"\n", device, alstr_get_cstr(device->DeviceName));
@@ -4210,7 +4210,7 @@ ALC_API ALCboolean ALC_APIENTRY alcCaptureCloseDevice(ALCdevice *device)
     }
 
     origdev = device;
-    if(!(DeviceList == origdev ? DeviceList = device->next, true : false))
+    if(!(DeviceList == origdev ? (DeviceList = device->next, true) : (origdev = DeviceList, false)))
     {
         ALCdevice *volatile*list = &origdev->next;
         while(*list)
@@ -4402,7 +4402,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcLoopbackOpenDeviceSOFT(const ALCchar *deviceN
         ALCdevice *head = DeviceList;
         do {
             device->next = head;
-        } while(!(DeviceList == head ? DeviceList = device, true : false));
+        } while(!(DeviceList == head ? (DeviceList = device, true) : (head = DeviceList, false)));
     }
 
     TRACE("Created device %p\n", device);

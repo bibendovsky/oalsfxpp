@@ -469,7 +469,7 @@ void UpdateListenerProps(ALCcontext *context)
         struct ALlistenerProps *next;
         do {
             next = props->next;
-        } while((listener->FreeList == props ? listener->FreeList = next, true : false) == 0);
+        } while((listener->FreeList == props ? (listener->FreeList = next, true) : (props = listener->FreeList, false)) == 0);
     }
 
     /* Copy in current property values. */

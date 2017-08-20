@@ -162,9 +162,10 @@ static inline ALenum GetSourceState(ALsource *source, ALvoice *voice)
 {
     if(!voice)
     {
-        if(source->state == AL_PLAYING ? source->state = AL_STOPPED, true : false)
+        ALenum state = AL_PLAYING;
+        if(source->state == state ? (source->state = AL_STOPPED, true) : (state = source->state, false))
             return AL_STOPPED;
-        return AL_PLAYING;
+        return state; 
     }
     return source->state;
 }
@@ -3059,7 +3060,7 @@ static void UpdateSourceProps(ALsource *source, ALvoice *voice, ALsizei num_send
         struct ALvoiceProps *next;
         do {
             next = props->next;
-        } while((voice->FreeList == props ? voice->FreeList = next, true : false) == 0);
+        } while((voice->FreeList == props ? (voice->FreeList = next, true) : (props = voice->FreeList, false)) == 0);
     }
 
     /* Copy in current property values. */

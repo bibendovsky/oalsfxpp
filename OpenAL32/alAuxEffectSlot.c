@@ -661,7 +661,7 @@ void UpdateEffectSlotProps(ALeffectslot *slot)
         struct ALeffectslotProps *next;
         do {
             next = props->next;
-        } while((slot->FreeList == props ? slot->FreeList = next, true : false) == 0);
+        } while((slot->FreeList == props ? (slot->FreeList = next, true) : (props = slot->FreeList, false)) == 0);
     }
 
     /* Copy in current property values. */
