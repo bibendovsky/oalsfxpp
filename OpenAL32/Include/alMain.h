@@ -668,7 +668,7 @@ typedef struct DistanceComp {
 
 struct ALCdevice_struct
 {
-    RefCount ref;
+    uint ref;
 
     ALCboolean Connected;
     enum DeviceType Type;
@@ -795,7 +795,7 @@ struct ALCdevice_struct
      * the end, so the bottom bit indicates if the device is currently mixing
      * and the upper bits indicates how many mixes have been done.
      */
-    RefCount MixCount;
+    uint MixCount;
 
     // Contexts created on this device
     ALCcontext* ContextList;
@@ -831,7 +831,7 @@ struct ALCdevice_struct
 
 
 struct ALCcontext_struct {
-    RefCount ref;
+    uint ref;
 
     struct ALlistener *Listener;
 
@@ -853,7 +853,7 @@ struct ALCcontext_struct {
     /* Counter for the pre-mixing updates, in 31.1 fixed point (lowest bit
      * indicates if updates are currently happening).
      */
-    RefCount UpdateCount;
+    uint UpdateCount;
     ALenum HoldUpdates;
 
     ALfloat GainBoost;

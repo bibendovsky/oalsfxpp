@@ -15,7 +15,7 @@ struct ALeffectStateVtable;
 struct ALeffectslot;
 
 typedef struct ALeffectState {
-    RefCount Ref;
+    uint Ref;
     const struct ALeffectStateVtable *vtbl;
 
     ALfloat (*OutBuffer)[BUFFERSIZE];
@@ -107,7 +107,7 @@ typedef struct ALeffectslot {
 
     int PropsClean;
 
-    RefCount ref;
+    uint ref;
 
     struct ALeffectslotProps* Update;
     struct ALeffectslotProps* FreeList;

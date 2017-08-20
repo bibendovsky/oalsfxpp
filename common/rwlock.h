@@ -9,8 +9,8 @@ extern "C" {
 #endif
 
 typedef struct {
-    RefCount read_count;
-    RefCount write_count;
+    uint read_count;
+    uint write_count;
     ATOMIC_FLAG read_lock;
     ATOMIC_FLAG read_entry_lock;
     ATOMIC_FLAG write_lock;

@@ -565,7 +565,7 @@ static void DirectorySearch(const char *path, const char *ext, vector_al_string 
 vector_al_string SearchDataFiles(const char *ext, const char *subdir)
 {
     static const int ids[2] = { CSIDL_APPDATA, CSIDL_COMMON_APPDATA };
-    static RefCount search_lock;
+    static uint search_lock;
     vector_al_string results = VECTOR_INIT_STATIC();
     size_t i;
 
@@ -854,7 +854,7 @@ static void DirectorySearch(const char *path, const char *ext, vector_al_string 
 
 vector_al_string SearchDataFiles(const char *ext, const char *subdir)
 {
-    static RefCount search_lock;
+    static uint search_lock;
     vector_al_string results = VECTOR_INIT_STATIC();
 
     while(ATOMIC_EXCHANGE_SEQ(&search_lock, 1) == 1)

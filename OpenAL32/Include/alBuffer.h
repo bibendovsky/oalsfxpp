@@ -92,7 +92,7 @@ typedef struct ALbuffer {
     ALsizei PackAlign;
 
     /* Number of times buffer was attached to a source (deletion can only occur when 0) */
-    RefCount ref;
+    uint ref;
 
     RWLock lock;
 

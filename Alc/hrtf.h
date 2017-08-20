@@ -18,7 +18,7 @@
 struct HrtfEntry;
 
 struct Hrtf {
-    RefCount ref;
+    uint ref;
 
     ALuint sampleRate;
     ALsizei irSize;
