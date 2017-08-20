@@ -754,7 +754,7 @@ static ALboolean SetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
                 /* Add the selected buffer to a one-item queue */
                 ALbufferlistitem *newlist = al_calloc(DEF_ALIGN, sizeof(ALbufferlistitem));
                 newlist->buffer = buffer;
-                ATOMIC_INIT(&newlist->next, NULL);
+                newlist->next = NULL;
                 IncrementRef(&buffer->ref);
 
                 /* Source is now Static */
@@ -2790,7 +2790,7 @@ AL_API ALvoid AL_APIENTRY alSourceQueueBuffers(ALuint src, ALsizei nb, const ALu
             BufferList = item;
         }
         BufferList->buffer = buffer;
-        ATOMIC_INIT(&BufferList->next, NULL);
+        BufferList->next = NULL;
         if(!buffer) continue;
 
         /* Hold a read lock on each buffer being queued while checking all
@@ -3008,7 +3008,7 @@ static void InitSourceParams(ALsource *Source, ALsizei num_sends)
     Source->Offset = 0.0;
     Source->OffsetType = AL_NONE;
     Source->SourceType = AL_UNDETERMINED;
-    ATOMIC_INIT(&Source->state, AL_INITIAL);
+    Source->state = AL_INITIAL;
 
     Source->queue = NULL;
 

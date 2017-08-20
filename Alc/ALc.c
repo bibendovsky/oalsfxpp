@@ -2525,15 +2525,15 @@ static ALvoid InitContext(ALCcontext *Context)
     listener->Params.DopplerFactor = 1.0f;
     listener->Params.SpeedOfSound = SPEEDOFSOUNDMETRESPERSEC;
 
-    ATOMIC_INIT(&listener->Update, NULL);
-    ATOMIC_INIT(&listener->FreeList, NULL);
+    listener->Update = NULL;
+    listener->FreeList = NULL;
 
     //Validate Context
     InitRef(&Context->UpdateCount, 0);
-    ATOMIC_INIT(&Context->HoldUpdates, AL_FALSE);
+    Context->HoldUpdates = AL_FALSE;
     Context->GainBoost = 1.0f;
     RWLockInit(&Context->PropLock);
-    ATOMIC_INIT(&Context->LastError, AL_NO_ERROR);
+    Context->LastError = AL_NO_ERROR;
     InitUIntMap(&Context->SourceMap, Context->Device->SourcesMax);
     InitUIntMap(&Context->EffectSlotMap, Context->Device->AuxiliaryEffectSlotMax);
 
@@ -2548,7 +2548,7 @@ static ALvoid InitContext(ALCcontext *Context)
         auxslots = al_calloc(DEF_ALIGN, sizeof(struct ALeffectslotArray));
         auxslots->count = 0;
     }
-    ATOMIC_INIT(&Context->ActiveAuxSlots, auxslots);
+    Context->ActiveAuxSlots = auxslots;
 
     //Set globals
     Context->DistanceModel = DefaultDistanceModel;
@@ -2556,7 +2556,7 @@ static ALvoid InitContext(ALCcontext *Context)
     Context->DopplerFactor = 1.0f;
     Context->DopplerVelocity = 1.0f;
     Context->SpeedOfSound = SPEEDOFSOUNDMETRESPERSEC;
-    ATOMIC_INIT(&Context->DeferUpdates, AL_FALSE);
+    Context->DeferUpdates = AL_FALSE;
 
     Context->ExtensionList = alExtList;
 }
@@ -2819,8 +2819,8 @@ void AllocateVoices(ALCcontext *context, ALsizei num_voices, ALsizei old_sends)
     /* Finish setting the voices' property set pointers and references. */
     for(;v < num_voices;v++)
     {
-        ATOMIC_INIT(&voice->Update, NULL);
-        ATOMIC_INIT(&voice->FreeList, NULL);
+        voice->Update = NULL;
+        voice->FreeList = NULL;
 
         voice->Props = props;
         voices[v] = voice;
@@ -3578,7 +3578,7 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
     ALContext->Voices = NULL;
     ALContext->VoiceCount = 0;
     ALContext->MaxVoices = 0;
-    ATOMIC_INIT(&ALContext->ActiveAuxSlots, NULL);
+    ALContext->ActiveAuxSlots = NULL;
     ALContext->Device = device;
 
     if((err=UpdateDeviceParams(device, attrList)) != ALC_NO_ERROR)
@@ -3814,7 +3814,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     InitRef(&device->ref, 1);
     device->Connected = ALC_TRUE;
     device->Type = Playback;
-    ATOMIC_INIT(&device->LastError, ALC_NO_ERROR);
+    device->LastError = ALC_NO_ERROR;
 
     device->Flags = 0;
     device->Bs2b = NULL;
@@ -3834,7 +3834,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     device->Limiter = NULL;
     device->AvgSpeakerDist = 0.0f;
 
-    ATOMIC_INIT(&device->ContextList, NULL);
+    device->ContextList = NULL;
 
     device->ClockBase = 0;
     device->SamplesDone = 0;
@@ -4304,7 +4304,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcLoopbackOpenDeviceSOFT(const ALCchar *deviceN
     InitRef(&device->ref, 1);
     device->Connected = ALC_TRUE;
     device->Type = Loopback;
-    ATOMIC_INIT(&device->LastError, ALC_NO_ERROR);
+    device->LastError = ALC_NO_ERROR;
 
     device->Flags = 0;
     device->Hrtf = NULL;
@@ -4324,7 +4324,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcLoopbackOpenDeviceSOFT(const ALCchar *deviceN
     device->Limiter = NULL;
     device->AvgSpeakerDist = 0.0f;
 
-    ATOMIC_INIT(&device->ContextList, NULL);
+    device->ContextList = NULL;
 
     device->ClockBase = 0;
     device->SamplesDone = 0;

@@ -598,8 +598,8 @@ ALenum InitEffectSlot(ALeffectslot *slot)
     ATOMIC_FLAG_TEST_AND_SET(&slot->PropsClean, almemory_order_relaxed);
     InitRef(&slot->ref, 0);
 
-    ATOMIC_INIT(&slot->Update, NULL);
-    ATOMIC_INIT(&slot->FreeList, NULL);
+    slot->Update = NULL;
+    slot->FreeList = NULL;
 
     slot->Params.Gain = 1.0f;
     slot->Params.AuxSendAuto = AL_TRUE;

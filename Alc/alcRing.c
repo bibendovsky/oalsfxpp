@@ -57,8 +57,8 @@ ll_ringbuffer_t *ll_ringbuffer_create(size_t sz, size_t elem_sz)
     rb = al_malloc(16, sizeof(*rb) + power_of_two*elem_sz);
     if(!rb) return NULL;
 
-    ATOMIC_INIT(&rb->write_ptr, 0);
-    ATOMIC_INIT(&rb->read_ptr, 0);
+    rb->write_ptr = 0;
+    rb->read_ptr = 0;
     rb->size = power_of_two;
     rb->size_mask = rb->size - 1;
     rb->elem_size = elem_sz;
