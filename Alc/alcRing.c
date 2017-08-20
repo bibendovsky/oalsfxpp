@@ -237,13 +237,13 @@ size_t ll_ringbuffer_write(ll_ringbuffer_t *rb, const char *src, size_t cnt)
 /* Advance the read pointer `cnt' places. */
 void ll_ringbuffer_read_advance(ll_ringbuffer_t *rb, size_t cnt)
 {
-    ATOMIC_ADD(&rb->read_ptr, cnt, almemory_order_acq_rel);
+    rb->read_ptr += cnt;
 }
 
 /* Advance the write pointer `cnt' places. */
 void ll_ringbuffer_write_advance(ll_ringbuffer_t *rb, size_t cnt)
 {
-    ATOMIC_ADD(&rb->write_ptr, cnt, almemory_order_acq_rel);
+    rb->write_ptr += cnt;
 }
 
 /* The non-copying data reader. `vec' is an array of two places. Set the values

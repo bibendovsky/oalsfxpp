@@ -26,8 +26,7 @@ void ReadLock(RWLock *lock)
 {
     LOCK(lock->read_entry_lock);
     LOCK(lock->read_lock);
-    /* NOTE: ATOMIC_ADD returns the *old* value! */
-    if(ATOMIC_ADD(&lock->read_count, 1, almemory_order_acq_rel) == 0)
+    if((lock->read_count++) == 0)
         LOCK(lock->write_lock);
     UNLOCK(lock->read_lock);
     UNLOCK(lock->read_entry_lock);
@@ -36,13 +35,13 @@ void ReadLock(RWLock *lock)
 void ReadUnlock(RWLock *lock)
 {
     /* NOTE: ATOMIC_SUB returns the *old* value! */
-    if(ATOMIC_SUB(&lock->read_count, 1, almemory_order_acq_rel) == 1)
+    if((lock->read_count--) == 1)
         UNLOCK(lock->write_lock);
 }
 
 void WriteLock(RWLock *lock)
 {
-    if(ATOMIC_ADD(&lock->write_count, 1, almemory_order_acq_rel) == 0)
+    if((lock->write_count++) == 0)
         LOCK(lock->read_lock);
     LOCK(lock->write_lock);
 }
@@ -50,6 +49,6 @@ void WriteLock(RWLock *lock)
 void WriteUnlock(RWLock *lock)
 {
     UNLOCK(lock->write_lock);
-    if(ATOMIC_SUB(&lock->write_count, 1, almemory_order_acq_rel) == 1)
+    if((lock->write_count--) == 1)
         UNLOCK(lock->read_lock);
 }
