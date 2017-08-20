@@ -1119,7 +1119,7 @@ void Hrtf_DecRef(struct Hrtf *hrtf)
              * could've reacquired this HRTF after its reference went to 0 and
              * before the lock was taken.
              */
-            if(hrtf == Hrtf->handle && ReadRef(&hrtf->ref) == 0)
+            if(hrtf == Hrtf->handle && hrtf->ref == 0)
             {
                 al_free(Hrtf->handle);
                 Hrtf->handle = NULL;
