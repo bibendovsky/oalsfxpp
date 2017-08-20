@@ -105,7 +105,6 @@ static ALsizei BackendListSize = COUNTOF(BackendList);
 #undef EmptyFuncs
 
 static struct BackendInfo PlaybackBackend;
-static struct BackendInfo CaptureBackend;
 
 
 /************************************************
@@ -717,11 +716,9 @@ static const ALCchar alcErrOutOfMemory[] = "Out of Memory";
 static const ALCchar alcDefaultName[] = "OpenAL Soft\0";
 
 static al_string alcAllDevicesList;
-static al_string alcCaptureDeviceList;
 
 /* Default is always the first in the list */
 static ALCchar *alcDefaultAllDevicesSpecifier;
-static ALCchar *alcCaptureDefaultDeviceSpecifier;
 
 /* Default context extensions */
 static const ALchar alExtList[] =
@@ -862,7 +859,6 @@ static void alc_init(void)
     LogFile = stderr;
 
     AL_STRING_INIT(alcAllDevicesList);
-    AL_STRING_INIT(alcCaptureDeviceList);
 
     str = getenv("__ALSOFT_HALF_ANGLE_CONES");
     if(str && (strcasecmp(str, "true") == 0 || strtol(str, NULL, 0) == 1))
@@ -1018,7 +1014,7 @@ static void alc_initconfig(void)
             BackendListSize = i;
     }
 
-    for(i = 0;i < BackendListSize && (!PlaybackBackend.name || !CaptureBackend.name);i++)
+    for(i = 0;i < BackendListSize && (!PlaybackBackend.name);i++)
     {
         ALCbackendFactory *factory = BackendList[i].getFactory();
         if(!V0(factory,init)())
@@ -1033,11 +1029,6 @@ static void alc_initconfig(void)
             PlaybackBackend = BackendList[i];
             TRACE("Added \"%s\" for playback\n", PlaybackBackend.name);
         }
-        if(!CaptureBackend.name && V(factory,querySupport)(ALCbackend_Capture))
-        {
-            CaptureBackend = BackendList[i];
-            TRACE("Added \"%s\" for capture\n", CaptureBackend.name);
-        }
     }
     {
         ALCbackendFactory *factory = ALCloopbackFactory_getFactory();
@@ -1046,8 +1037,6 @@ static void alc_initconfig(void)
 
     if(!PlaybackBackend.name)
         WARN("No playback backend available!\n");
-    if(!CaptureBackend.name)
-        WARN("No capture backend available!\n");
 
     InitEffectFactoryMap();
 
@@ -1143,12 +1132,9 @@ static void alc_cleanup(void)
     ALCdevice *dev;
 
     AL_STRING_DEINIT(alcAllDevicesList);
-    AL_STRING_DEINIT(alcCaptureDeviceList);
 
     free(alcDefaultAllDevicesSpecifier);
     alcDefaultAllDevicesSpecifier = NULL;
-    free(alcCaptureDefaultDeviceSpecifier);
-    alcCaptureDefaultDeviceSpecifier = NULL;
 
     dev = DeviceList;
     DeviceList = NULL;
@@ -1182,7 +1168,6 @@ static void alc_deinit(void)
     alc_cleanup();
 
     memset(&PlaybackBackend, 0, sizeof(PlaybackBackend));
-    memset(&CaptureBackend, 0, sizeof(CaptureBackend));
 
     for(i = 0;i < BackendListSize;i++)
     {
@@ -1214,8 +1199,6 @@ static void ProbeDevices(al_string *list, struct BackendInfo *backendinfo, enum 
 }
 static void ProbeAllDevicesList(void)
 { ProbeDevices(&alcAllDevicesList, &PlaybackBackend, ALL_DEVICE_PROBE); }
-static void ProbeCaptureDeviceList(void)
-{ ProbeDevices(&alcCaptureDeviceList, &CaptureBackend, CAPTURE_DEVICE_PROBE); }
 
 static void AppendDevice(const ALCchar *name, al_string *devnames)
 {
@@ -1225,8 +1208,6 @@ static void AppendDevice(const ALCchar *name, al_string *devnames)
 }
 void AppendAllDevicesList(const ALCchar *name)
 { AppendDevice(name, &alcAllDevicesList); }
-void AppendCaptureDeviceList(const ALCchar *name)
-{ AppendDevice(name, &alcCaptureDeviceList); }
 
 
 /************************************************
@@ -2645,19 +2626,6 @@ ALC_API const ALCchar* ALC_APIENTRY alcGetString(ALCdevice *Device, ALCenum para
         }
         break;
 
-    case ALC_CAPTURE_DEVICE_SPECIFIER:
-        if(VerifyDevice(&Device))
-        {
-            value = alstr_get_cstr(Device->DeviceName);
-            ALCdevice_DecRef(Device);
-        }
-        else
-        {
-            ProbeCaptureDeviceList();
-            value = alstr_get_cstr(alcCaptureDeviceList);
-        }
-        break;
-
     /* Default devices are always first in the list */
     case ALC_DEFAULT_DEVICE_SPECIFIER:
         value = alcDefaultName;
@@ -2679,18 +2647,7 @@ ALC_API const ALCchar* ALC_APIENTRY alcGetString(ALCdevice *Device, ALCenum para
         break;
 
     case ALC_CAPTURE_DEFAULT_DEVICE_SPECIFIER:
-        if(alstr_empty(alcCaptureDeviceList))
-            ProbeCaptureDeviceList();
-
-        VerifyDevice(&Device);
-
-        free(alcCaptureDefaultDeviceSpecifier);
-        alcCaptureDefaultDeviceSpecifier = strdup(alstr_get_cstr(alcCaptureDeviceList));
-        if(!alcCaptureDefaultDeviceSpecifier)
-            alcSetError(Device, ALC_OUT_OF_MEMORY);
-
-        value = alcCaptureDefaultDeviceSpecifier;
-        if(Device) ALCdevice_DecRef(Device);
+        alcSetError(Device, ALC_OUT_OF_MEMORY);
         break;
 
     case ALC_EXTENSIONS:
@@ -2760,25 +2717,6 @@ static ALCsizei GetIntegerv(ALCdevice *device, ALCenum param, ALCsizei size, ALC
 
             default:
                 alcSetError(NULL, ALC_INVALID_ENUM);
-                return 0;
-        }
-        return 0;
-    }
-
-    if(device->Type == Capture)
-    {
-        switch(param)
-        {
-            case ALC_CAPTURE_SAMPLES:
-                values[0] = V0(device->Backend,availableSamples)();
-                return 1;
-
-            case ALC_CONNECTED:
-                values[0] = device->Connected;
-                return 1;
-
-            default:
-                alcSetError(device, ALC_INVALID_ENUM);
                 return 0;
         }
         return 0;
@@ -2939,7 +2877,7 @@ ALC_API void ALC_APIENTRY alcGetInteger64vSOFT(ALCdevice *device, ALCenum pname,
     VerifyDevice(&device);
     if(size <= 0 || values == NULL)
         alcSetError(device, ALC_INVALID_VALUE);
-    else if(!device || device->Type == Capture)
+    else if(!device)
     {
         ivals = malloc(size * sizeof(ALCint));
         size = GetIntegerv(device, pname, size, ivals);
@@ -3157,7 +3095,7 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
      * device is asynchronously destropyed, to ensure this new context is
      * properly cleaned up after being made.
      */
-    if(!VerifyDevice(&device) || device->Type == Capture || !device->Connected)
+    if(!VerifyDevice(&device) || !device->Connected)
     {
         alcSetError(device, ALC_INVALID_DEVICE);
         if(device) ALCdevice_DecRef(device);
@@ -3504,7 +3442,7 @@ ALC_API ALCboolean ALC_APIENTRY alcCloseDevice(ALCdevice *device)
         if(iter == device)
             break;
     } while((iter=iter->next) != NULL);
-    if(!iter || iter->Type == Capture)
+    if(!iter)
     {
         alcSetError(iter, ALC_INVALID_DEVICE);
         return ALC_FALSE;
@@ -3548,192 +3486,27 @@ ALC_API ALCboolean ALC_APIENTRY alcCloseDevice(ALCdevice *device)
  ************************************************/
 ALC_API ALCdevice* ALC_APIENTRY alcCaptureOpenDevice(const ALCchar *deviceName, ALCuint frequency, ALCenum format, ALCsizei samples)
 {
-    ALCbackendFactory *factory;
-    ALCdevice *device = NULL;
-    ALCenum err;
-    ALCsizei i;
-
-    DO_INITCONFIG();
-
-    if(!CaptureBackend.name)
-    {
-        alcSetError(NULL, ALC_INVALID_VALUE);
-        return NULL;
-    }
-
-    if(samples <= 0)
-    {
-        alcSetError(NULL, ALC_INVALID_VALUE);
-        return NULL;
-    }
-
-    if(deviceName && (!deviceName[0] || strcasecmp(deviceName, alcDefaultName) == 0 || strcasecmp(deviceName, "openal-soft") == 0))
-        deviceName = NULL;
-
-    device = al_calloc(16, sizeof(ALCdevice));
-    if(!device)
-    {
-        alcSetError(NULL, ALC_OUT_OF_MEMORY);
-        return NULL;
-    }
-
-    //Validate device
-    device->ref = 1;
-    device->Connected = ALC_TRUE;
-    device->Type = Capture;
-
-    AL_STRING_INIT(device->DeviceName);
-    device->Dry.Buffer = NULL;
-    device->Dry.NumChannels = 0;
-    device->FOAOut.Buffer = NULL;
-    device->FOAOut.NumChannels = 0;
-    device->RealOut.Buffer = NULL;
-    device->RealOut.NumChannels = 0;
-
-    InitUIntMap(&device->BufferMap, INT_MAX);
-    InitUIntMap(&device->EffectMap, INT_MAX);
-    InitUIntMap(&device->FilterMap, INT_MAX);
-
-    for(i = 0;i < MAX_OUTPUT_CHANNELS;i++)
-    {
-        device->ChannelDelay[i].Gain   = 1.0f;
-        device->ChannelDelay[i].Length = 0;
-        device->ChannelDelay[i].Buffer = NULL;
-    }
-
-    factory = CaptureBackend.getFactory();
-    device->Backend = V(factory,createBackend)(device, ALCbackend_Capture);
-    if(!device->Backend)
-    {
-        al_free(device);
-        alcSetError(NULL, ALC_OUT_OF_MEMORY);
-        return NULL;
-    }
-
-    device->Flags |= DEVICE_FREQUENCY_REQUEST;
-    device->Frequency = frequency;
-
-    device->Flags |= DEVICE_CHANNELS_REQUEST | DEVICE_SAMPLE_TYPE_REQUEST;
-    if(DecomposeDevFormat(format, &device->FmtChans, &device->FmtType) == AL_FALSE)
-    {
-        al_free(device);
-        alcSetError(NULL, ALC_INVALID_ENUM);
-        return NULL;
-    }
-    device->IsHeadphones = AL_FALSE;
-
-    device->UpdateSize = samples;
-    device->NumUpdates = 1;
-
-    TRACE("Capture format: %s, %s, %uhz, %u update size x%d\n",
-        DevFmtChannelsString(device->FmtChans), DevFmtTypeString(device->FmtType),
-        device->Frequency, device->UpdateSize, device->NumUpdates
-    );
-    if((err=V(device->Backend,open)(deviceName)) != ALC_NO_ERROR)
-    {
-        al_free(device);
-        alcSetError(NULL, err);
-        return NULL;
-    }
-
-    {
-        ALCdevice *head = DeviceList;
-        do {
-            device->next = head;
-        } while(!(DeviceList == head ? (DeviceList = device, true) : (head = DeviceList, false)));
-    }
-
-    TRACE("Created device %p, \"%s\"\n", device, alstr_get_cstr(device->DeviceName));
-    return device;
+    return NULL;
 }
 
 ALC_API ALCboolean ALC_APIENTRY alcCaptureCloseDevice(ALCdevice *device)
 {
-    ALCdevice *iter, *origdev;
-
-    iter = DeviceList;
-    do {
-        if(iter == device)
-            break;
-    } while((iter=iter->next) != NULL);
-    if(!iter || iter->Type != Capture)
-    {
-        alcSetError(iter, ALC_INVALID_DEVICE);
-        return ALC_FALSE;
-    }
-
-    origdev = device;
-    if(!(DeviceList == origdev ? (DeviceList = device->next, true) : (origdev = DeviceList, false)))
-    {
-        ALCdevice *volatile*list = &origdev->next;
-        while(*list)
-        {
-            if(*list == device)
-            {
-                *list = (*list)->next;
-                break;
-            }
-            list = &(*list)->next;
-        }
-    }
-
-    ALCdevice_DecRef(device);
-
-    return ALC_TRUE;
+    return ALC_FALSE;
 }
 
 ALC_API void ALC_APIENTRY alcCaptureStart(ALCdevice *device)
 {
-    if(!VerifyDevice(&device) || device->Type != Capture)
-        alcSetError(device, ALC_INVALID_DEVICE);
-    else
-    {
-        if(!device->Connected)
-            alcSetError(device, ALC_INVALID_DEVICE);
-        else if(!(device->Flags&DEVICE_RUNNING))
-        {
-            if(V0(device->Backend,start)())
-                device->Flags |= DEVICE_RUNNING;
-            else
-            {
-                aluHandleDisconnect(device);
-                alcSetError(device, ALC_INVALID_DEVICE);
-            }
-        }
-    }
-
-    if(device) ALCdevice_DecRef(device);
+    alcSetError(device, ALC_INVALID_DEVICE);
 }
 
 ALC_API void ALC_APIENTRY alcCaptureStop(ALCdevice *device)
 {
-    if(!VerifyDevice(&device) || device->Type != Capture)
-        alcSetError(device, ALC_INVALID_DEVICE);
-    else
-    {
-        if((device->Flags&DEVICE_RUNNING))
-            V0(device->Backend,stop)();
-        device->Flags &= ~DEVICE_RUNNING;
-    }
-
-    if(device) ALCdevice_DecRef(device);
+    alcSetError(device, ALC_INVALID_DEVICE);
 }
 
 ALC_API void ALC_APIENTRY alcCaptureSamples(ALCdevice *device, ALCvoid *buffer, ALCsizei samples)
 {
-    if(!VerifyDevice(&device) || device->Type != Capture)
-        alcSetError(device, ALC_INVALID_DEVICE);
-    else
-    {
-        ALCenum err = ALC_INVALID_VALUE;
-
-        if(samples >= 0 && V0(device->Backend,availableSamples)() >= (ALCuint)samples)
-            err = V(device->Backend,captureSamples)(buffer, samples);
-
-        if(err != ALC_NO_ERROR)
-            alcSetError(device, err);
-    }
-    if(device) ALCdevice_DecRef(device);
+    alcSetError(device, ALC_INVALID_DEVICE);
 }
 
 
@@ -3972,7 +3745,7 @@ ALC_API const ALCchar* ALC_APIENTRY alcGetStringiSOFT(ALCdevice *device, ALCenum
 {
     const ALCchar *str = NULL;
 
-    if(!VerifyDevice(&device) || device->Type == Capture)
+    if(!VerifyDevice(&device))
         alcSetError(device, ALC_INVALID_DEVICE);
     else switch(paramName)
     {
@@ -3993,7 +3766,7 @@ ALC_API ALCboolean ALC_APIENTRY alcResetDeviceSOFT(ALCdevice *device, const ALCi
 {
     ALCenum err;
 
-    if(!VerifyDevice(&device) || device->Type == Capture || !device->Connected)
+    if(!VerifyDevice(&device) || !device->Connected)
     {
         alcSetError(device, ALC_INVALID_DEVICE);
         if(device) ALCdevice_DecRef(device);

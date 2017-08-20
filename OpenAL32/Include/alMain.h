@@ -441,8 +441,7 @@ inline ALint fastf2i(ALfloat f)
 
 
 enum DevProbe {
-    ALL_DEVICE_PROBE,
-    CAPTURE_DEVICE_PROBE
+    ALL_DEVICE_PROBE
 };
 
 struct ALCbackend;
@@ -562,7 +561,6 @@ extern const struct EffectList {
 
 enum DeviceType {
     Playback,
-    Capture,
     Loopback
 };
 
@@ -816,7 +814,6 @@ void ALCcontext_DecRef(ALCcontext *context);
 void AllocateVoices(ALCcontext *context, ALsizei num_voices, ALsizei old_sends);
 
 void AppendAllDevicesList(const ALCchar *name);
-void AppendCaptureDeviceList(const ALCchar *name);
 
 void ALCcontext_DeferUpdates(ALCcontext *context);
 void ALCcontext_ProcessUpdates(ALCcontext *context);

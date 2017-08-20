@@ -159,8 +159,6 @@ static void ALCnullBackendFactory_probe(ALCnullBackendFactory* UNUSED(self), enu
         case ALL_DEVICE_PROBE:
             AppendAllDevicesList(nullDevice);
             break;
-        case CAPTURE_DEVICE_PROBE:
-            break;
     }
 }
 
