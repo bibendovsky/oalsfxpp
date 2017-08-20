@@ -564,7 +564,7 @@ static void ALeffectState_IncRef(ALeffectState *state)
 static void ALeffectState_DecRef(ALeffectState *state)
 {
     uint ref;
-    ref = DecrementRef(&state->Ref);
+    ref = --state->Ref;
     TRACEREF("%p decreasing refcount to %u\n", state, ref);
     if(ref == 0) DELETE_OBJ(state);
 }

@@ -2285,7 +2285,7 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
                 for(s = device->NumAuxSends;s < old_sends;s++)
                 {
                     if(source->Send[s].Slot)
-                        DecrementRef(&source->Send[s].Slot->ref);
+                        source->Send[s].Slot->ref -= 1;
                     source->Send[s].Slot = NULL;
                 }
                 al_free(source->Send);
@@ -2456,7 +2456,7 @@ void ALCdevice_IncRef(ALCdevice *device)
 void ALCdevice_DecRef(ALCdevice *device)
 {
     uint ref;
-    ref = DecrementRef(&device->ref);
+    ref = --device->ref;
     TRACEREF("%p decreasing refcount to %u\n", device, ref);
     if(ref == 0) FreeDevice(device);
 }
@@ -2680,7 +2680,7 @@ void ALCcontext_IncRef(ALCcontext *context)
 
 void ALCcontext_DecRef(ALCcontext *context)
 {
-    uint ref = DecrementRef(&context->ref);
+    uint ref = --context->ref;
     TRACEREF("%p decreasing refcount to %u\n", context, ref);
     if(ref == 0) FreeContext(context);
 }
@@ -2688,7 +2688,7 @@ void ALCcontext_DecRef(ALCcontext *context)
 static void ReleaseThreadCtx(void *ptr)
 {
     ALCcontext *context = ptr;
-    uint ref = DecrementRef(&context->ref);
+    uint ref = --context->ref;
     TRACEREF("%p decreasing refcount to %u\n", context, ref);
     ERR("Context %p current for thread being destroyed, possible leak!\n", context);
 }

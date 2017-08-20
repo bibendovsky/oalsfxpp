@@ -777,7 +777,7 @@ static ALboolean SetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
                 oldlist = temp->next;
 
                 if(temp->buffer)
-                    DecrementRef(&temp->buffer->ref);
+                    temp->buffer->ref -= 1;
                 al_free(temp);
             }
             return AL_TRUE;
@@ -933,7 +933,7 @@ static ALboolean SetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
                 /* Add refcount on the new slot, and release the previous slot */
                 if(slot) slot->ref += 1;
                 if(Source->Send[values[1]].Slot)
-                    DecrementRef(&Source->Send[values[1]].Slot->ref);
+                    Source->Send[values[1]].Slot->ref -= 1;
                 Source->Send[values[1]].Slot = slot;
 
                 /* We must force an update if the auxiliary slot changed on an
@@ -948,7 +948,7 @@ static ALboolean SetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
             {
                 if(slot) slot->ref += 1;
                 if(Source->Send[values[1]].Slot)
-                    DecrementRef(&Source->Send[values[1]].Slot->ref);
+                    Source->Send[values[1]].Slot->ref -= 1;
                 Source->Send[values[1]].Slot = slot;
                 DO_UPDATEPROPS();
             }
@@ -2815,7 +2815,7 @@ AL_API ALvoid AL_APIENTRY alSourceQueueBuffers(ALuint src, ALsizei nb, const ALu
                 ALbufferlistitem *next = BufferListStart->next;
                 if((buffer=BufferListStart->buffer) != NULL)
                 {
-                    DecrementRef(&buffer->ref);
+                    buffer->ref -= 1;
                     ReadUnlock(&buffer->lock);
                 }
                 al_free(BufferListStart);
@@ -2923,7 +2923,7 @@ AL_API ALvoid AL_APIENTRY alSourceUnqueueBuffers(ALuint src, ALsizei nb, ALuint 
         else
         {
             *(buffers++) = buffer->id;
-            DecrementRef(&buffer->ref);
+            buffer->ref -= 1;
         }
 
         al_free(OldHead);
@@ -3026,7 +3026,7 @@ static void DeinitSource(ALsource *source, ALsizei num_sends)
     {
         ALbufferlistitem *next = BufferList->next;
         if(BufferList->buffer != NULL)
-            DecrementRef(&BufferList->buffer->ref);
+            BufferList->buffer->ref -= 1;
         al_free(BufferList);
         BufferList = next;
     }
@@ -3037,7 +3037,7 @@ static void DeinitSource(ALsource *source, ALsizei num_sends)
         for(i = 0;i < num_sends;i++)
         {
             if(source->Send[i].Slot)
-                DecrementRef(&source->Send[i].Slot->ref);
+                source->Send[i].Slot->ref -= 1;
             source->Send[i].Slot = NULL;
         }
         al_free(source->Send);

@@ -1108,7 +1108,7 @@ void Hrtf_IncRef(struct Hrtf *hrtf)
 void Hrtf_DecRef(struct Hrtf *hrtf)
 {
     struct HrtfEntry *Hrtf;
-    uint ref = DecrementRef(&hrtf->ref);
+    uint ref = --hrtf->ref;
     TRACEREF("%p decreasing refcount to %u\n", hrtf, ref);
     if(ref == 0)
     {
