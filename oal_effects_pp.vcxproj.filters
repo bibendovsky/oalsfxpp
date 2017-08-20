@@ -194,13 +194,7 @@
     <ClInclude Include="common\math_defs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="common\rwlock.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="common\static_assert.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="common\threads.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="common\uintmap.h">
