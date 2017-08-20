@@ -714,9 +714,6 @@ struct ALCdevice_struct
     vector_EnumeratedHrtf HrtfList;
     ALCenum HrtfStatus;
 
-    /* UHJ encoder state */
-    struct Uhj2Encoder *Uhj_Encoder;
-
     /* High quality Ambisonic decoder */
     struct BFormatDec *AmbiDecoder;
 

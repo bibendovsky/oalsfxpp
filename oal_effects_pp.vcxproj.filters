@@ -96,9 +96,6 @@
     <ClCompile Include="Alc\panning.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Alc\uhjfilter.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="common\almalloc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -171,9 +168,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Alc\nfcfilter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Alc\uhjfilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Alc\vector.h">

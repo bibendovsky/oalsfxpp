@@ -151,7 +151,6 @@
     <ClCompile Include="Alc\mixer_c.c" />
     <ClCompile Include="Alc\nfcfilter.c" />
     <ClCompile Include="Alc\panning.c" />
-    <ClCompile Include="Alc\uhjfilter.c" />
     <ClCompile Include="common\almalloc.c" />
     <ClCompile Include="common\uintmap.c" />
     <ClCompile Include="oal_effects_pp.cpp" />
@@ -177,7 +176,6 @@
     <ClInclude Include="Alc\hrtf.h" />
     <ClInclude Include="Alc\mixer_defs.h" />
     <ClInclude Include="Alc\nfcfilter.h" />
-    <ClInclude Include="Alc\uhjfilter.h" />
     <ClInclude Include="Alc\vector.h" />
     <ClInclude Include="common\align.h" />
     <ClInclude Include="common\almalloc.h" />

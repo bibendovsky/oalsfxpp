@@ -1929,9 +1929,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
     if((device->Flags&DEVICE_RUNNING))
         return ALC_NO_ERROR;
 
-    al_free(device->Uhj_Encoder);
-    device->Uhj_Encoder = NULL;
-
     al_free(device->Bs2b);
     device->Bs2b = NULL;
 
@@ -2285,9 +2282,6 @@ static ALCvoid FreeDevice(ALCdevice *device)
 
     al_free(device->Bs2b);
     device->Bs2b = NULL;
-
-    al_free(device->Uhj_Encoder);
-    device->Uhj_Encoder = NULL;
 
     bformatdec_free(device->AmbiDecoder);
     device->AmbiDecoder = NULL;
@@ -3684,7 +3678,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
 
     device->Flags = 0;
     device->Bs2b = NULL;
-    device->Uhj_Encoder = NULL;
     device->Hrtf = NULL;
     device->HrtfHandle = NULL;
     VECTOR_INIT(device->HrtfList);
@@ -4077,7 +4070,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcLoopbackOpenDeviceSOFT(const ALCchar *deviceN
     VECTOR_INIT(device->HrtfList);
     AL_STRING_INIT(device->HrtfName);
     device->Bs2b = NULL;
-    device->Uhj_Encoder = NULL;
     device->Render_Mode = NormalRender;
     AL_STRING_INIT(device->DeviceName);
     device->Dry.Buffer = NULL;

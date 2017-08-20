@@ -32,7 +32,6 @@
 #include "bool.h"
 #include "ambdec.h"
 #include "bformatdec.h"
-#include "uhjfilter.h"
 #include "bs2b.h"
 
 
@@ -1129,14 +1128,6 @@ no_hrtf:
     }
 
     TRACE("BS2B disabled\n");
-
-    if(device->Render_Mode == NormalRender)
-    {
-        device->Uhj_Encoder = al_calloc(16, sizeof(Uhj2Encoder));
-        TRACE("UHJ enabled\n");
-        InitUhjPanning(device);
-        return;
-    }
 
     TRACE("UHJ disabled\n");
     InitPanning(device);

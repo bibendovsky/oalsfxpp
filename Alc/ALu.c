@@ -34,7 +34,6 @@
 #include "alu.h"
 #include "bs2b.h"
 #include "hrtf.h"
-#include "uhjfilter.h"
 #include "bformatdec.h"
 #include "static_assert.h"
 
@@ -1730,19 +1729,6 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples)
                 device->RealOut.Buffer, device->RealOut.NumChannels,
                 SAFE_CONST(ALfloatBUFFERSIZE*,device->FOAOut.Buffer), SamplesToDo
             );
-        }
-        else if(device->Uhj_Encoder)
-        {
-            int lidx = GetChannelIdxByName(device->RealOut, FrontLeft);
-            int ridx = GetChannelIdxByName(device->RealOut, FrontRight);
-            if(lidx != -1 && ridx != -1)
-            {
-                /* Encode to stereo-compatible 2-channel UHJ output. */
-                EncodeUhj2(device->Uhj_Encoder,
-                    device->RealOut.Buffer[lidx], device->RealOut.Buffer[ridx],
-                    device->Dry.Buffer, SamplesToDo
-                );
-            }
         }
         else if(device->Bs2b)
         {
