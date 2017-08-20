@@ -134,17 +134,6 @@ static float roundf(float val)
 }
 #endif
 
-/* This RNG method was created based on the math found in opusdec. It's quick,
- * and starting with a seed value of 22222, is suitable for generating
- * whitenoise.
- */
-static inline ALuint dither_rng(ALuint *seed)
-{
-    *seed = (*seed * 96314165) + 907633515;
-    return *seed;
-}
-
-
 static inline void aluCrossproduct(const ALfloat *inVector1, const ALfloat *inVector2, ALfloat *outVector)
 {
     outVector[0] = inVector1[1]*inVector2[2] - inVector1[2]*inVector2[1];
@@ -1267,34 +1256,6 @@ static void ApplyDistanceComp(ALfloatBUFFERSIZE *restrict Samples, DistanceComp 
     }
 }
 
-static void ApplyDither(ALfloatBUFFERSIZE *restrict Samples, ALuint *dither_seed,
-                        const ALfloat quant_scale, const ALsizei SamplesToDo,
-                        const ALsizei numchans)
-{
-    const ALfloat invscale = 1.0f / quant_scale;
-    ALuint seed = *dither_seed;
-    ALsizei c, i;
-
-    /* Dithering. Step 1, generate whitenoise (uniform distribution of random
-     * values between -1 and +1). Step 2 is to add the noise to the samples,
-     * before rounding and after scaling up to the desired quantization depth.
-     */
-    for(c = 0;c < numchans;c++)
-    {
-        ALfloat *restrict samples = Samples[c];
-        for(i = 0;i < SamplesToDo;i++)
-        {
-            ALfloat val = samples[i] * quant_scale;
-            ALuint rng0 = dither_rng(&seed);
-            ALuint rng1 = dither_rng(&seed);
-            val += (ALfloat)(rng0*(1.0/UINT_MAX) - rng1*(1.0/UINT_MAX));
-            samples[i] = roundf(val) * invscale;
-        }
-    }
-    *dither_seed = seed;
-}
-
-
 static inline ALfloat Conv_ALfloat(ALfloat val)
 { return val; }
 static inline ALint Conv_ALint(ALfloat val)
@@ -1427,10 +1388,6 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples)
 
             if(device->Limiter)
                 ApplyCompression(device->Limiter, Channels, SamplesToDo, Buffer);
-
-            if(device->DitherDepth > 0.0f)
-                ApplyDither(Buffer, &device->DitherSeed, device->DitherDepth, SamplesToDo,
-                            Channels);
 
             switch(device->FmtType)
             {

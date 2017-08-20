@@ -1692,8 +1692,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
 
     UpdateClockBase(device);
 
-    device->DitherSeed = DITHER_RNG_SEED;
-
     oldFreq  = device->Frequency;
     oldChans = device->FmtChans;
     oldType  = device->FmtType;
@@ -1774,12 +1772,7 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
           device->SourcesMax, device->NumMonoSources, device->NumStereoSources,
           device->AuxiliaryEffectSlotMax, device->NumAuxSends);
 
-    device->DitherDepth = 0.0f;
-    if(!(device->DitherDepth > 0.0f))
-        TRACE("Dithering disabled\n");
-    else
-        TRACE("Dithering enabled (%g-bit, %g)\n", log2f(device->DitherDepth)+1.0f,
-              device->DitherDepth);
+    TRACE("Dithering disabled\n");
 
     /* Valid values for gainLimiter are ALC_DONT_CARE_SOFT, ALC_TRUE, and
      * ALC_FALSE. We default to on, so ALC_DONT_CARE_SOFT is the same as
