@@ -105,7 +105,8 @@ void DeinitVoice(ALvoice *voice)
     struct ALvoiceProps *props;
     size_t count = 0;
 
-    props = ATOMIC_EXCHANGE_PTR_SEQ(&voice->Update, NULL);
+    props = voice->Update;
+    voice->Update =  NULL;
     if(props) al_free(props);
 
     props = voice->FreeList;

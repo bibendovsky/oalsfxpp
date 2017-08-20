@@ -1225,7 +1225,9 @@ static void alc_cleanup(void)
     free(alcCaptureDefaultDeviceSpecifier);
     alcCaptureDefaultDeviceSpecifier = NULL;
 
-    if((dev=ATOMIC_EXCHANGE_PTR_SEQ(&DeviceList, NULL)) != NULL)
+    dev = DeviceList;
+    DeviceList = NULL;
+    if(dev != NULL)
     {
         ALCuint num = 0;
         do {
@@ -3712,6 +3714,8 @@ ALC_API ALCcontext* ALC_APIENTRY alcGetThreadContext(void)
  */
 ALC_API ALCboolean ALC_APIENTRY alcMakeContextCurrent(ALCcontext *context)
 {
+    ALCcontext* temp_context;
+
     /* context must be valid or NULL */
     if(context && !VerifyContext(&context))
     {
@@ -3719,7 +3723,9 @@ ALC_API ALCboolean ALC_APIENTRY alcMakeContextCurrent(ALCcontext *context)
         return ALC_FALSE;
     }
     /* context's reference count is already incremented */
-    context = ATOMIC_EXCHANGE_PTR_SEQ(&GlobalContext, context);
+    temp_context = context;
+    context = GlobalContext;
+    GlobalContext = temp_context;
     if(context) ALCcontext_DecRef(context);
 
     if((context=LocalContext) != NULL)
