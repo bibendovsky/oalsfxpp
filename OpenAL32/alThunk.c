@@ -28,7 +28,7 @@
 #include "almalloc.h"
 
 
-static ATOMIC_FLAG *ThunkArray;
+static int *ThunkArray;
 static ALsizei      ThunkArraySize;
 static RWLock ThunkLock;
 

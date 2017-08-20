@@ -11,9 +11,9 @@ extern "C" {
 typedef struct {
     uint read_count;
     uint write_count;
-    ATOMIC_FLAG read_lock;
-    ATOMIC_FLAG read_entry_lock;
-    ATOMIC_FLAG write_lock;
+    int read_lock;
+    int read_entry_lock;
+    int write_lock;
 } RWLock;
 #define RWLOCK_STATIC_INITIALIZE { ATOMIC_INIT_STATIC(0), ATOMIC_INIT_STATIC(0),         \
                                    ATOMIC_FLAG_INIT, ATOMIC_FLAG_INIT, ATOMIC_FLAG_INIT }
