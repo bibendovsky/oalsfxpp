@@ -42,7 +42,6 @@ ClockLatency ALCbackend_getClockLatency(ALCbackend *self)
     ClockLatency ret;
 
     ret.ClockTime = GetDeviceClockTime(device);
-    ATOMIC_THREAD_FENCE(almemory_order_acquire);
 
     /* NOTE: The device will generally have about all but one periods filled at
      * any given time during playback. Without a more accurate measurement from

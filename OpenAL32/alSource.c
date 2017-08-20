@@ -3175,7 +3175,6 @@ static ALint64 GetSourceSampleOffset(ALsource *Source, ALCcontext *context, ALui
         readPos |= (ALuint64)voice->position_fraction <<
                     (32-FRACTIONBITS);
     }
-    ATOMIC_THREAD_FENCE(almemory_order_acquire);
 
     if(voice)
     {
@@ -3220,7 +3219,6 @@ static ALdouble GetSourceSecOffset(ALsource *Source, ALCcontext *context, ALuint
                     FRACTIONBITS;
         readPos |= voice->position_fraction;
     }
-    ATOMIC_THREAD_FENCE(almemory_order_acquire);
 
     offset = 0.0;
     if(voice)
@@ -3279,7 +3277,6 @@ static ALdouble GetSourceOffset(ALsource *Source, ALenum name, ALCcontext *conte
         readPos = voice->position;
         readPosFrac = voice->position_fraction;
     }
-    ATOMIC_THREAD_FENCE(almemory_order_acquire);
 
     offset = 0.0;
     if(voice)
