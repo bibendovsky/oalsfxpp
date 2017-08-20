@@ -322,7 +322,7 @@ static struct Hrtf *CreateHrtfStore(ALuint rate, ALsizei irSize, ALsizei evCount
         ALfloat (*_coeffs)[2];
         ALsizei i;
 
-        InitRef(&Hrtf->ref, 0);
+        Hrtf->ref = 0;
         Hrtf->sampleRate = rate;
         Hrtf->irSize = irSize;
         Hrtf->evCount = evCount;

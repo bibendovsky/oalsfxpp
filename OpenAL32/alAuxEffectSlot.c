@@ -572,7 +572,7 @@ static void ALeffectState_DecRef(ALeffectState *state)
 
 void ALeffectState_Construct(ALeffectState *state)
 {
-    InitRef(&state->Ref, 1);
+    state->Ref = 1;
 
     state->OutBuffer = NULL;
     state->OutChannels = 0;
@@ -596,7 +596,7 @@ ALenum InitEffectSlot(ALeffectslot *slot)
     slot->Gain = 1.0;
     slot->AuxSendAuto = AL_TRUE;
     ATOMIC_FLAG_TEST_AND_SET(&slot->PropsClean, almemory_order_relaxed);
-    InitRef(&slot->ref, 0);
+    slot->ref = 0;
 
     slot->Update = NULL;
     slot->FreeList = NULL;

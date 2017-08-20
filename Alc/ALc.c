@@ -2529,7 +2529,7 @@ static ALvoid InitContext(ALCcontext *Context)
     listener->FreeList = NULL;
 
     //Validate Context
-    InitRef(&Context->UpdateCount, 0);
+    Context->UpdateCount = 0;
     Context->HoldUpdates = AL_FALSE;
     Context->GainBoost = 1.0f;
     RWLockInit(&Context->PropLock);
@@ -3571,7 +3571,7 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
         return NULL;
     }
 
-    InitRef(&ALContext->ref, 1);
+    ALContext->ref = 1;
     ALContext->Listener = (ALlistener*)ALContext->_listener_mem;
     ALContext->DefaultSlot = NULL;
 
@@ -3811,7 +3811,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     }
 
     //Validate device
-    InitRef(&device->ref, 1);
+    device->ref = 1;
     device->Connected = ALC_TRUE;
     device->Type = Playback;
     device->LastError = ALC_NO_ERROR;
@@ -4100,7 +4100,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcCaptureOpenDevice(const ALCchar *deviceName, 
     }
 
     //Validate device
-    InitRef(&device->ref, 1);
+    device->ref = 1;
     device->Connected = ALC_TRUE;
     device->Type = Capture;
 
@@ -4301,7 +4301,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcLoopbackOpenDeviceSOFT(const ALCchar *deviceN
     }
 
     //Validate device
-    InitRef(&device->ref, 1);
+    device->ref = 1;
     device->Connected = ALC_TRUE;
     device->Type = Loopback;
     device->LastError = ALC_NO_ERROR;
