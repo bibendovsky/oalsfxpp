@@ -115,6 +115,7 @@ AL_API ALvoid AL_APIENTRY alGenAuxiliaryEffectSlots(ALsizei n, ALuint *effectslo
     {
         struct ALeffectslotArray *curarray = context->ActiveAuxSlots;
         struct ALeffectslotArray *newarray = NULL;
+        struct ALeffectslotArray *temp_array;
         ALsizei newcount = curarray->count + n;
         ALCdevice *device;
 
@@ -124,8 +125,9 @@ AL_API ALvoid AL_APIENTRY alGenAuxiliaryEffectSlots(ALsizei n, ALuint *effectslo
         if(curarray)
             memcpy(newarray->slot+n, curarray->slot, sizeof(ALeffectslot*)*curarray->count);
 
-        newarray = ATOMIC_EXCHANGE_PTR(&context->ActiveAuxSlots, newarray,
-                                       almemory_order_acq_rel);
+        temp_array = newarray;
+        newarray = context->ActiveAuxSlots;
+        context->ActiveAuxSlots = temp_array;
         device = context->Device;
         al_free(newarray);
     }
@@ -161,6 +163,7 @@ AL_API ALvoid AL_APIENTRY alDeleteAuxiliaryEffectSlots(ALsizei n, const ALuint *
     {
         struct ALeffectslotArray *curarray = context->ActiveAuxSlots;
         struct ALeffectslotArray *newarray = NULL;
+        struct ALeffectslotArray *temp_array;
         ALsizei newcount = curarray->count - n;
         ALCdevice *device;
         ALsizei j, k;
@@ -180,8 +183,9 @@ AL_API ALvoid AL_APIENTRY alDeleteAuxiliaryEffectSlots(ALsizei n, const ALuint *
                 newarray->slot[i++] = slot;
         }
 
-        newarray = ATOMIC_EXCHANGE_PTR(&context->ActiveAuxSlots, newarray,
-                                       almemory_order_acq_rel);
+        temp_array = newarray;
+        newarray = context->ActiveAuxSlots;
+        context->ActiveAuxSlots = temp_array;
         device = context->Device;
         al_free(newarray);
     }
@@ -645,6 +649,7 @@ void DeinitEffectSlot(ALeffectslot *slot)
 void UpdateEffectSlotProps(ALeffectslot *slot)
 {
     struct ALeffectslotProps *props;
+    struct ALeffectslotProps *temp_props;
     ALeffectState *oldstate;
 
     /* Get an unused property container, or allocate a new one as needed. */
@@ -674,7 +679,10 @@ void UpdateEffectSlotProps(ALeffectslot *slot)
     props->State = slot->Effect.State;
 
     /* Set the new container for updating internal parameters. */
-    props = ATOMIC_EXCHANGE_PTR(&slot->Update, props, almemory_order_acq_rel);
+    temp_props = props;
+    props = slot->Update;
+    slot->Update = temp_props;
+
     if(props)
     {
         /* If there was an unused update container, put it back in the

@@ -2910,7 +2910,8 @@ AL_API ALvoid AL_APIENTRY alSourceUnqueueBuffers(ALuint src, ALsizei nb, ALuint 
 
     /* Swap it, and cut the new head from the old. */
     OldHead = source->queue;
-    source->queue = ATOMIC_EXCHANGE_PTR(&OldTail->next, NULL, almemory_order_acq_rel);
+    source->queue = OldTail->next;
+    OldTail->next = NULL;
     WriteUnlock(&source->queue_lock);
 
     while(OldHead != NULL)
@@ -3048,6 +3049,7 @@ static void DeinitSource(ALsource *source, ALsizei num_sends)
 static void UpdateSourceProps(ALsource *source, ALvoice *voice, ALsizei num_sends)
 {
     struct ALvoiceProps *props;
+    struct ALvoiceProps *temp_props;
     ALsizei i;
 
     /* Get an unused property container, or allocate a new one as needed. */
@@ -3123,7 +3125,9 @@ static void UpdateSourceProps(ALsource *source, ALvoice *voice, ALsizei num_send
     }
 
     /* Set the new container for updating internal parameters. */
-    props = ATOMIC_EXCHANGE_PTR(&voice->Update, props, almemory_order_acq_rel);
+    temp_props = props;
+    props = voice->Update;
+    voice->Update = temp_props;;
     if(props)
     {
         /* If there was an unused update container, put it back in the

@@ -458,6 +458,7 @@ void UpdateListenerProps(ALCcontext *context)
 {
     ALlistener *listener = context->Listener;
     struct ALlistenerProps *props;
+    struct ALlistenerProps *temp_props;
 
     /* Get an unused proprty container, or allocate a new one as needed. */
     props = listener->FreeList;
@@ -499,7 +500,9 @@ void UpdateListenerProps(ALCcontext *context)
     props->DistanceModel = context->DistanceModel;;
 
     /* Set the new container for updating internal parameters. */
-    props = ATOMIC_EXCHANGE_PTR(&listener->Update, props, almemory_order_acq_rel);
+    temp_props = props;
+    props = listener->Update;
+    listener->Update = temp_props;
     if(props)
     {
         /* If there was an unused update container, put it back in the

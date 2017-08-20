@@ -108,7 +108,8 @@ void DeinitVoice(ALvoice *voice)
     props = ATOMIC_EXCHANGE_PTR_SEQ(&voice->Update, NULL);
     if(props) al_free(props);
 
-    props = ATOMIC_EXCHANGE_PTR(&voice->FreeList, NULL, almemory_order_relaxed);
+    props = voice->FreeList;
+    voice->FreeList = NULL;
     while(props)
     {
         struct ALvoiceProps *next;
@@ -287,7 +288,8 @@ static ALboolean CalcListenerParams(ALCcontext *Context)
     struct ALlistenerProps *props;
     aluVector vel;
 
-    props = ATOMIC_EXCHANGE_PTR(&Listener->Update, NULL, almemory_order_acq_rel);
+    props = Listener->Update;
+    Listener->Update = NULL;
     if(!props) return AL_FALSE;
 
     /* AT then UP */
@@ -337,7 +339,8 @@ static ALboolean CalcEffectSlotParams(ALeffectslot *slot, ALCdevice *device)
     struct ALeffectslotProps *props;
     ALeffectState *state;
 
-    props = ATOMIC_EXCHANGE_PTR(&slot->Update, NULL, almemory_order_acq_rel);
+    props = slot->Update;
+    slot->Update = NULL;
     if(!props) return AL_FALSE;
 
     slot->Params.Gain = props->Gain;
@@ -1427,7 +1430,8 @@ static void CalcSourceParams(ALvoice *voice, ALCcontext *context, ALboolean forc
     ALbufferlistitem *BufferListItem;
     struct ALvoiceProps *props;
 
-    props = ATOMIC_EXCHANGE_PTR(&voice->Update, NULL, almemory_order_acq_rel);
+    props = voice->Update;
+    voice->Update = NULL;
     if(!props && !force) return;
 
     if(props)
@@ -1814,7 +1818,8 @@ void aluHandleDisconnect(ALCdevice *device)
             ALvoice *voice = ctx->Voices[i];
             ALsource *source;
 
-            source = ATOMIC_EXCHANGE_PTR(&voice->Source, NULL, almemory_order_acq_rel);
+            source = voice->Source;
+            voice->Source = NULL;
             voice->Playing = false;
 
             if(source)

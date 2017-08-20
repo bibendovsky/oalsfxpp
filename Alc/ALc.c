@@ -2313,10 +2313,12 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
              * number of auxiliary sends changed. Active sources will have
              * updates respecified in UpdateAllSourceProps.
              */
-            props = ATOMIC_EXCHANGE_PTR(&voice->Update, NULL, almemory_order_relaxed);
+            props = voice->Update;
+            voice->Update = NULL;
             al_free(props);
 
-            props = ATOMIC_EXCHANGE_PTR(&voice->FreeList, NULL, almemory_order_relaxed);
+            props = voice->FreeList;
+            voice->FreeList = NULL;
             while(props)
             {
                 struct ALvoiceProps *next = props->next;
@@ -2583,7 +2585,8 @@ static void FreeContext(ALCcontext *context)
         context->DefaultSlot = NULL;
     }
 
-    auxslots = ATOMIC_EXCHANGE_PTR(&context->ActiveAuxSlots, NULL, almemory_order_relaxed);
+    auxslots = context->ActiveAuxSlots;
+    context->ActiveAuxSlots = NULL;
     al_free(auxslots);
 
     if(context->SourceMap.size > 0)
