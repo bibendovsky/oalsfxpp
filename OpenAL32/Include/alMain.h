@@ -672,7 +672,6 @@ struct ALCdevice_struct
     alignas(16) ALfloat SourceData[BUFFERSIZE];
     alignas(16) ALfloat ResampledData[BUFFERSIZE];
     alignas(16) ALfloat FilteredData[BUFFERSIZE];
-    alignas(16) ALfloat NFCtrlData[BUFFERSIZE];
 
     /* The "dry" path corresponds to the main output. */
     struct {

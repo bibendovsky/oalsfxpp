@@ -1456,10 +1456,6 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples)
             ALfloat (*Buffer)[BUFFERSIZE] = device->RealOut.Buffer;
             ALsizei Channels = device->RealOut.NumChannels;
 
-            /* Use NFCtrlData for temp value storage. */
-            ApplyDistanceComp(Buffer, device->ChannelDelay, device->NFCtrlData,
-                              SamplesToDo, Channels);
-
             if(device->Limiter)
                 ApplyCompression(device->Limiter, Channels, SamplesToDo, Buffer);
 
