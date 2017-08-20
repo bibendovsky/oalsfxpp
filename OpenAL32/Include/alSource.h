@@ -5,7 +5,6 @@
 #include "alMain.h"
 #include "alu.h"
 #include "hrtf.h"
-#include "atomic.h"
 
 #define MAX_SENDS      16
 #define DEFAULT_SENDS  2

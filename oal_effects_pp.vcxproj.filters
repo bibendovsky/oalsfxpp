@@ -105,9 +105,6 @@
     <ClCompile Include="common\almalloc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="common\atomic.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="common\rwlock.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -192,9 +189,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="common\almalloc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="common\atomic.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="common\bool.h">

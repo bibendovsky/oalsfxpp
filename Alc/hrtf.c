@@ -1101,14 +1101,14 @@ done:
 
 void Hrtf_IncRef(struct Hrtf *hrtf)
 {
-    uint ref = ++hrtf->ref;
+    unsigned int ref = ++hrtf->ref;
     TRACEREF("%p increasing refcount to %u\n", hrtf, ref);
 }
 
 void Hrtf_DecRef(struct Hrtf *hrtf)
 {
     struct HrtfEntry *Hrtf;
-    uint ref = --hrtf->ref;
+    unsigned int ref = --hrtf->ref;
     TRACEREF("%p decreasing refcount to %u\n", hrtf, ref);
     if(ref == 0)
     {

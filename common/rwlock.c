@@ -4,7 +4,6 @@
 #include "rwlock.h"
 
 #include "bool.h"
-#include "atomic.h"
 
 
 /* A simple spinlock. Yield the thread while the given integer is set by

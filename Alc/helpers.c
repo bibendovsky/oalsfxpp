@@ -107,7 +107,6 @@ DEFINE_PROPERTYKEY(PKEY_AudioEndpoint_GUID, 0x1da5d803, 0xd492, 0x4edd, 0x8c, 0x
 
 #include "alMain.h"
 #include "alu.h"
-#include "atomic.h"
 #include "uintmap.h"
 #include "vector.h"
 #include "alstring.h"
@@ -565,7 +564,7 @@ static void DirectorySearch(const char *path, const char *ext, vector_al_string 
 vector_al_string SearchDataFiles(const char *ext, const char *subdir)
 {
     static const int ids[2] = { CSIDL_APPDATA, CSIDL_COMMON_APPDATA };
-    static uint search_lock;
+    static unsigned int search_lock;
     vector_al_string results = VECTOR_INIT_STATIC();
     size_t i;
 
@@ -854,7 +853,7 @@ static void DirectorySearch(const char *path, const char *ext, vector_al_string 
 
 vector_al_string SearchDataFiles(const char *ext, const char *subdir)
 {
-    static uint search_lock;
+    static unsigned int search_lock;
     vector_al_string results = VECTOR_INIT_STATIC();
 
     while(ATOMIC_EXCHANGE_SEQ(&search_lock, 1) == 1)

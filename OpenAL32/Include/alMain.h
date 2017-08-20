@@ -23,7 +23,6 @@
 
 #include "static_assert.h"
 #include "align.h"
-#include "atomic.h"
 #include "uintmap.h"
 #include "vector.h"
 #include "alstring.h"
@@ -668,7 +667,7 @@ typedef struct DistanceComp {
 
 struct ALCdevice_struct
 {
-    uint ref;
+    unsigned int ref;
 
     ALCboolean Connected;
     enum DeviceType Type;
@@ -795,7 +794,7 @@ struct ALCdevice_struct
      * the end, so the bottom bit indicates if the device is currently mixing
      * and the upper bits indicates how many mixes have been done.
      */
-    uint MixCount;
+    unsigned int MixCount;
 
     // Contexts created on this device
     ALCcontext* ContextList;
@@ -831,7 +830,7 @@ struct ALCdevice_struct
 
 
 struct ALCcontext_struct {
-    uint ref;
+    unsigned int ref;
 
     struct ALlistener *Listener;
 
@@ -853,7 +852,7 @@ struct ALCcontext_struct {
     /* Counter for the pre-mixing updates, in 31.1 fixed point (lowest bit
      * indicates if updates are currently happening).
      */
-    uint UpdateCount;
+    unsigned int UpdateCount;
     ALenum HoldUpdates;
 
     ALfloat GainBoost;

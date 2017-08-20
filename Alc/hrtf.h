@@ -6,7 +6,6 @@
 
 #include "alMain.h"
 #include "alstring.h"
-#include "atomic.h"
 
 
 /* The maximum number of virtual speakers used to generate HRTF coefficients
@@ -18,7 +17,7 @@
 struct HrtfEntry;
 
 struct Hrtf {
-    uint ref;
+    unsigned int ref;
 
     ALuint sampleRate;
     ALsizei irSize;

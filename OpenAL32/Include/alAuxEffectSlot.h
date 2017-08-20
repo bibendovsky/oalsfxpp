@@ -4,7 +4,6 @@
 #include "alMain.h"
 #include "alEffect.h"
 
-#include "atomic.h"
 #include "align.h"
 
 #ifdef __cplusplus
@@ -15,7 +14,7 @@ struct ALeffectStateVtable;
 struct ALeffectslot;
 
 typedef struct ALeffectState {
-    uint Ref;
+    unsigned int Ref;
     const struct ALeffectStateVtable *vtbl;
 
     ALfloat (*OutBuffer)[BUFFERSIZE];
@@ -107,7 +106,7 @@ typedef struct ALeffectslot {
 
     int PropsClean;
 
-    uint ref;
+    unsigned int ref;
 
     struct ALeffectslotProps* Update;
     struct ALeffectslotProps* FreeList;
