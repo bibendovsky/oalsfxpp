@@ -52,8 +52,6 @@ static_assert(MAX_POST_SAMPLES >= 12, "MAX_POST_SAMPLES must be at least 12!");
 enum Resampler ResamplerDefault = LinearResampler;
 
 static MixerFunc MixSamples = Mix_C;
-static HrtfMixerFunc MixHrtfSamples = MixHrtf_C;
-HrtfMixerBlendFunc MixHrtfBlendSamples = MixHrtfBlend_C;
 
 MixerFunc SelectMixer(void)
 {
@@ -79,32 +77,6 @@ RowMixerFunc SelectRowMixer(void)
         return MixRow_SSE;
 #endif
     return MixRow_C;
-}
-
-static inline HrtfMixerFunc SelectHrtfMixer(void)
-{
-#ifdef HAVE_NEON
-    if((CPUCapFlags&CPU_CAP_NEON))
-        return MixHrtf_Neon;
-#endif
-#ifdef HAVE_SSE
-    if((CPUCapFlags&CPU_CAP_SSE))
-        return MixHrtf_SSE;
-#endif
-    return MixHrtf_C;
-}
-
-static inline HrtfMixerBlendFunc SelectHrtfBlendMixer(void)
-{
-#ifdef HAVE_NEON
-    if((CPUCapFlags&CPU_CAP_NEON))
-        return MixHrtfBlend_Neon;
-#endif
-#ifdef HAVE_SSE
-    if((CPUCapFlags&CPU_CAP_SSE))
-        return MixHrtfBlend_SSE;
-#endif
-    return MixHrtfBlend_C;
 }
 
 ResamplerFunc SelectResampler(enum Resampler resampler)
@@ -159,8 +131,6 @@ ResamplerFunc SelectResampler(enum Resampler resampler)
 
 void aluInitMixer(void)
 {
-    MixHrtfBlendSamples = SelectHrtfBlendMixer();
-    MixHrtfSamples = SelectHrtfMixer();
     MixSamples = SelectMixer();
 }
 
@@ -277,7 +247,7 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
     SampleSize     = voice->SampleSize;
     increment      = voice->Step;
 
-    IrSize = (Device->HrtfHandle ? Device->HrtfHandle->irSize : 0);
+    IrSize = 0;
 
     Resample = ((increment == FRACTIONONE && DataPosFrac == 0) ?
                 Resample_copy32_C : voice->Resampler);
@@ -431,7 +401,7 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
                     &parms->LowPass, &parms->HighPass, Device->FilteredData,
                     ResampledData, DstBufferSize, voice->Direct.FilterType
                 );
-                if(!(voice->Flags&VOICE_HAS_HRTF))
+
                 {
                     if(!Counter)
                         memcpy(parms->Gains.Current, parms->Gains.Target,
@@ -467,93 +437,6 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
                         APPLY_NFC_MIX(2)
                         APPLY_NFC_MIX(3)
 #undef APPLY_NFC_MIX
-                    }
-                }
-                else
-                {
-                    MixHrtfParams hrtfparams;
-                    ALsizei fademix = 0;
-                    int lidx, ridx;
-
-                    lidx = GetChannelIdxByName(Device->RealOut, FrontLeft);
-                    ridx = GetChannelIdxByName(Device->RealOut, FrontRight);
-                    assert(lidx != -1 && ridx != -1);
-
-                    if(!Counter)
-                    {
-                        /* No fading, just overwrite the old HRTF params. */
-                        parms->Hrtf.Old = parms->Hrtf.Target;
-                    }
-                    else if(!(parms->Hrtf.Old.Gain > GAIN_SILENCE_THRESHOLD))
-                    {
-                        /* The old HRTF params are silent, so overwrite the old
-                         * coefficients with the new, and reset the old gain to
-                         * 0. The future mix will then fade from silence.
-                         */
-                        parms->Hrtf.Old = parms->Hrtf.Target;
-                        parms->Hrtf.Old.Gain = 0.0f;
-                    }
-                    else if(firstpass)
-                    {
-                        ALfloat gain;
-
-                        /* Fade between the coefficients over 128 samples. */
-                        fademix = mini(DstBufferSize, 128);
-
-                        /* The new coefficients need to fade in completely
-                         * since they're replacing the old ones. To keep the
-                         * gain fading consistent, interpolate between the old
-                         * and new target gains given how much of the fade time
-                         * this mix handles.
-                         */
-                        gain = lerp(parms->Hrtf.Old.Gain, parms->Hrtf.Target.Gain,
-                                    minf(1.0f, (ALfloat)fademix/Counter));
-                        hrtfparams.Coeffs = SAFE_CONST(ALfloat2*,parms->Hrtf.Target.Coeffs);
-                        hrtfparams.Delay[0] = parms->Hrtf.Target.Delay[0];
-                        hrtfparams.Delay[1] = parms->Hrtf.Target.Delay[1];
-                        hrtfparams.Gain = 0.0f;
-                        hrtfparams.GainStep = gain / (ALfloat)fademix;
-
-                        MixHrtfBlendSamples(
-                            voice->Direct.Buffer[lidx], voice->Direct.Buffer[ridx],
-                            samples, voice->Offset, OutPos, IrSize, &parms->Hrtf.Old,
-                            &hrtfparams, &parms->Hrtf.State, fademix
-                        );
-                        /* Update the old parameters with the result. */
-                        parms->Hrtf.Old = parms->Hrtf.Target;
-                        if(fademix < Counter)
-                            parms->Hrtf.Old.Gain = hrtfparams.Gain;
-                    }
-
-                    if(fademix < DstBufferSize)
-                    {
-                        ALsizei todo = DstBufferSize - fademix;
-                        ALfloat gain = parms->Hrtf.Target.Gain;
-
-                        /* Interpolate the target gain if the gain fading lasts
-                         * longer than this mix.
-                         */
-                        if(Counter > DstBufferSize)
-                            gain = lerp(parms->Hrtf.Old.Gain, gain,
-                                        (ALfloat)todo/(Counter-fademix));
-
-                        hrtfparams.Coeffs = SAFE_CONST(ALfloat2*,parms->Hrtf.Target.Coeffs);
-                        hrtfparams.Delay[0] = parms->Hrtf.Target.Delay[0];
-                        hrtfparams.Delay[1] = parms->Hrtf.Target.Delay[1];
-                        hrtfparams.Gain = parms->Hrtf.Old.Gain;
-                        hrtfparams.GainStep = (gain - parms->Hrtf.Old.Gain) / (ALfloat)todo;
-                        MixHrtfSamples(
-                            voice->Direct.Buffer[lidx], voice->Direct.Buffer[ridx],
-                            samples+fademix, voice->Offset+fademix, OutPos+fademix, IrSize,
-                            &hrtfparams, &parms->Hrtf.State, todo
-                        );
-                        /* Store the interpolated gain or the final target gain
-                         * depending if the fade is done.
-                         */
-                        if(DstBufferSize < Counter)
-                            parms->Hrtf.Old.Gain = gain;
-                        else
-                            parms->Hrtf.Old.Gain = parms->Hrtf.Target.Gain;
                     }
                 }
             }

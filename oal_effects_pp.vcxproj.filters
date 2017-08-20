@@ -75,9 +75,6 @@
     <ClCompile Include="Alc\helpers.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Alc\hrtf.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Alc\mastering.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -156,9 +153,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Alc\converter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Alc\hrtf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Alc\mixer_defs.h">

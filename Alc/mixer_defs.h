@@ -8,8 +8,6 @@
 
 struct MixGains;
 
-struct MixHrtfParams;
-struct HrtfState;
 
 /* C resamplers */
 const ALfloat *Resample_copy32_C(const InterpState *state, const ALfloat *restrict src, ALsizei frac, ALint increment, ALfloat *restrict dst, ALsizei dstlen);
@@ -20,19 +18,6 @@ const ALfloat *Resample_bsinc32_C(const InterpState *state, const ALfloat *restr
 
 
 /* C mixers */
-void MixHrtf_C(ALfloat *restrict LeftOut, ALfloat *restrict RightOut,
-               const ALfloat *data, ALsizei Offset, ALsizei OutPos,
-               const ALsizei IrSize, struct MixHrtfParams *hrtfparams,
-               struct HrtfState *hrtfstate, ALsizei BufferSize);
-void MixHrtfBlend_C(ALfloat *restrict LeftOut, ALfloat *restrict RightOut,
-                    const ALfloat *data, ALsizei Offset, ALsizei OutPos,
-                    const ALsizei IrSize, const HrtfParams *oldparams,
-                    MixHrtfParams *newparams, HrtfState *hrtfstate,
-                    ALsizei BufferSize);
-void MixDirectHrtf_C(ALfloat *restrict LeftOut, ALfloat *restrict RightOut,
-                     const ALfloat *data, ALsizei Offset, const ALsizei IrSize,
-                     const ALfloat (*restrict Coeffs)[2], ALfloat (*restrict Values)[2],
-                     ALsizei BufferSize);
 void Mix_C(const ALfloat *data, ALsizei OutChans, ALfloat (*restrict OutBuffer)[BUFFERSIZE],
            ALfloat *CurrentGains, const ALfloat *TargetGains, ALsizei Counter, ALsizei OutPos,
            ALsizei BufferSize);
@@ -41,19 +26,6 @@ void MixRow_C(ALfloat *OutBuffer, const ALfloat *Gains,
               ALsizei InPos, ALsizei BufferSize);
 
 /* SSE mixers */
-void MixHrtf_SSE(ALfloat *restrict LeftOut, ALfloat *restrict RightOut,
-                 const ALfloat *data, ALsizei Offset, ALsizei OutPos,
-                 const ALsizei IrSize, struct MixHrtfParams *hrtfparams,
-                 struct HrtfState *hrtfstate, ALsizei BufferSize);
-void MixHrtfBlend_SSE(ALfloat *restrict LeftOut, ALfloat *restrict RightOut,
-                      const ALfloat *data, ALsizei Offset, ALsizei OutPos,
-                      const ALsizei IrSize, const HrtfParams *oldparams,
-                      MixHrtfParams *newparams, HrtfState *hrtfstate,
-                      ALsizei BufferSize);
-void MixDirectHrtf_SSE(ALfloat *restrict LeftOut, ALfloat *restrict RightOut,
-                       const ALfloat *data, ALsizei Offset, const ALsizei IrSize,
-                       const ALfloat (*restrict Coeffs)[2], ALfloat (*restrict Values)[2],
-                       ALsizei BufferSize);
 void Mix_SSE(const ALfloat *data, ALsizei OutChans, ALfloat (*restrict OutBuffer)[BUFFERSIZE],
              ALfloat *CurrentGains, const ALfloat *TargetGains, ALsizei Counter, ALsizei OutPos,
              ALsizei BufferSize);
@@ -95,19 +67,6 @@ const ALfloat *Resample_bsinc32_SSE(const InterpState *state, const ALfloat *res
                                     ALsizei dstlen);
 
 /* Neon mixers */
-void MixHrtf_Neon(ALfloat *restrict LeftOut, ALfloat *restrict RightOut,
-                  const ALfloat *data, ALsizei Offset, ALsizei OutPos,
-                  const ALsizei IrSize, struct MixHrtfParams *hrtfparams,
-                  struct HrtfState *hrtfstate, ALsizei BufferSize);
-void MixHrtfBlend_Neon(ALfloat *restrict LeftOut, ALfloat *restrict RightOut,
-                       const ALfloat *data, ALsizei Offset, ALsizei OutPos,
-                       const ALsizei IrSize, const HrtfParams *oldparams,
-                       MixHrtfParams *newparams, HrtfState *hrtfstate,
-                       ALsizei BufferSize);
-void MixDirectHrtf_Neon(ALfloat *restrict LeftOut, ALfloat *restrict RightOut,
-                        const ALfloat *data, ALsizei Offset, const ALsizei IrSize,
-                        const ALfloat (*restrict Coeffs)[2], ALfloat (*restrict Values)[2],
-                        ALsizei BufferSize);
 void Mix_Neon(const ALfloat *data, ALsizei OutChans, ALfloat (*restrict OutBuffer)[BUFFERSIZE],
               ALfloat *CurrentGains, const ALfloat *TargetGains, ALsizei Counter, ALsizei OutPos,
               ALsizei BufferSize);

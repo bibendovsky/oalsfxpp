@@ -15,7 +15,6 @@
 #include "alFilter.h"
 #include "alAuxEffectSlot.h"
 
-#include "hrtf.h"
 #include "align.h"
 #include "nfcfilter.h"
 #include "math_defs.h"
@@ -140,25 +139,11 @@ enum ActiveFilters {
 };
 
 
-typedef struct MixHrtfParams {
-    const ALfloat (*Coeffs)[2];
-    ALsizei Delay[2];
-    ALfloat Gain;
-    ALfloat GainStep;
-} MixHrtfParams;
-
-
 typedef struct DirectParams {
     ALfilterState LowPass;
     ALfilterState HighPass;
 
     NfcFilter NFCtrlFilter[MAX_AMBI_ORDER];
-
-    struct {
-        HrtfParams Old;
-        HrtfParams Target;
-        HrtfState State;
-    } Hrtf;
 
     struct {
         ALfloat Current[MAX_OUTPUT_CHANNELS];
@@ -233,7 +218,6 @@ struct ALvoiceProps {
 
 /* If not 'fading', gain targets are used directly without fading. */
 #define VOICE_IS_FADING (1<<0)
-#define VOICE_HAS_HRTF  (1<<1)
 #define VOICE_HAS_NFC   (1<<2)
 
 typedef struct ALvoice {
@@ -309,19 +293,6 @@ typedef void (*MixerFunc)(const ALfloat *data, ALsizei OutChans,
 typedef void (*RowMixerFunc)(ALfloat *OutBuffer, const ALfloat *gains,
                              const ALfloat (*restrict data)[BUFFERSIZE], ALsizei InChans,
                              ALsizei InPos, ALsizei BufferSize);
-typedef void (*HrtfMixerFunc)(ALfloat *restrict LeftOut, ALfloat *restrict RightOut,
-                              const ALfloat *data, ALsizei Offset, ALsizei OutPos,
-                              const ALsizei IrSize, MixHrtfParams *hrtfparams,
-                              HrtfState *hrtfstate, ALsizei BufferSize);
-typedef void (*HrtfMixerBlendFunc)(ALfloat *restrict LeftOut, ALfloat *restrict RightOut,
-                                   const ALfloat *data, ALsizei Offset, ALsizei OutPos,
-                                   const ALsizei IrSize, const HrtfParams *oldparams,
-                                   MixHrtfParams *newparams, HrtfState *hrtfstate,
-                                   ALsizei BufferSize);
-typedef void (*HrtfDirectMixerFunc)(ALfloat *restrict LeftOut, ALfloat *restrict RightOut,
-                                    const ALfloat *data, ALsizei Offset, const ALsizei IrSize,
-                                    const ALfloat (*restrict Coeffs)[2],
-                                    ALfloat (*restrict Values)[2], ALsizei BufferSize);
 
 
 #define GAIN_MIX_MAX  (16.0f) /* +24dB */
@@ -397,12 +368,6 @@ inline ALfloat resample_fir4(ALfloat val0, ALfloat val1, ALfloat val2, ALfloat v
 }
 
 
-enum HrtfRequestMode {
-    Hrtf_Default = 0,
-    Hrtf_Enable = 1,
-    Hrtf_Disable = 2,
-};
-
 void aluInitMixer(void);
 
 MixerFunc SelectMixer(void);
@@ -414,7 +379,7 @@ ResamplerFunc SelectResampler(enum Resampler resampler);
  * Set up the appropriate panning method and mixing method given the device
  * properties.
  */
-void aluInitRenderer(ALCdevice *device, ALint hrtf_id, enum HrtfRequestMode hrtf_appreq, enum HrtfRequestMode hrtf_userreq);
+void aluInitRenderer(ALCdevice *device);
 
 void aluInitEffectPanning(struct ALeffectslot *slot);
 

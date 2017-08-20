@@ -32,7 +32,6 @@
 #include "alListener.h"
 #include "alAuxEffectSlot.h"
 #include "alu.h"
-#include "hrtf.h"
 #include "bformatdec.h"
 #include "static_assert.h"
 
@@ -122,21 +121,6 @@ void DeinitVoice(ALvoice *voice)
      */
     if(count > 3)
         WARN("Freed "SZFMT" voice property objects\n", count);
-}
-
-
-static inline HrtfDirectMixerFunc SelectHrtfMixer(void)
-{
-#ifdef HAVE_NEON
-    if((CPUCapFlags&CPU_CAP_NEON))
-        return MixDirectHrtf_Neon;
-#endif
-#ifdef HAVE_SSE
-    if((CPUCapFlags&CPU_CAP_SSE))
-        return MixDirectHrtf_SSE;
-#endif
-
-    return MixDirectHrtf_C;
 }
 
 
@@ -498,7 +482,7 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
         break;
     }
 
-    voice->Flags &= ~(VOICE_HAS_HRTF | VOICE_HAS_NFC);
+    voice->Flags &= ~(VOICE_HAS_NFC);
     if(isbformat)
     {
         /* Special handling for B-Format sources. */
@@ -683,119 +667,6 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
                         voice->Send[i].Params[c].Gains.Target[j] = 0.0f;
             }
         }
-    }
-    else if(Device->Render_Mode == HrtfRender)
-    {
-        /* Full HRTF rendering. Skip the virtual channels and render to the
-         * real outputs.
-         */
-        voice->Direct.Buffer = Device->RealOut.Buffer;
-        voice->Direct.Channels = Device->RealOut.NumChannels;
-
-        if(Distance > FLT_EPSILON)
-        {
-            ALfloat coeffs[MAX_AMBI_COEFFS];
-            ALfloat ev, az;
-
-            ev = asinf(Dir[1]);
-            az = atan2f(Dir[0], -Dir[2]);
-
-            /* Get the HRIR coefficients and delays just once, for the given
-             * source direction.
-             */
-            GetHrtfCoeffs(Device->HrtfHandle, ev, az, Spread,
-                          voice->Direct.Params[0].Hrtf.Target.Coeffs,
-                          voice->Direct.Params[0].Hrtf.Target.Delay);
-            voice->Direct.Params[0].Hrtf.Target.Gain = DryGain * downmix_gain;
-
-            /* Remaining channels use the same results as the first. */
-            for(c = 1;c < num_channels;c++)
-            {
-                /* Skip LFE */
-                if(chans[c].channel == LFE)
-                    memset(&voice->Direct.Params[c].Hrtf.Target, 0,
-                           sizeof(voice->Direct.Params[c].Hrtf.Target));
-                else
-                    voice->Direct.Params[c].Hrtf.Target = voice->Direct.Params[0].Hrtf.Target;
-            }
-
-            /* Calculate the directional coefficients once, which apply to all
-             * input channels of the source sends.
-             */
-            CalcDirectionCoeffs(Dir, Spread, coeffs);
-
-            for(i = 0;i < NumSends;i++)
-            {
-                const ALeffectslot *Slot = SendSlots[i];
-                if(Slot)
-                    for(c = 0;c < num_channels;c++)
-                    {
-                        /* Skip LFE */
-                        if(chans[c].channel == LFE)
-                            for(j = 0;j < MAX_EFFECT_CHANNELS;j++)
-                                voice->Send[i].Params[c].Gains.Target[j] = 0.0f;
-                        else
-                            ComputePanningGainsBF(Slot->ChanMap,
-                                Slot->NumChannels, coeffs, WetGain[i] * downmix_gain,
-                                voice->Send[i].Params[c].Gains.Target
-                            );
-                    }
-                else
-                    for(j = 0;j < MAX_EFFECT_CHANNELS;j++)
-                        voice->Send[i].Params[c].Gains.Target[j] = 0.0f;
-            }
-        }
-        else
-        {
-            /* Local sources on HRTF play with each channel panned to its
-             * relative location around the listener, providing "virtual
-             * speaker" responses.
-             */
-            for(c = 0;c < num_channels;c++)
-            {
-                ALfloat coeffs[MAX_AMBI_COEFFS];
-
-                if(chans[c].channel == LFE)
-                {
-                    /* Skip LFE */
-                    memset(&voice->Direct.Params[c].Hrtf.Target, 0,
-                           sizeof(voice->Direct.Params[c].Hrtf.Target));
-                    for(i = 0;i < NumSends;i++)
-                    {
-                        for(j = 0;j < MAX_EFFECT_CHANNELS;j++)
-                            voice->Send[i].Params[c].Gains.Target[j] = 0.0f;
-                    }
-                    continue;
-                }
-
-                /* Get the HRIR coefficients and delays for this channel
-                 * position.
-                 */
-                GetHrtfCoeffs(Device->HrtfHandle,
-                    chans[c].elevation, chans[c].angle, Spread,
-                    voice->Direct.Params[c].Hrtf.Target.Coeffs,
-                    voice->Direct.Params[c].Hrtf.Target.Delay
-                );
-                voice->Direct.Params[c].Hrtf.Target.Gain = DryGain;
-
-                /* Normal panning for auxiliary sends. */
-                CalcAngleCoeffs(chans[c].angle, chans[c].elevation, Spread, coeffs);
-
-                for(i = 0;i < NumSends;i++)
-                {
-                    const ALeffectslot *Slot = SendSlots[i];
-                    if(Slot)
-                        ComputePanningGainsBF(Slot->ChanMap, Slot->NumChannels,
-                            coeffs, WetGain[i], voice->Send[i].Params[c].Gains.Target
-                        );
-                    else
-                        for(j = 0;j < MAX_EFFECT_CHANNELS;j++)
-                            voice->Send[i].Params[c].Gains.Target[j] = 0.0f;
-                }
-            }
-        }
-
-        voice->Flags |= VOICE_HAS_HRTF;
     }
     else
     {
@@ -1682,35 +1553,7 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples)
         device->SamplesDone %= device->Frequency;
         device->MixCount += 1;
 
-        if(device->HrtfHandle)
-        {
-            HrtfDirectMixerFunc HrtfMix;
-            DirectHrtfState *state;
-            int lidx, ridx;
-
-            if(device->AmbiUp)
-                ambiup_process(device->AmbiUp,
-                    device->Dry.Buffer, device->Dry.NumChannels,
-                    SAFE_CONST(ALfloatBUFFERSIZE*,device->FOAOut.Buffer), SamplesToDo
-                );
-
-            lidx = GetChannelIdxByName(device->RealOut, FrontLeft);
-            ridx = GetChannelIdxByName(device->RealOut, FrontRight);
-            assert(lidx != -1 && ridx != -1);
-
-            HrtfMix = SelectHrtfMixer();
-            state = device->Hrtf;
-            for(c = 0;c < device->Dry.NumChannels;c++)
-            {
-                HrtfMix(device->RealOut.Buffer[lidx], device->RealOut.Buffer[ridx],
-                    device->Dry.Buffer[c], state->Offset, state->IrSize,
-                    SAFE_CONST(ALfloat2*,state->Chan[c].Coeffs),
-                    state->Chan[c].Values, SamplesToDo
-                );
-            }
-            state->Offset += SamplesToDo;
-        }
-        else if(device->AmbiDecoder)
+        if(device->AmbiDecoder)
         {
             if(device->Dry.Buffer != device->FOAOut.Buffer)
                 bformatdec_upSample(device->AmbiDecoder,

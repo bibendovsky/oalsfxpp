@@ -1174,8 +1174,6 @@ static void alc_deinit_safe(void)
 {
     alc_cleanup();
 
-    FreeHrtfs();
-
     ThunkExit();
 
     if(LogFile != stderr)
@@ -1653,15 +1651,12 @@ static inline void UpdateClockBase(ALCdevice *device)
  */
 static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
 {
-    enum HrtfRequestMode hrtf_userreq = Hrtf_Default;
-    enum HrtfRequestMode hrtf_appreq = Hrtf_Default;
     ALCenum gainLimiter = device->Limiter ? ALC_TRUE : ALC_FALSE;
     const ALsizei old_sends = device->NumAuxSends;
     ALsizei new_sends = device->NumAuxSends;
     enum DevFmtChannels oldChans;
     enum DevFmtType oldType;
     ALboolean update_failed;
-    ALCsizei hrtf_id = -1;
     ALCcontext *context;
     ALCuint oldFreq;
     size_t size;
@@ -1752,21 +1747,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
                     numSends = attrList[attrIdx + 1];
                     TRACE_ATTR(ALC_MAX_AUXILIARY_SENDS, numSends);
                     numSends = clampi(numSends, 0, MAX_SENDS);
-                    break;
-
-                case ALC_HRTF_SOFT:
-                    TRACE_ATTR(ALC_HRTF_SOFT, attrList[attrIdx + 1]);
-                    if(attrList[attrIdx + 1] == ALC_FALSE)
-                        hrtf_appreq = Hrtf_Disable;
-                    else if(attrList[attrIdx + 1] == ALC_TRUE)
-                        hrtf_appreq = Hrtf_Enable;
-                    else
-                        hrtf_appreq = Hrtf_Default;
-                    break;
-
-                case ALC_HRTF_ID_SOFT:
-                    hrtf_id = attrList[attrIdx + 1];
-                    TRACE_ATTR(ALC_HRTF_ID_SOFT, hrtf_id);
                     break;
 
                 case ALC_OUTPUT_LIMITER_SOFT:
@@ -1872,21 +1852,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
                     numSends = clampi(numSends, 0, MAX_SENDS);
                     break;
 
-                case ALC_HRTF_SOFT:
-                    TRACE_ATTR(ALC_HRTF_SOFT, attrList[attrIdx + 1]);
-                    if(attrList[attrIdx + 1] == ALC_FALSE)
-                        hrtf_appreq = Hrtf_Disable;
-                    else if(attrList[attrIdx + 1] == ALC_TRUE)
-                        hrtf_appreq = Hrtf_Enable;
-                    else
-                        hrtf_appreq = Hrtf_Default;
-                    break;
-
-                case ALC_HRTF_ID_SOFT:
-                    hrtf_id = attrList[attrIdx + 1];
-                    TRACE_ATTR(ALC_HRTF_ID_SOFT, hrtf_id);
-                    break;
-
                 case ALC_OUTPUT_LIMITER_SOFT:
                     gainLimiter = attrList[attrIdx + 1];
                     TRACE_ATTR(ALC_OUTPUT_LIMITER_SOFT, gainLimiter);
@@ -1948,46 +1913,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
 
     device->DitherSeed = DITHER_RNG_SEED;
 
-    /*************************************************************************
-     * Update device format request if HRTF is requested
-     */
-    device->HrtfStatus = ALC_HRTF_DISABLED_SOFT;
-    if(device->Type != Loopback)
-    {
-        if(hrtf_userreq == Hrtf_Enable || (hrtf_userreq != Hrtf_Disable && hrtf_appreq == Hrtf_Enable))
-        {
-            struct Hrtf *hrtf = NULL;
-            if(VECTOR_SIZE(device->HrtfList) == 0)
-            {
-                VECTOR_DEINIT(device->HrtfList);
-                device->HrtfList = EnumerateHrtf(device->DeviceName);
-            }
-            if(VECTOR_SIZE(device->HrtfList) > 0)
-            {
-                if(hrtf_id >= 0 && (size_t)hrtf_id < VECTOR_SIZE(device->HrtfList))
-                    hrtf = GetLoadedHrtf(VECTOR_ELEM(device->HrtfList, hrtf_id).hrtf);
-                else
-                    hrtf = GetLoadedHrtf(VECTOR_ELEM(device->HrtfList, 0).hrtf);
-            }
-
-            if(hrtf)
-            {
-                device->FmtChans = DevFmtStereo;
-                device->Frequency = hrtf->sampleRate;
-                device->Flags |= DEVICE_CHANNELS_REQUEST | DEVICE_FREQUENCY_REQUEST;
-                if(device->HrtfHandle)
-                    Hrtf_DecRef(device->HrtfHandle);
-                device->HrtfHandle = hrtf;
-            }
-            else
-            {
-                hrtf_userreq = Hrtf_Default;
-                hrtf_appreq = Hrtf_Disable;
-                device->HrtfStatus = ALC_HRTF_UNSUPPORTED_FORMAT_SOFT;
-            }
-        }
-    }
-
     oldFreq  = device->Frequency;
     oldChans = device->FmtChans;
     oldType  = device->FmtType;
@@ -2033,7 +1958,7 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
         device->Frequency, device->UpdateSize, device->NumUpdates
     );
 
-    aluInitRenderer(device, hrtf_id, hrtf_appreq, hrtf_userreq);
+    aluInitRenderer(device);
     TRACE("Channel config, Dry: %d, FOA: %d, Real: %d\n", device->Dry.NumChannels,
           device->FOAOut.NumChannels, device->RealOut.NumChannels);
 
@@ -2268,14 +2193,6 @@ static ALCvoid FreeDevice(ALCdevice *device)
         ReleaseALFilters(device);
     }
     ResetUIntMap(&device->FilterMap);
-
-    AL_STRING_DEINIT(device->HrtfName);
-    FreeHrtfList(&device->HrtfList);
-    if(device->HrtfHandle)
-        Hrtf_DecRef(device->HrtfHandle);
-    device->HrtfHandle = NULL;
-    al_free(device->Hrtf);
-    device->Hrtf = NULL;
 
     bformatdec_free(device->AmbiDecoder);
     device->AmbiDecoder = NULL;
@@ -2872,16 +2789,6 @@ ALC_API const ALCchar* ALC_APIENTRY alcGetString(ALCdevice *Device, ALCenum para
         }
         break;
 
-    case ALC_HRTF_SPECIFIER_SOFT:
-        if(!VerifyDevice(&Device))
-            alcSetError(NULL, ALC_INVALID_DEVICE);
-        else
-        {
-            value = (Device->HrtfHandle ? alstr_get_cstr(Device->HrtfName) : "");
-            ALCdevice_DecRef(Device);
-        }
-        break;
-
     default:
         VerifyDevice(&Device);
         alcSetError(Device, ALC_INVALID_ENUM);
@@ -3035,12 +2942,6 @@ static ALCsizei GetIntegerv(ALCdevice *device, ALCenum param, ALCsizei size, ALC
             values[i++] = ALC_MAX_AUXILIARY_SENDS;
             values[i++] = device->NumAuxSends;
 
-            values[i++] = ALC_HRTF_SOFT;
-            values[i++] = (device->HrtfHandle ? ALC_TRUE : ALC_FALSE);
-
-            values[i++] = ALC_HRTF_STATUS_SOFT;
-            values[i++] = device->HrtfStatus;
-
             values[i++] = ALC_OUTPUT_LIMITER_SOFT;
             values[i++] = device->Limiter ? ALC_TRUE : ALC_FALSE;
 
@@ -3128,20 +3029,6 @@ static ALCsizei GetIntegerv(ALCdevice *device, ALCenum param, ALCsizei size, ALC
 
         case ALC_CONNECTED:
             values[0] = device->Connected;
-            return 1;
-
-        case ALC_HRTF_SOFT:
-            values[0] = (device->HrtfHandle ? ALC_TRUE : ALC_FALSE);
-            return 1;
-
-        case ALC_HRTF_STATUS_SOFT:
-            values[0] = device->HrtfStatus;
-            return 1;
-
-        case ALC_NUM_HRTF_SPECIFIERS_SOFT:
-            FreeHrtfList(&device->HrtfList);
-            device->HrtfList = EnumerateHrtf(device->DeviceName);
-            values[0] = (ALCint)VECTOR_SIZE(device->HrtfList);
             return 1;
 
         case ALC_OUTPUT_LIMITER_SOFT:
@@ -3243,12 +3130,6 @@ ALC_API void ALC_APIENTRY alcGetInteger64vSOFT(ALCdevice *device, ALCenum pname,
 
                     values[i++] = ALC_MAX_AUXILIARY_SENDS;
                     values[i++] = device->NumAuxSends;
-
-                    values[i++] = ALC_HRTF_SOFT;
-                    values[i++] = (device->HrtfHandle ? ALC_TRUE : ALC_FALSE);
-
-                    values[i++] = ALC_HRTF_STATUS_SOFT;
-                    values[i++] = device->HrtfStatus;
 
                     values[i++] = ALC_OUTPUT_LIMITER_SOFT;
                     values[i++] = device->Limiter ? ALC_TRUE : ALC_FALSE;
@@ -3671,10 +3552,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     device->LastError = ALC_NO_ERROR;
 
     device->Flags = 0;
-    device->Hrtf = NULL;
-    device->HrtfHandle = NULL;
-    VECTOR_INIT(device->HrtfList);
-    AL_STRING_INIT(device->HrtfName);
     device->Render_Mode = NormalRender;
     AL_STRING_INIT(device->DeviceName);
     device->Dry.Buffer = NULL;
@@ -3854,11 +3731,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcCaptureOpenDevice(const ALCchar *deviceName, 
     device->ref = 1;
     device->Connected = ALC_TRUE;
     device->Type = Capture;
-
-    device->Hrtf = NULL;
-    device->HrtfHandle = NULL;
-    VECTOR_INIT(device->HrtfList);
-    AL_STRING_INIT(device->HrtfName);
 
     AL_STRING_INIT(device->DeviceName);
     device->Dry.Buffer = NULL;
@@ -4058,10 +3930,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcLoopbackOpenDeviceSOFT(const ALCchar *deviceN
     device->LastError = ALC_NO_ERROR;
 
     device->Flags = 0;
-    device->Hrtf = NULL;
-    device->HrtfHandle = NULL;
-    VECTOR_INIT(device->HrtfList);
-    AL_STRING_INIT(device->HrtfName);
     device->Render_Mode = NormalRender;
     AL_STRING_INIT(device->DeviceName);
     device->Dry.Buffer = NULL;
@@ -4270,13 +4138,6 @@ ALC_API const ALCchar* ALC_APIENTRY alcGetStringiSOFT(ALCdevice *device, ALCenum
         alcSetError(device, ALC_INVALID_DEVICE);
     else switch(paramName)
     {
-        case ALC_HRTF_SPECIFIER_SOFT:
-            if(index >= 0 && (size_t)index < VECTOR_SIZE(device->HrtfList))
-                str = alstr_get_cstr(VECTOR_ELEM(device->HrtfList, index).name);
-            else
-                alcSetError(device, ALC_INVALID_VALUE);
-            break;
-
         default:
             alcSetError(device, ALC_INVALID_ENUM);
             break;

@@ -805,134 +805,11 @@ static void InitHQPanning(ALCdevice *device, const AmbDecConf *conf, const ALsiz
     InitDistanceComp(device, conf, speakermap);
 }
 
-static void InitHrtfPanning(ALCdevice *device)
+void aluInitRenderer(ALCdevice *device)
 {
-    /* NOTE: azimuth goes clockwise. */
-    static const ALfloat AmbiPoints[][2] = {
-        { DEG2RAD( 90.0f), DEG2RAD(   0.0f) },
-        { DEG2RAD( 35.0f), DEG2RAD( -45.0f) },
-        { DEG2RAD( 35.0f), DEG2RAD(  45.0f) },
-        { DEG2RAD( 35.0f), DEG2RAD( 135.0f) },
-        { DEG2RAD( 35.0f), DEG2RAD(-135.0f) },
-        { DEG2RAD(  0.0f), DEG2RAD(   0.0f) },
-        { DEG2RAD(  0.0f), DEG2RAD(  90.0f) },
-        { DEG2RAD(  0.0f), DEG2RAD( 180.0f) },
-        { DEG2RAD(  0.0f), DEG2RAD( -90.0f) },
-        { DEG2RAD(-35.0f), DEG2RAD( -45.0f) },
-        { DEG2RAD(-35.0f), DEG2RAD(  45.0f) },
-        { DEG2RAD(-35.0f), DEG2RAD( 135.0f) },
-        { DEG2RAD(-35.0f), DEG2RAD(-135.0f) },
-        { DEG2RAD(-90.0f), DEG2RAD(   0.0f) },
-    };
-    static const ALfloat AmbiMatrixFOA[][2][MAX_AMBI_COEFFS] = {
-        { { 1.88982237e-001f,  0.00000000e+000f,  1.90399923e-001f,  0.00000000e+000f }, { 7.14285714e-002f,  0.00000000e+000f,  1.24646009e-001f,  0.00000000e+000f } },
-        { { 1.88982237e-001f,  1.09057783e-001f,  1.09208910e-001f,  1.09057783e-001f }, { 7.14285714e-002f,  7.13950780e-002f,  7.14940135e-002f,  7.13950780e-002f } },
-        { { 1.88982237e-001f, -1.09057783e-001f,  1.09208910e-001f,  1.09057783e-001f }, { 7.14285714e-002f, -7.13950780e-002f,  7.14940135e-002f,  7.13950780e-002f } },
-        { { 1.88982237e-001f, -1.09057783e-001f,  1.09208910e-001f, -1.09057783e-001f }, { 7.14285714e-002f, -7.13950780e-002f,  7.14940135e-002f, -7.13950780e-002f } },
-        { { 1.88982237e-001f,  1.09057783e-001f,  1.09208910e-001f, -1.09057783e-001f }, { 7.14285714e-002f,  7.13950780e-002f,  7.14940135e-002f, -7.13950780e-002f } },
-        { { 1.88982237e-001f,  0.00000000e+000f,  0.00000000e+000f,  1.88281281e-001f }, { 7.14285714e-002f,  0.00000000e+000f,  0.00000000e+000f,  1.23259031e-001f } },
-        { { 1.88982237e-001f, -1.88281281e-001f,  0.00000000e+000f,  0.00000000e+000f }, { 7.14285714e-002f, -1.23259031e-001f,  0.00000000e+000f,  0.00000000e+000f } },
-        { { 1.88982237e-001f,  0.00000000e+000f,  0.00000000e+000f, -1.88281281e-001f }, { 7.14285714e-002f,  0.00000000e+000f,  0.00000000e+000f, -1.23259031e-001f } },
-        { { 1.88982237e-001f,  1.88281281e-001f,  0.00000000e+000f,  0.00000000e+000f }, { 7.14285714e-002f,  1.23259031e-001f,  0.00000000e+000f,  0.00000000e+000f } },
-        { { 1.88982237e-001f,  1.09057783e-001f, -1.09208910e-001f,  1.09057783e-001f }, { 7.14285714e-002f,  7.13950780e-002f, -7.14940135e-002f,  7.13950780e-002f } },
-        { { 1.88982237e-001f, -1.09057783e-001f, -1.09208910e-001f,  1.09057783e-001f }, { 7.14285714e-002f, -7.13950780e-002f, -7.14940135e-002f,  7.13950780e-002f } },
-        { { 1.88982237e-001f, -1.09057783e-001f, -1.09208910e-001f, -1.09057783e-001f }, { 7.14285714e-002f, -7.13950780e-002f, -7.14940135e-002f, -7.13950780e-002f } },
-        { { 1.88982237e-001f,  1.09057783e-001f, -1.09208910e-001f, -1.09057783e-001f }, { 7.14285714e-002f,  7.13950780e-002f, -7.14940135e-002f, -7.13950780e-002f } },
-        { { 1.88982237e-001f,  0.00000000e+000f, -1.90399923e-001f,  0.00000000e+000f }, { 7.14285714e-002f,  0.00000000e+000f, -1.24646009e-001f,  0.00000000e+000f } }
-    }, AmbiMatrixHOA[][2][MAX_AMBI_COEFFS] = {
-        { { 1.43315266e-001f,  0.00000000e+000f,  1.90399923e-001f,  0.00000000e+000f,  0.00000000e+000f,  0.00000000e+000f,  1.18020996e-001f,  0.00000000e+000f,  0.00000000e+000f }, { 7.26741039e-002f,  0.00000000e+000f,  1.24646009e-001f,  0.00000000e+000f,  0.00000000e+000f,  0.00000000e+000f,  1.49618920e-001f,  0.00000000e+000f,  0.00000000e+000f } },
-        { { 1.40852210e-001f,  1.09057783e-001f,  1.09208910e-001f,  1.09057783e-001f,  7.58818830e-002f,  7.66295578e-002f, -3.28314629e-004f,  7.66295578e-002f,  0.00000000e+000f }, { 7.14251066e-002f,  7.13950780e-002f,  7.14940135e-002f,  7.13950780e-002f,  9.61978444e-002f,  9.71456952e-002f, -4.16214759e-004f,  9.71456952e-002f,  0.00000000e+000f } },
-        { { 1.40852210e-001f, -1.09057783e-001f,  1.09208910e-001f,  1.09057783e-001f, -7.58818830e-002f, -7.66295578e-002f, -3.28314629e-004f,  7.66295578e-002f,  0.00000000e+000f }, { 7.14251066e-002f, -7.13950780e-002f,  7.14940135e-002f,  7.13950780e-002f, -9.61978444e-002f, -9.71456952e-002f, -4.16214759e-004f,  9.71456952e-002f,  0.00000000e+000f } },
-        { { 1.40852210e-001f, -1.09057783e-001f,  1.09208910e-001f, -1.09057783e-001f,  7.58818830e-002f, -7.66295578e-002f, -3.28314629e-004f, -7.66295578e-002f,  0.00000000e+000f }, { 7.14251066e-002f, -7.13950780e-002f,  7.14940135e-002f, -7.13950780e-002f,  9.61978444e-002f, -9.71456952e-002f, -4.16214759e-004f, -9.71456952e-002f,  0.00000000e+000f } },
-        { { 1.40852210e-001f,  1.09057783e-001f,  1.09208910e-001f, -1.09057783e-001f, -7.58818830e-002f,  7.66295578e-002f, -3.28314629e-004f, -7.66295578e-002f,  0.00000000e+000f }, { 7.14251066e-002f,  7.13950780e-002f,  7.14940135e-002f, -7.13950780e-002f, -9.61978444e-002f,  9.71456952e-002f, -4.16214759e-004f, -9.71456952e-002f,  0.00000000e+000f } },
-        { { 1.39644596e-001f,  0.00000000e+000f,  0.00000000e+000f,  1.88281281e-001f,  0.00000000e+000f,  0.00000000e+000f, -5.83538687e-002f,  0.00000000e+000f,  1.01835015e-001f }, { 7.08127349e-002f,  0.00000000e+000f,  0.00000000e+000f,  1.23259031e-001f,  0.00000000e+000f,  0.00000000e+000f, -7.39770307e-002f,  0.00000000e+000f,  1.29099445e-001f } },
-        { { 1.39644596e-001f, -1.88281281e-001f,  0.00000000e+000f,  0.00000000e+000f,  0.00000000e+000f,  0.00000000e+000f, -5.83538687e-002f,  0.00000000e+000f, -1.01835015e-001f }, { 7.08127349e-002f, -1.23259031e-001f,  0.00000000e+000f,  0.00000000e+000f,  0.00000000e+000f,  0.00000000e+000f, -7.39770307e-002f,  0.00000000e+000f, -1.29099445e-001f } },
-        { { 1.39644596e-001f,  0.00000000e+000f,  0.00000000e+000f, -1.88281281e-001f,  0.00000000e+000f,  0.00000000e+000f, -5.83538687e-002f,  0.00000000e+000f,  1.01835015e-001f }, { 7.08127349e-002f,  0.00000000e+000f,  0.00000000e+000f, -1.23259031e-001f,  0.00000000e+000f,  0.00000000e+000f, -7.39770307e-002f,  0.00000000e+000f,  1.29099445e-001f } },
-        { { 1.39644596e-001f,  1.88281281e-001f,  0.00000000e+000f,  0.00000000e+000f,  0.00000000e+000f,  0.00000000e+000f, -5.83538687e-002f,  0.00000000e+000f, -1.01835015e-001f }, { 7.08127349e-002f,  1.23259031e-001f,  0.00000000e+000f,  0.00000000e+000f,  0.00000000e+000f,  0.00000000e+000f, -7.39770307e-002f,  0.00000000e+000f, -1.29099445e-001f } },
-        { { 1.40852210e-001f,  1.09057783e-001f, -1.09208910e-001f,  1.09057783e-001f,  7.58818830e-002f, -7.66295578e-002f, -3.28314629e-004f, -7.66295578e-002f,  0.00000000e+000f }, { 7.14251066e-002f,  7.13950780e-002f, -7.14940135e-002f,  7.13950780e-002f,  9.61978444e-002f, -9.71456952e-002f, -4.16214759e-004f, -9.71456952e-002f,  0.00000000e+000f } },
-        { { 1.40852210e-001f, -1.09057783e-001f, -1.09208910e-001f,  1.09057783e-001f, -7.58818830e-002f,  7.66295578e-002f, -3.28314629e-004f, -7.66295578e-002f,  0.00000000e+000f }, { 7.14251066e-002f, -7.13950780e-002f, -7.14940135e-002f,  7.13950780e-002f, -9.61978444e-002f,  9.71456952e-002f, -4.16214759e-004f, -9.71456952e-002f,  0.00000000e+000f } },
-        { { 1.40852210e-001f, -1.09057783e-001f, -1.09208910e-001f, -1.09057783e-001f,  7.58818830e-002f,  7.66295578e-002f, -3.28314629e-004f,  7.66295578e-002f,  0.00000000e+000f }, { 7.14251066e-002f, -7.13950780e-002f, -7.14940135e-002f, -7.13950780e-002f,  9.61978444e-002f,  9.71456952e-002f, -4.16214759e-004f,  9.71456952e-002f,  0.00000000e+000f } },
-        { { 1.40852210e-001f,  1.09057783e-001f, -1.09208910e-001f, -1.09057783e-001f, -7.58818830e-002f, -7.66295578e-002f, -3.28314629e-004f,  7.66295578e-002f,  0.00000000e+000f }, { 7.14251066e-002f,  7.13950780e-002f, -7.14940135e-002f, -7.13950780e-002f, -9.61978444e-002f, -9.71456952e-002f, -4.16214759e-004f,  9.71456952e-002f,  0.00000000e+000f } },
-        { { 1.43315266e-001f,  0.00000000e+000f, -1.90399923e-001f,  0.00000000e+000f,  0.00000000e+000f,  0.00000000e+000f,  1.18020996e-001f,  0.00000000e+000f,  0.00000000e+000f }, { 7.26741039e-002f,  0.00000000e+000f, -1.24646009e-001f,  0.00000000e+000f,  0.00000000e+000f,  0.00000000e+000f,  1.49618920e-001f,  0.00000000e+000f,  0.00000000e+000f } },
-    };
-    const ALfloat (*AmbiMatrix)[2][MAX_AMBI_COEFFS] = device->AmbiUp ? AmbiMatrixHOA :
-                                                                       AmbiMatrixFOA;
-    ALsizei count = device->AmbiUp ? 9 : 4;
-    ALsizei i;
-
-    static_assert(COUNTOF(AmbiPoints) <= HRTF_AMBI_MAX_CHANNELS, "HRTF_AMBI_MAX_CHANNELS is too small");
-
-    device->Hrtf = al_calloc(16, FAM_SIZE(DirectHrtfState, Chan, count));
-
-    for(i = 0;i < count;i++)
-    {
-        device->Dry.Ambi.Map[i].Scale = 1.0f;
-        device->Dry.Ambi.Map[i].Index = i;
-    }
-    device->Dry.CoeffCount = 0;
-    device->Dry.NumChannels = count;
-
-    if(device->AmbiUp)
-    {
-        memset(&device->FOAOut.Ambi, 0, sizeof(device->FOAOut.Ambi));
-        for(i = 0;i < 4;i++)
-        {
-            device->FOAOut.Ambi.Map[i].Scale = 1.0f;
-            device->FOAOut.Ambi.Map[i].Index = i;
-        }
-        device->FOAOut.CoeffCount = 0;
-        device->FOAOut.NumChannels = 4;
-
-        ambiup_reset(device->AmbiUp, device);
-    }
-    else
-    {
-        device->FOAOut.Ambi = device->Dry.Ambi;
-        device->FOAOut.CoeffCount = device->Dry.CoeffCount;
-        device->FOAOut.NumChannels = 0;
-    }
-
-    device->RealOut.NumChannels = ChannelsFromDevFmt(device->FmtChans, device->AmbiOrder);
-
-    device->Hrtf->IrSize = BuildBFormatHrtf(device->HrtfHandle,
-        device->Hrtf, device->Dry.NumChannels,
-        AmbiPoints, AmbiMatrix, COUNTOF(AmbiPoints)
-    );
-}
-
-static void InitUhjPanning(ALCdevice *device)
-{
-    ALsizei count = 3;
-    ALsizei i;
-
-    for(i = 0;i < count;i++)
-    {
-        ALsizei acn = FuMa2ACN[i];
-        device->Dry.Ambi.Map[i].Scale = 1.0f/FuMa2N3DScale[acn];
-        device->Dry.Ambi.Map[i].Index = acn;
-    }
-    device->Dry.CoeffCount = 0;
-    device->Dry.NumChannels = count;
-
-    device->FOAOut.Ambi = device->Dry.Ambi;
-    device->FOAOut.CoeffCount = device->Dry.CoeffCount;
-    device->FOAOut.NumChannels = 0;
-
-    device->RealOut.NumChannels = ChannelsFromDevFmt(device->FmtChans, device->AmbiOrder);
-}
-
-void aluInitRenderer(ALCdevice *device, ALint hrtf_id, enum HrtfRequestMode hrtf_appreq, enum HrtfRequestMode hrtf_userreq)
-{
-    /* Hold the HRTF the device last used, in case it's used again. */
-    struct Hrtf *old_hrtf = device->HrtfHandle;
     bool headphones;
-    int bs2blevel;
     size_t i;
 
-    al_free(device->Hrtf);
-    device->Hrtf = NULL;
-    device->HrtfHandle = NULL;
-    alstr_clear(&device->HrtfName);
     device->Render_Mode = NormalRender;
 
     memset(&device->Dry.Ambi, 0, sizeof(device->Dry.Ambi));
@@ -954,12 +831,6 @@ void aluInitRenderer(ALCdevice *device, ALint hrtf_id, enum HrtfRequestMode hrtf
         ALsizei speakermap[MAX_OUTPUT_CHANNELS];
         const char *devname, *layout = NULL;
         AmbDecConf conf, *pconf = NULL;
-
-        if(old_hrtf)
-            Hrtf_DecRef(old_hrtf);
-        old_hrtf = NULL;
-        if(hrtf_appreq == Hrtf_Enable)
-            device->HrtfStatus = ALC_HRTF_UNSUPPORTED_FORMAT_SOFT;
 
         ambdec_init(&conf);
 
@@ -1016,98 +887,7 @@ void aluInitRenderer(ALCdevice *device, ALint hrtf_id, enum HrtfRequestMode hrtf
     device->AmbiDecoder = NULL;
 
     headphones = device->IsHeadphones;
-    if(device->Type != Loopback)
-    {
-    }
 
-    if(hrtf_userreq == Hrtf_Default)
-    {
-        bool usehrtf = (headphones && hrtf_appreq != Hrtf_Disable) ||
-                       (hrtf_appreq == Hrtf_Enable);
-        if(!usehrtf) goto no_hrtf;
-
-        device->HrtfStatus = ALC_HRTF_ENABLED_SOFT;
-        if(headphones && hrtf_appreq != Hrtf_Disable)
-            device->HrtfStatus = ALC_HRTF_HEADPHONES_DETECTED_SOFT;
-    }
-    else
-    {
-        if(hrtf_userreq != Hrtf_Enable)
-        {
-            if(hrtf_appreq == Hrtf_Enable)
-                device->HrtfStatus = ALC_HRTF_DENIED_SOFT;
-            goto no_hrtf;
-        }
-        device->HrtfStatus = ALC_HRTF_REQUIRED_SOFT;
-    }
-
-    if(VECTOR_SIZE(device->HrtfList) == 0)
-    {
-        VECTOR_DEINIT(device->HrtfList);
-        device->HrtfList = EnumerateHrtf(device->DeviceName);
-    }
-
-    if(hrtf_id >= 0 && (size_t)hrtf_id < VECTOR_SIZE(device->HrtfList))
-    {
-        const EnumeratedHrtf *entry = &VECTOR_ELEM(device->HrtfList, hrtf_id);
-        struct Hrtf *hrtf = GetLoadedHrtf(entry->hrtf);
-        if(hrtf && hrtf->sampleRate == device->Frequency)
-        {
-            device->HrtfHandle = hrtf;
-            alstr_copy(&device->HrtfName, entry->name);
-        }
-        else if(hrtf)
-            Hrtf_DecRef(hrtf);
-    }
-
-    for(i = 0;!device->HrtfHandle && i < VECTOR_SIZE(device->HrtfList);i++)
-    {
-        const EnumeratedHrtf *entry = &VECTOR_ELEM(device->HrtfList, i);
-        struct Hrtf *hrtf = GetLoadedHrtf(entry->hrtf);
-        if(hrtf && hrtf->sampleRate == device->Frequency)
-        {
-            device->HrtfHandle = hrtf;
-            alstr_copy(&device->HrtfName, entry->name);
-        }
-        else if(hrtf)
-            Hrtf_DecRef(hrtf);
-    }
-
-    if(device->HrtfHandle)
-    {
-        if(old_hrtf)
-            Hrtf_DecRef(old_hrtf);
-        old_hrtf = NULL;
-
-        device->Render_Mode = HrtfRender;
-
-        if(device->Render_Mode == HrtfRender)
-        {
-            /* Don't bother with HOA when using full HRTF rendering. Nothing
-             * needs it, and it eases the CPU/memory load.
-             */
-            ambiup_free(device->AmbiUp);
-            device->AmbiUp = NULL;
-        }
-        else
-        {
-            if(!device->AmbiUp)
-                device->AmbiUp = ambiup_alloc();
-        }
-
-        TRACE("%s HRTF rendering enabled, using \"%s\"\n",
-            ((device->Render_Mode == HrtfRender) ? "Full" : "Basic"),
-            alstr_get_cstr(device->HrtfName)
-        );
-        InitHrtfPanning(device);
-        return;
-    }
-    device->HrtfStatus = ALC_HRTF_UNSUPPORTED_FORMAT_SOFT;
-
-no_hrtf:
-    if(old_hrtf)
-        Hrtf_DecRef(old_hrtf);
-    old_hrtf = NULL;
     TRACE("HRTF disabled\n");
 
     device->Render_Mode = StereoPair;
@@ -1115,12 +895,9 @@ no_hrtf:
     ambiup_free(device->AmbiUp);
     device->AmbiUp = NULL;
 
-    bs2blevel = ((headphones && hrtf_appreq != Hrtf_Disable) ||
-                 (hrtf_appreq == Hrtf_Enable)) ? 5 : 0;
-
     TRACE("BS2B disabled\n");
-
     TRACE("UHJ disabled\n");
+
     InitPanning(device);
 }
 

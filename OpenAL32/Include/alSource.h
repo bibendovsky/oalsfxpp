@@ -4,7 +4,6 @@
 #include "bool.h"
 #include "alMain.h"
 #include "alu.h"
-#include "hrtf.h"
 
 #define MAX_SENDS      16
 #define DEFAULT_SENDS  2
