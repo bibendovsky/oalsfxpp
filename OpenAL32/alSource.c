@@ -1409,8 +1409,8 @@ static ALboolean GetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
                 ALvoice *voice;
 
                 if((voice=GetSourceVoice(Source, Context)) != NULL)
-                    Current = ATOMIC_LOAD_SEQ(&voice->current_buffer);
-                else if(ATOMIC_LOAD_SEQ(&Source->state) == AL_INITIAL)
+                    Current = voice->current_buffer;
+                else if(Source->state == AL_INITIAL)
                     Current = BufferList;
 
                 while(BufferList && BufferList != Current)
@@ -2889,8 +2889,8 @@ AL_API ALvoid AL_APIENTRY alSourceUnqueueBuffers(ALuint src, ALsizei nb, ALuint 
     OldTail = source->queue;
     Current = NULL;
     if((voice=GetSourceVoice(source, context)) != NULL)
-        Current = ATOMIC_LOAD_SEQ(&voice->current_buffer);
-    else if(ATOMIC_LOAD_SEQ(&source->state) == AL_INITIAL)
+        Current = voice->current_buffer;
+    else if(source->state == AL_INITIAL)
         Current = OldTail;
     if(OldTail != Current)
     {

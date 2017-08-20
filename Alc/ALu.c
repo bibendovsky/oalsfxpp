@@ -1805,7 +1805,7 @@ void aluHandleDisconnect(ALCdevice *device)
 
     device->Connected = ALC_FALSE;
 
-    ctx = ATOMIC_LOAD_SEQ(&device->ContextList);
+    ctx = device->ContextList;
     while(ctx)
     {
         ALsizei i;

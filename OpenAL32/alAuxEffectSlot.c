@@ -541,7 +541,7 @@ ALenum InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *e
         EffectSlot->Effect.Props = effect->Props;
 
     /* Remove state references from old effect slot property updates. */
-    props = ATOMIC_LOAD_SEQ(&EffectSlot->FreeList);
+    props = EffectSlot->FreeList;
     while(props)
     {
         if(props->State)
@@ -619,7 +619,7 @@ void DeinitEffectSlot(ALeffectslot *slot)
     struct ALeffectslotProps *props;
     size_t count = 0;
 
-    props = ATOMIC_LOAD_SEQ(&slot->Update);
+    props = slot->Update;
     if(props)
     {
         if(props->State) ALeffectState_DecRef(props->State);

@@ -2234,7 +2234,7 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
      */
     update_failed = AL_FALSE;
     START_MIXER_MODE();
-    context = ATOMIC_LOAD_SEQ(&device->ContextList);
+    context = device->ContextList;
     while(context)
     {
         ALsizei pos;
@@ -2470,7 +2470,7 @@ static ALCboolean VerifyDevice(ALCdevice **device)
     ALCdevice *tmpDevice;
 
     LockLists();
-    tmpDevice = ATOMIC_LOAD_SEQ(&DeviceList);
+    tmpDevice = DeviceList;
     while(tmpDevice)
     {
         if(tmpDevice == *device)
@@ -2702,7 +2702,7 @@ static ALCboolean VerifyContext(ALCcontext **context)
     ALCdevice *dev;
 
     LockLists();
-    dev = ATOMIC_LOAD_SEQ(&DeviceList);
+    dev = DeviceList;
     while(dev)
     {
         ALCcontext *ctx = dev->ContextList;
@@ -2740,7 +2740,7 @@ ALCcontext *GetContextRef(void)
     else
     {
         LockLists();
-        context = ATOMIC_LOAD_SEQ(&GlobalContext);
+        context = GlobalContext;
         if(context)
             ALCcontext_IncRef(context);
         UnlockLists();
@@ -3629,7 +3629,7 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
     UpdateListenerProps(ALContext);
 
     {
-        ALCcontext *head = ATOMIC_LOAD_SEQ(&device->ContextList);
+        ALCcontext *head = device->ContextList;
         do {
             ALContext->next = head;
         } while(ATOMIC_COMPARE_EXCHANGE_PTR_WEAK_SEQ(&device->ContextList, &head,
@@ -3688,7 +3688,7 @@ ALC_API ALCvoid ALC_APIENTRY alcDestroyContext(ALCcontext *context)
 ALC_API ALCcontext* ALC_APIENTRY alcGetCurrentContext(void)
 {
     ALCcontext *Context = LocalContext;
-    if(!Context) Context = ATOMIC_LOAD_SEQ(&GlobalContext);
+    if(!Context) Context = GlobalContext;
     return Context;
 }
 
@@ -3999,7 +3999,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     device->Limiter = CreateDeviceLimiter(device);
 
     {
-        ALCdevice *head = ATOMIC_LOAD_SEQ(&DeviceList);
+        ALCdevice *head = DeviceList;
         do {
             device->next = head;
         } while(!ATOMIC_COMPARE_EXCHANGE_PTR_WEAK_SEQ(&DeviceList, &head, device));
@@ -4019,7 +4019,7 @@ ALC_API ALCboolean ALC_APIENTRY alcCloseDevice(ALCdevice *device)
     ALCcontext *ctx;
 
     LockLists();
-    iter = ATOMIC_LOAD_SEQ(&DeviceList);
+    iter = DeviceList;
     do {
         if(iter == device)
             break;
@@ -4047,7 +4047,7 @@ ALC_API ALCboolean ALC_APIENTRY alcCloseDevice(ALCdevice *device)
     }
     UnlockLists();
 
-    ctx = ATOMIC_LOAD_SEQ(&device->ContextList);
+    ctx = device->ContextList;
     while(ctx != NULL)
     {
         ALCcontext *next = ctx->next;
@@ -4167,7 +4167,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcCaptureOpenDevice(const ALCchar *deviceName, 
     }
 
     {
-        ALCdevice *head = ATOMIC_LOAD_SEQ(&DeviceList);
+        ALCdevice *head = DeviceList;
         do {
             device->next = head;
         } while(!ATOMIC_COMPARE_EXCHANGE_PTR_WEAK_SEQ(&DeviceList, &head, device));
@@ -4182,7 +4182,7 @@ ALC_API ALCboolean ALC_APIENTRY alcCaptureCloseDevice(ALCdevice *device)
     ALCdevice *iter, *origdev;
 
     LockLists();
-    iter = ATOMIC_LOAD_SEQ(&DeviceList);
+    iter = DeviceList;
     do {
         if(iter == device)
             break;
@@ -4384,7 +4384,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcLoopbackOpenDeviceSOFT(const ALCchar *deviceN
     device->Limiter = CreateDeviceLimiter(device);
 
     {
-        ALCdevice *head = ATOMIC_LOAD_SEQ(&DeviceList);
+        ALCdevice *head = DeviceList;
         do {
             device->next = head;
         } while(!ATOMIC_COMPARE_EXCHANGE_PTR_WEAK_SEQ(&DeviceList, &head, device));
@@ -4494,7 +4494,7 @@ ALC_API void ALC_APIENTRY alcDeviceResumeSOFT(ALCdevice *device)
         if((device->Flags&DEVICE_PAUSED))
         {
             device->Flags &= ~DEVICE_PAUSED;
-            if(ATOMIC_LOAD_SEQ(&device->ContextList) != NULL)
+            if(device->ContextList != NULL)
             {
                 if(V0(device->Backend,start)() != ALC_FALSE)
                     device->Flags |= DEVICE_RUNNING;
