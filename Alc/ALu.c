@@ -592,23 +592,6 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
             ALfloat coeffs[MAX_AMBI_COEFFS];
             ALfloat w0 = 0.0f;
 
-            /* Calculate NFC filter coefficient if needed. */
-            if(Device->AvgSpeakerDist > 0.0f && Listener->Params.MetersPerUnit > 0.0f)
-            {
-                ALfloat mdist = Distance * Listener->Params.MetersPerUnit;
-                ALfloat w1 = SPEEDOFSOUNDMETRESPERSEC /
-                             (Device->AvgSpeakerDist * (ALfloat)Device->Frequency);
-                w0 = SPEEDOFSOUNDMETRESPERSEC /
-                     (mdist * (ALfloat)Device->Frequency);
-                /* Clamp w0 for really close distances, to prevent excessive
-                 * bass.
-                 */
-                w0 = minf(w0, w1*4.0f);
-
-                for(i = 0;i < MAX_AMBI_ORDER+1;i++)
-                    voice->Direct.ChannelsPerOrder[i] = Device->Dry.NumChannelsPerOrder[i];
-            }
-
             /* Calculate the directional coefficients once, which apply to all
              * input channels.
              */
@@ -668,20 +651,6 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
         else
         {
             ALfloat w0 = 0.0f;
-
-            if(Device->AvgSpeakerDist > 0.0f)
-            {
-                /* If the source distance is 0, set w0 to w1 to act as a pass-
-                 * through. We still want to pass the signal through the
-                 * filters so they keep an appropriate history, in case the
-                 * source moves away from the listener.
-                 */
-                w0 = SPEEDOFSOUNDMETRESPERSEC /
-                     (Device->AvgSpeakerDist * (ALfloat)Device->Frequency);
-
-                for(i = 0;i < MAX_AMBI_ORDER+1;i++)
-                    voice->Direct.ChannelsPerOrder[i] = Device->Dry.NumChannelsPerOrder[i];
-            }
 
             for(c = 0;c < num_channels;c++)
             {

@@ -3128,7 +3128,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     device->RealOut.Buffer = NULL;
     device->RealOut.NumChannels = 0;
     device->Limiter = NULL;
-    device->AvgSpeakerDist = 0.0f;
 
     device->ContextList = NULL;
 

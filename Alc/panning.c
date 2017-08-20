@@ -488,7 +488,6 @@ void aluInitRenderer(ALCdevice *device)
     for(i = 0;i < MAX_AMBI_ORDER+1;i++)
         device->Dry.NumChannelsPerOrder[i] = 0;
 
-    device->AvgSpeakerDist = 0.0f;
     memset(device->ChannelDelay, 0, sizeof(device->ChannelDelay));
     for(i = 0;i < MAX_OUTPUT_CHANNELS;i++)
     {

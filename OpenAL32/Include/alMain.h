@@ -709,11 +709,6 @@ struct ALCdevice_struct
 
     struct Compressor *Limiter;
 
-    /* The average speaker distance as determined by the ambdec configuration
-     * (or alternatively, by the NFC-HOA reference delay). Only used for NFC.
-     */
-    ALfloat AvgSpeakerDist;
-
     /* Delay buffers used to compensate for speaker distances. */
     DistanceComp ChannelDelay[MAX_OUTPUT_CHANNELS];
 
