@@ -308,21 +308,17 @@ AL_API ALvoid AL_APIENTRY alBufferSubDataSOFT(ALuint buffer, ALenum format, cons
     if(DecomposeUserFormat(format, &srcchannels, &srctype) == AL_FALSE)
         SET_ERROR_AND_GOTO(context, AL_INVALID_ENUM, done);
 
-    WriteLock(&albuf->lock);
     align = albuf->UnpackAlign;
     if(SanitizeAlignment(srctype, &align) == AL_FALSE)
     {
-        WriteUnlock(&albuf->lock);
         SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
     }
     if(srcchannels != albuf->OriginalChannels || srctype != albuf->OriginalType)
     {
-        WriteUnlock(&albuf->lock);
         SET_ERROR_AND_GOTO(context, AL_INVALID_ENUM, done);
     }
     if(align != albuf->OriginalAlign)
     {
-        WriteUnlock(&albuf->lock);
         SET_ERROR_AND_GOTO(context, AL_INVALID_ENUM, done);
     }
 
@@ -346,7 +342,6 @@ AL_API ALvoid AL_APIENTRY alBufferSubDataSOFT(ALuint buffer, ALenum format, cons
     if(offset > albuf->OriginalSize || length > albuf->OriginalSize-offset ||
        (offset%byte_align) != 0 || (length%byte_align) != 0)
     {
-        WriteUnlock(&albuf->lock);
         SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
     }
 
@@ -358,7 +353,6 @@ AL_API ALvoid AL_APIENTRY alBufferSubDataSOFT(ALuint buffer, ALenum format, cons
 
     ConvertData((char*)albuf->data+offset, (enum UserFmtType)albuf->FmtType,
                 data, srctype, channels, length, align);
-    WriteUnlock(&albuf->lock);
 
 done:
     UnlockBuffersRead(device);
@@ -425,26 +419,21 @@ AL_API void AL_APIENTRY alBufferSubSamplesSOFT(ALuint buffer,
     if(IsValidType(type) == AL_FALSE)
         SET_ERROR_AND_GOTO(context, AL_INVALID_ENUM, done);
 
-    WriteLock(&albuf->lock);
     align = albuf->UnpackAlign;
     if(SanitizeAlignment(type, &align) == AL_FALSE)
     {
-        WriteUnlock(&albuf->lock);
         SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
     }
     if(channels != (ALenum)albuf->FmtChannels)
     {
-        WriteUnlock(&albuf->lock);
         SET_ERROR_AND_GOTO(context, AL_INVALID_ENUM, done);
     }
     if(offset > albuf->SampleLen || samples > albuf->SampleLen-offset)
     {
-        WriteUnlock(&albuf->lock);
         SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
     }
     if((samples%align) != 0)
     {
-        WriteUnlock(&albuf->lock);
         SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
     }
 
@@ -452,7 +441,6 @@ AL_API void AL_APIENTRY alBufferSubSamplesSOFT(ALuint buffer,
     offset *= FrameSizeFromFmt(albuf->FmtChannels, albuf->FmtType);
     ConvertData((char*)albuf->data+offset, (enum UserFmtType)albuf->FmtType,
                 data, type, ChannelsFromFmt(albuf->FmtChannels), samples, align);
-    WriteUnlock(&albuf->lock);
 
 done:
     UnlockBuffersRead(device);
@@ -480,26 +468,21 @@ AL_API void AL_APIENTRY alGetBufferSamplesSOFT(ALuint buffer,
     if(IsValidType(type) == AL_FALSE)
         SET_ERROR_AND_GOTO(context, AL_INVALID_ENUM, done);
 
-    ReadLock(&albuf->lock);
     align = albuf->PackAlign;
     if(SanitizeAlignment(type, &align) == AL_FALSE)
     {
-        ReadUnlock(&albuf->lock);
         SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
     }
     if(channels != (ALenum)albuf->FmtChannels)
     {
-        ReadUnlock(&albuf->lock);
         SET_ERROR_AND_GOTO(context, AL_INVALID_ENUM, done);
     }
     if(offset > albuf->SampleLen || samples > albuf->SampleLen-offset)
     {
-        ReadUnlock(&albuf->lock);
         SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
     }
     if((samples%align) != 0)
     {
-        ReadUnlock(&albuf->lock);
         SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
     }
 
@@ -507,7 +490,6 @@ AL_API void AL_APIENTRY alGetBufferSamplesSOFT(ALuint buffer,
     offset *= FrameSizeFromFmt(albuf->FmtChannels, albuf->FmtType);
     ConvertData(data, type, (char*)albuf->data+offset, (enum UserFmtType)albuf->FmtType,
                 ChannelsFromFmt(albuf->FmtChannels), samples, align);
-    ReadUnlock(&albuf->lock);
 
 done:
     UnlockBuffersRead(device);
@@ -700,22 +682,18 @@ AL_API void AL_APIENTRY alBufferiv(ALuint buffer, ALenum param, const ALint *val
     switch(param)
     {
     case AL_LOOP_POINTS_SOFT:
-        WriteLock(&albuf->lock);
         if(albuf->ref != 0)
         {
-            WriteUnlock(&albuf->lock);
             SET_ERROR_AND_GOTO(context, AL_INVALID_OPERATION, done);
         }
         if(values[0] >= values[1] || values[0] < 0 ||
            values[1] > albuf->SampleLen)
         {
-            WriteUnlock(&albuf->lock);
             SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
         }
 
         albuf->LoopStart = values[0];
         albuf->LoopEnd = values[1];
-        WriteUnlock(&albuf->lock);
         break;
 
     default:
@@ -747,12 +725,10 @@ AL_API ALvoid AL_APIENTRY alGetBufferf(ALuint buffer, ALenum param, ALfloat *val
     switch(param)
     {
     case AL_SEC_LENGTH_SOFT:
-        ReadLock(&albuf->lock);
         if(albuf->SampleLen != 0)
             *value = albuf->SampleLen / (ALfloat)albuf->Frequency;
         else
             *value = 0.0f;
-        ReadUnlock(&albuf->lock);
         break;
 
     default:
@@ -857,10 +833,8 @@ AL_API ALvoid AL_APIENTRY alGetBufferi(ALuint buffer, ALenum param, ALint *value
         break;
 
     case AL_SIZE:
-        ReadLock(&albuf->lock);
         *value = albuf->SampleLen * FrameSizeFromFmt(albuf->FmtChannels,
                                                      albuf->FmtType);
-        ReadUnlock(&albuf->lock);
         break;
 
     case AL_INTERNAL_FORMAT_SOFT:
@@ -954,10 +928,8 @@ AL_API void AL_APIENTRY alGetBufferiv(ALuint buffer, ALenum param, ALint *values
     switch(param)
     {
     case AL_LOOP_POINTS_SOFT:
-        ReadLock(&albuf->lock);
         values[0] = albuf->LoopStart;
         values[1] = albuf->LoopEnd;
-        ReadUnlock(&albuf->lock);
         break;
 
     default:
@@ -998,10 +970,8 @@ ALenum LoadData(ALbuffer *ALBuf, ALuint freq, ALenum NewFormat, ALsizei frames, 
     if(newsize > INT_MAX)
         return AL_OUT_OF_MEMORY;
 
-    WriteLock(&ALBuf->lock);
     if(ALBuf->ref != 0)
     {
-        WriteUnlock(&ALBuf->lock);
         return AL_INVALID_OPERATION;
     }
 
@@ -1017,7 +987,6 @@ ALenum LoadData(ALbuffer *ALBuf, ALuint freq, ALenum NewFormat, ALsizei frames, 
         void *temp = al_calloc(16, (size_t)newsize);
         if(!temp && newsize)
         {
-            WriteUnlock(&ALBuf->lock);
             return AL_OUT_OF_MEMORY;
         }
         al_free(ALBuf->data);
@@ -1067,7 +1036,6 @@ ALenum LoadData(ALbuffer *ALBuf, ALuint freq, ALenum NewFormat, ALsizei frames, 
     ALBuf->LoopStart = 0;
     ALBuf->LoopEnd = ALBuf->SampleLen;
 
-    WriteUnlock(&ALBuf->lock);
     return AL_NO_ERROR;
 }
 
@@ -1358,7 +1326,6 @@ ALbuffer *NewBuffer(ALCcontext *context)
     buffer = al_calloc(16, sizeof(ALbuffer));
     if(!buffer)
         SET_ERROR_AND_RETURN_VALUE(context, AL_OUT_OF_MEMORY, NULL);
-    RWLockInit(&buffer->lock);
 
     err = NewThunkEntry(&buffer->id);
     if(err == AL_NO_ERROR)

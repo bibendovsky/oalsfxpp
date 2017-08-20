@@ -30,11 +30,9 @@
 
 static int *ThunkArray;
 static ALsizei      ThunkArraySize;
-static RWLock ThunkLock;
 
 void ThunkInit(void)
 {
-    RWLockInit(&ThunkLock);
     ThunkArraySize = 1024;
     ThunkArray = al_calloc(16, ThunkArraySize * sizeof(*ThunkArray));
 }
@@ -51,21 +49,17 @@ ALenum NewThunkEntry(ALuint *index)
     void *NewList;
     ALsizei i;
 
-    ReadLock(&ThunkLock);
     for(i = 0;i < ThunkArraySize;i++)
     {
         int old_thunk = ThunkArray[i];
         ThunkArray[i] = 1;
         if(!old_thunk)
         {
-            ReadUnlock(&ThunkLock);
             *index = i+1;
             return AL_NO_ERROR;
         }
     }
-    ReadUnlock(&ThunkLock);
 
-    WriteLock(&ThunkLock);
     /* Double-check that there's still no free entries, in case another
      * invocation just came through and increased the size of the array.
      */
@@ -75,7 +69,6 @@ ALenum NewThunkEntry(ALuint *index)
         ThunkArray[i] = 1;
         if(!old_thunk)
         {
-            WriteUnlock(&ThunkLock);
             *index = i+1;
             return AL_NO_ERROR;
         }
@@ -84,7 +77,6 @@ ALenum NewThunkEntry(ALuint *index)
     NewList = al_calloc(16, ThunkArraySize*2 * sizeof(*ThunkArray));
     if(!NewList)
     {
-        WriteUnlock(&ThunkLock);
         ERR("Realloc failed to increase to %u entries!\n", ThunkArraySize*2);
         return AL_OUT_OF_MEMORY;
     }
@@ -98,15 +90,12 @@ ALenum NewThunkEntry(ALuint *index)
 
     for(;i < ThunkArraySize;i++)
         ThunkArray[i] = 0;
-    WriteUnlock(&ThunkLock);
 
     return AL_NO_ERROR;
 }
 
 void FreeThunkEntry(ALuint index)
 {
-    ReadLock(&ThunkLock);
     if(index > 0 && (ALsizei)index <= ThunkArraySize)
         ThunkArray[index-1] = 0;
-    ReadUnlock(&ThunkLock);
 }

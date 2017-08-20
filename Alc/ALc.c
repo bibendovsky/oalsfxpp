@@ -1649,7 +1649,6 @@ void ALCcontext_DeferUpdates(ALCcontext *context)
 void ALCcontext_ProcessUpdates(ALCcontext *context)
 {
     ALenum old_defer_updates;
-    ReadLock(&context->PropLock);
     old_defer_updates = context->DeferUpdates;
     context->DeferUpdates = AL_FALSE;
     if(old_defer_updates)
@@ -1668,7 +1667,6 @@ void ALCcontext_ProcessUpdates(ALCcontext *context)
          */
         context->HoldUpdates = AL_FALSE;
     }
-    ReadUnlock(&context->PropLock);
 }
 
 
@@ -2257,7 +2255,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
                 UpdateEffectSlotProps(slot);
         }
 
-        WriteLock(&context->PropLock);
         LockUIntMapRead(&context->EffectSlotMap);
         for(pos = 0;pos < context->EffectSlotMap.size;pos++)
         {
@@ -2351,7 +2348,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
 
         UpdateListenerProps(context);
         UpdateAllSourceProps(context);
-        WriteUnlock(&context->PropLock);
 
         context = context->next;
     }
@@ -2539,7 +2535,6 @@ static ALvoid InitContext(ALCcontext *Context)
     Context->UpdateCount = 0;
     Context->HoldUpdates = AL_FALSE;
     Context->GainBoost = 1.0f;
-    RWLockInit(&Context->PropLock);
     Context->LastError = AL_NO_ERROR;
     InitUIntMap(&Context->SourceMap, Context->Device->SourcesMax);
     InitUIntMap(&Context->EffectSlotMap, Context->Device->AuxiliaryEffectSlotMax);

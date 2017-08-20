@@ -22,18 +22,15 @@ void InitUIntMap(UIntMap *map, ALsizei limit)
     map->size = 0;
     map->capacity = 0;
     map->limit = limit;
-    RWLockInit(&map->lock);
 }
 
 void ResetUIntMap(UIntMap *map)
 {
-    WriteLock(&map->lock);
     al_free(map->keys);
     map->keys = NULL;
     map->values = NULL;
     map->size = 0;
     map->capacity = 0;
-    WriteUnlock(&map->lock);
 }
 
 void RelimitUIntMapNoLock(UIntMap *map, ALsizei limit)
@@ -45,7 +42,6 @@ ALenum InsertUIntMapEntry(UIntMap *map, ALuint key, ALvoid *value)
 {
     ALsizei pos = 0;
 
-    WriteLock(&map->lock);
     if(map->size > 0)
     {
         ALsizei count = map->size;
@@ -66,7 +62,6 @@ ALenum InsertUIntMapEntry(UIntMap *map, ALuint key, ALvoid *value)
     {
         if(map->size >= map->limit)
         {
-            WriteUnlock(&map->lock);
             return AL_OUT_OF_MEMORY;
         }
 
@@ -92,7 +87,6 @@ ALenum InsertUIntMapEntry(UIntMap *map, ALuint key, ALvoid *value)
             }
             if(!keys)
             {
-                WriteUnlock(&map->lock);
                 return AL_OUT_OF_MEMORY;
             }
             values = (ALvoid**)((ALbyte*)keys + keylen);
@@ -119,7 +113,6 @@ ALenum InsertUIntMapEntry(UIntMap *map, ALuint key, ALvoid *value)
     }
     map->keys[pos] = key;
     map->values[pos] = value;
-    WriteUnlock(&map->lock);
 
     return AL_NO_ERROR;
 }
@@ -202,7 +195,6 @@ ALenum InsertUIntMapEntryNoLock(UIntMap *map, ALuint key, ALvoid *value)
 ALvoid *RemoveUIntMapKey(UIntMap *map, ALuint key)
 {
     ALvoid *ptr = NULL;
-    WriteLock(&map->lock);
     if(map->size > 0)
     {
         ALsizei pos = 0;
@@ -231,7 +223,6 @@ ALvoid *RemoveUIntMapKey(UIntMap *map, ALuint key)
             map->size--;
         }
     }
-    WriteUnlock(&map->lock);
     return ptr;
 }
 
@@ -272,7 +263,6 @@ ALvoid *RemoveUIntMapKeyNoLock(UIntMap *map, ALuint key)
 ALvoid *LookupUIntMapKey(UIntMap *map, ALuint key)
 {
     ALvoid *ptr = NULL;
-    ReadLock(&map->lock);
     if(map->size > 0)
     {
         ALsizei pos = 0;
@@ -291,7 +281,6 @@ ALvoid *LookupUIntMapKey(UIntMap *map, ALuint key)
         if(pos < map->size && map->keys[pos] == key)
             ptr = map->values[pos];
     }
-    ReadUnlock(&map->lock);
     return ptr;
 }
 

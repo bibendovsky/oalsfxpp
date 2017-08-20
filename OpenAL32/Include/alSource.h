@@ -93,7 +93,6 @@ typedef struct ALsource {
     ALenum state;
 
     /** Source Buffer Queue head. */
-    RWLock queue_lock;
     ALbufferlistitem *queue;
 
     int PropsClean;

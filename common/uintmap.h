@@ -2,7 +2,7 @@
 #define AL_UINTMAP_H
 
 #include "AL/al.h"
-#include "rwlock.h"
+#include "bool.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,7 +16,6 @@ typedef struct UIntMap {
     ALsizei size;
     ALsizei capacity;
     ALsizei limit;
-    RWLock lock;
 } UIntMap;
 #define UINTMAP_STATIC_INITIALIZE_N(_n) { NULL, NULL, 0, 0, (_n), RWLOCK_STATIC_INITIALIZE }
 #define UINTMAP_STATIC_INITIALIZE UINTMAP_STATIC_INITIALIZE_N(INT_MAX)
@@ -32,13 +31,13 @@ ALvoid *LookupUIntMapKey(UIntMap *map, ALuint key);
 ALvoid *LookupUIntMapKeyNoLock(UIntMap *map, ALuint key);
 
 inline void LockUIntMapRead(UIntMap *map)
-{ ReadLock(&map->lock); }
+{}
 inline void UnlockUIntMapRead(UIntMap *map)
-{ ReadUnlock(&map->lock); }
+{}
 inline void LockUIntMapWrite(UIntMap *map)
-{ WriteLock(&map->lock); }
+{}
 inline void UnlockUIntMapWrite(UIntMap *map)
-{ WriteUnlock(&map->lock); }
+{}
 
 #ifdef __cplusplus
 }

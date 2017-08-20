@@ -235,7 +235,6 @@ AL_API ALvoid AL_APIENTRY alAuxiliaryEffectSloti(ALuint effectslot, ALenum param
     context = GetContextRef();
     if(!context) return;
 
-    WriteLock(&context->PropLock);
     LockEffectSlotsRead(context);
     if((slot=LookupEffectSlot(context, effectslot)) == NULL)
         SET_ERROR_AND_GOTO(context, AL_INVALID_NAME, done);
@@ -271,7 +270,6 @@ AL_API ALvoid AL_APIENTRY alAuxiliaryEffectSloti(ALuint effectslot, ALenum param
 
 done:
     UnlockEffectSlotsRead(context);
-    WriteUnlock(&context->PropLock);
     ALCcontext_DecRef(context);
 }
 
@@ -312,7 +310,6 @@ AL_API ALvoid AL_APIENTRY alAuxiliaryEffectSlotf(ALuint effectslot, ALenum param
     context = GetContextRef();
     if(!context) return;
 
-    WriteLock(&context->PropLock);
     LockEffectSlotsRead(context);
     if((slot=LookupEffectSlot(context, effectslot)) == NULL)
         SET_ERROR_AND_GOTO(context, AL_INVALID_NAME, done);
@@ -331,7 +328,6 @@ AL_API ALvoid AL_APIENTRY alAuxiliaryEffectSlotf(ALuint effectslot, ALenum param
 
 done:
     UnlockEffectSlotsRead(context);
-    WriteUnlock(&context->PropLock);
     ALCcontext_DecRef(context);
 }
 

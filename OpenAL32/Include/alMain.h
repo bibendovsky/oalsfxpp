@@ -847,8 +847,6 @@ struct ALCcontext_struct {
     ALfloat SpeedOfSound;
     ALenum DeferUpdates;
 
-    RWLock PropLock;
-
     /* Counter for the pre-mixing updates, in 31.1 fixed point (lowest bit
      * indicates if updates are currently happening).
      */

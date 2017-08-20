@@ -60,7 +60,6 @@ AL_API ALvoid AL_APIENTRY alEnable(ALenum capability)
     context = GetContextRef();
     if(!context) return;
 
-    WriteLock(&context->PropLock);
     switch(capability)
     {
     case AL_SOURCE_DISTANCE_MODEL:
@@ -74,7 +73,6 @@ AL_API ALvoid AL_APIENTRY alEnable(ALenum capability)
         UpdateListenerProps(context);
 
 done:
-    WriteUnlock(&context->PropLock);
     ALCcontext_DecRef(context);
 }
 
@@ -85,7 +83,6 @@ AL_API ALvoid AL_APIENTRY alDisable(ALenum capability)
     context = GetContextRef();
     if(!context) return;
 
-    WriteLock(&context->PropLock);
     switch(capability)
     {
     case AL_SOURCE_DISTANCE_MODEL:
@@ -99,7 +96,6 @@ AL_API ALvoid AL_APIENTRY alDisable(ALenum capability)
         UpdateListenerProps(context);
 
 done:
-    WriteUnlock(&context->PropLock);
     ALCcontext_DecRef(context);
 }
 
@@ -644,11 +640,9 @@ AL_API ALvoid AL_APIENTRY alDopplerFactor(ALfloat value)
     if(!(value >= 0.0f && isfinite(value)))
         SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
 
-    WriteLock(&context->PropLock);
     context->DopplerFactor = value;
     if(!context->DeferUpdates)
         UpdateListenerProps(context);
-    WriteUnlock(&context->PropLock);
 
 done:
     ALCcontext_DecRef(context);
@@ -664,11 +658,9 @@ AL_API ALvoid AL_APIENTRY alDopplerVelocity(ALfloat value)
     if(!(value >= 0.0f && isfinite(value)))
         SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
 
-    WriteLock(&context->PropLock);
     context->DopplerVelocity = value;
     if(!context->DeferUpdates)
         UpdateListenerProps(context);
-    WriteUnlock(&context->PropLock);
 
 done:
     ALCcontext_DecRef(context);
@@ -684,11 +676,9 @@ AL_API ALvoid AL_APIENTRY alSpeedOfSound(ALfloat value)
     if(!(value > 0.0f && isfinite(value)))
         SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
 
-    WriteLock(&context->PropLock);
     context->SpeedOfSound = value;
     if(!context->DeferUpdates)
         UpdateListenerProps(context);
-    WriteUnlock(&context->PropLock);
 
 done:
     ALCcontext_DecRef(context);
@@ -707,14 +697,12 @@ AL_API ALvoid AL_APIENTRY alDistanceModel(ALenum value)
          value == AL_NONE))
         SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
 
-    WriteLock(&context->PropLock);
     context->DistanceModel = value;
     if(!context->SourceDistanceModel)
     {
         if(!context->DeferUpdates)
             UpdateListenerProps(context);
     }
-    WriteUnlock(&context->PropLock);
 
 done:
     ALCcontext_DecRef(context);

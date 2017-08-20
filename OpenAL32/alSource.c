@@ -581,14 +581,11 @@ static ALboolean SetSourcefv(ALsource *Source, ALCcontext *Context, SourceProp p
                 voice = GetSourceVoice(Source, Context);
                 if(voice)
                 {
-                    WriteLock(&Source->queue_lock);
                     if(ApplyOffset(Source, voice) == AL_FALSE)
                     {
-                        WriteUnlock(&Source->queue_lock);
                         ALCdevice_Unlock(Context->Device);
                         SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_VALUE, AL_FALSE);
                     }
-                    WriteUnlock(&Source->queue_lock);
                 }
                 ALCdevice_Unlock(Context->Device);
             }
@@ -712,7 +709,6 @@ static ALboolean SetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
         case AL_LOOPING:
             CHECKVAL(*values == AL_FALSE || *values == AL_TRUE);
 
-            WriteLock(&Source->queue_lock);
             Source->Looping = (ALboolean)*values;
             if(IsPlayingOrPaused(Source))
             {
@@ -725,7 +721,6 @@ static ALboolean SetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
                         voice->loop_buffer = NULL;
                 }
             }
-            WriteUnlock(&Source->queue_lock);
             return AL_TRUE;
 
         case AL_BUFFER:
@@ -736,12 +731,10 @@ static ALboolean SetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
                 SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_VALUE, AL_FALSE);
             }
 
-            WriteLock(&Source->queue_lock);
             {
                 ALenum state = GetSourceState(Source, GetSourceVoice(Source, Context));
                 if(state == AL_PLAYING || state == AL_PAUSED)
                 {
-                    WriteUnlock(&Source->queue_lock);
                     UnlockBuffersRead(device);
                     SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_OPERATION, AL_FALSE);
                 }
@@ -766,7 +759,6 @@ static ALboolean SetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
                 Source->SourceType = AL_UNDETERMINED;
                 Source->queue = NULL;
             }
-            WriteUnlock(&Source->queue_lock);
             UnlockBuffersRead(device);
 
             /* Delete all elements in the previous queue */
@@ -797,14 +789,11 @@ static ALboolean SetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
                 voice = GetSourceVoice(Source, Context);
                 if(voice)
                 {
-                    WriteLock(&Source->queue_lock);
                     if(ApplyOffset(Source, voice) == AL_FALSE)
                     {
-                        WriteUnlock(&Source->queue_lock);
                         ALCdevice_Unlock(Context->Device);
                         SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_VALUE, AL_FALSE);
                     }
-                    WriteUnlock(&Source->queue_lock);
                 }
                 ALCdevice_Unlock(Context->Device);
             }
@@ -1184,7 +1173,6 @@ static ALboolean GetSourcedv(ALsource *Source, ALCcontext *Context, SourceProp p
             return AL_TRUE;
 
         case AL_SEC_LENGTH_SOFT:
-            ReadLock(&Source->queue_lock);
             if(!(BufferList=Source->queue))
                 *values = 0;
             else
@@ -1202,7 +1190,6 @@ static ALboolean GetSourcedv(ALsource *Source, ALCcontext *Context, SourceProp p
                 } while(BufferList != NULL);
                 *values = (ALdouble)length / (ALdouble)freq;
             }
-            ReadUnlock(&Source->queue_lock);
             return AL_TRUE;
 
         case AL_SOURCE_RADIUS:
@@ -1309,10 +1296,8 @@ static ALboolean GetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
             return AL_TRUE;
 
         case AL_BUFFER:
-            ReadLock(&Source->queue_lock);
             BufferList = (Source->SourceType == AL_STATIC) ? Source->queue : NULL;
             *values = (BufferList && BufferList->buffer) ? BufferList->buffer->id : 0;
-            ReadUnlock(&Source->queue_lock);
             return AL_TRUE;
 
         case AL_SOURCE_STATE:
@@ -1320,7 +1305,6 @@ static ALboolean GetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
             return AL_TRUE;
 
         case AL_BYTE_LENGTH_SOFT:
-            ReadLock(&Source->queue_lock);
             if(!(BufferList=Source->queue))
                 *values = 0;
             else
@@ -1356,11 +1340,9 @@ static ALboolean GetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
                 } while(BufferList != NULL);
                 *values = length;
             }
-            ReadUnlock(&Source->queue_lock);
             return AL_TRUE;
 
         case AL_SAMPLE_LENGTH_SOFT:
-            ReadLock(&Source->queue_lock);
             if(!(BufferList=Source->queue))
                 *values = 0;
             else
@@ -1373,11 +1355,9 @@ static ALboolean GetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
                 } while(BufferList != NULL);
                 *values = length;
             }
-            ReadUnlock(&Source->queue_lock);
             return AL_TRUE;
 
         case AL_BUFFERS_QUEUED:
-            ReadLock(&Source->queue_lock);
             if(!(BufferList=Source->queue))
                 *values = 0;
             else
@@ -1389,11 +1369,9 @@ static ALboolean GetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
                 } while(BufferList != NULL);
                 *values = count;
             }
-            ReadUnlock(&Source->queue_lock);
             return AL_TRUE;
 
         case AL_BUFFERS_PROCESSED:
-            ReadLock(&Source->queue_lock);
             if(Source->Looping || Source->SourceType != AL_STREAMING)
             {
                 /* Buffers on a looping source are in a perpetual state of
@@ -1419,7 +1397,6 @@ static ALboolean GetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
                 }
                 *values = played;
             }
-            ReadUnlock(&Source->queue_lock);
             return AL_TRUE;
 
         case AL_SOURCE_TYPE:
@@ -1765,7 +1742,6 @@ AL_API ALvoid AL_APIENTRY alSourcef(ALuint source, ALenum param, ALfloat value)
     Context = GetContextRef();
     if(!Context) return;
 
-    WriteLock(&Context->PropLock);
     LockSourcesRead(Context);
     if((Source=LookupSource(Context, source)) == NULL)
         alSetError(Context, AL_INVALID_NAME);
@@ -1774,7 +1750,6 @@ AL_API ALvoid AL_APIENTRY alSourcef(ALuint source, ALenum param, ALfloat value)
     else
         SetSourcefv(Source, Context, param, &value);
     UnlockSourcesRead(Context);
-    WriteUnlock(&Context->PropLock);
 
     ALCcontext_DecRef(Context);
 }
@@ -1787,7 +1762,6 @@ AL_API ALvoid AL_APIENTRY alSource3f(ALuint source, ALenum param, ALfloat value1
     Context = GetContextRef();
     if(!Context) return;
 
-    WriteLock(&Context->PropLock);
     LockSourcesRead(Context);
     if((Source=LookupSource(Context, source)) == NULL)
         alSetError(Context, AL_INVALID_NAME);
@@ -1799,7 +1773,6 @@ AL_API ALvoid AL_APIENTRY alSource3f(ALuint source, ALenum param, ALfloat value1
         SetSourcefv(Source, Context, param, fvals);
     }
     UnlockSourcesRead(Context);
-    WriteUnlock(&Context->PropLock);
 
     ALCcontext_DecRef(Context);
 }
@@ -1812,7 +1785,6 @@ AL_API ALvoid AL_APIENTRY alSourcefv(ALuint source, ALenum param, const ALfloat 
     Context = GetContextRef();
     if(!Context) return;
 
-    WriteLock(&Context->PropLock);
     LockSourcesRead(Context);
     if((Source=LookupSource(Context, source)) == NULL)
         alSetError(Context, AL_INVALID_NAME);
@@ -1823,7 +1795,6 @@ AL_API ALvoid AL_APIENTRY alSourcefv(ALuint source, ALenum param, const ALfloat 
     else
         SetSourcefv(Source, Context, param, values);
     UnlockSourcesRead(Context);
-    WriteUnlock(&Context->PropLock);
 
     ALCcontext_DecRef(Context);
 }
@@ -1837,7 +1808,6 @@ AL_API ALvoid AL_APIENTRY alSourcedSOFT(ALuint source, ALenum param, ALdouble va
     Context = GetContextRef();
     if(!Context) return;
 
-    WriteLock(&Context->PropLock);
     LockSourcesRead(Context);
     if((Source=LookupSource(Context, source)) == NULL)
         alSetError(Context, AL_INVALID_NAME);
@@ -1849,7 +1819,6 @@ AL_API ALvoid AL_APIENTRY alSourcedSOFT(ALuint source, ALenum param, ALdouble va
         SetSourcefv(Source, Context, param, &fval);
     }
     UnlockSourcesRead(Context);
-    WriteUnlock(&Context->PropLock);
 
     ALCcontext_DecRef(Context);
 }
@@ -1862,7 +1831,6 @@ AL_API ALvoid AL_APIENTRY alSource3dSOFT(ALuint source, ALenum param, ALdouble v
     Context = GetContextRef();
     if(!Context) return;
 
-    WriteLock(&Context->PropLock);
     LockSourcesRead(Context);
     if((Source=LookupSource(Context, source)) == NULL)
         alSetError(Context, AL_INVALID_NAME);
@@ -1874,7 +1842,6 @@ AL_API ALvoid AL_APIENTRY alSource3dSOFT(ALuint source, ALenum param, ALdouble v
         SetSourcefv(Source, Context, param, fvals);
     }
     UnlockSourcesRead(Context);
-    WriteUnlock(&Context->PropLock);
 
     ALCcontext_DecRef(Context);
 }
@@ -1888,7 +1855,6 @@ AL_API ALvoid AL_APIENTRY alSourcedvSOFT(ALuint source, ALenum param, const ALdo
     Context = GetContextRef();
     if(!Context) return;
 
-    WriteLock(&Context->PropLock);
     LockSourcesRead(Context);
     if((Source=LookupSource(Context, source)) == NULL)
         alSetError(Context, AL_INVALID_NAME);
@@ -1906,7 +1872,6 @@ AL_API ALvoid AL_APIENTRY alSourcedvSOFT(ALuint source, ALenum param, const ALdo
         SetSourcefv(Source, Context, param, fvals);
     }
     UnlockSourcesRead(Context);
-    WriteUnlock(&Context->PropLock);
 
     ALCcontext_DecRef(Context);
 }
@@ -1920,7 +1885,6 @@ AL_API ALvoid AL_APIENTRY alSourcei(ALuint source, ALenum param, ALint value)
     Context = GetContextRef();
     if(!Context) return;
 
-    WriteLock(&Context->PropLock);
     LockSourcesRead(Context);
     if((Source=LookupSource(Context, source)) == NULL)
         alSetError(Context, AL_INVALID_NAME);
@@ -1929,7 +1893,6 @@ AL_API ALvoid AL_APIENTRY alSourcei(ALuint source, ALenum param, ALint value)
     else
         SetSourceiv(Source, Context, param, &value);
     UnlockSourcesRead(Context);
-    WriteUnlock(&Context->PropLock);
 
     ALCcontext_DecRef(Context);
 }
@@ -1942,7 +1905,6 @@ AL_API void AL_APIENTRY alSource3i(ALuint source, ALenum param, ALint value1, AL
     Context = GetContextRef();
     if(!Context) return;
 
-    WriteLock(&Context->PropLock);
     LockSourcesRead(Context);
     if((Source=LookupSource(Context, source)) == NULL)
         alSetError(Context, AL_INVALID_NAME);
@@ -1954,7 +1916,6 @@ AL_API void AL_APIENTRY alSource3i(ALuint source, ALenum param, ALint value1, AL
         SetSourceiv(Source, Context, param, ivals);
     }
     UnlockSourcesRead(Context);
-    WriteUnlock(&Context->PropLock);
 
     ALCcontext_DecRef(Context);
 }
@@ -1967,7 +1928,6 @@ AL_API void AL_APIENTRY alSourceiv(ALuint source, ALenum param, const ALint *val
     Context = GetContextRef();
     if(!Context) return;
 
-    WriteLock(&Context->PropLock);
     LockSourcesRead(Context);
     if((Source=LookupSource(Context, source)) == NULL)
         alSetError(Context, AL_INVALID_NAME);
@@ -1978,7 +1938,6 @@ AL_API void AL_APIENTRY alSourceiv(ALuint source, ALenum param, const ALint *val
     else
         SetSourceiv(Source, Context, param, values);
     UnlockSourcesRead(Context);
-    WriteUnlock(&Context->PropLock);
 
     ALCcontext_DecRef(Context);
 }
@@ -1992,7 +1951,6 @@ AL_API ALvoid AL_APIENTRY alSourcei64SOFT(ALuint source, ALenum param, ALint64SO
     Context = GetContextRef();
     if(!Context) return;
 
-    WriteLock(&Context->PropLock);
     LockSourcesRead(Context);
     if((Source=LookupSource(Context, source)) == NULL)
         alSetError(Context, AL_INVALID_NAME);
@@ -2001,7 +1959,6 @@ AL_API ALvoid AL_APIENTRY alSourcei64SOFT(ALuint source, ALenum param, ALint64SO
     else
         SetSourcei64v(Source, Context, param, &value);
     UnlockSourcesRead(Context);
-    WriteUnlock(&Context->PropLock);
 
     ALCcontext_DecRef(Context);
 }
@@ -2014,7 +1971,6 @@ AL_API void AL_APIENTRY alSource3i64SOFT(ALuint source, ALenum param, ALint64SOF
     Context = GetContextRef();
     if(!Context) return;
 
-    WriteLock(&Context->PropLock);
     LockSourcesRead(Context);
     if((Source=LookupSource(Context, source)) == NULL)
         alSetError(Context, AL_INVALID_NAME);
@@ -2026,7 +1982,6 @@ AL_API void AL_APIENTRY alSource3i64SOFT(ALuint source, ALenum param, ALint64SOF
         SetSourcei64v(Source, Context, param, i64vals);
     }
     UnlockSourcesRead(Context);
-    WriteUnlock(&Context->PropLock);
 
     ALCcontext_DecRef(Context);
 }
@@ -2039,7 +1994,6 @@ AL_API void AL_APIENTRY alSourcei64vSOFT(ALuint source, ALenum param, const ALin
     Context = GetContextRef();
     if(!Context) return;
 
-    WriteLock(&Context->PropLock);
     LockSourcesRead(Context);
     if((Source=LookupSource(Context, source)) == NULL)
         alSetError(Context, AL_INVALID_NAME);
@@ -2050,7 +2004,6 @@ AL_API void AL_APIENTRY alSourcei64vSOFT(ALuint source, ALenum param, const ALin
     else
         SetSourcei64v(Source, Context, param, values);
     UnlockSourcesRead(Context);
-    WriteUnlock(&Context->PropLock);
 
     ALCcontext_DecRef(Context);
 }
@@ -2064,7 +2017,6 @@ AL_API ALvoid AL_APIENTRY alGetSourcef(ALuint source, ALenum param, ALfloat *val
     Context = GetContextRef();
     if(!Context) return;
 
-    ReadLock(&Context->PropLock);
     LockSourcesRead(Context);
     if((Source=LookupSource(Context, source)) == NULL)
         alSetError(Context, AL_INVALID_NAME);
@@ -2079,7 +2031,6 @@ AL_API ALvoid AL_APIENTRY alGetSourcef(ALuint source, ALenum param, ALfloat *val
             *value = (ALfloat)dval;
     }
     UnlockSourcesRead(Context);
-    ReadUnlock(&Context->PropLock);
 
     ALCcontext_DecRef(Context);
 }
@@ -2093,7 +2044,6 @@ AL_API ALvoid AL_APIENTRY alGetSource3f(ALuint source, ALenum param, ALfloat *va
     Context = GetContextRef();
     if(!Context) return;
 
-    ReadLock(&Context->PropLock);
     LockSourcesRead(Context);
     if((Source=LookupSource(Context, source)) == NULL)
         alSetError(Context, AL_INVALID_NAME);
@@ -2112,7 +2062,6 @@ AL_API ALvoid AL_APIENTRY alGetSource3f(ALuint source, ALenum param, ALfloat *va
         }
     }
     UnlockSourcesRead(Context);
-    ReadUnlock(&Context->PropLock);
 
     ALCcontext_DecRef(Context);
 }
@@ -2127,7 +2076,6 @@ AL_API ALvoid AL_APIENTRY alGetSourcefv(ALuint source, ALenum param, ALfloat *va
     Context = GetContextRef();
     if(!Context) return;
 
-    ReadLock(&Context->PropLock);
     LockSourcesRead(Context);
     if((Source=LookupSource(Context, source)) == NULL)
         alSetError(Context, AL_INVALID_NAME);
@@ -2146,7 +2094,6 @@ AL_API ALvoid AL_APIENTRY alGetSourcefv(ALuint source, ALenum param, ALfloat *va
         }
     }
     UnlockSourcesRead(Context);
-    ReadUnlock(&Context->PropLock);
 
     ALCcontext_DecRef(Context);
 }
@@ -2160,7 +2107,6 @@ AL_API void AL_APIENTRY alGetSourcedSOFT(ALuint source, ALenum param, ALdouble *
     Context = GetContextRef();
     if(!Context) return;
 
-    ReadLock(&Context->PropLock);
     LockSourcesRead(Context);
     if((Source=LookupSource(Context, source)) == NULL)
         alSetError(Context, AL_INVALID_NAME);
@@ -2171,7 +2117,6 @@ AL_API void AL_APIENTRY alGetSourcedSOFT(ALuint source, ALenum param, ALdouble *
     else
         GetSourcedv(Source, Context, param, value);
     UnlockSourcesRead(Context);
-    ReadUnlock(&Context->PropLock);
 
     ALCcontext_DecRef(Context);
 }
@@ -2184,7 +2129,6 @@ AL_API void AL_APIENTRY alGetSource3dSOFT(ALuint source, ALenum param, ALdouble 
     Context = GetContextRef();
     if(!Context) return;
 
-    ReadLock(&Context->PropLock);
     LockSourcesRead(Context);
     if((Source=LookupSource(Context, source)) == NULL)
         alSetError(Context, AL_INVALID_NAME);
@@ -2203,7 +2147,6 @@ AL_API void AL_APIENTRY alGetSource3dSOFT(ALuint source, ALenum param, ALdouble 
         }
     }
     UnlockSourcesRead(Context);
-    ReadUnlock(&Context->PropLock);
 
     ALCcontext_DecRef(Context);
 }
@@ -2216,7 +2159,6 @@ AL_API void AL_APIENTRY alGetSourcedvSOFT(ALuint source, ALenum param, ALdouble 
     Context = GetContextRef();
     if(!Context) return;
 
-    ReadLock(&Context->PropLock);
     LockSourcesRead(Context);
     if((Source=LookupSource(Context, source)) == NULL)
         alSetError(Context, AL_INVALID_NAME);
@@ -2227,7 +2169,6 @@ AL_API void AL_APIENTRY alGetSourcedvSOFT(ALuint source, ALenum param, ALdouble 
     else
         GetSourcedv(Source, Context, param, values);
     UnlockSourcesRead(Context);
-    ReadUnlock(&Context->PropLock);
 
     ALCcontext_DecRef(Context);
 }
@@ -2241,7 +2182,6 @@ AL_API ALvoid AL_APIENTRY alGetSourcei(ALuint source, ALenum param, ALint *value
     Context = GetContextRef();
     if(!Context) return;
 
-    ReadLock(&Context->PropLock);
     LockSourcesRead(Context);
     if((Source=LookupSource(Context, source)) == NULL)
         alSetError(Context, AL_INVALID_NAME);
@@ -2252,7 +2192,6 @@ AL_API ALvoid AL_APIENTRY alGetSourcei(ALuint source, ALenum param, ALint *value
     else
         GetSourceiv(Source, Context, param, value);
     UnlockSourcesRead(Context);
-    ReadUnlock(&Context->PropLock);
 
     ALCcontext_DecRef(Context);
 }
@@ -2266,7 +2205,6 @@ AL_API void AL_APIENTRY alGetSource3i(ALuint source, ALenum param, ALint *value1
     Context = GetContextRef();
     if(!Context) return;
 
-    ReadLock(&Context->PropLock);
     LockSourcesRead(Context);
     if((Source=LookupSource(Context, source)) == NULL)
         alSetError(Context, AL_INVALID_NAME);
@@ -2285,7 +2223,6 @@ AL_API void AL_APIENTRY alGetSource3i(ALuint source, ALenum param, ALint *value1
         }
     }
     UnlockSourcesRead(Context);
-    ReadUnlock(&Context->PropLock);
 
     ALCcontext_DecRef(Context);
 }
@@ -2299,7 +2236,6 @@ AL_API void AL_APIENTRY alGetSourceiv(ALuint source, ALenum param, ALint *values
     Context = GetContextRef();
     if(!Context) return;
 
-    ReadLock(&Context->PropLock);
     LockSourcesRead(Context);
     if((Source=LookupSource(Context, source)) == NULL)
         alSetError(Context, AL_INVALID_NAME);
@@ -2310,7 +2246,6 @@ AL_API void AL_APIENTRY alGetSourceiv(ALuint source, ALenum param, ALint *values
     else
         GetSourceiv(Source, Context, param, values);
     UnlockSourcesRead(Context);
-    ReadUnlock(&Context->PropLock);
 
     ALCcontext_DecRef(Context);
 }
@@ -2324,7 +2259,6 @@ AL_API void AL_APIENTRY alGetSourcei64SOFT(ALuint source, ALenum param, ALint64S
     Context = GetContextRef();
     if(!Context) return;
 
-    ReadLock(&Context->PropLock);
     LockSourcesRead(Context);
     if((Source=LookupSource(Context, source)) == NULL)
         alSetError(Context, AL_INVALID_NAME);
@@ -2335,7 +2269,6 @@ AL_API void AL_APIENTRY alGetSourcei64SOFT(ALuint source, ALenum param, ALint64S
     else
         GetSourcei64v(Source, Context, param, value);
     UnlockSourcesRead(Context);
-    ReadUnlock(&Context->PropLock);
 
     ALCcontext_DecRef(Context);
 }
@@ -2348,7 +2281,6 @@ AL_API void AL_APIENTRY alGetSource3i64SOFT(ALuint source, ALenum param, ALint64
     Context = GetContextRef();
     if(!Context) return;
 
-    ReadLock(&Context->PropLock);
     LockSourcesRead(Context);
     if((Source=LookupSource(Context, source)) == NULL)
         alSetError(Context, AL_INVALID_NAME);
@@ -2367,7 +2299,6 @@ AL_API void AL_APIENTRY alGetSource3i64SOFT(ALuint source, ALenum param, ALint64
         }
     }
     UnlockSourcesRead(Context);
-    ReadUnlock(&Context->PropLock);
 
     ALCcontext_DecRef(Context);
 }
@@ -2380,7 +2311,6 @@ AL_API void AL_APIENTRY alGetSourcei64vSOFT(ALuint source, ALenum param, ALint64
     Context = GetContextRef();
     if(!Context) return;
 
-    ReadLock(&Context->PropLock);
     LockSourcesRead(Context);
     if((Source=LookupSource(Context, source)) == NULL)
         alSetError(Context, AL_INVALID_NAME);
@@ -2391,7 +2321,6 @@ AL_API void AL_APIENTRY alGetSourcei64vSOFT(ALuint source, ALenum param, ALint64
     else
         GetSourcei64v(Source, Context, param, values);
     UnlockSourcesRead(Context);
-    ReadUnlock(&Context->PropLock);
 
     ALCcontext_DecRef(Context);
 }
@@ -2454,7 +2383,6 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
         ALsizei s;
 
         source = LookupSource(context, sources[i]);
-        WriteLock(&source->queue_lock);
         /* Check that there is a queue containing at least one valid, non zero
          * length Buffer.
          */
@@ -2569,7 +2497,7 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
         voice->Playing = true;
         source->state = AL_PLAYING;
     finish_play:
-        WriteUnlock(&source->queue_lock);
+        ;
     }
     ALCdevice_Unlock(device);
 
@@ -2607,14 +2535,12 @@ AL_API ALvoid AL_APIENTRY alSourcePausev(ALsizei n, const ALuint *sources)
     for(i = 0;i < n;i++)
     {
         source = LookupSource(context, sources[i]);
-        WriteLock(&source->queue_lock);
         if((voice=GetSourceVoice(source, context)) != NULL)
         {
             voice->Playing = false;
         }
         if(GetSourceState(source, voice) == AL_PLAYING)
             source->state = AL_PAUSED;
-        WriteUnlock(&source->queue_lock);
     }
     ALCdevice_Unlock(device);
 
@@ -2652,7 +2578,6 @@ AL_API ALvoid AL_APIENTRY alSourceStopv(ALsizei n, const ALuint *sources)
     for(i = 0;i < n;i++)
     {
         source = LookupSource(context, sources[i]);
-        WriteLock(&source->queue_lock);
         if((voice=GetSourceVoice(source, context)) != NULL)
         {
             voice->Source = NULL;
@@ -2662,7 +2587,6 @@ AL_API ALvoid AL_APIENTRY alSourceStopv(ALsizei n, const ALuint *sources)
             source->state = AL_STOPPED;
         source->OffsetType = AL_NONE;
         source->Offset = 0.0;
-        WriteUnlock(&source->queue_lock);
     }
     ALCdevice_Unlock(device);
 
@@ -2700,7 +2624,6 @@ AL_API ALvoid AL_APIENTRY alSourceRewindv(ALsizei n, const ALuint *sources)
     for(i = 0;i < n;i++)
     {
         source = LookupSource(context, sources[i]);
-        WriteLock(&source->queue_lock);
         if((voice=GetSourceVoice(source, context)) != NULL)
         {
             voice->Source = NULL;
@@ -2710,7 +2633,6 @@ AL_API ALvoid AL_APIENTRY alSourceRewindv(ALsizei n, const ALuint *sources)
             source->state = AL_INITIAL;
         source->OffsetType = AL_NONE;
         source->Offset = 0.0;
-        WriteUnlock(&source->queue_lock);
     }
     ALCdevice_Unlock(device);
 
@@ -2744,10 +2666,8 @@ AL_API ALvoid AL_APIENTRY alSourceQueueBuffers(ALuint src, ALsizei nb, const ALu
     if((source=LookupSource(context, src)) == NULL)
         SET_ERROR_AND_GOTO(context, AL_INVALID_NAME, done);
 
-    WriteLock(&source->queue_lock);
     if(source->SourceType == AL_STATIC)
     {
-        WriteUnlock(&source->queue_lock);
         /* Can't queue on a Static Source */
         SET_ERROR_AND_GOTO(context, AL_INVALID_OPERATION, done);
     }
@@ -2772,7 +2692,6 @@ AL_API ALvoid AL_APIENTRY alSourceQueueBuffers(ALuint src, ALsizei nb, const ALu
         ALbuffer *buffer = NULL;
         if(buffers[i] && (buffer=LookupBuffer(device, buffers[i])) == NULL)
         {
-            WriteUnlock(&source->queue_lock);
             SET_ERROR_AND_GOTO(context, AL_INVALID_NAME, buffer_error);
         }
 
@@ -2794,7 +2713,6 @@ AL_API ALvoid AL_APIENTRY alSourceQueueBuffers(ALuint src, ALsizei nb, const ALu
         /* Hold a read lock on each buffer being queued while checking all
          * provided buffers. This is done so other threads don't see an extra
          * reference on some buffers if this operation ends up failing. */
-        ReadLock(&buffer->lock);
         buffer->ref += 1;
 
         if(BufferFmt == NULL)
@@ -2803,7 +2721,6 @@ AL_API ALvoid AL_APIENTRY alSourceQueueBuffers(ALuint src, ALsizei nb, const ALu
                 BufferFmt->OriginalChannels != buffer->OriginalChannels ||
                 BufferFmt->OriginalType != buffer->OriginalType)
         {
-            WriteUnlock(&source->queue_lock);
             SET_ERROR_AND_GOTO(context, AL_INVALID_OPERATION, buffer_error);
 
         buffer_error:
@@ -2815,7 +2732,6 @@ AL_API ALvoid AL_APIENTRY alSourceQueueBuffers(ALuint src, ALsizei nb, const ALu
                 if((buffer=BufferListStart->buffer) != NULL)
                 {
                     buffer->ref -= 1;
-                    ReadUnlock(&buffer->lock);
                 }
                 al_free(BufferListStart);
                 BufferListStart = next;
@@ -2829,7 +2745,6 @@ AL_API ALvoid AL_APIENTRY alSourceQueueBuffers(ALuint src, ALsizei nb, const ALu
     while(BufferList != NULL)
     {
         ALbuffer *buffer = BufferList->buffer;
-        if(buffer) ReadUnlock(&buffer->lock);
         BufferList = BufferList->next;
     }
     UnlockBuffersRead(device);
@@ -2846,7 +2761,6 @@ AL_API ALvoid AL_APIENTRY alSourceQueueBuffers(ALuint src, ALsizei nb, const ALu
             BufferList = next;
         BufferList->next = BufferListStart;
     }
-    WriteUnlock(&source->queue_lock);
 
 done:
     UnlockSourcesRead(context);
@@ -2876,10 +2790,8 @@ AL_API ALvoid AL_APIENTRY alSourceUnqueueBuffers(ALuint src, ALsizei nb, ALuint 
     /* Nothing to unqueue. */
     if(nb == 0) goto done;
 
-    WriteLock(&source->queue_lock);
     if(source->Looping || source->SourceType != AL_STREAMING)
     {
-        WriteUnlock(&source->queue_lock);
         /* Trying to unqueue buffers on a looping or non-streaming source. */
         SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
     }
@@ -2902,7 +2814,6 @@ AL_API ALvoid AL_APIENTRY alSourceUnqueueBuffers(ALuint src, ALsizei nb, ALuint 
     }
     if(i != nb)
     {
-        WriteUnlock(&source->queue_lock);
         /* Trying to unqueue pending buffers. */
         SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
     }
@@ -2911,7 +2822,6 @@ AL_API ALvoid AL_APIENTRY alSourceUnqueueBuffers(ALuint src, ALsizei nb, ALuint 
     OldHead = source->queue;
     source->queue = OldTail->next;
     OldTail->next = NULL;
-    WriteUnlock(&source->queue_lock);
 
     while(OldHead != NULL)
     {
@@ -2939,8 +2849,6 @@ done:
 static void InitSourceParams(ALsource *Source, ALsizei num_sends)
 {
     ALsizei i;
-
-    RWLockInit(&Source->queue_lock);
 
     Source->InnerAngle = 360.0f;
     Source->OuterAngle = 360.0f;
@@ -3165,7 +3073,6 @@ static ALint64 GetSourceSampleOffset(ALsource *Source, ALCcontext *context, ALui
     ALuint64 readPos;
     ALvoice *voice;
 
-    ReadLock(&Source->queue_lock);
     Current = NULL;
     readPos = 0;
     *clocktime = GetDeviceClockTime(device);
@@ -3192,7 +3099,6 @@ static ALint64 GetSourceSampleOffset(ALsource *Source, ALCcontext *context, ALui
         readPos = minu64(readPos, U64(0x7fffffffffffffff));
     }
 
-    ReadUnlock(&Source->queue_lock);
     return (ALint64)readPos;
 }
 
@@ -3209,7 +3115,6 @@ static ALdouble GetSourceSecOffset(ALsource *Source, ALCcontext *context, ALuint
     ALdouble offset;
     ALvoice *voice;
 
-    ReadLock(&Source->queue_lock);
     Current = NULL;
     readPos = 0;
     *clocktime = GetDeviceClockTime(device);
@@ -3251,7 +3156,6 @@ static ALdouble GetSourceSecOffset(ALsource *Source, ALCcontext *context, ALuint
                  (ALdouble)BufferFmt->Frequency;
     }
 
-    ReadUnlock(&Source->queue_lock);
     return offset;
 }
 
@@ -3270,7 +3174,6 @@ static ALdouble GetSourceOffset(ALsource *Source, ALenum name, ALCcontext *conte
     ALdouble offset;
     ALvoice *voice;
 
-    ReadLock(&Source->queue_lock);
     Current = NULL;
     readPos = readPosFrac = 0;
     voice = GetSourceVoice(Source, context);
@@ -3353,7 +3256,6 @@ static ALdouble GetSourceOffset(ALsource *Source, ALenum name, ALCcontext *conte
         }
     }
 
-    ReadUnlock(&Source->queue_lock);
     return offset;
 }
 

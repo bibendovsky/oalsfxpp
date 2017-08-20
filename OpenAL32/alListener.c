@@ -33,7 +33,6 @@ AL_API ALvoid AL_APIENTRY alListenerf(ALenum param, ALfloat value)
     context = GetContextRef();
     if(!context) return;
 
-    WriteLock(&context->PropLock);
     switch(param)
     {
     case AL_GAIN:
@@ -55,7 +54,6 @@ AL_API ALvoid AL_APIENTRY alListenerf(ALenum param, ALfloat value)
         UpdateListenerProps(context);
 
 done:
-    WriteUnlock(&context->PropLock);
     ALCcontext_DecRef(context);
 }
 
@@ -67,7 +65,6 @@ AL_API ALvoid AL_APIENTRY alListener3f(ALenum param, ALfloat value1, ALfloat val
     context = GetContextRef();
     if(!context) return;
 
-    WriteLock(&context->PropLock);
     switch(param)
     {
     case AL_POSITION:
@@ -93,7 +90,6 @@ AL_API ALvoid AL_APIENTRY alListener3f(ALenum param, ALfloat value1, ALfloat val
         UpdateListenerProps(context);
 
 done:
-    WriteUnlock(&context->PropLock);
     ALCcontext_DecRef(context);
 }
 
@@ -121,7 +117,6 @@ AL_API ALvoid AL_APIENTRY alListenerfv(ALenum param, const ALfloat *values)
     context = GetContextRef();
     if(!context) return;
 
-    WriteLock(&context->PropLock);
     if(!(values))
         SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
     switch(param)
@@ -146,7 +141,6 @@ AL_API ALvoid AL_APIENTRY alListenerfv(ALenum param, const ALfloat *values)
         UpdateListenerProps(context);
 
 done:
-    WriteUnlock(&context->PropLock);
     ALCcontext_DecRef(context);
 }
 
@@ -158,7 +152,6 @@ AL_API ALvoid AL_APIENTRY alListeneri(ALenum param, ALint UNUSED(value))
     context = GetContextRef();
     if(!context) return;
 
-    WriteLock(&context->PropLock);
     switch(param)
     {
     default:
@@ -168,7 +161,6 @@ AL_API ALvoid AL_APIENTRY alListeneri(ALenum param, ALint UNUSED(value))
         UpdateListenerProps(context);
 
 done:
-    WriteUnlock(&context->PropLock);
     ALCcontext_DecRef(context);
 }
 
@@ -188,7 +180,6 @@ AL_API void AL_APIENTRY alListener3i(ALenum param, ALint value1, ALint value2, A
     context = GetContextRef();
     if(!context) return;
 
-    WriteLock(&context->PropLock);
     switch(param)
     {
     default:
@@ -198,7 +189,6 @@ AL_API void AL_APIENTRY alListener3i(ALenum param, ALint value1, ALint value2, A
         UpdateListenerProps(context);
 
 done:
-    WriteUnlock(&context->PropLock);
     ALCcontext_DecRef(context);
 }
 
@@ -232,7 +222,6 @@ AL_API void AL_APIENTRY alListeneriv(ALenum param, const ALint *values)
     context = GetContextRef();
     if(!context) return;
 
-    WriteLock(&context->PropLock);
     if(!(values))
         SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
     switch(param)
@@ -244,7 +233,6 @@ AL_API void AL_APIENTRY alListeneriv(ALenum param, const ALint *values)
         UpdateListenerProps(context);
 
 done:
-    WriteUnlock(&context->PropLock);
     ALCcontext_DecRef(context);
 }
 
@@ -256,7 +244,6 @@ AL_API ALvoid AL_APIENTRY alGetListenerf(ALenum param, ALfloat *value)
     context = GetContextRef();
     if(!context) return;
 
-    ReadLock(&context->PropLock);
     if(!(value))
         SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
     switch(param)
@@ -274,7 +261,6 @@ AL_API ALvoid AL_APIENTRY alGetListenerf(ALenum param, ALfloat *value)
     }
 
 done:
-    ReadUnlock(&context->PropLock);
     ALCcontext_DecRef(context);
 }
 
@@ -286,7 +272,6 @@ AL_API ALvoid AL_APIENTRY alGetListener3f(ALenum param, ALfloat *value1, ALfloat
     context = GetContextRef();
     if(!context) return;
 
-    ReadLock(&context->PropLock);
     if(!(value1 && value2 && value3))
         SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
     switch(param)
@@ -308,7 +293,6 @@ AL_API ALvoid AL_APIENTRY alGetListener3f(ALenum param, ALfloat *value1, ALfloat
     }
 
 done:
-    ReadUnlock(&context->PropLock);
     ALCcontext_DecRef(context);
 }
 
@@ -333,7 +317,6 @@ AL_API ALvoid AL_APIENTRY alGetListenerfv(ALenum param, ALfloat *values)
     context = GetContextRef();
     if(!context) return;
 
-    ReadLock(&context->PropLock);
     if(!(values))
         SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
     switch(param)
@@ -353,7 +336,6 @@ AL_API ALvoid AL_APIENTRY alGetListenerfv(ALenum param, ALfloat *values)
     }
 
 done:
-    ReadUnlock(&context->PropLock);
     ALCcontext_DecRef(context);
 }
 
@@ -365,7 +347,6 @@ AL_API ALvoid AL_APIENTRY alGetListeneri(ALenum param, ALint *value)
     context = GetContextRef();
     if(!context) return;
 
-    ReadLock(&context->PropLock);
     if(!(value))
         SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
     switch(param)
@@ -375,7 +356,6 @@ AL_API ALvoid AL_APIENTRY alGetListeneri(ALenum param, ALint *value)
     }
 
 done:
-    ReadUnlock(&context->PropLock);
     ALCcontext_DecRef(context);
 }
 
@@ -387,7 +367,6 @@ AL_API void AL_APIENTRY alGetListener3i(ALenum param, ALint *value1, ALint *valu
     context = GetContextRef();
     if(!context) return;
 
-    ReadLock(&context->PropLock);
     if(!(value1 && value2 && value3))
         SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
     switch (param)
@@ -409,7 +388,6 @@ AL_API void AL_APIENTRY alGetListener3i(ALenum param, ALint *value1, ALint *valu
     }
 
 done:
-    ReadUnlock(&context->PropLock);
     ALCcontext_DecRef(context);
 }
 
@@ -429,7 +407,6 @@ AL_API void AL_APIENTRY alGetListeneriv(ALenum param, ALint* values)
     context = GetContextRef();
     if(!context) return;
 
-    ReadLock(&context->PropLock);
     if(!(values))
         SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
     switch(param)
@@ -449,7 +426,6 @@ AL_API void AL_APIENTRY alGetListeneriv(ALenum param, ALint* values)
     }
 
 done:
-    ReadUnlock(&context->PropLock);
     ALCcontext_DecRef(context);
 }
 
