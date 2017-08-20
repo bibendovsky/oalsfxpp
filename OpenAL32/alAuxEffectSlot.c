@@ -661,8 +661,7 @@ void UpdateEffectSlotProps(ALeffectslot *slot)
         struct ALeffectslotProps *next;
         do {
             next = props->next;
-        } while(ATOMIC_COMPARE_EXCHANGE_PTR_WEAK(&slot->FreeList, &props, next,
-                almemory_order_seq_cst, almemory_order_acquire) == 0);
+        } while((slot->FreeList == props ? slot->FreeList = next, true : false) == 0);
     }
 
     /* Copy in current property values. */

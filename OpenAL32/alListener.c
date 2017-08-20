@@ -469,8 +469,7 @@ void UpdateListenerProps(ALCcontext *context)
         struct ALlistenerProps *next;
         do {
             next = props->next;
-        } while(ATOMIC_COMPARE_EXCHANGE_PTR_WEAK(&listener->FreeList, &props, next,
-                almemory_order_seq_cst, almemory_order_acquire) == 0);
+        } while((listener->FreeList == props ? listener->FreeList = next, true : false) == 0);
     }
 
     /* Copy in current property values. */

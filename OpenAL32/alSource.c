@@ -162,11 +162,9 @@ static inline ALenum GetSourceState(ALsource *source, ALvoice *voice)
 {
     if(!voice)
     {
-        ALenum state = AL_PLAYING;
-        if(ATOMIC_COMPARE_EXCHANGE_STRONG(&source->state, &state, AL_STOPPED,
-                                          almemory_order_acq_rel, almemory_order_acquire))
+        if(source->state == AL_PLAYING ? source->state = AL_STOPPED, true : false)
             return AL_STOPPED;
-        return state;
+        return AL_PLAYING;
     }
     return source->state;
 }
@@ -3061,8 +3059,7 @@ static void UpdateSourceProps(ALsource *source, ALvoice *voice, ALsizei num_send
         struct ALvoiceProps *next;
         do {
             next = props->next;
-        } while(ATOMIC_COMPARE_EXCHANGE_PTR_WEAK(&voice->FreeList, &props, next,
-                almemory_order_acq_rel, almemory_order_acquire) == 0);
+        } while((voice->FreeList == props ? voice->FreeList = next, true : false) == 0);
     }
 
     /* Copy in current property values. */
