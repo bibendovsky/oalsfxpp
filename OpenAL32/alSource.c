@@ -1273,25 +1273,9 @@ static ALboolean GetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
                     if(buffer && buffer->SampleLen > 0)
                     {
                         ALuint byte_align, sample_align;
-                        if(buffer->OriginalType == UserFmtIMA4)
-                        {
-                            ALsizei align = (buffer->OriginalAlign-1)/2 + 4;
-                            byte_align = align * ChannelsFromFmt(buffer->FmtChannels);
-                            sample_align = buffer->OriginalAlign;
-                        }
-                        else if(buffer->OriginalType == UserFmtMSADPCM)
-                        {
-                            ALsizei align = (buffer->OriginalAlign-2)/2 + 7;
-                            byte_align = align * ChannelsFromFmt(buffer->FmtChannels);
-                            sample_align = buffer->OriginalAlign;
-                        }
-                        else
-                        {
-                            ALsizei align = buffer->OriginalAlign;
-                            byte_align = align * ChannelsFromFmt(buffer->FmtChannels);
-                            sample_align = buffer->OriginalAlign;
-                        }
-
+                        ALsizei align = buffer->OriginalAlign;
+                        byte_align = align * ChannelsFromFmt(buffer->FmtChannels);
+                        sample_align = buffer->OriginalAlign;
                         length += buffer->SampleLen / sample_align * byte_align;
                     }
                     BufferList = BufferList->next;
@@ -3078,31 +3062,12 @@ static ALdouble GetSourceOffset(ALsource *Source, ALenum name, ALCcontext *conte
                 break;
 
             case AL_BYTE_OFFSET:
-                if(BufferFmt->OriginalType == UserFmtIMA4)
-                {
-                    ALsizei align = (BufferFmt->OriginalAlign-1)/2 + 4;
-                    ALuint BlockSize = align * ChannelsFromFmt(BufferFmt->FmtChannels);
-                    ALuint FrameBlockSize = BufferFmt->OriginalAlign;
-
-                    /* Round down to nearest ADPCM block */
-                    offset = (ALdouble)(readPos / FrameBlockSize * BlockSize);
-                }
-                else if(BufferFmt->OriginalType == UserFmtMSADPCM)
-                {
-                    ALsizei align = (BufferFmt->OriginalAlign-2)/2 + 7;
-                    ALuint BlockSize = align * ChannelsFromFmt(BufferFmt->FmtChannels);
-                    ALuint FrameBlockSize = BufferFmt->OriginalAlign;
-
-                    /* Round down to nearest ADPCM block */
-                    offset = (ALdouble)(readPos / FrameBlockSize * BlockSize);
-                }
-                else
-                {
-                    ALuint FrameSize = FrameSizeFromUserFmt(BufferFmt->OriginalChannels,
-                                                            BufferFmt->OriginalType);
-                    offset = (ALdouble)(readPos * FrameSize);
-                }
+            {
+                ALuint FrameSize = FrameSizeFromUserFmt(BufferFmt->OriginalChannels,
+                                                        BufferFmt->OriginalType);
+                offset = (ALdouble)(readPos * FrameSize);
                 break;
+            }
         }
     }
 
@@ -3185,21 +3150,8 @@ static ALboolean GetSampleOffset(ALsource *Source, ALuint *offset, ALsizei *frac
     case AL_BYTE_OFFSET:
         /* Determine the ByteOffset (and ensure it is block aligned) */
         *offset = (ALuint)Source->Offset;
-        if(BufferFmt->OriginalType == UserFmtIMA4)
-        {
-            ALsizei align = (BufferFmt->OriginalAlign-1)/2 + 4;
-            *offset /= align * ChannelsFromUserFmt(BufferFmt->OriginalChannels);
-            *offset *= BufferFmt->OriginalAlign;
-        }
-        else if(BufferFmt->OriginalType == UserFmtMSADPCM)
-        {
-            ALsizei align = (BufferFmt->OriginalAlign-2)/2 + 7;
-            *offset /= align * ChannelsFromUserFmt(BufferFmt->OriginalChannels);
-            *offset *= BufferFmt->OriginalAlign;
-        }
-        else
-            *offset /= FrameSizeFromUserFmt(BufferFmt->OriginalChannels,
-                                            BufferFmt->OriginalType);
+        *offset /= FrameSizeFromUserFmt(BufferFmt->OriginalChannels,
+                                        BufferFmt->OriginalType);
         *frac = 0;
         break;
 

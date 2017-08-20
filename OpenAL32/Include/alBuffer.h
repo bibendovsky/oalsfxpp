@@ -13,14 +13,7 @@ enum UserFmtType {
     UserFmtUByte  = AL_UNSIGNED_BYTE_SOFT,
     UserFmtShort  = AL_SHORT_SOFT,
     UserFmtUShort = AL_UNSIGNED_SHORT_SOFT,
-    UserFmtInt    = AL_INT_SOFT,
-    UserFmtUInt   = AL_UNSIGNED_INT_SOFT,
-    UserFmtFloat  = AL_FLOAT_SOFT,
-    UserFmtDouble = AL_DOUBLE_SOFT,
-    UserFmtMulaw  = AL_MULAW_SOFT,
-    UserFmtAlaw   = 0x10000000,
-    UserFmtIMA4,
-    UserFmtMSADPCM,
+    UserFmtFloat  = AL_FLOAT_SOFT
 };
 enum UserFmtChannels {
     UserFmtMono      = AL_MONO_SOFT,

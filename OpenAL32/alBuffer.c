@@ -171,75 +171,6 @@ AL_API ALvoid AL_APIENTRY alBufferData(ALuint buffer, ALenum format, const ALvoi
             if(err != AL_NO_ERROR)
                 SET_ERROR_AND_GOTO(context, err, done);
             break;
-
-        case UserFmtInt:
-        case UserFmtUInt:
-        case UserFmtDouble:
-            framesize = FrameSizeFromUserFmt(srcchannels, srctype) * align;
-            if((size%framesize) != 0)
-                SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
-
-            switch(srcchannels)
-            {
-                case UserFmtMono: newformat = AL_FORMAT_MONO_FLOAT32; break;
-                case UserFmtStereo: newformat = AL_FORMAT_STEREO_FLOAT32; break;
-            }
-            err = LoadData(albuf, freq, newformat, size/framesize*align,
-                           srcchannels, srctype, data, align, AL_TRUE);
-            if(err != AL_NO_ERROR)
-                SET_ERROR_AND_GOTO(context, err, done);
-            break;
-
-        case UserFmtMulaw:
-        case UserFmtAlaw:
-            framesize = FrameSizeFromUserFmt(srcchannels, srctype) * align;
-            if((size%framesize) != 0)
-                SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
-
-            switch(srcchannels)
-            {
-                case UserFmtMono: newformat = AL_FORMAT_MONO16; break;
-                case UserFmtStereo: newformat = AL_FORMAT_STEREO16; break;
-            }
-            err = LoadData(albuf, freq, newformat, size/framesize*align,
-                           srcchannels, srctype, data, align, AL_TRUE);
-            if(err != AL_NO_ERROR)
-                SET_ERROR_AND_GOTO(context, err, done);
-            break;
-
-        case UserFmtIMA4:
-            framesize  = (align-1)/2 + 4;
-            framesize *= ChannelsFromUserFmt(srcchannels);
-            if((size%framesize) != 0)
-                SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
-
-            switch(srcchannels)
-            {
-                case UserFmtMono: newformat = AL_FORMAT_MONO16; break;
-                case UserFmtStereo: newformat = AL_FORMAT_STEREO16; break;
-            }
-            err = LoadData(albuf, freq, newformat, size/framesize*align,
-                           srcchannels, srctype, data, align, AL_TRUE);
-            if(err != AL_NO_ERROR)
-                SET_ERROR_AND_GOTO(context, err, done);
-            break;
-
-        case UserFmtMSADPCM:
-            framesize  = (align-2)/2 + 7;
-            framesize *= ChannelsFromUserFmt(srcchannels);
-            if((size%framesize) != 0)
-                SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
-
-            switch(srcchannels)
-            {
-                case UserFmtMono: newformat = AL_FORMAT_MONO16; break;
-                case UserFmtStereo: newformat = AL_FORMAT_STEREO16; break;
-            }
-            err = LoadData(albuf, freq, newformat, size/framesize*align,
-                           srcchannels, srctype, data, align, AL_TRUE);
-            if(err != AL_NO_ERROR)
-                SET_ERROR_AND_GOTO(context, err, done);
-            break;
     }
 
 done:
@@ -283,17 +214,6 @@ AL_API ALvoid AL_APIENTRY alBufferSubDataSOFT(ALuint buffer, ALenum format, cons
         SET_ERROR_AND_GOTO(context, AL_INVALID_ENUM, done);
     }
 
-    if(albuf->OriginalType == UserFmtIMA4)
-    {
-        byte_align  = (albuf->OriginalAlign-1)/2 + 4;
-        byte_align *= ChannelsFromUserFmt(albuf->OriginalChannels);
-    }
-    else if(albuf->OriginalType == UserFmtMSADPCM)
-    {
-        byte_align  = (albuf->OriginalAlign-2)/2 + 7;
-        byte_align *= ChannelsFromUserFmt(albuf->OriginalChannels);
-    }
-    else
     {
         byte_align  = albuf->OriginalAlign;
         byte_align *= FrameSizeFromUserFmt(albuf->OriginalChannels,
@@ -933,23 +853,8 @@ ALenum LoadData(ALbuffer *ALBuf, ALuint freq, ALenum NewFormat, ALsizei frames, 
     {
         ALBuf->OriginalChannels = SrcChannels;
         ALBuf->OriginalType     = SrcType;
-        if(SrcType == UserFmtIMA4)
-        {
-            ALsizei byte_align = ((align-1)/2 + 4) * ChannelsFromUserFmt(SrcChannels);
-            ALBuf->OriginalSize  = frames / align * byte_align;
-            ALBuf->OriginalAlign = align;
-        }
-        else if(SrcType == UserFmtMSADPCM)
-        {
-            ALsizei byte_align = ((align-2)/2 + 7) * ChannelsFromUserFmt(SrcChannels);
-            ALBuf->OriginalSize  = frames / align * byte_align;
-            ALBuf->OriginalAlign = align;
-        }
-        else
-        {
-            ALBuf->OriginalSize  = frames * FrameSizeFromUserFmt(SrcChannels, SrcType);
-            ALBuf->OriginalAlign = 1;
-        }
+        ALBuf->OriginalSize  = frames * FrameSizeFromUserFmt(SrcChannels, SrcType);
+        ALBuf->OriginalAlign = 1;
     }
     else
     {
@@ -980,14 +885,7 @@ ALsizei BytesFromUserFmt(enum UserFmtType type)
     case UserFmtUByte: return sizeof(ALubyte);
     case UserFmtShort: return sizeof(ALshort);
     case UserFmtUShort: return sizeof(ALushort);
-    case UserFmtInt: return sizeof(ALint);
-    case UserFmtUInt: return sizeof(ALuint);
     case UserFmtFloat: return sizeof(ALfloat);
-    case UserFmtDouble: return sizeof(ALdouble);
-    case UserFmtMulaw: return sizeof(ALubyte);
-    case UserFmtAlaw: return sizeof(ALubyte);
-    case UserFmtIMA4: break; /* not handled here */
-    case UserFmtMSADPCM: break; /* not handled here */
     }
     return 0;
 }
@@ -1011,20 +909,10 @@ static ALboolean DecomposeUserFormat(ALenum format, enum UserFmtChannels *chans,
         { AL_FORMAT_MONO8,             UserFmtMono, UserFmtUByte   },
         { AL_FORMAT_MONO16,            UserFmtMono, UserFmtShort   },
         { AL_FORMAT_MONO_FLOAT32,      UserFmtMono, UserFmtFloat   },
-        { AL_FORMAT_MONO_DOUBLE_EXT,   UserFmtMono, UserFmtDouble  },
-        { AL_FORMAT_MONO_IMA4,         UserFmtMono, UserFmtIMA4    },
-        { AL_FORMAT_MONO_MSADPCM_SOFT, UserFmtMono, UserFmtMSADPCM },
-        { AL_FORMAT_MONO_MULAW,        UserFmtMono, UserFmtMulaw   },
-        { AL_FORMAT_MONO_ALAW_EXT,     UserFmtMono, UserFmtAlaw    },
 
         { AL_FORMAT_STEREO8,             UserFmtStereo, UserFmtUByte   },
         { AL_FORMAT_STEREO16,            UserFmtStereo, UserFmtShort   },
         { AL_FORMAT_STEREO_FLOAT32,      UserFmtStereo, UserFmtFloat   },
-        { AL_FORMAT_STEREO_DOUBLE_EXT,   UserFmtStereo, UserFmtDouble  },
-        { AL_FORMAT_STEREO_IMA4,         UserFmtStereo, UserFmtIMA4    },
-        { AL_FORMAT_STEREO_MSADPCM_SOFT, UserFmtStereo, UserFmtMSADPCM },
-        { AL_FORMAT_STEREO_MULAW,        UserFmtStereo, UserFmtMulaw   },
-        { AL_FORMAT_STEREO_ALAW_EXT,     UserFmtStereo, UserFmtAlaw    },
     };
     ALuint i;
 
@@ -1097,32 +985,8 @@ static ALboolean SanitizeAlignment(enum UserFmtType type, ALsizei *align)
 
     if(*align == 0)
     {
-        if(type == UserFmtIMA4)
-        {
-            /* Here is where things vary:
-             * nVidia and Apple use 64+1 sample frames per block -> block_size=36 bytes per channel
-             * Most PC sound software uses 2040+1 sample frames per block -> block_size=1024 bytes per channel
-             */
-            *align = 65;
-        }
-        else if(type == UserFmtMSADPCM)
-            *align = 64;
-        else
-            *align = 1;
+        *align = 1;
         return AL_TRUE;
-    }
-
-    if(type == UserFmtIMA4)
-    {
-        /* IMA4 block alignment must be a multiple of 8, plus 1. */
-        return ((*align)&7) == 1;
-    }
-    if(type == UserFmtMSADPCM)
-    {
-        /* MSADPCM block alignment must be a multiple of 2. */
-        /* FIXME: Too strict? Might only require align*channels to be a
-         * multiple of 2. */
-        return ((*align)&1) == 0;
     }
 
     return AL_TRUE;
