@@ -490,27 +490,6 @@ static const ChannelMap MonoCfg[1] = {
 
 static void InitNearFieldCtrl(ALCdevice *device, ALfloat ctrl_dist, ALsizei order, bool periphonic)
 {
-    const char *devname = alstr_get_cstr(device->DeviceName);
-    ALsizei i;
-
-    if(GetConfigValueBool(devname, "decoder", "nfc", 1) && ctrl_dist > 0.0f)
-    {
-        /* NFC is only used when AvgSpeakerDist is greater than 0, and
-         * METERS_PER_UNIT is also greater than 0. In addition, NFC can only be
-         * used when rendering to an ambisonic buffer.
-         */
-        device->AvgSpeakerDist = ctrl_dist;
-
-        device->Dry.NumChannelsPerOrder[0] = 1;
-        if(periphonic)
-            for(i = 1;i < order+1;i++)
-                device->Dry.NumChannelsPerOrder[i] = (i+1)*(i+1) - i*i;
-        else
-            for(i = 1;i < order+1;i++)
-                device->Dry.NumChannelsPerOrder[i] = (i*2+1) - ((i-1)*2+1);
-        for(;i < MAX_AMBI_ORDER+1;i++)
-            device->Dry.NumChannelsPerOrder[i] = 0;
-    }
 }
 
 static void InitDistanceComp(ALCdevice *device, const AmbDecConf *conf, const ALsizei speakermap[MAX_OUTPUT_CHANNELS])
@@ -522,42 +501,6 @@ static void InitDistanceComp(ALCdevice *device, const AmbDecConf *conf, const AL
 
     for(i = 0;i < conf->NumSpeakers;i++)
         maxdist = maxf(maxdist, conf->Speakers[i].Distance);
-
-    if(GetConfigValueBool(devname, "decoder", "distance-comp", 1) && maxdist > 0.0f)
-    {
-        ALfloat srate = (ALfloat)device->Frequency;
-        for(i = 0;i < conf->NumSpeakers;i++)
-        {
-            ALsizei chan = speakermap[i];
-            ALfloat delay;
-
-            /* Distance compensation only delays in steps of the sample rate.
-             * This is a bit less accurate since the delay time falls to the
-             * nearest sample time, but it's far simpler as it doesn't have to
-             * deal with phase offsets. This means at 48khz, for instance, the
-             * distance delay will be in steps of about 7 millimeters.
-             */
-            delay = floorf((maxdist-conf->Speakers[i].Distance) / SPEEDOFSOUNDMETRESPERSEC *
-                           srate + 0.5f);
-            if(delay >= (ALfloat)MAX_DELAY_LENGTH)
-                ERR("Delay for speaker \"%s\" exceeds buffer length (%f >= %u)\n",
-                    alstr_get_cstr(conf->Speakers[i].Name), delay, MAX_DELAY_LENGTH);
-
-            device->ChannelDelay[chan].Length = (ALsizei)clampf(
-                delay, 0.0f, (ALfloat)(MAX_DELAY_LENGTH-1)
-            );
-            device->ChannelDelay[chan].Gain = conf->Speakers[i].Distance / maxdist;
-            TRACE("Channel %u \"%s\" distance compensation: %d samples, %f gain\n", chan,
-                  alstr_get_cstr(conf->Speakers[i].Name), device->ChannelDelay[chan].Length,
-                device->ChannelDelay[chan].Gain
-            );
-
-            /* Round up to the next 4th sample, so each channel buffer starts
-             * 16-byte aligned.
-             */
-            total += RoundUp(device->ChannelDelay[chan].Length, 4);
-        }
-    }
 
     if(total > 0)
     {
@@ -667,13 +610,6 @@ static void InitPanning(ALCdevice *device)
             device->FOAOut.NumChannels = 4;
 
             ambiup_reset(device->AmbiUp, device);
-        }
-
-        if(ConfigValueFloat(devname, "decoder", "nfc-ref-delay", &nfc_delay) && nfc_delay > 0.0f)
-        {
-            nfc_delay = clampf(nfc_delay, 0.001f, 1000.0f);
-            InitNearFieldCtrl(device, nfc_delay * SPEEDOFSOUNDMETRESPERSEC,
-                              device->AmbiOrder, true);
         }
     }
     else
@@ -991,7 +927,6 @@ void aluInitRenderer(ALCdevice *device, ALint hrtf_id, enum HrtfRequestMode hrtf
 {
     /* Hold the HRTF the device last used, in case it's used again. */
     struct Hrtf *old_hrtf = device->HrtfHandle;
-    const char *mode;
     bool headphones;
     int bs2blevel;
     size_t i;
@@ -1044,27 +979,8 @@ void aluInitRenderer(ALCdevice *device, ALint hrtf_id, enum HrtfRequestMode hrtf
             case DevFmtAmbi3D:
                 break;
         }
-        if(layout)
-        {
-            const char *fname;
-            if(ConfigValueStr(devname, "decoder", layout, &fname))
-            {
-                if(!ambdec_load(&conf, fname))
-                    ERR("Failed to load layout file %s\n", fname);
-                else
-                {
-                    if(conf.ChanMask > 0xffff)
-                        ERR("Unsupported channel mask 0x%04x (max 0xffff)\n", conf.ChanMask);
-                    else
-                    {
-                        if(MakeSpeakerMap(device, &conf, speakermap))
-                            pconf = &conf;
-                    }
-                }
-            }
-        }
 
-        if(pconf && GetConfigValueBool(devname, "decoder", "hq-mode", 0))
+        if(pconf)
         {
             ambiup_free(device->AmbiUp);
             device->AmbiUp = NULL;
@@ -1104,16 +1020,6 @@ void aluInitRenderer(ALCdevice *device, ALint hrtf_id, enum HrtfRequestMode hrtf
     headphones = device->IsHeadphones;
     if(device->Type != Loopback)
     {
-        const char *mode;
-        if(ConfigValueStr(alstr_get_cstr(device->DeviceName), NULL, "stereo-mode", &mode))
-        {
-            if(strcasecmp(mode, "headphones") == 0)
-                headphones = true;
-            else if(strcasecmp(mode, "speakers") == 0)
-                headphones = false;
-            else if(strcasecmp(mode, "auto") != 0)
-                ERR("Unexpected stereo-mode: %s\n", mode);
-        }
     }
 
     if(hrtf_userreq == Hrtf_Default)
@@ -1176,15 +1082,6 @@ void aluInitRenderer(ALCdevice *device, ALint hrtf_id, enum HrtfRequestMode hrtf
         old_hrtf = NULL;
 
         device->Render_Mode = HrtfRender;
-        if(ConfigValueStr(alstr_get_cstr(device->DeviceName), NULL, "hrtf-mode", &mode))
-        {
-            if(strcasecmp(mode, "full") == 0)
-                device->Render_Mode = HrtfRender;
-            else if(strcasecmp(mode, "basic") == 0)
-                device->Render_Mode = NormalRender;
-            else
-                ERR("Unexpected hrtf-mode: %s\n", mode);
-        }
 
         if(device->Render_Mode == HrtfRender)
         {
@@ -1222,8 +1119,6 @@ no_hrtf:
 
     bs2blevel = ((headphones && hrtf_appreq != Hrtf_Disable) ||
                  (hrtf_appreq == Hrtf_Enable)) ? 5 : 0;
-    if(device->Type != Loopback)
-        ConfigValueInt(alstr_get_cstr(device->DeviceName), NULL, "cf_level", &bs2blevel);
     if(bs2blevel > 0 && bs2blevel <= 6)
     {
         device->Bs2b = al_calloc(16, sizeof(*device->Bs2b));
@@ -1235,13 +1130,6 @@ no_hrtf:
 
     TRACE("BS2B disabled\n");
 
-    if(ConfigValueStr(alstr_get_cstr(device->DeviceName), NULL, "stereo-encoding", &mode))
-    {
-        if(strcasecmp(mode, "uhj") == 0)
-            device->Render_Mode = NormalRender;
-        else if(strcasecmp(mode, "panpot") != 0)
-            ERR("Unexpected stereo-encoding: %s\n", mode);
-    }
     if(device->Render_Mode == NormalRender)
     {
         device->Uhj_Encoder = al_calloc(16, sizeof(Uhj2Encoder));

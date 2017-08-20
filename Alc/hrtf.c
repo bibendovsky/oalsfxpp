@@ -911,51 +911,6 @@ vector_EnumeratedHrtf EnumerateHrtf(const_al_string devname)
     const char *pathlist = "";
     bool usedefaults = true;
 
-    if(ConfigValueStr(alstr_get_cstr(devname), NULL, "hrtf-paths", &pathlist))
-    {
-        al_string pname = AL_STRING_INIT_STATIC();
-        while(pathlist && *pathlist)
-        {
-            const char *next, *end;
-
-            while(isspace(*pathlist) || *pathlist == ',')
-                pathlist++;
-            if(*pathlist == '\0')
-                continue;
-
-            next = strchr(pathlist, ',');
-            if(next)
-                end = next++;
-            else
-            {
-                end = pathlist + strlen(pathlist);
-                usedefaults = false;
-            }
-
-            while(end != pathlist && isspace(*(end-1)))
-                --end;
-            if(end != pathlist)
-            {
-                vector_al_string flist;
-                size_t i;
-
-                alstr_copy_range(&pname, pathlist, end);
-
-                flist = SearchDataFiles(".mhr", alstr_get_cstr(pname));
-                for(i = 0;i < VECTOR_SIZE(flist);i++)
-                    AddFileEntry(&list, VECTOR_ELEM(flist, i));
-                VECTOR_FOR_EACH(al_string, flist, alstr_reset);
-                VECTOR_DEINIT(flist);
-            }
-
-            pathlist = next;
-        }
-
-        alstr_reset(&pname);
-    }
-    else if(ConfigValueExists(alstr_get_cstr(devname), NULL, "hrtf_tables"))
-        ERR("The hrtf_tables option is deprecated, please use hrtf-paths instead.\n");
-
     if(usedefaults)
     {
         al_string ename = AL_STRING_INIT_STATIC();
@@ -983,24 +938,6 @@ vector_EnumeratedHrtf EnumerateHrtf(const_al_string devname)
             AddBuiltInEntry(&list, ename, IDR_DEFAULT_48000_MHR);
         }
         alstr_reset(&ename);
-    }
-
-    if(VECTOR_SIZE(list) > 1 && ConfigValueStr(alstr_get_cstr(devname), NULL, "default-hrtf", &defaulthrtf))
-    {
-        const EnumeratedHrtf *iter;
-        /* Find the preferred HRTF and move it to the front of the list. */
-#define FIND_ENTRY(i)  (alstr_cmp_cstr((i)->name, defaulthrtf) == 0)
-        VECTOR_FIND_IF(iter, const EnumeratedHrtf, list, FIND_ENTRY);
-#undef FIND_ENTRY
-        if(iter == VECTOR_END(list))
-            WARN("Failed to find default HRTF \"%s\"\n", defaulthrtf);
-        else if(iter != VECTOR_BEGIN(list))
-        {
-            EnumeratedHrtf entry = *iter;
-            memmove(&VECTOR_ELEM(list,1), &VECTOR_ELEM(list,0),
-                    (iter-VECTOR_BEGIN(list))*sizeof(EnumeratedHrtf));
-            VECTOR_ELEM(list,0) = entry;
-        }
     }
 
     return list;

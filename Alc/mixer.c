@@ -159,34 +159,6 @@ ResamplerFunc SelectResampler(enum Resampler resampler)
 
 void aluInitMixer(void)
 {
-    const char *str;
-
-    if(ConfigValueStr(NULL, NULL, "resampler", &str))
-    {
-        if(strcasecmp(str, "point") == 0 || strcasecmp(str, "none") == 0)
-            ResamplerDefault = PointResampler;
-        else if(strcasecmp(str, "linear") == 0)
-            ResamplerDefault = LinearResampler;
-        else if(strcasecmp(str, "sinc4") == 0)
-            ResamplerDefault = FIR4Resampler;
-        else if(strcasecmp(str, "bsinc") == 0)
-            ResamplerDefault = BSincResampler;
-        else if(strcasecmp(str, "cubic") == 0 || strcasecmp(str, "sinc8") == 0)
-        {
-            WARN("Resampler option \"%s\" is deprecated, using sinc4\n", str);
-            ResamplerDefault = FIR4Resampler;
-        }
-        else
-        {
-            char *end;
-            long n = strtol(str, &end, 0);
-            if(*end == '\0' && (n == PointResampler || n == LinearResampler || n == FIR4Resampler))
-                ResamplerDefault = n;
-            else
-                WARN("Invalid resampler: %s\n", str);
-        }
-    }
-
     MixHrtfBlendSamples = SelectHrtfBlendMixer();
     MixHrtfSamples = SelectHrtfMixer();
     MixSamples = SelectMixer();
