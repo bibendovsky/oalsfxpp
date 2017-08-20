@@ -32,7 +32,6 @@
 #include "bool.h"
 #include "ambdec.h"
 #include "bformatdec.h"
-#include "bs2b.h"
 
 
 extern inline void CalcAngleCoeffs(ALfloat azimuth, ALfloat elevation, ALfloat spread, ALfloat coeffs[MAX_AMBI_COEFFS]);
@@ -1118,14 +1117,6 @@ no_hrtf:
 
     bs2blevel = ((headphones && hrtf_appreq != Hrtf_Disable) ||
                  (hrtf_appreq == Hrtf_Enable)) ? 5 : 0;
-    if(bs2blevel > 0 && bs2blevel <= 6)
-    {
-        device->Bs2b = al_calloc(16, sizeof(*device->Bs2b));
-        bs2b_set_params(device->Bs2b, bs2blevel, device->Frequency);
-        TRACE("BS2B enabled\n");
-        InitPanning(device);
-        return;
-    }
 
     TRACE("BS2B disabled\n");
 

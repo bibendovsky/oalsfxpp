@@ -129,7 +129,6 @@
       <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)2/</ObjectFileName>
     </ClCompile>
     <ClCompile Include="Alc\bformatdec.c" />
-    <ClCompile Include="Alc\bs2b.c" />
     <ClCompile Include="Alc\bsinc.c" />
     <ClCompile Include="Alc\converter.c" />
     <ClCompile Include="Alc\effects\chorus.c" />
@@ -199,7 +198,6 @@
     <ClInclude Include="OpenAL32\Include\alSource.h" />
     <ClInclude Include="OpenAL32\Include\alThunk.h" />
     <ClInclude Include="OpenAL32\Include\alu.h" />
-    <ClInclude Include="OpenAL32\Include\bs2b.h" />
     <ClInclude Include="OpenAL32\Include\sample_cvt.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

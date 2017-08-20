@@ -32,7 +32,6 @@
 #include "alListener.h"
 #include "alAuxEffectSlot.h"
 #include "alu.h"
-#include "bs2b.h"
 #include "hrtf.h"
 #include "bformatdec.h"
 #include "static_assert.h"
@@ -1729,17 +1728,6 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples)
                 device->RealOut.Buffer, device->RealOut.NumChannels,
                 SAFE_CONST(ALfloatBUFFERSIZE*,device->FOAOut.Buffer), SamplesToDo
             );
-        }
-        else if(device->Bs2b)
-        {
-            int lidx = GetChannelIdxByName(device->RealOut, FrontLeft);
-            int ridx = GetChannelIdxByName(device->RealOut, FrontRight);
-            if(lidx != -1 && ridx != -1)
-            {
-                /* Apply binaural/crossfeed filter */
-                bs2b_cross_feed(device->Bs2b, device->RealOut.Buffer[lidx],
-                                device->RealOut.Buffer[ridx], SamplesToDo);
-            }
         }
 
         if(OutBuffer)
