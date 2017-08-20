@@ -1648,8 +1648,11 @@ void ALCcontext_DeferUpdates(ALCcontext *context)
  */
 void ALCcontext_ProcessUpdates(ALCcontext *context)
 {
+    ALenum old_defer_updates;
     ReadLock(&context->PropLock);
-    if(ATOMIC_EXCHANGE_SEQ(&context->DeferUpdates, AL_FALSE))
+    old_defer_updates = context->DeferUpdates;
+    context->DeferUpdates = AL_FALSE;
+    if(old_defer_updates)
     {
         /* Tell the mixer to stop applying updates, then wait for any active
          * updating to finish, before providing updates.
@@ -2650,13 +2653,13 @@ static bool ReleaseContext(ALCcontext *context, ALCdevice *device)
     bool ret = true;
 
     origctx = context;
-    if(ATOMIC_COMPARE_EXCHANGE_PTR_STRONG_SEQ(&GlobalContext, &origctx, NULL))
+    if(GlobalContext == origctx ? GlobalContext = NULL, true : false)
         ALCcontext_DecRef(context);
 
     ALCdevice_Lock(device);
     origctx = context;
     newhead = context->next;
-    if(!ATOMIC_COMPARE_EXCHANGE_PTR_STRONG_SEQ(&device->ContextList, &origctx, newhead))
+    if(!(device->ContextList == origctx ? device->ContextList = newhead, true : false))
     {
         ALCcontext *volatile*list = &origctx->next;
         while(*list)
@@ -2855,11 +2858,15 @@ ALC_API ALCenum ALC_APIENTRY alcGetError(ALCdevice *device)
 
     if(VerifyDevice(&device))
     {
-        errorCode = ATOMIC_EXCHANGE_SEQ(&device->LastError, ALC_NO_ERROR);
+        errorCode = device->LastError;
+        device->LastError = ALC_NO_ERROR;
         ALCdevice_DecRef(device);
     }
     else
-        errorCode = ATOMIC_EXCHANGE_SEQ(&LastNullDeviceError, ALC_NO_ERROR);
+    {
+        errorCode = LastNullDeviceError;
+        LastNullDeviceError = ALC_NO_ERROR;
+    }
 
     return errorCode;
 }
@@ -3637,8 +3644,7 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
         ALCcontext *head = device->ContextList;
         do {
             ALContext->next = head;
-        } while(ATOMIC_COMPARE_EXCHANGE_PTR_WEAK_SEQ(&device->ContextList, &head,
-                                                     ALContext) == 0);
+        } while((device->ContextList == head ? device->ContextList = ALContext, true : false) == 0);
     }
 
     if(ALContext->DefaultSlot)
@@ -4011,7 +4017,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
         ALCdevice *head = DeviceList;
         do {
             device->next = head;
-        } while(!ATOMIC_COMPARE_EXCHANGE_PTR_WEAK_SEQ(&DeviceList, &head, device));
+        } while(!(DeviceList == head ? DeviceList = device, true : false));
     }
 
     TRACE("Created device %p, \"%s\"\n", device, alstr_get_cstr(device->DeviceName));
@@ -4041,7 +4047,7 @@ ALC_API ALCboolean ALC_APIENTRY alcCloseDevice(ALCdevice *device)
     }
 
     origdev = device;
-    if(!ATOMIC_COMPARE_EXCHANGE_PTR_STRONG_SEQ(&DeviceList, &origdev, device->next))
+    if(!(DeviceList == origdev ? DeviceList = device->next, true : false))
     {
         ALCdevice *volatile*list = &origdev->next;
         while(*list)
@@ -4179,7 +4185,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcCaptureOpenDevice(const ALCchar *deviceName, 
         ALCdevice *head = DeviceList;
         do {
             device->next = head;
-        } while(!ATOMIC_COMPARE_EXCHANGE_PTR_WEAK_SEQ(&DeviceList, &head, device));
+        } while(!(DeviceList == head ? DeviceList = device, true : false));
     }
 
     TRACE("Created device %p, \"%s\"\n", device, alstr_get_cstr(device->DeviceName));
@@ -4204,7 +4210,7 @@ ALC_API ALCboolean ALC_APIENTRY alcCaptureCloseDevice(ALCdevice *device)
     }
 
     origdev = device;
-    if(!ATOMIC_COMPARE_EXCHANGE_PTR_STRONG_SEQ(&DeviceList, &origdev, device->next))
+    if(!(DeviceList == origdev ? DeviceList = device->next, true : false))
     {
         ALCdevice *volatile*list = &origdev->next;
         while(*list)
@@ -4396,7 +4402,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcLoopbackOpenDeviceSOFT(const ALCchar *deviceN
         ALCdevice *head = DeviceList;
         do {
             device->next = head;
-        } while(!ATOMIC_COMPARE_EXCHANGE_PTR_WEAK_SEQ(&DeviceList, &head, device));
+        } while(!(DeviceList == head ? DeviceList = device, true : false));
     }
 
     TRACE("Created device %p\n", device);

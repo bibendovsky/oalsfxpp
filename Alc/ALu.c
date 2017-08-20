@@ -331,7 +331,7 @@ static ALboolean CalcListenerParams(ALCcontext *Context)
     Listener->Params.SourceDistanceModel = props->SourceDistanceModel;
     Listener->Params.DistanceModel = props->DistanceModel;
 
-    ATOMIC_REPLACE_HEAD(struct ALlistenerProps*, &Listener->FreeList, props);
+    props->next = Listener->FreeList;
     return AL_TRUE;
 }
 
@@ -373,7 +373,7 @@ static ALboolean CalcEffectSlotParams(ALeffectslot *slot, ALCdevice *device)
 
     V(state,update)(device, slot, &props->Props);
 
-    ATOMIC_REPLACE_HEAD(struct ALeffectslotProps*, &slot->FreeList, props);
+    props->next = slot->FreeList;
     return AL_TRUE;
 }
 
@@ -1441,7 +1441,7 @@ static void CalcSourceParams(ALvoice *voice, ALCcontext *context, ALboolean forc
             FAM_SIZE(struct ALvoiceProps, Send, context->Device->NumAuxSends)
         );
 
-        ATOMIC_REPLACE_HEAD(struct ALvoiceProps*, &voice->FreeList, props);
+        props->next = voice->FreeList;
     }
     props = voice->Props;
 
@@ -1825,8 +1825,10 @@ void aluHandleDisconnect(ALCdevice *device)
 
             if(source)
             {
-                ALenum playing = AL_PLAYING;
-                (void)(ATOMIC_COMPARE_EXCHANGE_STRONG_SEQ(&source->state, &playing, AL_STOPPED));
+                if (source->state == AL_PLAYING)
+                {
+                    source->state = AL_STOPPED;
+                }
             }
         }
         ctx->VoiceCount = 0;

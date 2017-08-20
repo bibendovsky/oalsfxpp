@@ -687,7 +687,7 @@ void UpdateEffectSlotProps(ALeffectslot *slot)
         /* If there was an unused update container, put it back in the
          * freelist.
          */
-        ATOMIC_REPLACE_HEAD(struct ALeffectslotProps*, &slot->FreeList, props);
+        props->next = slot->FreeList;
     }
 
     if(oldstate)

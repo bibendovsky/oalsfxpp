@@ -49,7 +49,10 @@ ALvoid alSetError(ALCcontext *Context, ALenum errorCode)
 #endif
     }
 
-    (void)(ATOMIC_COMPARE_EXCHANGE_STRONG_SEQ(&Context->LastError, &curerr, errorCode));
+    if (Context->LastError == AL_NO_ERROR)
+    {
+        Context->LastError = errorCode;
+    }
 }
 
 AL_API ALenum AL_APIENTRY alGetError(void)
@@ -74,7 +77,8 @@ AL_API ALenum AL_APIENTRY alGetError(void)
         return AL_INVALID_OPERATION;
     }
 
-    errorCode = ATOMIC_EXCHANGE_SEQ(&Context->LastError, AL_NO_ERROR);
+    errorCode = Context->LastError;
+    Context->LastError =  AL_NO_ERROR;
 
     ALCcontext_DecRef(Context);
 
