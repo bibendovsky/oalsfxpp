@@ -1707,10 +1707,10 @@ struct Compressor *CreateDeviceLimiter(const ALCdevice *device)
  */
 static inline void UpdateClockBase(ALCdevice *device)
 {
-    IncrementRef(&device->MixCount);
+    device->MixCount += 1;
     device->ClockBase += device->SamplesDone * DEVICE_CLOCK_RES / device->Frequency;
     device->SamplesDone = 0;
-    IncrementRef(&device->MixCount);
+    device->MixCount += 1;
 }
 
 /* UpdateDeviceParams
@@ -2449,7 +2449,7 @@ static ALCvoid FreeDevice(ALCdevice *device)
 void ALCdevice_IncRef(ALCdevice *device)
 {
     uint ref;
-    ref = IncrementRef(&device->ref);
+    ref = ++device->ref;
     TRACEREF("%p increasing refcount to %u\n", device, ref);
 }
 
@@ -2674,7 +2674,7 @@ static bool ReleaseContext(ALCcontext *context, ALCdevice *device)
 
 void ALCcontext_IncRef(ALCcontext *context)
 {
-    uint ref = IncrementRef(&context->ref);
+    uint ref = ++context->ref;
     TRACEREF("%p increasing refcount to %u\n", context, ref);
 }
 

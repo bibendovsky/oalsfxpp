@@ -1464,7 +1464,7 @@ static void UpdateContextSources(ALCcontext *ctx, const struct ALeffectslotArray
     ALsource *source;
     ALsizei i;
 
-    IncrementRef(&ctx->UpdateCount);
+    ctx->UpdateCount += 1;
     if(!ctx->HoldUpdates)
     {
         ALboolean force = CalcListenerParams(ctx);
@@ -1479,7 +1479,7 @@ static void UpdateContextSources(ALCcontext *ctx, const struct ALeffectslotArray
             if(source) CalcSourceParams(*voice, ctx, force);
         }
     }
-    IncrementRef(&ctx->UpdateCount);
+    ctx->UpdateCount += 1;
 }
 
 
@@ -1625,7 +1625,7 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples)
             for(c = 0;c < device->RealOut.NumChannels;c++)
                 memset(device->RealOut.Buffer[c], 0, SamplesToDo*sizeof(ALfloat));
 
-        IncrementRef(&device->MixCount);
+        device->MixCount += 1;
 
         ctx = device->ContextList;
         while(ctx)
@@ -1677,7 +1677,7 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples)
         device->SamplesDone += SamplesToDo;
         device->ClockBase += (device->SamplesDone/device->Frequency) * DEVICE_CLOCK_RES;
         device->SamplesDone %= device->Frequency;
-        IncrementRef(&device->MixCount);
+        device->MixCount += 1;
 
         if(device->HrtfHandle)
         {

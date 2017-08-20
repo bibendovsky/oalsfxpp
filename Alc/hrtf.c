@@ -1101,7 +1101,7 @@ done:
 
 void Hrtf_IncRef(struct Hrtf *hrtf)
 {
-    uint ref = IncrementRef(&hrtf->ref);
+    uint ref = ++hrtf->ref;
     TRACEREF("%p increasing refcount to %u\n", hrtf, ref);
 }
 

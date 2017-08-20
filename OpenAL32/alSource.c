@@ -755,7 +755,7 @@ static ALboolean SetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
                 ALbufferlistitem *newlist = al_calloc(DEF_ALIGN, sizeof(ALbufferlistitem));
                 newlist->buffer = buffer;
                 newlist->next = NULL;
-                IncrementRef(&buffer->ref);
+                buffer->ref += 1;
 
                 /* Source is now Static */
                 Source->SourceType = AL_STATIC;
@@ -931,7 +931,7 @@ static ALboolean SetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
             {
                 ALvoice *voice;
                 /* Add refcount on the new slot, and release the previous slot */
-                if(slot) IncrementRef(&slot->ref);
+                if(slot) slot->ref += 1;
                 if(Source->Send[values[1]].Slot)
                     DecrementRef(&Source->Send[values[1]].Slot->ref);
                 Source->Send[values[1]].Slot = slot;
@@ -946,7 +946,7 @@ static ALboolean SetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
             }
             else
             {
-                if(slot) IncrementRef(&slot->ref);
+                if(slot) slot->ref += 1;
                 if(Source->Send[values[1]].Slot)
                     DecrementRef(&Source->Send[values[1]].Slot->ref);
                 Source->Send[values[1]].Slot = slot;
@@ -2796,7 +2796,7 @@ AL_API ALvoid AL_APIENTRY alSourceQueueBuffers(ALuint src, ALsizei nb, const ALu
          * provided buffers. This is done so other threads don't see an extra
          * reference on some buffers if this operation ends up failing. */
         ReadLock(&buffer->lock);
-        IncrementRef(&buffer->ref);
+        buffer->ref += 1;
 
         if(BufferFmt == NULL)
             BufferFmt = buffer;

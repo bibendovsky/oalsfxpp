@@ -557,7 +557,7 @@ ALenum InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *e
 static void ALeffectState_IncRef(ALeffectState *state)
 {
     uint ref;
-    ref = IncrementRef(&state->Ref);
+    ref = ++state->Ref;
     TRACEREF("%p increasing refcount to %u\n", state, ref);
 }
 
