@@ -33,8 +33,8 @@
  * size or count is in 'elements', not bytes. Additionally, it only supports
  * single-consumer/single-provider operation. */
 struct ll_ringbuffer {
-    ATOMIC(size_t) write_ptr;
-    ATOMIC(size_t) read_ptr;
+    size_t write_ptr;
+    size_t read_ptr;
     size_t size;
     size_t size_mask;
     size_t elem_size;

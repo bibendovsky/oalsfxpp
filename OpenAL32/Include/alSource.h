@@ -20,7 +20,7 @@ struct ALsource;
 
 typedef struct ALbufferlistitem {
     struct ALbuffer *buffer;
-    ATOMIC(struct ALbufferlistitem*) next;
+    struct ALbufferlistitem* next;
 } ALbufferlistitem;
 
 
@@ -91,13 +91,13 @@ typedef struct ALsource {
     ALint SourceType;
 
     /** Source state (initial, playing, paused, or stopped) */
-    ATOMIC(ALenum) state;
+    ALenum state;
 
     /** Source Buffer Queue head. */
     RWLock queue_lock;
     ALbufferlistitem *queue;
 
-    ATOMIC_FLAG PropsClean;
+    int PropsClean;
 
     /** Self ID */
     ALuint id;

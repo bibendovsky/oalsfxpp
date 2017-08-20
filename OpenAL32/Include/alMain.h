@@ -688,7 +688,7 @@ struct ALCdevice_struct
 
     al_string DeviceName;
 
-    ATOMIC(ALCenum) LastError;
+    ALCenum LastError;
 
     // Maximum number of sources that can be created
     ALuint SourcesMax;
@@ -798,7 +798,7 @@ struct ALCdevice_struct
     RefCount MixCount;
 
     // Contexts created on this device
-    ATOMIC(ALCcontext*) ContextList;
+    ALCcontext* ContextList;
 
     struct ALCbackend *Backend;
 
@@ -838,7 +838,7 @@ struct ALCcontext_struct {
     UIntMap SourceMap;
     UIntMap EffectSlotMap;
 
-    ATOMIC(ALenum) LastError;
+    ALenum LastError;
 
     enum DistanceModel DistanceModel;
     ALboolean SourceDistanceModel;
@@ -846,7 +846,7 @@ struct ALCcontext_struct {
     ALfloat DopplerFactor;
     ALfloat DopplerVelocity;
     ALfloat SpeedOfSound;
-    ATOMIC(ALenum) DeferUpdates;
+    ALenum DeferUpdates;
 
     RWLock PropLock;
 
@@ -854,7 +854,7 @@ struct ALCcontext_struct {
      * indicates if updates are currently happening).
      */
     RefCount UpdateCount;
-    ATOMIC(ALenum) HoldUpdates;
+    ALenum HoldUpdates;
 
     ALfloat GainBoost;
 
@@ -862,7 +862,7 @@ struct ALCcontext_struct {
     ALsizei VoiceCount;
     ALsizei MaxVoices;
 
-    ATOMIC(struct ALeffectslotArray*) ActiveAuxSlots;
+    struct ALeffectslotArray* ActiveAuxSlots;
 
     /* Default effect slot */
     struct ALeffectslot *DefaultSlot;

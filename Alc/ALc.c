@@ -734,12 +734,12 @@ static const ALchar alExtList[] =
     "AL_SOFT_MSADPCM AL_SOFT_source_latency AL_SOFT_source_length "
     "AL_SOFT_source_resampler AL_SOFT_source_spatialize";
 
-static ATOMIC(ALCenum) LastNullDeviceError = ATOMIC_INIT_STATIC(ALC_NO_ERROR);
+static ALCenum LastNullDeviceError = ALC_NO_ERROR;
 
 /* Thread-local current context */
 static ALCcontext* LocalContext;
 /* Process-wide current context */
-static ATOMIC(ALCcontext*) GlobalContext = ATOMIC_INIT_STATIC(NULL);
+static ALCcontext* GlobalContext = NULL;
 
 /* Mixing thread piority level */
 ALint RTPrioLevel;
@@ -787,7 +787,7 @@ static const ALCint alcEFXMinorVersion = 0;
 /************************************************
  * Device lists
  ************************************************/
-static ATOMIC(ALCdevice*) DeviceList = ATOMIC_INIT_STATIC(NULL);
+static ALCdevice* DeviceList = NULL;
 
 static inline void LockLists(void)
 {

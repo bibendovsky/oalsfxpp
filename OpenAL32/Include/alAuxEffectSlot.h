@@ -90,7 +90,7 @@ struct ALeffectslotProps {
 
     ALeffectState *State;
 
-    ATOMIC(struct ALeffectslotProps*) next;
+    struct ALeffectslotProps* next;
 };
 
 
@@ -105,12 +105,12 @@ typedef struct ALeffectslot {
         ALeffectState *State;
     } Effect;
 
-    ATOMIC_FLAG PropsClean;
+    int PropsClean;
 
     RefCount ref;
 
-    ATOMIC(struct ALeffectslotProps*) Update;
-    ATOMIC(struct ALeffectslotProps*) FreeList;
+    struct ALeffectslotProps* Update;
+    struct ALeffectslotProps* FreeList;
 
     struct {
         ALfloat   Gain;

@@ -178,7 +178,7 @@ typedef struct SendParams {
 
 
 struct ALvoiceProps {
-    ATOMIC(struct ALvoiceProps*) next;
+    struct ALvoiceProps* next;
 
     ALfloat Pitch;
     ALfloat Gain;
@@ -239,27 +239,27 @@ struct ALvoiceProps {
 typedef struct ALvoice {
     struct ALvoiceProps *Props;
 
-    ATOMIC(struct ALvoiceProps*) Update;
-    ATOMIC(struct ALvoiceProps*) FreeList;
+    struct ALvoiceProps* Update;
+    struct ALvoiceProps* FreeList;
 
-    ATOMIC(struct ALsource*) Source;
-    ATOMIC(bool) Playing;
+    struct ALsource* Source;
+    bool Playing;
 
     /**
      * Source offset in samples, relative to the currently playing buffer, NOT
      * the whole queue, and the fractional (fixed-point) offset to the next
      * sample.
      */
-    ATOMIC(ALuint) position;
-    ATOMIC(ALsizei) position_fraction;
+    ALuint position;
+    ALsizei position_fraction;
 
     /* Current buffer queue item being played. */
-    ATOMIC(struct ALbufferlistitem*) current_buffer;
+    struct ALbufferlistitem* current_buffer;
 
     /* Buffer queue item to loop to at end of queue (will be NULL for non-
      * looping voices).
      */
-    ATOMIC(struct ALbufferlistitem*) loop_buffer;
+    struct ALbufferlistitem* loop_buffer;
 
     /**
      * Number of channels and bytes-per-sample for the attached source's

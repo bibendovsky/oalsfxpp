@@ -22,7 +22,7 @@ struct ALlistenerProps {
     ALboolean SourceDistanceModel;
     enum DistanceModel DistanceModel;
 
-    ATOMIC(struct ALlistenerProps*) next;
+    struct ALlistenerProps* next;
 };
 
 typedef struct ALlistener {
@@ -35,12 +35,12 @@ typedef struct ALlistener {
 
     /* Pointer to the most recent property values that are awaiting an update.
      */
-    ATOMIC(struct ALlistenerProps*) Update;
+    struct ALlistenerProps* Update;
 
     /* A linked list of unused property containers, free to use for future
      * updates.
      */
-    ATOMIC(struct ALlistenerProps*) FreeList;
+    struct ALlistenerProps* FreeList;
 
     struct {
         aluMatrixf Matrix;
