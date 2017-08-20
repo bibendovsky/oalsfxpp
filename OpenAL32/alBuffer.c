@@ -628,13 +628,13 @@ AL_API void AL_APIENTRY alBufferi(ALuint buffer, ALenum param, ALint value)
     case AL_UNPACK_BLOCK_ALIGNMENT_SOFT:
         if(!(value >= 0))
             SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
-        ATOMIC_STORE_SEQ(&albuf->UnpackAlign, value);
+        albuf->UnpackAlign = value;
         break;
 
     case AL_PACK_BLOCK_ALIGNMENT_SOFT:
         if(!(value >= 0))
             SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
-        ATOMIC_STORE_SEQ(&albuf->PackAlign, value);
+        albuf->PackAlign = value;
         break;
 
     default:

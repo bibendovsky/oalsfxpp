@@ -1637,7 +1637,7 @@ extern inline ALint GetChannelIndex(const enum Channel names[MAX_OUTPUT_CHANNELS
  */
 void ALCcontext_DeferUpdates(ALCcontext *context)
 {
-    ATOMIC_STORE_SEQ(&context->DeferUpdates, AL_TRUE);
+    context->DeferUpdates = AL_TRUE;
 }
 
 /* ALCcontext_ProcessUpdates
@@ -1652,7 +1652,7 @@ void ALCcontext_ProcessUpdates(ALCcontext *context)
         /* Tell the mixer to stop applying updates, then wait for any active
          * updating to finish, before providing updates.
          */
-        ATOMIC_STORE_SEQ(&context->HoldUpdates, AL_TRUE);
+        context->HoldUpdates = AL_TRUE;
 
         UpdateListenerProps(context);
         UpdateAllEffectSlotProps(context);
@@ -1661,7 +1661,7 @@ void ALCcontext_ProcessUpdates(ALCcontext *context)
         /* Now with all updates declared, let the mixer continue applying them
          * so they all happen at once.
          */
-        ATOMIC_STORE_SEQ(&context->HoldUpdates, AL_FALSE);
+        context->HoldUpdates = AL_FALSE;
     }
     ReadUnlock(&context->PropLock);
 }
@@ -1686,9 +1686,9 @@ static void alcSetError(ALCdevice *device, ALCenum errorCode)
     }
 
     if(device)
-        ATOMIC_STORE_SEQ(&device->LastError, errorCode);
+        device->LastError = errorCode;
     else
-        ATOMIC_STORE_SEQ(&LastNullDeviceError, errorCode);
+        LastNullDeviceError = errorCode;
 }
 
 
@@ -3558,7 +3558,7 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
     }
     UnlockLists();
 
-    ATOMIC_STORE_SEQ(&device->LastError, ALC_NO_ERROR);
+    device->LastError = ALC_NO_ERROR;
 
     if(device->Type == Playback && DefaultEffect.type != AL_EFFECT_NULL)
         ALContext = al_calloc(16, sizeof(ALCcontext)+sizeof(ALlistener)+sizeof(ALeffectslot));

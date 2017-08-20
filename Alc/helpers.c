@@ -637,7 +637,7 @@ vector_al_string SearchDataFiles(const char *ext, const char *subdir)
         alstr_reset(&path);
     }
 
-    ATOMIC_STORE_SEQ(&search_lock, 0);
+    search_lock = 0;
 
     return results;
 }
@@ -926,7 +926,7 @@ vector_al_string SearchDataFiles(const char *ext, const char *subdir)
         alstr_reset(&path);
     }
 
-    ATOMIC_STORE_SEQ(&search_lock, 0);
+    search_lock = 0;
 
     return results;
 }
