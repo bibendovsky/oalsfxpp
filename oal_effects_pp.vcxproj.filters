@@ -78,9 +78,6 @@
     <ClCompile Include="Alc\mixer_c.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Alc\nfcfilter.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Alc\panning.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -144,9 +141,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Alc\mixer_defs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Alc\nfcfilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Alc\vector.h">

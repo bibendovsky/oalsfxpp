@@ -16,7 +16,6 @@
 #include "alAuxEffectSlot.h"
 
 #include "align.h"
-#include "nfcfilter.h"
 #include "math_defs.h"
 
 
@@ -143,8 +142,6 @@ typedef struct DirectParams {
     ALfilterState LowPass;
     ALfilterState HighPass;
 
-    NfcFilter NFCtrlFilter[MAX_AMBI_ORDER];
-
     struct {
         ALfloat Current[MAX_OUTPUT_CHANNELS];
         ALfloat Target[MAX_OUTPUT_CHANNELS];
@@ -218,7 +215,6 @@ struct ALvoiceProps {
 
 /* If not 'fading', gain targets are used directly without fading. */
 #define VOICE_IS_FADING (1<<0)
-#define VOICE_HAS_NFC   (1<<2)
 
 typedef struct ALvoice {
     struct ALvoiceProps *Props;

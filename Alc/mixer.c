@@ -406,38 +406,10 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
                     if(!Counter)
                         memcpy(parms->Gains.Current, parms->Gains.Target,
                                sizeof(parms->Gains.Current));
-                    if(!(voice->Flags&VOICE_HAS_NFC))
-                        MixSamples(samples, voice->Direct.Channels, voice->Direct.Buffer,
-                            parms->Gains.Current, parms->Gains.Target, Counter, OutPos,
-                            DstBufferSize
-                        );
-                    else
-                    {
-                        ALfloat *nfcsamples = Device->NFCtrlData;
-                        ALsizei chanoffset = 0;
-
-                        MixSamples(samples,
-                            voice->Direct.ChannelsPerOrder[0], voice->Direct.Buffer,
-                            parms->Gains.Current, parms->Gains.Target, Counter, OutPos,
-                            DstBufferSize
-                        );
-                        chanoffset += voice->Direct.ChannelsPerOrder[0];
-#define APPLY_NFC_MIX(order)                                                  \
-    if(voice->Direct.ChannelsPerOrder[order] > 0)                             \
-    {                                                                         \
-        NfcFilterUpdate##order(&parms->NFCtrlFilter[order-1], nfcsamples,     \
-                               samples, DstBufferSize);                       \
-        MixSamples(nfcsamples, voice->Direct.ChannelsPerOrder[order],         \
-            voice->Direct.Buffer+chanoffset, parms->Gains.Current+chanoffset, \
-            parms->Gains.Target+chanoffset, Counter, OutPos, DstBufferSize    \
-        );                                                                    \
-        chanoffset += voice->Direct.ChannelsPerOrder[order];                  \
-    }
-                        APPLY_NFC_MIX(1)
-                        APPLY_NFC_MIX(2)
-                        APPLY_NFC_MIX(3)
-#undef APPLY_NFC_MIX
-                    }
+                    MixSamples(samples, voice->Direct.Channels, voice->Direct.Buffer,
+                        parms->Gains.Current, parms->Gains.Target, Counter, OutPos,
+                        DstBufferSize
+                    );
                 }
             }
 

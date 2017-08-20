@@ -145,7 +145,6 @@
     <ClCompile Include="Alc\mastering.c" />
     <ClCompile Include="Alc\mixer.c" />
     <ClCompile Include="Alc\mixer_c.c" />
-    <ClCompile Include="Alc\nfcfilter.c" />
     <ClCompile Include="Alc\panning.c" />
     <ClCompile Include="common\almalloc.c" />
     <ClCompile Include="common\uintmap.c" />
@@ -168,7 +167,6 @@
     <ClInclude Include="Alc\compat.h" />
     <ClInclude Include="Alc\converter.h" />
     <ClInclude Include="Alc\mixer_defs.h" />
-    <ClInclude Include="Alc\nfcfilter.h" />
     <ClInclude Include="Alc\vector.h" />
     <ClInclude Include="common\align.h" />
     <ClInclude Include="common\almalloc.h" />
