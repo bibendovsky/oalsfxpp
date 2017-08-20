@@ -17,9 +17,9 @@ void RWLockInit(RWLock *lock)
 {
     InitRef(&lock->read_count, 0);
     InitRef(&lock->write_count, 0);
-    ATOMIC_FLAG_CLEAR(&lock->read_lock, almemory_order_relaxed);
-    ATOMIC_FLAG_CLEAR(&lock->read_entry_lock, almemory_order_relaxed);
-    ATOMIC_FLAG_CLEAR(&lock->write_lock, almemory_order_relaxed);
+    lock->read_lock = 0;
+    lock->read_entry_lock = 0;
+    lock->write_lock = 0;
 }
 
 void ReadLock(RWLock *lock)

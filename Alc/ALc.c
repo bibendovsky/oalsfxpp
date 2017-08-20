@@ -2301,7 +2301,7 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
                 }
             }
 
-            ATOMIC_FLAG_CLEAR(&source->PropsClean, almemory_order_release);
+            source->PropsClean = 0;
         }
         AllocateVoices(context, context->MaxVoices, old_sends);
         for(pos = 0;pos < context->VoiceCount;pos++)

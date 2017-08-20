@@ -93,7 +93,7 @@ ALenum NewThunkEntry(ALuint *index)
     *index = ++i;
 
     for(;i < ThunkArraySize;i++)
-        ATOMIC_FLAG_CLEAR(&ThunkArray[i], almemory_order_relaxed);
+        ThunkArray[i] = 0;
     WriteUnlock(&ThunkLock);
 
     return AL_NO_ERROR;
@@ -103,6 +103,6 @@ void FreeThunkEntry(ALuint index)
 {
     ReadLock(&ThunkLock);
     if(index > 0 && (ALsizei)index <= ThunkArraySize)
-        ATOMIC_FLAG_CLEAR(&ThunkArray[index-1], almemory_order_release);
+        ThunkArray[index-1] = 0;
     ReadUnlock(&ThunkLock);
 }

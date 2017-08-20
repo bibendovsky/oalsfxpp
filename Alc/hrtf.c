@@ -1094,7 +1094,7 @@ struct Hrtf *GetLoadedHrtf(struct HrtfEntry *entry)
           DevFmtChannelsString(DevFmtStereo), hrtf->sampleRate);
 
 done:
-    ATOMIC_FLAG_CLEAR(&LoadedHrtfLock, almemory_order_seq_cst);
+    LoadedHrtfLock = 0;
     return hrtf;
 }
 
@@ -1128,7 +1128,7 @@ void Hrtf_DecRef(struct Hrtf *hrtf)
             Hrtf = Hrtf->next;
         }
 
-        ATOMIC_FLAG_CLEAR(&LoadedHrtfLock, almemory_order_seq_cst);
+        LoadedHrtfLock = 0;
     }
 }
 

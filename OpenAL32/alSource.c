@@ -448,7 +448,7 @@ static ALint Int64ValsByProp(ALenum prop)
        (voice=GetSourceVoice(Source, Context)) != NULL)                       \
         UpdateSourceProps(Source, voice, device->NumAuxSends);                \
     else                                                                      \
-        ATOMIC_FLAG_CLEAR(&Source->PropsClean, almemory_order_release);       \
+        Source->PropsClean = 0;       \
 } while(0)
 
 static ALboolean SetSourcefv(ALsource *Source, ALCcontext *Context, SourceProp prop, const ALfloat *values)
@@ -942,7 +942,7 @@ static ALboolean SetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
                 if((voice=GetSourceVoice(Source, Context)) != NULL)
                     UpdateSourceProps(Source, voice, device->NumAuxSends);
                 else
-                    ATOMIC_FLAG_CLEAR(&Source->PropsClean, almemory_order_release);
+                    Source->PropsClean = 0;
             }
             else
             {

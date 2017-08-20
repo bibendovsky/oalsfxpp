@@ -58,7 +58,7 @@ static void ALeffectState_DecRef(ALeffectState *state);
     if(!context->DeferUpdates)          \
         UpdateEffectSlotProps(slot);                                          \
     else                                                                      \
-        ATOMIC_FLAG_CLEAR(&slot->PropsClean, almemory_order_release);         \
+        slot->PropsClean = 0;         \
 } while(0)
 
 
