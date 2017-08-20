@@ -60,12 +60,6 @@
     <ClCompile Include="Alc\ALu.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Alc\ambdec.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Alc\bformatdec.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Alc\bsinc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -141,12 +135,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Alc\alstring.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Alc\ambdec.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Alc\bformatdec.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Alc\compat.h">

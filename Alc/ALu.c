@@ -1553,26 +1553,6 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples)
         device->SamplesDone %= device->Frequency;
         device->MixCount += 1;
 
-        if(device->AmbiDecoder)
-        {
-            if(device->Dry.Buffer != device->FOAOut.Buffer)
-                bformatdec_upSample(device->AmbiDecoder,
-                    device->Dry.Buffer, SAFE_CONST(ALfloatBUFFERSIZE*,device->FOAOut.Buffer),
-                    device->FOAOut.NumChannels, SamplesToDo
-                );
-            bformatdec_process(device->AmbiDecoder,
-                device->RealOut.Buffer, device->RealOut.NumChannels,
-                SAFE_CONST(ALfloatBUFFERSIZE*,device->Dry.Buffer), SamplesToDo
-            );
-        }
-        else if(device->AmbiUp)
-        {
-            ambiup_process(device->AmbiUp,
-                device->RealOut.Buffer, device->RealOut.NumChannels,
-                SAFE_CONST(ALfloatBUFFERSIZE*,device->FOAOut.Buffer), SamplesToDo
-            );
-        }
-
         if(OutBuffer)
         {
             ALfloat (*Buffer)[BUFFERSIZE] = device->RealOut.Buffer;

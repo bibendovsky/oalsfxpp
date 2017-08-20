@@ -2194,12 +2194,6 @@ static ALCvoid FreeDevice(ALCdevice *device)
     }
     ResetUIntMap(&device->FilterMap);
 
-    bformatdec_free(device->AmbiDecoder);
-    device->AmbiDecoder = NULL;
-
-    ambiup_free(device->AmbiUp);
-    device->AmbiUp = NULL;
-
     al_free(device->Limiter);
     device->Limiter = NULL;
 

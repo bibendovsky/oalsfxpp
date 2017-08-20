@@ -30,8 +30,6 @@
 #include "alAuxEffectSlot.h"
 #include "alu.h"
 #include "bool.h"
-#include "ambdec.h"
-#include "bformatdec.h"
 
 
 extern inline void CalcAngleCoeffs(ALfloat azimuth, ALfloat elevation, ALfloat spread, ALfloat coeffs[MAX_AMBI_COEFFS]);
@@ -357,97 +355,6 @@ static void SetChannelMap(const enum Channel *devchans, ChannelConfig *ambicoeff
     *outcount = i;
 }
 
-static bool MakeSpeakerMap(ALCdevice *device, const AmbDecConf *conf, ALsizei speakermap[MAX_OUTPUT_CHANNELS])
-{
-    ALsizei i;
-
-    for(i = 0;i < conf->NumSpeakers;i++)
-    {
-        int c = -1;
-
-        /* NOTE: AmbDec does not define any standard speaker names, however
-         * for this to work we have to by able to find the output channel
-         * the speaker definition corresponds to. Therefore, OpenAL Soft
-         * requires these channel labels to be recognized:
-         *
-         * LF = Front left
-         * RF = Front right
-         * LS = Side left
-         * RS = Side right
-         * LB = Back left
-         * RB = Back right
-         * CE = Front center
-         * CB = Back center
-         *
-         * Additionally, surround51 will acknowledge back speakers for side
-         * channels, and surround51rear will acknowledge side speakers for
-         * back channels, to avoid issues with an ambdec expecting 5.1 to
-         * use the side channels when the device is configured for back,
-         * and vice-versa.
-         */
-        if(alstr_cmp_cstr(conf->Speakers[i].Name, "LF") == 0)
-            c = GetChannelIdxByName(device->RealOut, FrontLeft);
-        else if(alstr_cmp_cstr(conf->Speakers[i].Name, "RF") == 0)
-            c = GetChannelIdxByName(device->RealOut, FrontRight);
-        else if(alstr_cmp_cstr(conf->Speakers[i].Name, "CE") == 0)
-            c = GetChannelIdxByName(device->RealOut, FrontCenter);
-        else if(alstr_cmp_cstr(conf->Speakers[i].Name, "LS") == 0)
-        {
-            if(device->FmtChans == DevFmtX51Rear)
-                c = GetChannelIdxByName(device->RealOut, BackLeft);
-            else
-                c = GetChannelIdxByName(device->RealOut, SideLeft);
-        }
-        else if(alstr_cmp_cstr(conf->Speakers[i].Name, "RS") == 0)
-        {
-            if(device->FmtChans == DevFmtX51Rear)
-                c = GetChannelIdxByName(device->RealOut, BackRight);
-            else
-                c = GetChannelIdxByName(device->RealOut, SideRight);
-        }
-        else if(alstr_cmp_cstr(conf->Speakers[i].Name, "LB") == 0)
-        {
-            if(device->FmtChans == DevFmtX51)
-                c = GetChannelIdxByName(device->RealOut, SideLeft);
-            else
-                c = GetChannelIdxByName(device->RealOut, BackLeft);
-        }
-        else if(alstr_cmp_cstr(conf->Speakers[i].Name, "RB") == 0)
-        {
-            if(device->FmtChans == DevFmtX51)
-                c = GetChannelIdxByName(device->RealOut, SideRight);
-            else
-                c = GetChannelIdxByName(device->RealOut, BackRight);
-        }
-        else if(alstr_cmp_cstr(conf->Speakers[i].Name, "CB") == 0)
-            c = GetChannelIdxByName(device->RealOut, BackCenter);
-        else
-        {
-            const char *name = alstr_get_cstr(conf->Speakers[i].Name);
-            unsigned int n;
-            char ch;
-
-            if(sscanf(name, "AUX%u%c", &n, &ch) == 1 && n < 16)
-                c = GetChannelIdxByName(device->RealOut, Aux0+n);
-            else
-            {
-                ERR("AmbDec speaker label \"%s\" not recognized\n", name);
-                return false;
-            }
-        }
-        if(c == -1)
-        {
-            ERR("Failed to lookup AmbDec speaker label %s\n",
-                alstr_get_cstr(conf->Speakers[i].Name));
-            return false;
-        }
-        speakermap[i] = c;
-    }
-
-    return true;
-}
-
-
 static const ChannelMap MonoCfg[1] = {
     { FrontCenter, { 1.0f } },
 }, StereoCfg[2] = {
@@ -488,27 +395,6 @@ static const ChannelMap MonoCfg[1] = {
 
 static void InitNearFieldCtrl(ALCdevice *device, ALfloat ctrl_dist, ALsizei order, bool periphonic)
 {
-}
-
-static void InitDistanceComp(ALCdevice *device, const AmbDecConf *conf, const ALsizei speakermap[MAX_OUTPUT_CHANNELS])
-{
-    const char *devname = alstr_get_cstr(device->DeviceName);
-    ALfloat maxdist = 0.0f;
-    ALsizei total = 0;
-    ALsizei i;
-
-    for(i = 0;i < conf->NumSpeakers;i++)
-        maxdist = maxf(maxdist, conf->Speakers[i].Distance);
-
-    if(total > 0)
-    {
-        device->ChannelDelay[0].Buffer = al_calloc(16, total * sizeof(ALfloat));
-        for(i = 1;i < MAX_OUTPUT_CHANNELS;i++)
-        {
-            size_t len = RoundUp(device->ChannelDelay[i-1].Length, 4);
-            device->ChannelDelay[i].Buffer = device->ChannelDelay[i-1].Buffer + len;
-        }
-    }
 }
 
 static void InitPanning(ALCdevice *device)
@@ -566,51 +452,6 @@ static void InitPanning(ALCdevice *device)
             break;
     }
 
-    if(device->FmtChans == DevFmtAmbi3D)
-    {
-        const char *devname = alstr_get_cstr(device->DeviceName);
-        const ALsizei *acnmap = (device->AmbiLayout == AmbiLayout_FuMa) ? FuMa2ACN : ACN2ACN;
-        const ALfloat *n3dscale = (device->AmbiScale == AmbiNorm_FuMa) ? FuMa2N3DScale :
-                                  (device->AmbiScale == AmbiNorm_SN3D) ? SN3D2N3DScale :
-                                  /*(device->AmbiScale == AmbiNorm_N3D) ?*/ UnitScale;
-        ALfloat nfc_delay = 0.0f;
-
-        count = (device->AmbiOrder == 3) ? 16 :
-                (device->AmbiOrder == 2) ? 9 :
-                (device->AmbiOrder == 1) ? 4 : 1;
-        for(i = 0;i < count;i++)
-        {
-            ALsizei acn = acnmap[i];
-            device->Dry.Ambi.Map[i].Scale = 1.0f/n3dscale[acn];
-            device->Dry.Ambi.Map[i].Index = acn;
-        }
-        device->Dry.CoeffCount = 0;
-        device->Dry.NumChannels = count;
-
-        if(device->AmbiOrder < 2)
-        {
-            device->FOAOut.Ambi = device->Dry.Ambi;
-            device->FOAOut.CoeffCount = device->Dry.CoeffCount;
-            device->FOAOut.NumChannels = 0;
-        }
-        else
-        {
-            /* FOA output is always ACN+N3D for higher-order ambisonic output.
-             * The upsampler expects this and will convert it for output.
-             */
-            memset(&device->FOAOut.Ambi, 0, sizeof(device->FOAOut.Ambi));
-            for(i = 0;i < 4;i++)
-            {
-                device->FOAOut.Ambi.Map[i].Scale = 1.0f;
-                device->FOAOut.Ambi.Map[i].Index = i;
-            }
-            device->FOAOut.CoeffCount = 0;
-            device->FOAOut.NumChannels = 4;
-
-            ambiup_reset(device->AmbiUp, device);
-        }
-    }
-    else
     {
         ALfloat w_scale, xyz_scale;
 
@@ -618,10 +459,8 @@ static void InitPanning(ALCdevice *device)
                       chanmap, count, &device->Dry.NumChannels);
         device->Dry.CoeffCount = coeffcount;
 
-        w_scale = (device->Dry.CoeffCount > 9) ? W_SCALE2D_THIRD :
-                  (device->Dry.CoeffCount > 4) ? W_SCALE2D_SECOND : 1.0f;
-        xyz_scale = (device->Dry.CoeffCount > 9) ? XYZ_SCALE2D_THIRD :
-                    (device->Dry.CoeffCount > 4) ? XYZ_SCALE2D_SECOND : 1.0f;
+        w_scale = 1.0f;
+        xyz_scale = 1.0f;
 
         memset(&device->FOAOut.Ambi, 0, sizeof(device->FOAOut.Ambi));
         for(i = 0;i < device->Dry.NumChannels;i++)
@@ -634,175 +473,6 @@ static void InitPanning(ALCdevice *device)
         device->FOAOut.NumChannels = 0;
     }
     device->RealOut.NumChannels = 0;
-}
-
-static void InitCustomPanning(ALCdevice *device, const AmbDecConf *conf, const ALsizei speakermap[MAX_OUTPUT_CHANNELS])
-{
-    ChannelMap chanmap[MAX_OUTPUT_CHANNELS];
-    const ALfloat *coeff_scale = UnitScale;
-    ALfloat w_scale = 1.0f;
-    ALfloat xyz_scale = 1.0f;
-    ALsizei i, j;
-
-    if(conf->FreqBands != 1)
-        ERR("Basic renderer uses the high-frequency matrix as single-band (xover_freq = %.0fhz)\n",
-            conf->XOverFreq);
-
-    if((conf->ChanMask&AMBI_PERIPHONIC_MASK))
-    {
-        if(conf->ChanMask > 0x1ff)
-        {
-            w_scale = W_SCALE3D_THIRD;
-            xyz_scale = XYZ_SCALE3D_THIRD;
-        }
-        else if(conf->ChanMask > 0xf)
-        {
-            w_scale = W_SCALE3D_SECOND;
-            xyz_scale = XYZ_SCALE3D_SECOND;
-        }
-    }
-    else
-    {
-        if(conf->ChanMask > 0x1ff)
-        {
-            w_scale = W_SCALE2D_THIRD;
-            xyz_scale = XYZ_SCALE2D_THIRD;
-        }
-        else if(conf->ChanMask > 0xf)
-        {
-            w_scale = W_SCALE2D_SECOND;
-            xyz_scale = XYZ_SCALE2D_SECOND;
-        }
-    }
-
-    if(conf->CoeffScale == ADS_SN3D)
-        coeff_scale = SN3D2N3DScale;
-    else if(conf->CoeffScale == ADS_FuMa)
-        coeff_scale = FuMa2N3DScale;
-
-    for(i = 0;i < conf->NumSpeakers;i++)
-    {
-        ALsizei chan = speakermap[i];
-        ALfloat gain;
-        ALsizei k = 0;
-
-        for(j = 0;j < MAX_AMBI_COEFFS;j++)
-            chanmap[i].Config[j] = 0.0f;
-
-        chanmap[i].ChanName = device->RealOut.ChannelName[chan];
-        for(j = 0;j < MAX_AMBI_COEFFS;j++)
-        {
-            if(j == 0) gain = conf->HFOrderGain[0];
-            else if(j == 1) gain = conf->HFOrderGain[1];
-            else if(j == 4) gain = conf->HFOrderGain[2];
-            else if(j == 9) gain = conf->HFOrderGain[3];
-            if((conf->ChanMask&(1<<j)))
-                chanmap[i].Config[j] = conf->HFMatrix[i][k++] / coeff_scale[j] * gain;
-        }
-    }
-
-    SetChannelMap(device->RealOut.ChannelName, device->Dry.Ambi.Coeffs, chanmap,
-                  conf->NumSpeakers, &device->Dry.NumChannels);
-    device->Dry.CoeffCount = (conf->ChanMask > 0x1ff) ? 16 :
-                             (conf->ChanMask > 0xf) ? 9 : 4;
-
-    memset(&device->FOAOut.Ambi, 0, sizeof(device->FOAOut.Ambi));
-    for(i = 0;i < device->Dry.NumChannels;i++)
-    {
-        device->FOAOut.Ambi.Coeffs[i][0] = device->Dry.Ambi.Coeffs[i][0] * w_scale;
-        for(j = 1;j < 4;j++)
-            device->FOAOut.Ambi.Coeffs[i][j] = device->Dry.Ambi.Coeffs[i][j] * xyz_scale;
-    }
-    device->FOAOut.CoeffCount = 4;
-    device->FOAOut.NumChannels = 0;
-
-    device->RealOut.NumChannels = 0;
-
-    InitDistanceComp(device, conf, speakermap);
-}
-
-static void InitHQPanning(ALCdevice *device, const AmbDecConf *conf, const ALsizei speakermap[MAX_OUTPUT_CHANNELS])
-{
-    ALfloat avg_dist;
-    ALsizei count;
-    ALsizei i;
-
-    if((conf->ChanMask&AMBI_PERIPHONIC_MASK))
-    {
-        count = (conf->ChanMask > 0x1ff) ? 16 :
-                (conf->ChanMask > 0xf) ? 9 : 4;
-        for(i = 0;i < count;i++)
-        {
-            device->Dry.Ambi.Map[i].Scale = 1.0f;
-            device->Dry.Ambi.Map[i].Index = i;
-        }
-    }
-    else
-    {
-        static const int map[MAX_AMBI2D_COEFFS] = { 0, 1, 3, 4, 8, 9, 15 };
-
-        count = (conf->ChanMask > 0x1ff) ? 7 :
-                (conf->ChanMask > 0xf) ? 5 : 3;
-        for(i = 0;i < count;i++)
-        {
-            device->Dry.Ambi.Map[i].Scale = 1.0f;
-            device->Dry.Ambi.Map[i].Index = map[i];
-        }
-    }
-    device->Dry.CoeffCount = 0;
-    device->Dry.NumChannels = count;
-
-    TRACE("Enabling %s-band %s-order%s ambisonic decoder\n",
-        (conf->FreqBands == 1) ? "single" : "dual",
-        (conf->ChanMask > 0xf) ? (conf->ChanMask > 0x1ff) ? "third" : "second" : "first",
-        (conf->ChanMask&AMBI_PERIPHONIC_MASK) ? " periphonic" : ""
-    );
-    bformatdec_reset(device->AmbiDecoder, conf, count, device->Frequency, speakermap);
-
-    if(!(conf->ChanMask > 0xf))
-    {
-        device->FOAOut.Ambi = device->Dry.Ambi;
-        device->FOAOut.CoeffCount = device->Dry.CoeffCount;
-        device->FOAOut.NumChannels = 0;
-    }
-    else
-    {
-        memset(&device->FOAOut.Ambi, 0, sizeof(device->FOAOut.Ambi));
-        if((conf->ChanMask&AMBI_PERIPHONIC_MASK))
-        {
-            count = 4;
-            for(i = 0;i < count;i++)
-            {
-                device->FOAOut.Ambi.Map[i].Scale = 1.0f;
-                device->FOAOut.Ambi.Map[i].Index = i;
-            }
-        }
-        else
-        {
-            static const int map[3] = { 0, 1, 3 };
-            count = 3;
-            for(i = 0;i < count;i++)
-            {
-                device->FOAOut.Ambi.Map[i].Scale = 1.0f;
-                device->FOAOut.Ambi.Map[i].Index = map[i];
-            }
-        }
-        device->FOAOut.CoeffCount = 0;
-        device->FOAOut.NumChannels = count;
-    }
-
-    device->RealOut.NumChannels = ChannelsFromDevFmt(device->FmtChans, device->AmbiOrder);
-
-    avg_dist = 0.0f;
-    for(i = 0;i < conf->NumSpeakers;i++)
-        avg_dist += conf->Speakers[i].Distance;
-    avg_dist /= (ALfloat)conf->NumSpeakers;
-    InitNearFieldCtrl(device, avg_dist,
-        (conf->ChanMask > 0x1ff) ? 3 : (conf->ChanMask > 0xf) ? 2 : 1,
-        !!(conf->ChanMask&AMBI_PERIPHONIC_MASK)
-    );
-
-    InitDistanceComp(device, conf, speakermap);
 }
 
 void aluInitRenderer(ALCdevice *device)
@@ -828,72 +498,15 @@ void aluInitRenderer(ALCdevice *device)
 
     if(device->FmtChans != DevFmtStereo)
     {
-        ALsizei speakermap[MAX_OUTPUT_CHANNELS];
-        const char *devname, *layout = NULL;
-        AmbDecConf conf, *pconf = NULL;
-
-        ambdec_init(&conf);
-
-        devname = alstr_get_cstr(device->DeviceName);
-        switch(device->FmtChans)
-        {
-            case DevFmtQuad: layout = "quad"; break;
-            case DevFmtX51: /* fall-through */
-            case DevFmtX51Rear: layout = "surround51"; break;
-            case DevFmtX61: layout = "surround61"; break;
-            case DevFmtX71: layout = "surround71"; break;
-            /* Mono, Stereo, and Ambisonics output don't use custom decoders. */
-            case DevFmtMono:
-            case DevFmtStereo:
-            case DevFmtAmbi3D:
-                break;
-        }
-
-        if(pconf)
-        {
-            ambiup_free(device->AmbiUp);
-            device->AmbiUp = NULL;
-            if(!device->AmbiDecoder)
-                device->AmbiDecoder = bformatdec_alloc();
-        }
-        else
-        {
-            bformatdec_free(device->AmbiDecoder);
-            device->AmbiDecoder = NULL;
-            if(device->FmtChans == DevFmtAmbi3D && device->AmbiOrder > 1)
-            {
-                if(!device->AmbiUp)
-                    device->AmbiUp = ambiup_alloc();
-            }
-            else
-            {
-                ambiup_free(device->AmbiUp);
-                device->AmbiUp = NULL;
-            }
-        }
-
-        if(!pconf)
-            InitPanning(device);
-        else if(device->AmbiDecoder)
-            InitHQPanning(device, pconf, speakermap);
-        else
-            InitCustomPanning(device, pconf, speakermap);
-
-        ambdec_deinit(&conf);
+        InitPanning(device);
         return;
     }
-
-    bformatdec_free(device->AmbiDecoder);
-    device->AmbiDecoder = NULL;
 
     headphones = device->IsHeadphones;
 
     TRACE("HRTF disabled\n");
 
     device->Render_Mode = StereoPair;
-
-    ambiup_free(device->AmbiUp);
-    device->AmbiUp = NULL;
 
     TRACE("BS2B disabled\n");
     TRACE("UHJ disabled\n");

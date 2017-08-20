@@ -667,12 +667,6 @@ struct ALCdevice_struct
     // Map of Filters for this device
     UIntMap FilterMap;
 
-    /* High quality Ambisonic decoder */
-    struct BFormatDec *AmbiDecoder;
-
-    /* First-order ambisonic upsampler for higher-order output */
-    struct AmbiUpsampler *AmbiUp;
-
     /* Rendering mode. */
     enum RenderMode Render_Mode;
 
