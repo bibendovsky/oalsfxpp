@@ -59,7 +59,7 @@ static const ALchar magicMarker01[8] = "MinPHR01";
  * directional sounds. */
 static const ALfloat PassthruCoeff = 0.707106781187f/*sqrt(0.5)*/;
 
-static ATOMIC_FLAG LoadedHrtfLock = ATOMIC_FLAG_INIT;
+static int LoadedHrtfLock = 0;
 static struct HrtfEntry *LoadedHrtfs = NULL;
 
 
