@@ -2319,12 +2319,12 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
             props = ATOMIC_EXCHANGE_PTR(&voice->FreeList, NULL, almemory_order_relaxed);
             while(props)
             {
-                struct ALvoiceProps *next = ATOMIC_LOAD(&props->next, almemory_order_relaxed);
+                struct ALvoiceProps *next = props->next;
                 al_free(props);
                 props = next;
             }
 
-            if(ATOMIC_LOAD(&voice->Source, almemory_order_acquire) == NULL)
+            if(voice->Source == NULL)
                 continue;
 
             if(device->AvgSpeakerDist > 0.0f)
@@ -2609,16 +2609,16 @@ static void FreeContext(ALCcontext *context)
     context->VoiceCount = 0;
     context->MaxVoices = 0;
 
-    if((lprops=ATOMIC_LOAD(&listener->Update, almemory_order_acquire)) != NULL)
+    if((lprops=listener->Update) != NULL)
     {
         TRACE("Freed unapplied listener update %p\n", lprops);
         al_free(lprops);
     }
     count = 0;
-    lprops = ATOMIC_LOAD(&listener->FreeList, almemory_order_acquire);
+    lprops = listener->FreeList;
     while(lprops)
     {
-        struct ALlistenerProps *next = ATOMIC_LOAD(&lprops->next, almemory_order_acquire);
+        struct ALlistenerProps *next = lprops->next;
         al_free(lprops);
         lprops = next;
         ++count;
@@ -2705,7 +2705,7 @@ static ALCboolean VerifyContext(ALCcontext **context)
     dev = ATOMIC_LOAD_SEQ(&DeviceList);
     while(dev)
     {
-        ALCcontext *ctx = ATOMIC_LOAD(&dev->ContextList, almemory_order_acquire);
+        ALCcontext *ctx = dev->ContextList;
         while(ctx)
         {
             if(ctx == *context)

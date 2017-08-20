@@ -102,16 +102,16 @@ void ll_ringbuffer_reset(ll_ringbuffer_t *rb)
  * elements in front of the read pointer and behind the write pointer. */
 size_t ll_ringbuffer_read_space(const ll_ringbuffer_t *rb)
 {
-    size_t w = ATOMIC_LOAD(&CONST_CAST(ll_ringbuffer_t*,rb)->write_ptr, almemory_order_acquire);
-    size_t r = ATOMIC_LOAD(&CONST_CAST(ll_ringbuffer_t*,rb)->read_ptr, almemory_order_acquire);
+    size_t w = CONST_CAST(ll_ringbuffer_t*,rb)->write_ptr;
+    size_t r = CONST_CAST(ll_ringbuffer_t*,rb)->read_ptr;
     return (w-r) & rb->size_mask;
 }
 /* Return the number of elements available for writing. This is the number of
  * elements in front of the write pointer and behind the read pointer. */
 size_t ll_ringbuffer_write_space(const ll_ringbuffer_t *rb)
 {
-    size_t w = ATOMIC_LOAD(&CONST_CAST(ll_ringbuffer_t*,rb)->write_ptr, almemory_order_acquire);
-    size_t r = ATOMIC_LOAD(&CONST_CAST(ll_ringbuffer_t*,rb)->read_ptr, almemory_order_acquire);
+    size_t w = CONST_CAST(ll_ringbuffer_t*,rb)->write_ptr;
+    size_t r = CONST_CAST(ll_ringbuffer_t*,rb)->read_ptr;
     return (r-w-1) & rb->size_mask;
 }
 
@@ -129,7 +129,7 @@ size_t ll_ringbuffer_read(ll_ringbuffer_t *rb, char *dest, size_t cnt)
     if(free_cnt == 0) return 0;
 
     to_read = (cnt > free_cnt) ? free_cnt : cnt;
-    read_ptr = ATOMIC_LOAD(&rb->read_ptr, almemory_order_relaxed) & rb->size_mask;
+    read_ptr = rb->read_ptr & rb->size_mask;
 
     cnt2 = read_ptr + to_read;
     if(cnt2 > rb->size)
@@ -170,7 +170,7 @@ size_t ll_ringbuffer_peek(ll_ringbuffer_t *rb, char *dest, size_t cnt)
     if(free_cnt == 0) return 0;
 
     to_read = (cnt > free_cnt) ? free_cnt : cnt;
-    read_ptr = ATOMIC_LOAD(&rb->read_ptr, almemory_order_relaxed) & rb->size_mask;
+    read_ptr = rb->read_ptr & rb->size_mask;
 
     cnt2 = read_ptr + to_read;
     if(cnt2 > rb->size)
@@ -208,7 +208,7 @@ size_t ll_ringbuffer_write(ll_ringbuffer_t *rb, const char *src, size_t cnt)
     if(free_cnt == 0) return 0;
 
     to_write = (cnt > free_cnt) ? free_cnt : cnt;
-    write_ptr = ATOMIC_LOAD(&rb->write_ptr, almemory_order_relaxed) & rb->size_mask;
+    write_ptr = rb->write_ptr & rb->size_mask;
 
     cnt2 = write_ptr + to_write;
     if(cnt2 > rb->size)
@@ -255,8 +255,8 @@ void ll_ringbuffer_get_read_vector(const ll_ringbuffer_t *rb, ll_ringbuffer_data
     size_t cnt2;
     size_t w, r;
 
-    w = ATOMIC_LOAD(&CONST_CAST(ll_ringbuffer_t*,rb)->write_ptr, almemory_order_acquire);
-    r = ATOMIC_LOAD(&CONST_CAST(ll_ringbuffer_t*,rb)->read_ptr, almemory_order_acquire);
+    w = CONST_CAST(ll_ringbuffer_t*,rb)->write_ptr;
+    r = CONST_CAST(ll_ringbuffer_t*,rb)->read_ptr;
     w &= rb->size_mask;
     r &= rb->size_mask;
     free_cnt = (w-r) & rb->size_mask;
@@ -290,8 +290,8 @@ void ll_ringbuffer_get_write_vector(const ll_ringbuffer_t *rb, ll_ringbuffer_dat
     size_t cnt2;
     size_t w, r;
 
-    w = ATOMIC_LOAD(&CONST_CAST(ll_ringbuffer_t*,rb)->write_ptr, almemory_order_acquire);
-    r = ATOMIC_LOAD(&CONST_CAST(ll_ringbuffer_t*,rb)->read_ptr, almemory_order_acquire);
+    w = CONST_CAST(ll_ringbuffer_t*,rb)->write_ptr;
+    r = CONST_CAST(ll_ringbuffer_t*,rb)->read_ptr;
     w &= rb->size_mask;
     r &= rb->size_mask;
     free_cnt = (r-w-1) & rb->size_mask;

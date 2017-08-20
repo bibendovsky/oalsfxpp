@@ -112,7 +112,7 @@ void DeinitVoice(ALvoice *voice)
     while(props)
     {
         struct ALvoiceProps *next;
-        next = ATOMIC_LOAD(&props->next, almemory_order_relaxed);
+        next = props->next;
         al_free(props);
         props = next;
         ++count;
@@ -1440,7 +1440,7 @@ static void CalcSourceParams(ALvoice *voice, ALCcontext *context, ALboolean forc
     }
     props = voice->Props;
 
-    BufferListItem = ATOMIC_LOAD(&voice->current_buffer, almemory_order_relaxed);
+    BufferListItem = voice->current_buffer;
     while(BufferListItem != NULL)
     {
         const ALbuffer *buffer;
@@ -1453,7 +1453,7 @@ static void CalcSourceParams(ALvoice *voice, ALCcontext *context, ALboolean forc
                 CalcNonAttnSourceParams(voice, props, buffer, context);
             break;
         }
-        BufferListItem = ATOMIC_LOAD(&BufferListItem->next, almemory_order_acquire);
+        BufferListItem = BufferListItem->next;
     }
 }
 
@@ -1465,7 +1465,7 @@ static void UpdateContextSources(ALCcontext *ctx, const struct ALeffectslotArray
     ALsizei i;
 
     IncrementRef(&ctx->UpdateCount);
-    if(!ATOMIC_LOAD(&ctx->HoldUpdates, almemory_order_acquire))
+    if(!ctx->HoldUpdates)
     {
         ALboolean force = CalcListenerParams(ctx);
         for(i = 0;i < slots->count;i++)
@@ -1475,7 +1475,7 @@ static void UpdateContextSources(ALCcontext *ctx, const struct ALeffectslotArray
         voice_end = voice + ctx->VoiceCount;
         for(;voice != voice_end;++voice)
         {
-            source = ATOMIC_LOAD(&(*voice)->Source, almemory_order_acquire);
+            source = (*voice)->Source;
             if(source) CalcSourceParams(*voice, ctx, force);
         }
     }
@@ -1627,12 +1627,12 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples)
 
         IncrementRef(&device->MixCount);
 
-        ctx = ATOMIC_LOAD(&device->ContextList, almemory_order_acquire);
+        ctx = device->ContextList;
         while(ctx)
         {
             const struct ALeffectslotArray *auxslots;
 
-            auxslots = ATOMIC_LOAD(&ctx->ActiveAuxSlots, almemory_order_acquire);
+            auxslots = ctx->ActiveAuxSlots;
             UpdateContextSources(ctx, auxslots);
 
             for(i = 0;i < auxslots->count;i++)
@@ -1646,8 +1646,8 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples)
             for(i = 0;i < ctx->VoiceCount;i++)
             {
                 ALvoice *voice = ctx->Voices[i];
-                ALsource *source = ATOMIC_LOAD(&voice->Source, almemory_order_acquire);
-                if(source && ATOMIC_LOAD(&voice->Playing, almemory_order_relaxed) &&
+                ALsource *source = voice->Source;
+                if(source && voice->Playing &&
                    voice->Step > 0)
                 {
                     if(!MixSource(voice, source, device, SamplesToDo))

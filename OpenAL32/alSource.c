@@ -137,7 +137,7 @@ static inline ALvoice *GetSourceVoice(const ALsource *source, const ALCcontext *
     ALvoice **voice_end = voice + context->VoiceCount;
     while(voice != voice_end)
     {
-        if(ATOMIC_LOAD(&(*voice)->Source, almemory_order_acquire) == source)
+        if((*voice)->Source == source)
             return *voice;
         ++voice;
     }
@@ -150,7 +150,7 @@ static inline ALvoice *GetSourceVoice(const ALsource *source, const ALCcontext *
  */
 static inline bool IsPlayingOrPaused(ALsource *source)
 {
-    ALenum state = ATOMIC_LOAD(&source->state, almemory_order_acquire);
+    ALenum state = source->state;
     return state == AL_PLAYING || state == AL_PAUSED;
 }
 
@@ -168,7 +168,7 @@ static inline ALenum GetSourceState(ALsource *source, ALvoice *voice)
             return AL_STOPPED;
         return state;
     }
-    return ATOMIC_LOAD(&source->state, almemory_order_acquire);
+    return source->state;
 }
 
 /**
@@ -177,7 +177,7 @@ static inline ALenum GetSourceState(ALsource *source, ALvoice *voice)
  */
 static inline bool SourceShouldUpdate(ALsource *source, ALCcontext *context)
 {
-    return !ATOMIC_LOAD(&context->DeferUpdates, almemory_order_acquire) &&
+    return !context->DeferUpdates &&
            IsPlayingOrPaused(source);
 }
 
@@ -774,7 +774,7 @@ static ALboolean SetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
             while(oldlist != NULL)
             {
                 ALbufferlistitem *temp = oldlist;
-                oldlist = ATOMIC_LOAD(&temp->next, almemory_order_relaxed);
+                oldlist = temp->next;
 
                 if(temp->buffer)
                     DecrementRef(&temp->buffer->ref);
@@ -1199,7 +1199,7 @@ static ALboolean GetSourcedv(ALsource *Source, ALCcontext *Context, SourceProp p
                         freq = buffer->Frequency;
                         length += buffer->SampleLen;
                     }
-                    BufferList = ATOMIC_LOAD(&BufferList->next, almemory_order_relaxed);
+                    BufferList = BufferList->next;
                 } while(BufferList != NULL);
                 *values = (ALdouble)length / (ALdouble)freq;
             }
@@ -1353,7 +1353,7 @@ static ALboolean GetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
 
                         length += buffer->SampleLen / sample_align * byte_align;
                     }
-                    BufferList = ATOMIC_LOAD(&BufferList->next, almemory_order_relaxed);
+                    BufferList = BufferList->next;
                 } while(BufferList != NULL);
                 *values = length;
             }
@@ -1370,7 +1370,7 @@ static ALboolean GetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
                 do {
                     ALbuffer *buffer = BufferList->buffer;
                     if(buffer) length += buffer->SampleLen;
-                    BufferList = ATOMIC_LOAD(&BufferList->next, almemory_order_relaxed);
+                    BufferList = BufferList->next;
                 } while(BufferList != NULL);
                 *values = length;
             }
@@ -1386,7 +1386,7 @@ static ALboolean GetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
                 ALsizei count = 0;
                 do {
                     ++count;
-                    BufferList = ATOMIC_LOAD(&BufferList->next, almemory_order_relaxed);
+                    BufferList = BufferList->next;
                 } while(BufferList != NULL);
                 *values = count;
             }
@@ -1416,8 +1416,7 @@ static ALboolean GetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
                 while(BufferList && BufferList != Current)
                 {
                     played++;
-                    BufferList = ATOMIC_LOAD(&CONST_CAST(ALbufferlistitem*,BufferList)->next,
-                                             almemory_order_relaxed);
+                    BufferList = CONST_CAST(ALbufferlistitem*,BufferList)->next;
                 }
                 *values = played;
             }
@@ -2465,7 +2464,7 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
         {
             if((buffer=BufferList->buffer) != NULL && buffer->SampleLen > 0)
                 break;
-            BufferList = ATOMIC_LOAD(&BufferList->next, almemory_order_relaxed);
+            BufferList = BufferList->next;
         }
 
         /* If there's nothing to play, go right to stopped. */
@@ -2509,7 +2508,7 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
         assert(voice == NULL);
         for(j = 0;j < context->VoiceCount;j++)
         {
-            if(ATOMIC_LOAD(&context->Voices[j]->Source, almemory_order_acquire) == NULL)
+            if(context->Voices[j]->Source == NULL)
             {
                 voice = context->Voices[j];
                 break;
@@ -2535,9 +2534,9 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
         if(source->OffsetType != AL_NONE)
         {
             ApplyOffset(source, voice);
-            start_fading = ATOMIC_LOAD(&voice->position, almemory_order_relaxed) != 0 ||
-                ATOMIC_LOAD(&voice->position_fraction, almemory_order_relaxed) != 0 ||
-                ATOMIC_LOAD(&voice->current_buffer, almemory_order_relaxed) != BufferList;
+            start_fading = voice->position != 0 ||
+                voice->position_fraction != 0 ||
+                voice->current_buffer != BufferList;
         }
 
         voice->NumChannels = ChannelsFromFmt(buffer->FmtChannels);
@@ -2660,7 +2659,7 @@ AL_API ALvoid AL_APIENTRY alSourceStopv(ALsizei n, const ALuint *sources)
             ATOMIC_STORE(&voice->Source, NULL, almemory_order_relaxed);
             ATOMIC_STORE(&voice->Playing, false, almemory_order_release);
         }
-        if(ATOMIC_LOAD(&source->state, almemory_order_acquire) != AL_INITIAL)
+        if(source->state != AL_INITIAL)
             ATOMIC_STORE(&source->state, AL_STOPPED, almemory_order_relaxed);
         source->OffsetType = AL_NONE;
         source->Offset = 0.0;
@@ -2708,7 +2707,7 @@ AL_API ALvoid AL_APIENTRY alSourceRewindv(ALsizei n, const ALuint *sources)
             ATOMIC_STORE(&voice->Source, NULL, almemory_order_relaxed);
             ATOMIC_STORE(&voice->Playing, false, almemory_order_release);
         }
-        if(ATOMIC_LOAD(&source->state, almemory_order_acquire) != AL_INITIAL)
+        if(source->state != AL_INITIAL)
             ATOMIC_STORE(&source->state, AL_INITIAL, almemory_order_relaxed);
         source->OffsetType = AL_NONE;
         source->Offset = 0.0;
@@ -2763,7 +2762,7 @@ AL_API ALvoid AL_APIENTRY alSourceQueueBuffers(ALuint src, ALsizei nb, const ALu
             BufferFmt = BufferList->buffer;
             break;
         }
-        BufferList = ATOMIC_LOAD(&BufferList->next, almemory_order_relaxed);
+        BufferList = BufferList->next;
     }
 
     LockBuffersRead(device);
@@ -2813,8 +2812,7 @@ AL_API ALvoid AL_APIENTRY alSourceQueueBuffers(ALuint src, ALsizei nb, const ALu
              * each buffer we had. */
             while(BufferListStart)
             {
-                ALbufferlistitem *next = ATOMIC_LOAD(&BufferListStart->next,
-                                                     almemory_order_relaxed);
+                ALbufferlistitem *next = BufferListStart->next;
                 if((buffer=BufferListStart->buffer) != NULL)
                 {
                     DecrementRef(&buffer->ref);
@@ -2833,7 +2831,7 @@ AL_API ALvoid AL_APIENTRY alSourceQueueBuffers(ALuint src, ALsizei nb, const ALu
     {
         ALbuffer *buffer = BufferList->buffer;
         if(buffer) ReadUnlock(&buffer->lock);
-        BufferList = ATOMIC_LOAD(&BufferList->next, almemory_order_relaxed);
+        BufferList = BufferList->next;
     }
     UnlockBuffersRead(device);
 
@@ -2845,7 +2843,7 @@ AL_API ALvoid AL_APIENTRY alSourceQueueBuffers(ALuint src, ALsizei nb, const ALu
     else
     {
         ALbufferlistitem *next;
-        while((next=ATOMIC_LOAD(&BufferList->next, almemory_order_relaxed)) != NULL)
+        while((next=BufferList->next) != NULL)
             BufferList = next;
         ATOMIC_STORE(&BufferList->next, BufferListStart, almemory_order_release);
     }
@@ -2898,7 +2896,7 @@ AL_API ALvoid AL_APIENTRY alSourceUnqueueBuffers(ALuint src, ALsizei nb, ALuint 
     {
         for(i = 1;i < nb;i++)
         {
-            ALbufferlistitem *next = ATOMIC_LOAD(&OldTail->next, almemory_order_relaxed);
+            ALbufferlistitem *next = OldTail->next;
             if(!next || next == Current) break;
             OldTail = next;
         }
@@ -2917,7 +2915,7 @@ AL_API ALvoid AL_APIENTRY alSourceUnqueueBuffers(ALuint src, ALsizei nb, ALuint 
 
     while(OldHead != NULL)
     {
-        ALbufferlistitem *next = ATOMIC_LOAD(&OldHead->next, almemory_order_relaxed);
+        ALbufferlistitem *next = OldHead->next;
         ALbuffer *buffer = OldHead->buffer;
 
         if(!buffer)
@@ -3026,7 +3024,7 @@ static void DeinitSource(ALsource *source, ALsizei num_sends)
     BufferList = source->queue;
     while(BufferList != NULL)
     {
-        ALbufferlistitem *next = ATOMIC_LOAD(&BufferList->next, almemory_order_relaxed);
+        ALbufferlistitem *next = BufferList->next;
         if(BufferList->buffer != NULL)
             DecrementRef(&BufferList->buffer->ref);
         al_free(BufferList);
@@ -3053,14 +3051,14 @@ static void UpdateSourceProps(ALsource *source, ALvoice *voice, ALsizei num_send
     ALsizei i;
 
     /* Get an unused property container, or allocate a new one as needed. */
-    props = ATOMIC_LOAD(&voice->FreeList, almemory_order_acquire);
+    props = voice->FreeList;
     if(!props)
         props = al_calloc(16, FAM_SIZE(struct ALvoiceProps, Send, num_sends));
     else
     {
         struct ALvoiceProps *next;
         do {
-            next = ATOMIC_LOAD(&props->next, almemory_order_relaxed);
+            next = props->next;
         } while(ATOMIC_COMPARE_EXCHANGE_PTR_WEAK(&voice->FreeList, &props, next,
                 almemory_order_acq_rel, almemory_order_acquire) == 0);
     }
@@ -3143,7 +3141,7 @@ void UpdateAllSourceProps(ALCcontext *context)
     for(pos = 0;pos < context->VoiceCount;pos++)
     {
         ALvoice *voice = context->Voices[pos];
-        ALsource *source = ATOMIC_LOAD(&voice->Source, almemory_order_acquire);
+        ALsource *source = voice->Source;
         if(source && !ATOMIC_FLAG_TEST_AND_SET(&source->PropsClean, almemory_order_acq_rel))
             UpdateSourceProps(source, voice, num_sends);
     }
@@ -3171,10 +3169,10 @@ static ALint64 GetSourceSampleOffset(ALsource *Source, ALCcontext *context, ALui
     voice = GetSourceVoice(Source, context);
     if(voice)
     {
-        Current = ATOMIC_LOAD(&voice->current_buffer, almemory_order_relaxed);
+        Current = voice->current_buffer;
 
-        readPos  = (ALuint64)ATOMIC_LOAD(&voice->position, almemory_order_relaxed) << 32;
-        readPos |= (ALuint64)ATOMIC_LOAD(&voice->position_fraction, almemory_order_relaxed) <<
+        readPos  = (ALuint64)voice->position << 32;
+        readPos |= (ALuint64)voice->position_fraction <<
                     (32-FRACTIONBITS);
     }
     ATOMIC_THREAD_FENCE(almemory_order_acquire);
@@ -3186,8 +3184,7 @@ static ALint64 GetSourceSampleOffset(ALsource *Source, ALCcontext *context, ALui
         {
             if(BufferList->buffer)
                 readPos += (ALuint64)BufferList->buffer->SampleLen << 32;
-            BufferList = ATOMIC_LOAD(&CONST_CAST(ALbufferlistitem*,BufferList)->next,
-                                     almemory_order_relaxed);
+            BufferList = CONST_CAST(ALbufferlistitem*,BufferList)->next;
         }
         readPos = minu64(readPos, U64(0x7fffffffffffffff));
     }
@@ -3217,11 +3214,11 @@ static ALdouble GetSourceSecOffset(ALsource *Source, ALCcontext *context, ALuint
     voice = GetSourceVoice(Source, context);
     if(voice)
     {
-        Current = ATOMIC_LOAD(&voice->current_buffer, almemory_order_relaxed);
+        Current = voice->current_buffer;
 
-        readPos  = (ALuint64)ATOMIC_LOAD(&voice->position, almemory_order_relaxed) <<
+        readPos  = (ALuint64)voice->position <<
                     FRACTIONBITS;
-        readPos |= ATOMIC_LOAD(&voice->position_fraction, almemory_order_relaxed);
+        readPos |= voice->position_fraction;
     }
     ATOMIC_THREAD_FENCE(almemory_order_acquire);
 
@@ -3238,15 +3235,13 @@ static ALdouble GetSourceSecOffset(ALsource *Source, ALCcontext *context, ALuint
                 if(!BufferFmt) BufferFmt = buffer;
                 readPos += (ALuint64)buffer->SampleLen << FRACTIONBITS;
             }
-            BufferList = ATOMIC_LOAD(&CONST_CAST(ALbufferlistitem*,BufferList)->next,
-                                     almemory_order_relaxed);
+            BufferList = CONST_CAST(ALbufferlistitem*,BufferList)->next;
         }
 
         while(BufferList && !BufferFmt)
         {
             BufferFmt = BufferList->buffer;
-            BufferList = ATOMIC_LOAD(&CONST_CAST(ALbufferlistitem*,BufferList)->next,
-                                     almemory_order_relaxed);
+            BufferList = CONST_CAST(ALbufferlistitem*,BufferList)->next;
         }
         assert(BufferFmt != NULL);
 
@@ -3279,10 +3274,10 @@ static ALdouble GetSourceOffset(ALsource *Source, ALenum name, ALCcontext *conte
     voice = GetSourceVoice(Source, context);
     if(voice)
     {
-        Current = ATOMIC_LOAD(&voice->current_buffer, almemory_order_relaxed);
+        Current = voice->current_buffer;
 
-        readPos = ATOMIC_LOAD(&voice->position, almemory_order_relaxed);
-        readPosFrac = ATOMIC_LOAD(&voice->position_fraction, almemory_order_relaxed);
+        readPos = voice->position;
+        readPosFrac = voice->position_fraction;
     }
     ATOMIC_THREAD_FENCE(almemory_order_acquire);
 
@@ -3304,8 +3299,7 @@ static ALdouble GetSourceOffset(ALsource *Source, ALenum name, ALCcontext *conte
                 totalBufferLen += buffer->SampleLen;
                 if(!readFin) readPos += buffer->SampleLen;
             }
-            BufferList = ATOMIC_LOAD(&CONST_CAST(ALbufferlistitem*,BufferList)->next,
-                                     almemory_order_relaxed);
+            BufferList = CONST_CAST(ALbufferlistitem*,BufferList)->next;
         }
         assert(BufferFmt != NULL);
 
@@ -3398,7 +3392,7 @@ static ALboolean ApplyOffset(ALsource *Source, ALvoice *voice)
 
         totalBufferLen += bufferLen;
 
-        BufferList = ATOMIC_LOAD(&BufferList->next, almemory_order_relaxed);
+        BufferList = BufferList->next;
     }
 
     /* Offset is out of range of the queue */
@@ -3424,8 +3418,7 @@ static ALboolean GetSampleOffset(ALsource *Source, ALuint *offset, ALsizei *frac
     {
         if((BufferFmt=BufferList->buffer) != NULL)
             break;
-        BufferList = ATOMIC_LOAD(&CONST_CAST(ALbufferlistitem*,BufferList)->next,
-                                 almemory_order_relaxed);
+        BufferList = CONST_CAST(ALbufferlistitem*,BufferList)->next;
     }
     if(!BufferFmt)
     {

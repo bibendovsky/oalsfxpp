@@ -297,10 +297,10 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
 
     /* Get source info */
     isplaying      = true; /* Will only be called while playing. */
-    DataPosInt     = ATOMIC_LOAD(&voice->position, almemory_order_acquire);
-    DataPosFrac    = ATOMIC_LOAD(&voice->position_fraction, almemory_order_relaxed);
-    BufferListItem = ATOMIC_LOAD(&voice->current_buffer, almemory_order_relaxed);
-    BufferLoopItem = ATOMIC_LOAD(&voice->loop_buffer, almemory_order_relaxed);
+    DataPosInt     = voice->position;
+    DataPosFrac    = voice->position_fraction;
+    BufferListItem = voice->current_buffer;
+    BufferLoopItem = voice->loop_buffer;
     NumChannels    = voice->NumChannels;
     SampleSize     = voice->SampleSize;
     increment      = voice->Step;
@@ -429,7 +429,7 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
                             SrcDataSize += DataSize;
                         }
                     }
-                    tmpiter = ATOMIC_LOAD(&tmpiter->next, almemory_order_acquire);
+                    tmpiter = tmpiter->next;
                     if(!tmpiter && BufferLoopItem)
                         tmpiter = BufferLoopItem;
                     else if(!tmpiter)
@@ -644,7 +644,7 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
             if(DataSize > DataPosInt)
                 break;
 
-            BufferListItem = ATOMIC_LOAD(&BufferListItem->next, almemory_order_acquire);
+            BufferListItem = BufferListItem->next;
             if(!BufferListItem)
             {
                 BufferListItem = BufferLoopItem;

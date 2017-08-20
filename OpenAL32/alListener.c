@@ -51,7 +51,7 @@ AL_API ALvoid AL_APIENTRY alListenerf(ALenum param, ALfloat value)
     default:
         SET_ERROR_AND_GOTO(context, AL_INVALID_ENUM, done);
     }
-    if(!ATOMIC_LOAD(&context->DeferUpdates, almemory_order_acquire))
+    if(!context->DeferUpdates)
         UpdateListenerProps(context);
 
 done:
@@ -89,7 +89,7 @@ AL_API ALvoid AL_APIENTRY alListener3f(ALenum param, ALfloat value1, ALfloat val
     default:
         SET_ERROR_AND_GOTO(context, AL_INVALID_ENUM, done);
     }
-    if(!ATOMIC_LOAD(&context->DeferUpdates, almemory_order_acquire))
+    if(!context->DeferUpdates)
         UpdateListenerProps(context);
 
 done:
@@ -142,7 +142,7 @@ AL_API ALvoid AL_APIENTRY alListenerfv(ALenum param, const ALfloat *values)
     default:
         SET_ERROR_AND_GOTO(context, AL_INVALID_ENUM, done);
     }
-    if(!ATOMIC_LOAD(&context->DeferUpdates, almemory_order_acquire))
+    if(!context->DeferUpdates)
         UpdateListenerProps(context);
 
 done:
@@ -164,7 +164,7 @@ AL_API ALvoid AL_APIENTRY alListeneri(ALenum param, ALint UNUSED(value))
     default:
         SET_ERROR_AND_GOTO(context, AL_INVALID_ENUM, done);
     }
-    if(!ATOMIC_LOAD(&context->DeferUpdates, almemory_order_acquire))
+    if(!context->DeferUpdates)
         UpdateListenerProps(context);
 
 done:
@@ -194,7 +194,7 @@ AL_API void AL_APIENTRY alListener3i(ALenum param, ALint value1, ALint value2, A
     default:
         SET_ERROR_AND_GOTO(context, AL_INVALID_ENUM, done);
     }
-    if(!ATOMIC_LOAD(&context->DeferUpdates, almemory_order_acquire))
+    if(!context->DeferUpdates)
         UpdateListenerProps(context);
 
 done:
@@ -240,7 +240,7 @@ AL_API void AL_APIENTRY alListeneriv(ALenum param, const ALint *values)
     default:
         SET_ERROR_AND_GOTO(context, AL_INVALID_ENUM, done);
     }
-    if(!ATOMIC_LOAD(&context->DeferUpdates, almemory_order_acquire))
+    if(!context->DeferUpdates)
         UpdateListenerProps(context);
 
 done:
@@ -460,14 +460,14 @@ void UpdateListenerProps(ALCcontext *context)
     struct ALlistenerProps *props;
 
     /* Get an unused proprty container, or allocate a new one as needed. */
-    props = ATOMIC_LOAD(&listener->FreeList, almemory_order_acquire);
+    props = listener->FreeList;
     if(!props)
         props = al_calloc(16, sizeof(*props));
     else
     {
         struct ALlistenerProps *next;
         do {
-            next = ATOMIC_LOAD(&props->next, almemory_order_relaxed);
+            next = props->next;
         } while(ATOMIC_COMPARE_EXCHANGE_PTR_WEAK(&listener->FreeList, &props, next,
                 almemory_order_seq_cst, almemory_order_acquire) == 0);
     }

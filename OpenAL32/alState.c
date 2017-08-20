@@ -70,7 +70,7 @@ AL_API ALvoid AL_APIENTRY alEnable(ALenum capability)
     default:
         SET_ERROR_AND_GOTO(context, AL_INVALID_ENUM, done);
     }
-    if(!ATOMIC_LOAD(&context->DeferUpdates, almemory_order_acquire))
+    if(!context->DeferUpdates)
         UpdateListenerProps(context);
 
 done:
@@ -95,7 +95,7 @@ AL_API ALvoid AL_APIENTRY alDisable(ALenum capability)
     default:
         SET_ERROR_AND_GOTO(context, AL_INVALID_ENUM, done);
     }
-    if(!ATOMIC_LOAD(&context->DeferUpdates, almemory_order_acquire))
+    if(!context->DeferUpdates)
         UpdateListenerProps(context);
 
 done:
@@ -158,7 +158,7 @@ AL_API ALboolean AL_APIENTRY alGetBoolean(ALenum pname)
         break;
 
     case AL_DEFERRED_UPDATES_SOFT:
-        if(ATOMIC_LOAD(&context->DeferUpdates, almemory_order_acquire))
+        if(context->DeferUpdates)
             value = AL_TRUE;
         break;
 
@@ -213,7 +213,7 @@ AL_API ALdouble AL_APIENTRY alGetDouble(ALenum pname)
         break;
 
     case AL_DEFERRED_UPDATES_SOFT:
-        if(ATOMIC_LOAD(&context->DeferUpdates, almemory_order_acquire))
+        if(context->DeferUpdates)
             value = (ALdouble)AL_TRUE;
         break;
 
@@ -266,7 +266,7 @@ AL_API ALfloat AL_APIENTRY alGetFloat(ALenum pname)
         break;
 
     case AL_DEFERRED_UPDATES_SOFT:
-        if(ATOMIC_LOAD(&context->DeferUpdates, almemory_order_acquire))
+        if(context->DeferUpdates)
             value = (ALfloat)AL_TRUE;
         break;
 
@@ -319,7 +319,7 @@ AL_API ALint AL_APIENTRY alGetInteger(ALenum pname)
         break;
 
     case AL_DEFERRED_UPDATES_SOFT:
-        if(ATOMIC_LOAD(&context->DeferUpdates, almemory_order_acquire))
+        if(context->DeferUpdates)
             value = (ALint)AL_TRUE;
         break;
 
@@ -372,7 +372,7 @@ AL_API ALint64SOFT AL_APIENTRY alGetInteger64SOFT(ALenum pname)
         break;
 
     case AL_DEFERRED_UPDATES_SOFT:
-        if(ATOMIC_LOAD(&context->DeferUpdates, almemory_order_acquire))
+        if(context->DeferUpdates)
             value = (ALint64SOFT)AL_TRUE;
         break;
 
@@ -646,7 +646,7 @@ AL_API ALvoid AL_APIENTRY alDopplerFactor(ALfloat value)
 
     WriteLock(&context->PropLock);
     context->DopplerFactor = value;
-    if(!ATOMIC_LOAD(&context->DeferUpdates, almemory_order_acquire))
+    if(!context->DeferUpdates)
         UpdateListenerProps(context);
     WriteUnlock(&context->PropLock);
 
@@ -666,7 +666,7 @@ AL_API ALvoid AL_APIENTRY alDopplerVelocity(ALfloat value)
 
     WriteLock(&context->PropLock);
     context->DopplerVelocity = value;
-    if(!ATOMIC_LOAD(&context->DeferUpdates, almemory_order_acquire))
+    if(!context->DeferUpdates)
         UpdateListenerProps(context);
     WriteUnlock(&context->PropLock);
 
@@ -686,7 +686,7 @@ AL_API ALvoid AL_APIENTRY alSpeedOfSound(ALfloat value)
 
     WriteLock(&context->PropLock);
     context->SpeedOfSound = value;
-    if(!ATOMIC_LOAD(&context->DeferUpdates, almemory_order_acquire))
+    if(!context->DeferUpdates)
         UpdateListenerProps(context);
     WriteUnlock(&context->PropLock);
 
@@ -711,7 +711,7 @@ AL_API ALvoid AL_APIENTRY alDistanceModel(ALenum value)
     context->DistanceModel = value;
     if(!context->SourceDistanceModel)
     {
-        if(!ATOMIC_LOAD(&context->DeferUpdates, almemory_order_acquire))
+        if(!context->DeferUpdates)
             UpdateListenerProps(context);
     }
     WriteUnlock(&context->PropLock);
