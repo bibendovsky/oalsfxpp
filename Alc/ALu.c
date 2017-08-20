@@ -435,51 +435,6 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
         num_channels = 2;
         downmix_gain = 1.0f / 2.0f;
         break;
-
-    case FmtRear:
-        chans = RearMap;
-        num_channels = 2;
-        downmix_gain = 1.0f / 2.0f;
-        break;
-
-    case FmtQuad:
-        chans = QuadMap;
-        num_channels = 4;
-        downmix_gain = 1.0f / 4.0f;
-        break;
-
-    case FmtX51:
-        chans = X51Map;
-        num_channels = 6;
-        /* NOTE: Excludes LFE. */
-        downmix_gain = 1.0f / 5.0f;
-        break;
-
-    case FmtX61:
-        chans = X61Map;
-        num_channels = 7;
-        /* NOTE: Excludes LFE. */
-        downmix_gain = 1.0f / 6.0f;
-        break;
-
-    case FmtX71:
-        chans = X71Map;
-        num_channels = 8;
-        /* NOTE: Excludes LFE. */
-        downmix_gain = 1.0f / 7.0f;
-        break;
-
-    case FmtBFormat2D:
-        num_channels = 3;
-        isbformat = true;
-        DirectChannels = false;
-        break;
-
-    case FmtBFormat3D:
-        num_channels = 4;
-        isbformat = true;
-        DirectChannels = false;
-        break;
     }
 
     if(isbformat)

@@ -24,14 +24,7 @@ enum UserFmtType {
 };
 enum UserFmtChannels {
     UserFmtMono      = AL_MONO_SOFT,
-    UserFmtStereo    = AL_STEREO_SOFT,
-    UserFmtRear      = AL_REAR_SOFT,
-    UserFmtQuad      = AL_QUAD_SOFT,
-    UserFmtX51       = AL_5POINT1_SOFT, /* (WFX order) */
-    UserFmtX61       = AL_6POINT1_SOFT, /* (WFX order) */
-    UserFmtX71       = AL_7POINT1_SOFT, /* (WFX order) */
-    UserFmtBFormat2D = AL_BFORMAT2D_SOFT, /* WXY */
-    UserFmtBFormat3D = AL_BFORMAT3D_SOFT, /* WXYZ */
+    UserFmtStereo    = AL_STEREO_SOFT
 };
 
 ALsizei BytesFromUserFmt(enum UserFmtType type);
@@ -50,14 +43,7 @@ enum FmtType {
 };
 enum FmtChannels {
     FmtMono   = UserFmtMono,
-    FmtStereo = UserFmtStereo,
-    FmtRear   = UserFmtRear,
-    FmtQuad   = UserFmtQuad,
-    FmtX51    = UserFmtX51,
-    FmtX61    = UserFmtX61,
-    FmtX71    = UserFmtX71,
-    FmtBFormat2D = UserFmtBFormat2D,
-    FmtBFormat3D = UserFmtBFormat3D,
+    FmtStereo = UserFmtStereo
 };
 #define MAX_INPUT_CHANNELS  (8)
 
