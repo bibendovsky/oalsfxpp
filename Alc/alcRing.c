@@ -93,8 +93,8 @@ int ll_ringbuffer_mlock(ll_ringbuffer_t *rb)
 /* Reset the read and write pointers to zero. This is not thread safe. */
 void ll_ringbuffer_reset(ll_ringbuffer_t *rb)
 {
-    ATOMIC_STORE(&rb->write_ptr, 0, almemory_order_release);
-    ATOMIC_STORE(&rb->read_ptr, 0, almemory_order_release);
+    rb->write_ptr = 0;
+    rb->read_ptr = 0;
     memset(rb->buf, 0, rb->size*rb->elem_size);
 }
 
@@ -151,7 +151,7 @@ size_t ll_ringbuffer_read(ll_ringbuffer_t *rb, char *dest, size_t cnt)
                n2*rb->elem_size);
         read_ptr += n2;
     }
-    ATOMIC_STORE(&rb->read_ptr, read_ptr, almemory_order_release);
+    rb->read_ptr = read_ptr;
     return to_read;
 }
 
@@ -230,7 +230,7 @@ size_t ll_ringbuffer_write(ll_ringbuffer_t *rb, const char *src, size_t cnt)
                n2*rb->elem_size);
         write_ptr += n2;
     }
-    ATOMIC_STORE(&rb->write_ptr, write_ptr, almemory_order_release);
+    rb->write_ptr = write_ptr;
     return to_write;
 }
 

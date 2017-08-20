@@ -1652,8 +1652,8 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples)
                 {
                     if(!MixSource(voice, source, device, SamplesToDo))
                     {
-                        ATOMIC_STORE(&voice->Source, NULL, almemory_order_relaxed);
-                        ATOMIC_STORE(&voice->Playing, false, almemory_order_release);
+                        voice->Source = NULL;
+                        voice->Playing = false;
                     }
                 }
             }
@@ -1815,7 +1815,7 @@ void aluHandleDisconnect(ALCdevice *device)
             ALsource *source;
 
             source = ATOMIC_EXCHANGE_PTR(&voice->Source, NULL, almemory_order_acq_rel);
-            ATOMIC_STORE(&voice->Playing, false, almemory_order_release);
+            voice->Playing = false;
 
             if(source)
             {

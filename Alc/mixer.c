@@ -664,8 +664,8 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
     voice->Flags |= VOICE_IS_FADING;
 
     /* Update source info */
-    ATOMIC_STORE(&voice->position,          DataPosInt, almemory_order_relaxed);
-    ATOMIC_STORE(&voice->position_fraction, DataPosFrac, almemory_order_relaxed);
-    ATOMIC_STORE(&voice->current_buffer,    BufferListItem, almemory_order_release);
+    voice->position = DataPosInt;
+    voice->position_fraction = DataPosFrac;
+    voice->current_buffer = BufferListItem;
     return isplaying;
 }

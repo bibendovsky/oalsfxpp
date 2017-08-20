@@ -721,9 +721,9 @@ static ALboolean SetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
                 if(voice)
                 {
                     if(Source->Looping)
-                        ATOMIC_STORE(&voice->loop_buffer, Source->queue, almemory_order_release);
+                        voice->loop_buffer = Source->queue;
                     else
-                        ATOMIC_STORE(&voice->loop_buffer, NULL, almemory_order_release);
+                        voice->loop_buffer = NULL;
                 }
             }
             WriteUnlock(&Source->queue_lock);
@@ -1723,8 +1723,8 @@ AL_API ALvoid AL_APIENTRY alDeleteSources(ALsizei n, const ALuint *sources)
         ALCdevice_Lock(device);
         if((voice=GetSourceVoice(Source, context)) != NULL)
         {
-            ATOMIC_STORE(&voice->Source, NULL, almemory_order_relaxed);
-            ATOMIC_STORE(&voice->Playing, false, almemory_order_release);
+            voice->Source = NULL;
+            voice->Playing = false;
         }
         ALCdevice_Unlock(device);
 
@@ -2430,7 +2430,7 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
         for(i = 0;i < n;i++)
         {
             source = LookupSource(context, sources[i]);
-            ATOMIC_STORE(&source->state, AL_STOPPED, almemory_order_relaxed);
+            source->state = AL_STOPPED;
         }
         ALCdevice_Unlock(device);
         goto done;
@@ -2474,7 +2474,7 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
              * ALvoice since it shouldn't be in a playing or paused state. So
              * there's no need to look up its voice and clear the source.
              */
-            ATOMIC_STORE(&source->state, AL_STOPPED, almemory_order_relaxed);
+            source->state = AL_STOPPED;
             source->OffsetType = AL_NONE;
             source->Offset = 0.0;
             goto finish_play;
@@ -2486,16 +2486,16 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
             case AL_PLAYING:
                 assert(voice != NULL);
                 /* A source that's already playing is restarted from the beginning. */
-                ATOMIC_STORE(&voice->current_buffer, BufferList, almemory_order_relaxed);
-                ATOMIC_STORE(&voice->position, 0, almemory_order_relaxed);
-                ATOMIC_STORE(&voice->position_fraction, 0, almemory_order_release);
+                voice->current_buffer = BufferList;
+                voice->position = 0;
+                voice->position_fraction = 0;
                 goto finish_play;
 
             case AL_PAUSED:
                 assert(voice != NULL);
                 /* A source that's paused simply resumes. */
-                ATOMIC_STORE(&voice->Playing, true, almemory_order_release);
-                ATOMIC_STORE(&source->state, AL_PLAYING, almemory_order_release);
+                voice->Playing = true;
+                source->state = AL_PLAYING;
                 goto finish_play;
 
             default:
@@ -2516,7 +2516,7 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
         }
         if(voice == NULL)
             voice = context->Voices[context->VoiceCount++];
-        ATOMIC_STORE(&voice->Playing, false, almemory_order_release);
+        voice->Playing = false;
 
         ATOMIC_FLAG_TEST_AND_SET(&source->PropsClean, almemory_order_acquire);
         UpdateSourceProps(source, voice, device->NumAuxSends);
@@ -2525,12 +2525,12 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
          * starts playing.
          */
         if(source->Looping)
-            ATOMIC_STORE(&voice->loop_buffer, source->queue, almemory_order_relaxed);
+            voice->loop_buffer = source->queue;
         else
-            ATOMIC_STORE(&voice->loop_buffer, NULL, almemory_order_relaxed);
-        ATOMIC_STORE(&voice->current_buffer, BufferList, almemory_order_relaxed);
-        ATOMIC_STORE(&voice->position, 0, almemory_order_relaxed);
-        ATOMIC_STORE(&voice->position_fraction, 0, almemory_order_relaxed);
+            voice->loop_buffer = NULL;
+        voice->current_buffer = BufferList;
+        voice->position = 0;
+        voice->position_fraction = 0;
         if(source->OffsetType != AL_NONE)
         {
             ApplyOffset(source, voice);
@@ -2566,9 +2566,9 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
             }
         }
 
-        ATOMIC_STORE(&voice->Source, source, almemory_order_relaxed);
-        ATOMIC_STORE(&voice->Playing, true, almemory_order_release);
-        ATOMIC_STORE(&source->state, AL_PLAYING, almemory_order_release);
+        voice->Source = source;
+        voice->Playing = true;
+        source->state = AL_PLAYING;
     finish_play:
         WriteUnlock(&source->queue_lock);
     }
@@ -2611,10 +2611,10 @@ AL_API ALvoid AL_APIENTRY alSourcePausev(ALsizei n, const ALuint *sources)
         WriteLock(&source->queue_lock);
         if((voice=GetSourceVoice(source, context)) != NULL)
         {
-            ATOMIC_STORE(&voice->Playing, false, almemory_order_release);
+            voice->Playing = false;
         }
         if(GetSourceState(source, voice) == AL_PLAYING)
-            ATOMIC_STORE(&source->state, AL_PAUSED, almemory_order_release);
+            source->state = AL_PAUSED;
         WriteUnlock(&source->queue_lock);
     }
     ALCdevice_Unlock(device);
@@ -2656,11 +2656,11 @@ AL_API ALvoid AL_APIENTRY alSourceStopv(ALsizei n, const ALuint *sources)
         WriteLock(&source->queue_lock);
         if((voice=GetSourceVoice(source, context)) != NULL)
         {
-            ATOMIC_STORE(&voice->Source, NULL, almemory_order_relaxed);
-            ATOMIC_STORE(&voice->Playing, false, almemory_order_release);
+            voice->Source = NULL;
+            voice->Playing = false;
         }
         if(source->state != AL_INITIAL)
-            ATOMIC_STORE(&source->state, AL_STOPPED, almemory_order_relaxed);
+            source->state = AL_STOPPED;
         source->OffsetType = AL_NONE;
         source->Offset = 0.0;
         WriteUnlock(&source->queue_lock);
@@ -2704,11 +2704,11 @@ AL_API ALvoid AL_APIENTRY alSourceRewindv(ALsizei n, const ALuint *sources)
         WriteLock(&source->queue_lock);
         if((voice=GetSourceVoice(source, context)) != NULL)
         {
-            ATOMIC_STORE(&voice->Source, NULL, almemory_order_relaxed);
-            ATOMIC_STORE(&voice->Playing, false, almemory_order_release);
+            voice->Source = NULL;
+            voice->Playing = false;
         }
         if(source->state != AL_INITIAL)
-            ATOMIC_STORE(&source->state, AL_INITIAL, almemory_order_relaxed);
+            source->state = AL_INITIAL;
         source->OffsetType = AL_NONE;
         source->Offset = 0.0;
         WriteUnlock(&source->queue_lock);
@@ -2785,7 +2785,7 @@ AL_API ALvoid AL_APIENTRY alSourceQueueBuffers(ALuint src, ALsizei nb, const ALu
         else
         {
             ALbufferlistitem *item = al_calloc(DEF_ALIGN, sizeof(ALbufferlistitem));
-            ATOMIC_STORE(&BufferList->next, item, almemory_order_relaxed);
+            BufferList->next = item;
             BufferList = item;
         }
         BufferList->buffer = buffer;
@@ -2845,7 +2845,7 @@ AL_API ALvoid AL_APIENTRY alSourceQueueBuffers(ALuint src, ALsizei nb, const ALu
         ALbufferlistitem *next;
         while((next=BufferList->next) != NULL)
             BufferList = next;
-        ATOMIC_STORE(&BufferList->next, BufferListStart, almemory_order_release);
+        BufferList->next = BufferListStart;
     }
     WriteUnlock(&source->queue_lock);
 
@@ -3384,9 +3384,9 @@ static ALboolean ApplyOffset(ALsource *Source, ALvoice *voice)
         if(bufferLen > offset-totalBufferLen)
         {
             /* Offset is in this buffer */
-            ATOMIC_STORE(&voice->position, offset - totalBufferLen, almemory_order_relaxed);
-            ATOMIC_STORE(&voice->position_fraction, frac, almemory_order_relaxed);
-            ATOMIC_STORE(&voice->current_buffer, BufferList, almemory_order_release);
+            voice->position = offset - totalBufferLen;
+            voice->position_fraction = frac;
+            voice->current_buffer = BufferList;
             return AL_TRUE;
         }
 
