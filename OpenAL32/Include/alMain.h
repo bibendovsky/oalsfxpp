@@ -524,7 +524,7 @@ enum DevFmtChannels {
     /* Similar to 5.1, except using rear channels instead of sides */
     DevFmtX51Rear = 0x80000000,
 
-    DevFmtChannelsDefault = DevFmtStereo
+    DevFmtChannelsDefault = DevFmtMono
 };
 #define MAX_OUTPUT_CHANNELS  (16)
 

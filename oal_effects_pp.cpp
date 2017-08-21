@@ -103,8 +103,6 @@ int main()
     const std::array<ALCint, 5> context_attribs = {
         ALC_MAX_AUXILIARY_SENDS,
         1,
-        ALC_FORMAT_CHANNELS_SOFT,
-        ALC_MONO_SOFT,
 
         0,
     };
@@ -476,7 +474,7 @@ int main()
     if (is_succeed)
     {
         constexpr auto sample_count = 1024;
-        constexpr auto channel_count = 2;
+        constexpr auto channel_count = 1;
 
         using DstBuffer = std::vector<float>;
         auto dst_buffer = DstBuffer{};

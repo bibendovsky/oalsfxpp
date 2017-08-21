@@ -495,6 +495,8 @@ void aluInitRenderer(ALCdevice *device)
         device->ChannelDelay[i].Length = 0;
     }
 
+    SetDefaultWFXChannelOrder(device);
+
     if(device->FmtChans != DevFmtStereo)
     {
         InitPanning(device);
@@ -502,8 +504,6 @@ void aluInitRenderer(ALCdevice *device)
     }
 
     headphones = device->IsHeadphones;
-
-    SetDefaultWFXChannelOrder(device);
 
     TRACE("HRTF disabled\n");
 
