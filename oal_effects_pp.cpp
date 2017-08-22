@@ -56,7 +56,7 @@ int main()
     }
 
 
-    auto data_size = static_cast<std::streamoff>(stream_size);
+    auto data_size = static_cast<int>(stream_size);
 
     if (data_size < 2 || (data_size % 2) != 0)
     {
@@ -66,6 +66,7 @@ int main()
 
     using Buffer = std::vector<char>;
     Buffer buffer(static_cast<size_t>(data_size));
+    const auto buffer16 = reinterpret_cast<const int16_t*>(buffer.data());
 
     src_stream.read(buffer.data(), data_size);
 
@@ -73,6 +74,15 @@ int main()
     {
         std::cout << "Failed to read data." << std::endl;
         return 1;
+    }
+
+    const auto total_sample_count = data_size / 2;
+    using BufferF32 = std::vector<float>;
+    BufferF32 bufferF32(total_sample_count);
+
+    for (int i = 0; i < total_sample_count; ++i)
+    {
+        bufferF32[i] = buffer16[i] / 32768.0F;
     }
 
 
@@ -367,7 +377,7 @@ int main()
     {
         static_cast<void>(::alGetError());
 
-        ::alBufferData(oal_buffer, AL_FORMAT_MONO16, buffer.data(), static_cast<ALsizei>(data_size), 44100);
+        ::alBufferData(oal_buffer, AL_FORMAT_MONO_FLOAT32, bufferF32.data(), static_cast<ALsizei>(total_sample_count * 4), 44100);
 
         if (::alGetError() != AL_NO_ERROR)
         {
