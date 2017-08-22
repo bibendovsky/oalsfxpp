@@ -2722,7 +2722,7 @@ static void InitSourceParams(ALsource *Source, ALsizei num_sends)
     Source->DistanceModel = DefaultDistanceModel;
     Source->Resampler = ResamplerDefault;
     Source->DirectChannels = AL_FALSE;
-    Source->Spatialize = SpatializeAuto;
+    Source->Spatialize = SpatializeOff;
 
     Source->StereoPan[0] = DEG2RAD( 30.0f);
     Source->StereoPan[1] = DEG2RAD(-30.0f);
