@@ -49,7 +49,7 @@ static_assert(MAX_PRE_SAMPLES >= 11, "MAX_PRE_SAMPLES must be at least 11!");
 static_assert(MAX_POST_SAMPLES >= 12, "MAX_POST_SAMPLES must be at least 12!");
 
 
-enum Resampler ResamplerDefault = LinearResampler;
+enum Resampler ResamplerDefault = PointResampler;
 
 static MixerFunc MixSamples = Mix_C;
 
