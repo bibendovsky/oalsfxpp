@@ -251,7 +251,7 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
     firstpass = true;
     OutPos = 0;
 
-    do {
+    {
         ALsizei SrcBufferSize, DstBufferSize;
 
         /* Figure out how many buffer samples will be needed */
@@ -364,7 +364,7 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
         voice->Offset += DstBufferSize;
         Counter = maxi(DstBufferSize, Counter) - DstBufferSize;
         firstpass = false;
-    } while(isplaying && OutPos < SamplesToDo);
+    }
 
     voice->Flags |= VOICE_IS_FADING;
 
