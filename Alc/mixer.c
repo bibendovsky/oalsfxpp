@@ -179,132 +179,47 @@ static inline void SilenceSamples(ALfloat *dst, ALsizei samples)
 
 ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei SamplesToDo)
 {
-    ALbufferlistitem *BufferListItem;
-    ALbufferlistitem *BufferLoopItem;
-    ALsizei NumChannels, SampleSize;
-    ALsizei DataPosInt;
-    ALsizei DataPosFrac;
-    ALint64 DataSize64;
-    ALint increment;
-    ALsizei OutPos;
-    ALsizei IrSize;
-    bool isplaying;
-    bool firstpass;
+    ALsizei NumChannels;
     ALsizei chan;
     ALsizei send;
 
     /* Get source info */
-    isplaying      = true; /* Will only be called while playing. */
-    DataPosInt     = voice->position;
-    DataPosFrac    = voice->position_fraction;
-    BufferListItem = voice->current_buffer;
-    BufferLoopItem = voice->loop_buffer;
     NumChannels    = voice->NumChannels;
-    SampleSize     = voice->SampleSize;
-    increment      = voice->Step;
 
-    IrSize = 0;
-
-    firstpass = true;
-    OutPos = 0;
-
+    for(chan = 0;chan < NumChannels;chan++)
     {
-        ALsizei SrcBufferSize, DstBufferSize;
+        DirectParams *parms;
 
-        /* Figure out how many buffer samples will be needed */
-        DataSize64  = SamplesToDo-OutPos;
-        DataSize64 *= increment;
-        DataSize64 += DataPosFrac+FRACTIONMASK;
-        DataSize64 >>= FRACTIONBITS;
+        /* Load what's left to play from the source buffer, and
+            * clear the rest of the temp buffer */
+        memcpy(Device->SourceData, Device->source_data, NumChannels * 4 * SamplesToDo);
 
-        SrcBufferSize = (ALsizei)mini64(DataSize64, BUFFERSIZE);
+        /* Now resample, then filter and mix to the appropriate outputs. */
+        memcpy(Device->ResampledData, Device->SourceData, SamplesToDo*sizeof(ALfloat));
 
-        /* Figure out how many samples we can actually mix from this. */
-        DataSize64  = SrcBufferSize;
-        DataSize64 <<= FRACTIONBITS;
-        DataSize64 -= DataPosFrac;
+        parms = &voice->Direct.Params[chan];
 
-        DstBufferSize = (ALsizei)((DataSize64+(increment-1)) / increment);
-        DstBufferSize = mini(DstBufferSize, (SamplesToDo-OutPos));
+        memcpy(parms->Gains.Current, parms->Gains.Target, sizeof(parms->Gains.Current));
 
-        /* Some mixers like having a multiple of 4, so try to give that unless
-         * this is the last update. */
-        if(OutPos+DstBufferSize < SamplesToDo)
-            DstBufferSize &= ~3;
+        MixSamples(Device->ResampledData, voice->Direct.Channels, voice->Direct.Buffer,
+            parms->Gains.Current, parms->Gains.Target, 0, 0,
+            SamplesToDo
+        );
 
-        for(chan = 0;chan < NumChannels;chan++)
+        for(send = 0;send < Device->NumAuxSends;send++)
         {
-            const ALfloat *ResampledData;
-            ALfloat *SrcData = Device->SourceData;
-            ALsizei SrcDataSize;
+            SendParams *parms = &voice->Send[send].Params[chan];
 
-            SrcDataSize = 0;
+            if(!voice->Send[send].Buffer)
+                continue;
 
-            {
-                ALsizei DataSize;
+            memcpy(parms->Gains.Current, parms->Gains.Target, sizeof(parms->Gains.Current));
 
-                /* If current pos is beyond the loop range, do not loop */
-                {
-                    BufferLoopItem = NULL;
-
-                    /* Load what's left to play from the source buffer, and
-                     * clear the rest of the temp buffer */
-                    DataSize = SrcBufferSize - SrcDataSize;
-
-                    memcpy(&SrcData[SrcDataSize], Device->source_data, NumChannels * 4 * DataSize);
-                    SrcDataSize += DataSize;
-
-                    SilenceSamples(&SrcData[SrcDataSize], SrcBufferSize - SrcDataSize);
-                    SrcDataSize += SrcBufferSize - SrcDataSize;
-                }
-            }
-
-            /* Now resample, then filter and mix to the appropriate outputs. */
-            ResampledData = memcpy(Device->ResampledData, SrcData, DstBufferSize*sizeof(ALfloat));
-            {
-                DirectParams *parms = &voice->Direct.Params[chan];
-
-                {
-                    memcpy(parms->Gains.Current, parms->Gains.Target,
-                            sizeof(parms->Gains.Current));
-
-                    MixSamples(ResampledData, voice->Direct.Channels, voice->Direct.Buffer,
-                        parms->Gains.Current, parms->Gains.Target, 0, OutPos,
-                        DstBufferSize
-                    );
-                }
-            }
-
-            for(send = 0;send < Device->NumAuxSends;send++)
-            {
-                SendParams *parms = &voice->Send[send].Params[chan];
-
-                if(!voice->Send[send].Buffer)
-                    continue;
-
-                memcpy(parms->Gains.Current, parms->Gains.Target,
-                        sizeof(parms->Gains.Current));
-
-                MixSamples(ResampledData, voice->Send[send].Channels, voice->Send[send].Buffer,
-                    parms->Gains.Current, parms->Gains.Target, 0, OutPos, DstBufferSize
-                );
-            }
+            MixSamples(Device->ResampledData, voice->Send[send].Channels, voice->Send[send].Buffer,
+                parms->Gains.Current, parms->Gains.Target, 0, 0, SamplesToDo
+            );
         }
-        /* Update positions */
-        DataPosFrac += increment*DstBufferSize;
-        DataPosInt  += DataPosFrac>>FRACTIONBITS;
-        DataPosFrac &= FRACTIONMASK;
-
-        OutPos += DstBufferSize;
-        voice->Offset += DstBufferSize;
-        firstpass = false;
     }
 
-    voice->Flags |= VOICE_IS_FADING;
-
-    /* Update source info */
-    voice->position = DataPosInt;
-    voice->position_fraction = DataPosFrac;
-    voice->current_buffer = BufferListItem;
-    return isplaying;
+    return 1;
 }
