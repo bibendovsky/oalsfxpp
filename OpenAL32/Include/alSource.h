@@ -5,8 +5,8 @@
 #include "alMain.h"
 #include "alu.h"
 
-#define MAX_SENDS      16
-#define DEFAULT_SENDS  2
+#define MAX_SENDS      1
+#define DEFAULT_SENDS  1
 
 #ifdef __cplusplus
 extern "C" {
