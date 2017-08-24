@@ -184,11 +184,11 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
     ALsizei send;
 
     /* Get source info */
-    NumChannels    = voice->NumChannels;
+    NumChannels = voice->NumChannels;
 
-    for(chan = 0;chan < NumChannels;chan++)
+    for (chan = 0; chan < NumChannels; ++chan)
     {
-        DirectParams *parms;
+        DirectParams* parms;
 
         /* Load what's left to play from the source buffer, and
             * clear the rest of the temp buffer */
@@ -201,23 +201,36 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
 
         memcpy(parms->Gains.Current, parms->Gains.Target, sizeof(parms->Gains.Current));
 
-        MixSamples(Device->ResampledData, voice->Direct.Channels, voice->Direct.Buffer,
-            parms->Gains.Current, parms->Gains.Target, 0, 0,
-            SamplesToDo
-        );
+        MixSamples(
+            Device->ResampledData,
+            voice->Direct.Channels,
+            voice->Direct.Buffer,
+            parms->Gains.Current,
+            parms->Gains.Target,
+            0,
+            0,
+            SamplesToDo);
 
-        for(send = 0;send < Device->NumAuxSends;send++)
+        for (send = 0; send < Device->NumAuxSends; ++send)
         {
             SendParams *parms = &voice->Send[send].Params[chan];
 
-            if(!voice->Send[send].Buffer)
+            if (!voice->Send[send].Buffer)
+            {
                 continue;
+            }
 
             memcpy(parms->Gains.Current, parms->Gains.Target, sizeof(parms->Gains.Current));
 
-            MixSamples(Device->ResampledData, voice->Send[send].Channels, voice->Send[send].Buffer,
-                parms->Gains.Current, parms->Gains.Target, 0, 0, SamplesToDo
-            );
+            MixSamples(
+                Device->ResampledData,
+                voice->Send[send].Channels,
+                voice->Send[send].Buffer,
+                parms->Gains.Current,
+                parms->Gains.Target,
+                0,
+                0,
+                SamplesToDo);
         }
     }
 
