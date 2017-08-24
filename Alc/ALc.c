@@ -1795,7 +1795,7 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
     update_failed = AL_FALSE;
     START_MIXER_MODE();
     context = device->ContextList;
-    while(context)
+    if(context)
     {
         ALsizei pos;
 
@@ -1888,8 +1888,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
 
         UpdateListenerProps(context);
         UpdateAllSourceProps(context);
-
-        context = context->next;
     }
     END_MIXER_MODE();
     if(update_failed)
@@ -2163,22 +2161,11 @@ static bool ReleaseContext(ALCcontext *context, ALCdevice *device)
         ALCcontext_DecRef(context);
 
     origctx = context;
-    newhead = context->next;
-    if(!(device->ContextList == origctx ? (device->ContextList = newhead, true) : (origctx = device->ContextList, false)))
+    newhead = NULL;
+    if(device->ContextList == origctx ? (device->ContextList = newhead, true) : (origctx = device->ContextList, false))
     {
-        ALCcontext *volatile*list = &origctx->next;
-        while(*list)
-        {
-            if(*list == context)
-            {
-                *list = (*list)->next;
-                break;
-            }
-            list = &(*list)->next;
-        }
-    }
-    else
         ret = !!newhead;
+    }
 
     ALCcontext_DecRef(context);
     return ret;
@@ -2217,14 +2204,13 @@ static ALCboolean VerifyContext(ALCcontext **context)
     if(dev)
     {
         ALCcontext *ctx = dev->ContextList;
-        while(ctx)
+        if(ctx)
         {
             if(ctx == *context)
             {
                 ALCcontext_IncRef(ctx);
                 return ALC_TRUE;
             }
-            ctx = ctx->next;
         }
     }
 
@@ -2873,6 +2859,12 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
         return NULL;
     }
 
+    if (device->ContextList)
+    {
+        alcSetError(device, ALC_INVALID_DEVICE);
+        return NULL;
+    }
+
     device->LastError = ALC_NO_ERROR;
 
     if(device->Type == Playback && DefaultEffect.type != AL_EFFECT_NULL)
@@ -2928,12 +2920,7 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
 
     UpdateListenerProps(ALContext);
 
-    {
-        ALCcontext *head = device->ContextList;
-        do {
-            ALContext->next = head;
-        } while((device->ContextList == head ? (device->ContextList = ALContext, true) : (head = device->ContextList, false)) == 0);
-    }
+    device->ContextList = ALContext;
 
     if(ALContext->DefaultSlot)
     {
@@ -3188,12 +3175,10 @@ ALC_API ALCboolean ALC_APIENTRY alcCloseDevice(ALCdevice *device)
     }
 
     ctx = device->ContextList;
-    while(ctx != NULL)
+    if(ctx != NULL)
     {
-        ALCcontext *next = ctx->next;
         WARN("Releasing context %p\n", ctx);
         ReleaseContext(ctx, device);
-        ctx = next;
     }
     device->Flags &= ~DEVICE_RUNNING;
 

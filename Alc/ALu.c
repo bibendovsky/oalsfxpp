@@ -1330,7 +1330,7 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples)
         device->MixCount += 1;
 
         ctx = device->ContextList;
-        while(ctx)
+        if(ctx)
         {
             const struct ALeffectslotArray *auxslots;
 
@@ -1368,8 +1368,6 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples)
                 V(state,process)(SamplesToDo, slot->WetBuffer, state->OutBuffer,
                                  state->OutChannels);
             }
-
-            ctx = ctx->next;
         }
 
         /* Increment the clock time. Every second's worth of samples is
@@ -1428,7 +1426,7 @@ void aluHandleDisconnect(ALCdevice *device)
     device->Connected = ALC_FALSE;
 
     ctx = device->ContextList;
-    while(ctx)
+    if(ctx)
     {
         ALsizei i;
         for(i = 0;i < ctx->VoiceCount;i++)
@@ -1449,7 +1447,5 @@ void aluHandleDisconnect(ALCdevice *device)
             }
         }
         ctx->VoiceCount = 0;
-
-        ctx = ctx->next;
     }
 }
