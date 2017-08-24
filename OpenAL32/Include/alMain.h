@@ -723,6 +723,7 @@ struct ALCdevice_struct
     ALCcontext* ContextList;
 
     struct ALsource* source;
+    const ALfloat* source_data;
 };
 
 // Frequency was requested by the app or config file

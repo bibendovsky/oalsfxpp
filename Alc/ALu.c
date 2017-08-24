@@ -1307,12 +1307,14 @@ DECL_TEMPLATE(ALbyte, I8)
 #undef DECL_TEMPLATE
 
 
-void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples)
+void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const ALfloat* src_samples)
 {
     ALsizei SamplesToDo;
     ALsizei SamplesDone;
     ALCcontext *ctx;
     ALsizei i, c;
+
+    device->source_data = src_samples;
 
     START_MIXER_MODE();
     for(SamplesDone = 0;SamplesDone < NumSamples;)

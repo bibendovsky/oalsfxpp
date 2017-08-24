@@ -3275,7 +3275,7 @@ FORCE_ALIGN ALC_API void ALC_APIENTRY alcRenderSamplesSOFT(ALCdevice *device, AL
         alcSetError(device, ALC_INVALID_VALUE);
     else
     {
-        aluMixData(device, buffer, samples);
+        aluMixData(device, buffer, samples, NULL);
     }
     if(device) ALCdevice_DecRef(device);
 }

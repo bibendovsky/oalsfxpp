@@ -243,12 +243,7 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
             SrcDataSize = 0;
 
             {
-                const ALbuffer *ALBuffer = BufferListItem->buffer;
-                const ALubyte *Data = ALBuffer->data;
                 ALsizei DataSize;
-
-                /* Offset buffer data to current channel */
-                Data += chan*SampleSize;
 
                 /* If current pos is beyond the loop range, do not loop */
                 {
@@ -256,11 +251,9 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
 
                     /* Load what's left to play from the source buffer, and
                      * clear the rest of the temp buffer */
-                    DataSize = minu(SrcBufferSize - SrcDataSize,
-                                    ALBuffer->SampleLen - DataPosInt);
+                    DataSize = SrcBufferSize - SrcDataSize;
 
-                    LoadSamples(&SrcData[SrcDataSize], &Data[DataPosInt * NumChannels*SampleSize],
-                                NumChannels, ALBuffer->FmtType, DataSize);
+                    memcpy(&SrcData[SrcDataSize], Device->source_data, NumChannels * 4 * DataSize);
                     SrcDataSize += DataSize;
 
                     SilenceSamples(&SrcData[SrcDataSize], SrcBufferSize - SrcDataSize);
@@ -272,15 +265,12 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
             ResampledData = memcpy(Device->ResampledData, SrcData, DstBufferSize*sizeof(ALfloat));
             {
                 DirectParams *parms = &voice->Direct.Params[chan];
-                const ALfloat *samples;
-
-                samples = ResampledData;
 
                 {
                     if(!Counter)
                         memcpy(parms->Gains.Current, parms->Gains.Target,
                                sizeof(parms->Gains.Current));
-                    MixSamples(samples, voice->Direct.Channels, voice->Direct.Buffer,
+                    MixSamples(ResampledData, voice->Direct.Channels, voice->Direct.Buffer,
                         parms->Gains.Current, parms->Gains.Target, Counter, OutPos,
                         DstBufferSize
                     );
@@ -290,17 +280,14 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
             for(send = 0;send < Device->NumAuxSends;send++)
             {
                 SendParams *parms = &voice->Send[send].Params[chan];
-                const ALfloat *samples;
 
                 if(!voice->Send[send].Buffer)
                     continue;
 
-                samples = ResampledData;
-
                 if(!Counter)
                     memcpy(parms->Gains.Current, parms->Gains.Target,
                            sizeof(parms->Gains.Current));
-                MixSamples(samples, voice->Send[send].Channels, voice->Send[send].Buffer,
+                MixSamples(ResampledData, voice->Send[send].Channels, voice->Send[send].Buffer,
                     parms->Gains.Current, parms->Gains.Target, Counter, OutPos, DstBufferSize
                 );
             }

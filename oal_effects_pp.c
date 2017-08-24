@@ -14,7 +14,8 @@
 void aluMixData(
     ALCdevice* device,
     ALvoid* OutBuffer,
-    ALsizei NumSamples);
+    ALsizei NumSamples,
+    const ALfloat* src_samples);
 
 
 int main()
@@ -37,8 +38,9 @@ int main()
     char* src_buffer = NULL;
     float* dst_buffer = NULL;
     const int16_t* src_buffer16 = NULL;
-    float* src_bufferF32 = NULL;
+    float* src_buffer_f32 = NULL;
     int total_sample_count;
+    int buffer_f32_samples = 0;
     int i = 0;
     int is_succeed = 1;
     ALCdevice* oal_device = NULL;
@@ -128,11 +130,13 @@ int main()
 
     total_sample_count = data_size / 2;
 
-    src_bufferF32 = malloc(sizeof(float) * total_sample_count);
+    buffer_f32_samples = ((total_sample_count + (sample_count - 1)) / sample_count) * sample_count;
+
+    src_buffer_f32 = malloc(sizeof(float) * buffer_f32_samples);
 
     for (i = 0; i < total_sample_count; ++i)
     {
-        src_bufferF32[i] = (float)(src_buffer16[i]) / 32768.0F;
+        src_buffer_f32[i] = (float)(src_buffer16[i]) / 32768.0F;
     }
 
     if (is_succeed)
@@ -375,7 +379,7 @@ int main()
     {
         alGetError();
 
-        alBufferData(oal_buffer, AL_FORMAT_MONO_FLOAT32, src_bufferF32, (ALsizei)(total_sample_count * 4), 44100);
+        alBufferData(oal_buffer, AL_FORMAT_MONO_FLOAT32, src_buffer_f32, (ALsizei)(total_sample_count * 4), 44100);
 
         if (alGetError() != AL_NO_ERROR)
         {
@@ -474,13 +478,14 @@ int main()
     if (is_succeed)
     {
         int remain = (int)(stream_size) / 2;
+        int offset = 0;
 
         while (remain > 0 && is_succeed)
         {
             const int write_sample_count = sample_count < remain ? sample_count : remain;
             const int write_size = write_sample_count * 4 * channel_count;
 
-            aluMixData(oal_device, dst_buffer, sample_count);
+            aluMixData(oal_device, dst_buffer, sample_count, &src_buffer_f32[offset]);
 
             if (fwrite(dst_buffer, 1, write_size, dst_stream) != write_size)
             {
@@ -489,6 +494,7 @@ int main()
             }
 
             remain -= write_sample_count;
+            offset += write_sample_count * channel_count;
         }
     }
 
