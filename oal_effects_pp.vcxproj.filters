@@ -111,7 +111,7 @@
     <ClCompile Include="OpenAL32\sample_cvt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="oal_effects_pp.cpp">
+    <ClCompile Include="oal_effects_pp.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
