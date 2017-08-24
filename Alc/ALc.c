@@ -47,6 +47,10 @@
 #include "backends/base.h"
 
 
+void InitSourceParams(ALsource *Source, ALsizei num_sends);
+void DeinitSource(ALsource *source, ALsizei num_sends);
+
+
 /************************************************
  * Functions, enums, and errors
  ************************************************/
@@ -1936,6 +1940,9 @@ static ALCvoid FreeDevice(ALCdevice *device)
     }
     ResetUIntMap(&device->FilterMap);
 
+    DeinitSource(device->source, device->NumAuxSends);
+    al_free(device->source);
+
     al_free(device->Limiter);
     device->Limiter = NULL;
 
@@ -3151,6 +3158,9 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     device->NumStereoSources = 1;
     device->NumMonoSources = device->SourcesMax - device->NumStereoSources;
     device->Limiter = CreateDeviceLimiter(device);
+
+    device->source = al_calloc(16, sizeof(ALsource));
+    InitSourceParams(device->source, device->NumAuxSends);
 
     DeviceList = device;
 

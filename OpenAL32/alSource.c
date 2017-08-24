@@ -42,8 +42,8 @@
 extern inline struct ALsource *LookupSource(ALCcontext *context, ALuint id);
 extern inline struct ALsource *RemoveSource(ALCcontext *context, ALuint id);
 
-static void InitSourceParams(ALsource *Source, ALsizei num_sends);
-static void DeinitSource(ALsource *source, ALsizei num_sends);
+void InitSourceParams(ALsource *Source, ALsizei num_sends);
+void DeinitSource(ALsource *source, ALsizei num_sends);
 static void UpdateSourceProps(ALsource *source, ALvoice *voice, ALsizei num_sends);
 static ALint64 GetSourceSampleOffset(ALsource *Source, ALCcontext *context, ALuint64 *clocktime);
 static ALdouble GetSourceSecOffset(ALsource *Source, ALCcontext *context, ALuint64 *clocktime);
@@ -1549,90 +1549,11 @@ static ALboolean GetSourcei64v(ALsource *Source, ALCcontext *Context, SourceProp
 
 AL_API ALvoid AL_APIENTRY alGenSources(ALsizei n, ALuint *sources)
 {
-    ALCdevice *device;
-    ALCcontext *context;
-    ALsizei cur = 0;
-    ALenum err;
-
-    context = GetContextRef();
-    if(!context) return;
-
-    if(!(n >= 0))
-        SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
-    device = context->Device;
-    for(cur = 0;cur < n;cur++)
-    {
-        ALsource *source = al_calloc(16, sizeof(ALsource));
-        if(!source)
-        {
-            alDeleteSources(cur, sources);
-            SET_ERROR_AND_GOTO(context, AL_OUT_OF_MEMORY, done);
-        }
-        InitSourceParams(source, device->NumAuxSends);
-
-        err = NewThunkEntry(&source->id);
-        if(err == AL_NO_ERROR)
-            err = InsertUIntMapEntry(&context->SourceMap, source->id, source);
-        if(err != AL_NO_ERROR)
-        {
-            FreeThunkEntry(source->id);
-            memset(source, 0, sizeof(ALsource));
-            al_free(source);
-
-            alDeleteSources(cur, sources);
-            SET_ERROR_AND_GOTO(context, err, done);
-        }
-
-        sources[cur] = source->id;
-    }
-
-done:
-    ALCcontext_DecRef(context);
 }
 
 
 AL_API ALvoid AL_APIENTRY alDeleteSources(ALsizei n, const ALuint *sources)
 {
-    ALCdevice *device;
-    ALCcontext *context;
-    ALsource *Source;
-    ALsizei i;
-
-    context = GetContextRef();
-    if(!context) return;
-
-    if(!(n >= 0))
-        SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
-
-    /* Check that all Sources are valid */
-    for(i = 0;i < n;i++)
-    {
-        if(LookupSource(context, sources[i]) == NULL)
-            SET_ERROR_AND_GOTO(context, AL_INVALID_NAME, done);
-    }
-    device = context->Device;
-    for(i = 0;i < n;i++)
-    {
-        ALvoice *voice;
-
-        if((Source=RemoveSource(context, sources[i])) == NULL)
-            continue;
-        FreeThunkEntry(Source->id);
-
-        if((voice=GetSourceVoice(Source, context)) != NULL)
-        {
-            voice->Source = NULL;
-            voice->Playing = false;
-        }
-
-        DeinitSource(Source, device->NumAuxSends);
-
-        memset(Source, 0, sizeof(*Source));
-        al_free(Source);
-    }
-
-done:
-    ALCcontext_DecRef(context);
 }
 
 
@@ -1678,9 +1599,8 @@ AL_API ALvoid AL_APIENTRY alSource3f(ALuint source, ALenum param, ALfloat value1
     Context = GetContextRef();
     if(!Context) return;
 
-    if((Source=LookupSource(Context, source)) == NULL)
-        alSetError(Context, AL_INVALID_NAME);
-    else if(!(FloatValsByProp(param) == 3))
+    Source=Context->Device->source;
+    if(!(FloatValsByProp(param) == 3))
         alSetError(Context, AL_INVALID_ENUM);
     else
     {
@@ -1791,9 +1711,8 @@ AL_API ALvoid AL_APIENTRY alSourcei(ALuint source, ALenum param, ALint value)
     Context = GetContextRef();
     if(!Context) return;
 
-    if((Source=LookupSource(Context, source)) == NULL)
-        alSetError(Context, AL_INVALID_NAME);
-    else if(!(IntValsByProp(param) == 1))
+    Source = Context->Device->source;
+    if(!(IntValsByProp(param) == 1))
         alSetError(Context, AL_INVALID_ENUM);
     else
         SetSourceiv(Source, Context, param, &value);
@@ -1809,9 +1728,8 @@ AL_API void AL_APIENTRY alSource3i(ALuint source, ALenum param, ALint value1, AL
     Context = GetContextRef();
     if(!Context) return;
 
-    if((Source=LookupSource(Context, source)) == NULL)
-        alSetError(Context, AL_INVALID_NAME);
-    else if(!(IntValsByProp(param) == 3))
+    Source=Context->Device->source;
+    if(!(IntValsByProp(param) == 3))
         alSetError(Context, AL_INVALID_ENUM);
     else
     {
@@ -1905,6 +1823,7 @@ AL_API void AL_APIENTRY alSourcei64vSOFT(ALuint source, ALenum param, const ALin
 
 AL_API ALvoid AL_APIENTRY alGetSourcef(ALuint source, ALenum param, ALfloat *value)
 {
+#if 0
     ALCcontext *Context;
     ALsource   *Source;
 
@@ -1925,11 +1844,18 @@ AL_API ALvoid AL_APIENTRY alGetSourcef(ALuint source, ALenum param, ALfloat *val
     }
 
     ALCcontext_DecRef(Context);
+#else
+    ALCcontext *Context = GetContextRef();
+    if(!Context) return;
+
+    alSetError(Context, AL_INVALID_NAME);
+#endif
 }
 
 
 AL_API ALvoid AL_APIENTRY alGetSource3f(ALuint source, ALenum param, ALfloat *value1, ALfloat *value2, ALfloat *value3)
 {
+#if 0
     ALCcontext *Context;
     ALsource   *Source;
 
@@ -1954,11 +1880,18 @@ AL_API ALvoid AL_APIENTRY alGetSource3f(ALuint source, ALenum param, ALfloat *va
     }
 
     ALCcontext_DecRef(Context);
+#else
+    ALCcontext *Context = GetContextRef();
+    if(!Context) return;
+
+    alSetError(Context, AL_INVALID_NAME);
+#endif
 }
 
 
 AL_API ALvoid AL_APIENTRY alGetSourcefv(ALuint source, ALenum param, ALfloat *values)
 {
+#if 0
     ALCcontext *Context;
     ALsource   *Source;
     ALint      count;
@@ -1984,11 +1917,18 @@ AL_API ALvoid AL_APIENTRY alGetSourcefv(ALuint source, ALenum param, ALfloat *va
     }
 
     ALCcontext_DecRef(Context);
+#else
+    ALCcontext *Context = GetContextRef();
+    if(!Context) return;
+
+    alSetError(Context, AL_INVALID_NAME);
+#endif
 }
 
 
 AL_API void AL_APIENTRY alGetSourcedSOFT(ALuint source, ALenum param, ALdouble *value)
 {
+#if 0
     ALCcontext *Context;
     ALsource   *Source;
 
@@ -2005,10 +1945,17 @@ AL_API void AL_APIENTRY alGetSourcedSOFT(ALuint source, ALenum param, ALdouble *
         GetSourcedv(Source, Context, param, value);
 
     ALCcontext_DecRef(Context);
+#else
+    ALCcontext *Context = GetContextRef();
+    if(!Context) return;
+
+    alSetError(Context, AL_INVALID_NAME);
+#endif
 }
 
 AL_API void AL_APIENTRY alGetSource3dSOFT(ALuint source, ALenum param, ALdouble *value1, ALdouble *value2, ALdouble *value3)
 {
+#if 0
     ALCcontext *Context;
     ALsource   *Source;
 
@@ -2033,10 +1980,17 @@ AL_API void AL_APIENTRY alGetSource3dSOFT(ALuint source, ALenum param, ALdouble 
     }
 
     ALCcontext_DecRef(Context);
+#else
+    ALCcontext *Context = GetContextRef();
+    if(!Context) return;
+
+    alSetError(Context, AL_INVALID_NAME);
+#endif
 }
 
 AL_API void AL_APIENTRY alGetSourcedvSOFT(ALuint source, ALenum param, ALdouble *values)
 {
+#if 0
     ALCcontext *Context;
     ALsource   *Source;
 
@@ -2053,11 +2007,18 @@ AL_API void AL_APIENTRY alGetSourcedvSOFT(ALuint source, ALenum param, ALdouble 
         GetSourcedv(Source, Context, param, values);
 
     ALCcontext_DecRef(Context);
+#else
+    ALCcontext *Context = GetContextRef();
+    if(!Context) return;
+
+    alSetError(Context, AL_INVALID_NAME);
+#endif
 }
 
 
 AL_API ALvoid AL_APIENTRY alGetSourcei(ALuint source, ALenum param, ALint *value)
 {
+#if 0
     ALCcontext *Context;
     ALsource   *Source;
 
@@ -2074,11 +2035,18 @@ AL_API ALvoid AL_APIENTRY alGetSourcei(ALuint source, ALenum param, ALint *value
         GetSourceiv(Source, Context, param, value);
 
     ALCcontext_DecRef(Context);
+#else
+    ALCcontext *Context = GetContextRef();
+    if(!Context) return;
+
+    alSetError(Context, AL_INVALID_NAME);
+#endif
 }
 
 
 AL_API void AL_APIENTRY alGetSource3i(ALuint source, ALenum param, ALint *value1, ALint *value2, ALint *value3)
 {
+#if 0
     ALCcontext *Context;
     ALsource   *Source;
 
@@ -2103,11 +2071,18 @@ AL_API void AL_APIENTRY alGetSource3i(ALuint source, ALenum param, ALint *value1
     }
 
     ALCcontext_DecRef(Context);
+#else
+    ALCcontext *Context = GetContextRef();
+    if(!Context) return;
+
+    alSetError(Context, AL_INVALID_NAME);
+#endif
 }
 
 
 AL_API void AL_APIENTRY alGetSourceiv(ALuint source, ALenum param, ALint *values)
 {
+#if 0
     ALCcontext *Context;
     ALsource   *Source;
 
@@ -2124,11 +2099,18 @@ AL_API void AL_APIENTRY alGetSourceiv(ALuint source, ALenum param, ALint *values
         GetSourceiv(Source, Context, param, values);
 
     ALCcontext_DecRef(Context);
+#else
+    ALCcontext *Context = GetContextRef();
+    if(!Context) return;
+
+    alSetError(Context, AL_INVALID_NAME);
+#endif
 }
 
 
 AL_API void AL_APIENTRY alGetSourcei64SOFT(ALuint source, ALenum param, ALint64SOFT *value)
 {
+#if 0
     ALCcontext *Context;
     ALsource   *Source;
 
@@ -2145,10 +2127,17 @@ AL_API void AL_APIENTRY alGetSourcei64SOFT(ALuint source, ALenum param, ALint64S
         GetSourcei64v(Source, Context, param, value);
 
     ALCcontext_DecRef(Context);
+#else
+    ALCcontext *Context = GetContextRef();
+    if(!Context) return;
+
+    alSetError(Context, AL_INVALID_NAME);
+#endif
 }
 
 AL_API void AL_APIENTRY alGetSource3i64SOFT(ALuint source, ALenum param, ALint64SOFT *value1, ALint64SOFT *value2, ALint64SOFT *value3)
 {
+#if 0
     ALCcontext *Context;
     ALsource   *Source;
 
@@ -2173,10 +2162,17 @@ AL_API void AL_APIENTRY alGetSource3i64SOFT(ALuint source, ALenum param, ALint64
     }
 
     ALCcontext_DecRef(Context);
+#else
+    ALCcontext *Context = GetContextRef();
+    if(!Context) return;
+
+    alSetError(Context, AL_INVALID_NAME);
+#endif
 }
 
 AL_API void AL_APIENTRY alGetSourcei64vSOFT(ALuint source, ALenum param, ALint64SOFT *values)
 {
+#if 0
     ALCcontext *Context;
     ALsource   *Source;
 
@@ -2193,6 +2189,12 @@ AL_API void AL_APIENTRY alGetSourcei64vSOFT(ALuint source, ALenum param, ALint64
         GetSourcei64v(Source, Context, param, values);
 
     ALCcontext_DecRef(Context);
+#else
+    ALCcontext *Context = GetContextRef();
+    if(!Context) return;
+
+    alSetError(Context, AL_INVALID_NAME);
+#endif
 }
 
 
@@ -2211,25 +2213,10 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
     context = GetContextRef();
     if(!context) return;
 
-    if(!(n >= 0))
+    if(!(n == 1))
         SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
-    for(i = 0;i < n;i++)
-    {
-        if(!LookupSource(context, sources[i]))
-            SET_ERROR_AND_GOTO(context, AL_INVALID_NAME, done);
-    }
 
     device = context->Device;
-    /* If the device is disconnected, go right to stopped. */
-    if(!device->Connected)
-    {
-        for(i = 0;i < n;i++)
-        {
-            source = LookupSource(context, sources[i]);
-            source->state = AL_STOPPED;
-        }
-        goto done;
-    }
 
     while(n > context->MaxVoices-context->VoiceCount)
     {
@@ -2248,7 +2235,7 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
         bool start_fading = false;
         ALsizei s;
 
-        source = LookupSource(context, sources[i]);
+        source = context->Device->source;
         /* Check that there is a queue containing at least one valid, non zero
          * length Buffer.
          */
@@ -2365,6 +2352,7 @@ AL_API ALvoid AL_APIENTRY alSourcePause(ALuint source)
 }
 AL_API ALvoid AL_APIENTRY alSourcePausev(ALsizei n, const ALuint *sources)
 {
+#if 0
     ALCcontext *context;
     ALCdevice *device;
     ALsource *source;
@@ -2396,6 +2384,12 @@ AL_API ALvoid AL_APIENTRY alSourcePausev(ALsizei n, const ALuint *sources)
 
 done:
     ALCcontext_DecRef(context);
+#else
+    ALCcontext *Context = GetContextRef();
+    if(!Context) return;
+
+    alSetError(Context, AL_INVALID_NAME);
+#endif
 }
 
 AL_API ALvoid AL_APIENTRY alSourceStop(ALuint source)
@@ -2413,18 +2407,13 @@ AL_API ALvoid AL_APIENTRY alSourceStopv(ALsizei n, const ALuint *sources)
     context = GetContextRef();
     if(!context) return;
 
-    if(!(n >= 0))
+    if(!(n == 1))
         SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
-    for(i = 0;i < n;i++)
-    {
-        if(!LookupSource(context, sources[i]))
-            SET_ERROR_AND_GOTO(context, AL_INVALID_NAME, done);
-    }
 
     device = context->Device;
     for(i = 0;i < n;i++)
     {
-        source = LookupSource(context, sources[i]);
+        source = context->Device->source;
         if((voice=GetSourceVoice(source, context)) != NULL)
         {
             voice->Source = NULL;
@@ -2446,6 +2435,7 @@ AL_API ALvoid AL_APIENTRY alSourceRewind(ALuint source)
 }
 AL_API ALvoid AL_APIENTRY alSourceRewindv(ALsizei n, const ALuint *sources)
 {
+#if 0
     ALCcontext *context;
     ALCdevice *device;
     ALsource *source;
@@ -2480,11 +2470,18 @@ AL_API ALvoid AL_APIENTRY alSourceRewindv(ALsizei n, const ALuint *sources)
 
 done:
     ALCcontext_DecRef(context);
+#else
+    ALCcontext *Context = GetContextRef();
+    if(!Context) return;
+
+    alSetError(Context, AL_INVALID_NAME);
+#endif
 }
 
 
 AL_API ALvoid AL_APIENTRY alSourceQueueBuffers(ALuint src, ALsizei nb, const ALuint *buffers)
 {
+#if 0
     ALCdevice *device;
     ALCcontext *context;
     ALsource *source;
@@ -2601,10 +2598,17 @@ AL_API ALvoid AL_APIENTRY alSourceQueueBuffers(ALuint src, ALsizei nb, const ALu
 
 done:
     ALCcontext_DecRef(context);
+#else
+    ALCcontext *Context = GetContextRef();
+    if(!Context) return;
+
+    alSetError(Context, AL_INVALID_NAME);
+#endif
 }
 
 AL_API ALvoid AL_APIENTRY alSourceUnqueueBuffers(ALuint src, ALsizei nb, ALuint *buffers)
 {
+#if 0
     ALCcontext *context;
     ALsource *source;
     ALbufferlistitem *OldHead;
@@ -2677,10 +2681,16 @@ AL_API ALvoid AL_APIENTRY alSourceUnqueueBuffers(ALuint src, ALsizei nb, ALuint 
 
 done:
     ALCcontext_DecRef(context);
+#else
+    ALCcontext *Context = GetContextRef();
+    if(!Context) return;
+
+    alSetError(Context, AL_INVALID_NAME);
+#endif
 }
 
 
-static void InitSourceParams(ALsource *Source, ALsizei num_sends)
+void InitSourceParams(ALsource *Source, ALsizei num_sends)
 {
     ALsizei i;
 
@@ -2758,7 +2768,7 @@ static void InitSourceParams(ALsource *Source, ALsizei num_sends)
     Source->PropsClean = 1;
 }
 
-static void DeinitSource(ALsource *source, ALsizei num_sends)
+void DeinitSource(ALsource *source, ALsizei num_sends)
 {
     ALbufferlistitem *BufferList;
     ALsizei i;

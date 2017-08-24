@@ -721,6 +721,8 @@ struct ALCdevice_struct
 
     // Contexts created on this device
     ALCcontext* ContextList;
+
+    struct ALsource* source;
 };
 
 // Frequency was requested by the app or config file
