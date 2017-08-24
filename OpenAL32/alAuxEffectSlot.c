@@ -100,7 +100,7 @@ AL_API ALvoid AL_APIENTRY alAuxiliaryEffectSloti(ALuint effectslot, ALenum param
     case AL_EFFECTSLOT_EFFECT:
         device = context->Device;
 
-        effect = (value ? LookupEffect(device, value) : NULL);
+        effect = device->effect;
         if(!(value == 0 || effect != NULL))
         {
             SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);

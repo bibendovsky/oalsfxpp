@@ -1940,6 +1940,8 @@ static ALCvoid FreeDevice(ALCdevice *device)
     }
     ResetUIntMap(&device->FilterMap);
 
+    al_free(device->effect);
+
     DeinitEffectSlot(device->effect_slot);
     al_free(device->effect_slot);
 
@@ -3162,6 +3164,8 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     InitEffectSlot(device->effect_slot);
     aluInitEffectPanning(device->effect_slot);
 
+    device->effect = al_calloc(16, sizeof(ALeffect));
+    InitEffect(device->effect);
 
     DeviceList = device;
 
