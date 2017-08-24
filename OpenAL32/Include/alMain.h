@@ -721,8 +721,6 @@ struct ALCdevice_struct
 
     // Contexts created on this device
     ALCcontext* ContextList;
-
-    ALCdevice *volatile next;
 };
 
 // Frequency was requested by the app or config file

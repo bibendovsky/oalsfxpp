@@ -1019,11 +1019,7 @@ static void alc_cleanup(void)
     DeviceList = NULL;
     if(dev != NULL)
     {
-        ALCuint num = 0;
-        do {
-            num++;
-        } while((dev=dev->next) != NULL);
-        ERR("%u device%s not closed\n", num, (num>1)?"s":"");
+        ERR("Device not closed\n");
     }
 
     DeinitEffectFactoryMap();
@@ -1991,14 +1987,14 @@ static ALCboolean VerifyDevice(ALCdevice **device)
     ALCdevice *tmpDevice;
 
     tmpDevice = DeviceList;
-    while(tmpDevice)
+
+    if(tmpDevice)
     {
         if(tmpDevice == *device)
         {
             ALCdevice_IncRef(tmpDevice);
             return ALC_TRUE;
         }
-        tmpDevice = tmpDevice->next;
     }
 
     *device = NULL;
@@ -2218,7 +2214,7 @@ static ALCboolean VerifyContext(ALCcontext **context)
     ALCdevice *dev;
 
     dev = DeviceList;
-    while(dev)
+    if(dev)
     {
         ALCcontext *ctx = dev->ContextList;
         while(ctx)
@@ -2230,7 +2226,6 @@ static ALCboolean VerifyContext(ALCcontext **context)
             }
             ctx = ctx->next;
         }
-        dev = dev->next;
     }
 
     *context = NULL;
@@ -3086,6 +3081,12 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
 
     DO_INITCONFIG();
 
+    if (DeviceList)
+    {
+        alcSetError(NULL, ALC_OUT_OF_MEMORY);
+        return NULL;
+    }
+
     if(deviceName && (!deviceName[0] || strcasecmp(deviceName, alcDefaultName) == 0 || strcasecmp(deviceName, "openal-soft") == 0
 #ifdef _WIN32
         /* Some old Windows apps hardcode these expecting OpenAL to use a
@@ -3164,12 +3165,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     device->NumMonoSources = device->SourcesMax - device->NumStereoSources;
     device->Limiter = CreateDeviceLimiter(device);
 
-    {
-        ALCdevice *head = DeviceList;
-        do {
-            device->next = head;
-        } while(!(DeviceList == head ? (DeviceList = device, true) : (head = DeviceList, false)));
-    }
+    DeviceList = device;
 
     TRACE("Created device %p, \"%s\"\n", device, alstr_get_cstr(device->DeviceName));
     return device;
@@ -3181,33 +3177,14 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
  */
 ALC_API ALCboolean ALC_APIENTRY alcCloseDevice(ALCdevice *device)
 {
-    ALCdevice *iter, *origdev;
+    ALCdevice *iter;
     ALCcontext *ctx;
 
     iter = DeviceList;
-    do {
-        if(iter == device)
-            break;
-    } while((iter=iter->next) != NULL);
     if(!iter)
     {
         alcSetError(iter, ALC_INVALID_DEVICE);
         return ALC_FALSE;
-    }
-
-    origdev = device;
-    if(!(DeviceList == origdev ? (DeviceList = device->next, true) : (origdev = DeviceList, false)))
-    {
-        ALCdevice *volatile*list = &origdev->next;
-        while(*list)
-        {
-            if(*list == device)
-            {
-                *list = (*list)->next;
-                break;
-            }
-            list = &(*list)->next;
-        }
     }
 
     ctx = device->ContextList;
