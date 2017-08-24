@@ -186,7 +186,6 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
     ALsizei DataPosFrac;
     ALint64 DataSize64;
     ALint increment;
-    ALsizei Counter;
     ALsizei OutPos;
     ALsizei IrSize;
     bool isplaying;
@@ -206,7 +205,6 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
 
     IrSize = 0;
 
-    Counter = (voice->Flags&VOICE_IS_FADING) ? SamplesToDo : 0;
     firstpass = true;
     OutPos = 0;
 
@@ -267,11 +265,11 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
                 DirectParams *parms = &voice->Direct.Params[chan];
 
                 {
-                    if(!Counter)
-                        memcpy(parms->Gains.Current, parms->Gains.Target,
-                               sizeof(parms->Gains.Current));
+                    memcpy(parms->Gains.Current, parms->Gains.Target,
+                            sizeof(parms->Gains.Current));
+
                     MixSamples(ResampledData, voice->Direct.Channels, voice->Direct.Buffer,
-                        parms->Gains.Current, parms->Gains.Target, Counter, OutPos,
+                        parms->Gains.Current, parms->Gains.Target, 0, OutPos,
                         DstBufferSize
                     );
                 }
@@ -284,11 +282,11 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
                 if(!voice->Send[send].Buffer)
                     continue;
 
-                if(!Counter)
-                    memcpy(parms->Gains.Current, parms->Gains.Target,
-                           sizeof(parms->Gains.Current));
+                memcpy(parms->Gains.Current, parms->Gains.Target,
+                        sizeof(parms->Gains.Current));
+
                 MixSamples(ResampledData, voice->Send[send].Channels, voice->Send[send].Buffer,
-                    parms->Gains.Current, parms->Gains.Target, Counter, OutPos, DstBufferSize
+                    parms->Gains.Current, parms->Gains.Target, 0, OutPos, DstBufferSize
                 );
             }
         }
@@ -299,7 +297,6 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
 
         OutPos += DstBufferSize;
         voice->Offset += DstBufferSize;
-        Counter = maxi(DstBufferSize, Counter) - DstBufferSize;
         firstpass = false;
     }
 
