@@ -219,7 +219,6 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
     ALbufferlistitem *BufferListItem;
     ALbufferlistitem *BufferLoopItem;
     ALsizei NumChannels, SampleSize;
-    ResamplerFunc Resample;
     ALsizei DataPosInt;
     ALsizei DataPosFrac;
     ALint64 DataSize64;
@@ -243,9 +242,6 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
     increment      = voice->Step;
 
     IrSize = 0;
-
-    Resample = ((increment == FRACTIONONE && DataPosFrac == 0) ?
-                Resample_copy32_C : voice->Resampler);
 
     Counter = (voice->Flags&VOICE_IS_FADING) ? SamplesToDo : 0;
     firstpass = true;
@@ -310,10 +306,7 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
             }
 
             /* Now resample, then filter and mix to the appropriate outputs. */
-            ResampledData = Resample(&voice->ResampleState,
-                SrcData, DataPosFrac, increment,
-                Device->ResampledData, DstBufferSize
-            );
+            ResampledData = memcpy(Device->ResampledData, SrcData, DstBufferSize*sizeof(ALfloat));
             {
                 DirectParams *parms = &voice->Direct.Params[chan];
                 const ALfloat *samples;
