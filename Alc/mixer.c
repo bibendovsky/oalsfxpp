@@ -177,43 +177,6 @@ static inline void SilenceSamples(ALfloat *dst, ALsizei samples)
 }
 
 
-static const ALfloat *DoFilters(ALfilterState *lpfilter, ALfilterState *hpfilter,
-                                ALfloat *restrict dst, const ALfloat *restrict src,
-                                ALsizei numsamples, enum ActiveFilters type)
-{
-    ALsizei i;
-    switch(type)
-    {
-        case AF_None:
-            ALfilterState_processPassthru(lpfilter, src, numsamples);
-            ALfilterState_processPassthru(hpfilter, src, numsamples);
-            break;
-
-        case AF_LowPass:
-            ALfilterState_process(lpfilter, dst, src, numsamples);
-            ALfilterState_processPassthru(hpfilter, dst, numsamples);
-            return dst;
-        case AF_HighPass:
-            ALfilterState_processPassthru(lpfilter, src, numsamples);
-            ALfilterState_process(hpfilter, dst, src, numsamples);
-            return dst;
-
-        case AF_BandPass:
-            for(i = 0;i < numsamples;)
-            {
-                ALfloat temp[256];
-                ALsizei todo = mini(256, numsamples-i);
-
-                ALfilterState_process(lpfilter, temp, src+i, todo);
-                ALfilterState_process(hpfilter, dst+i, temp, todo);
-                i += todo;
-            }
-            return dst;
-    }
-    return src;
-}
-
-
 ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei SamplesToDo)
 {
     ALbufferlistitem *BufferListItem;
@@ -311,10 +274,7 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
                 DirectParams *parms = &voice->Direct.Params[chan];
                 const ALfloat *samples;
 
-                samples = DoFilters(
-                    &parms->LowPass, &parms->HighPass, Device->FilteredData,
-                    ResampledData, DstBufferSize, voice->Direct.FilterType
-                );
+                samples = ResampledData;
 
                 {
                     if(!Counter)
@@ -335,10 +295,7 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
                 if(!voice->Send[send].Buffer)
                     continue;
 
-                samples = DoFilters(
-                    &parms->LowPass, &parms->HighPass, Device->FilteredData,
-                    ResampledData, DstBufferSize, voice->Send[send].FilterType
-                );
+                samples = ResampledData;
 
                 if(!Counter)
                     memcpy(parms->Gains.Current, parms->Gains.Target,
