@@ -21,12 +21,6 @@
 
 #define MAX_PITCH  (255)
 
-/* Maximum number of buffer samples before the current pos needed for resampling. */
-#define MAX_PRE_SAMPLES 12
-
-/* Maximum number of buffer samples after the current pos needed for resampling. */
-#define MAX_POST_SAMPLES 12
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -253,8 +247,6 @@ typedef struct ALvoice {
     ALuint Flags;
 
     ALuint Offset; /* Number of output samples mixed since starting. */
-
-    alignas(16) ALfloat PrevSamples[MAX_INPUT_CHANNELS][MAX_PRE_SAMPLES];
 
     InterpState ResampleState;
 

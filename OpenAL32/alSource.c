@@ -2322,9 +2322,6 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
         voice->NumChannels = ChannelsFromFmt(buffer->FmtChannels);
         voice->SampleSize  = BytesFromFmt(buffer->FmtType);
 
-        /* Clear previous samples. */
-        memset(voice->PrevSamples, 0, sizeof(voice->PrevSamples));
-
         /* Clear the stepping value so the mixer knows not to mix this until
          * the update gets applied.
          */
