@@ -868,8 +868,10 @@ static ALboolean SetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
 
 
         case AL_AUXILIARY_SEND_FILTER:
+            slot = Context->Device->effect_slot;
+
             if(!((ALuint)values[1] < (ALuint)device->NumAuxSends &&
-                 (values[0] == 0 || (slot=LookupEffectSlot(Context, values[0])) != NULL) &&
+                 (values[0] == 0 || !slot) &&
                  (values[2] == 0 || (filter=LookupFilter(device, values[2])) != NULL)))
             {
                 SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_VALUE, AL_FALSE);

@@ -60,141 +60,10 @@ static void ALeffectState_DecRef(ALeffectState *state);
 
 AL_API ALvoid AL_APIENTRY alGenAuxiliaryEffectSlots(ALsizei n, ALuint *effectslots)
 {
-    ALCcontext *context;
-    ALeffectslot **tmpslots = NULL;
-    ALsizei cur;
-    ALenum err;
-
-    context = GetContextRef();
-    if(!context) return;
-
-    if(!(n >= 0))
-        SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
-    tmpslots = al_malloc(DEF_ALIGN, sizeof(ALeffectslot*)*n);
-
-    for(cur = 0;cur < n;cur++)
-    {
-        ALeffectslot *slot = al_calloc(16, sizeof(ALeffectslot));
-        err = AL_OUT_OF_MEMORY;
-        if(!slot || (err=InitEffectSlot(slot)) != AL_NO_ERROR)
-        {
-            al_free(slot);
-
-            alDeleteAuxiliaryEffectSlots(cur, effectslots);
-            SET_ERROR_AND_GOTO(context, err, done);
-        }
-
-        err = NewThunkEntry(&slot->id);
-        if(err == AL_NO_ERROR)
-            err = InsertUIntMapEntryNoLock(&context->EffectSlotMap, slot->id, slot);
-        if(err != AL_NO_ERROR)
-        {
-            FreeThunkEntry(slot->id);
-            ALeffectState_DecRef(slot->Effect.State);
-            if(slot->Params.EffectState)
-                ALeffectState_DecRef(slot->Params.EffectState);
-            al_free(slot);
-
-            alDeleteAuxiliaryEffectSlots(cur, effectslots);
-            SET_ERROR_AND_GOTO(context, err, done);
-        }
-
-        aluInitEffectPanning(slot);
-
-        tmpslots[cur] = slot;
-        effectslots[cur] = slot->id;
-    }
-    if(n > 0)
-    {
-        struct ALeffectslotArray *curarray = context->ActiveAuxSlots;
-        struct ALeffectslotArray *newarray = NULL;
-        struct ALeffectslotArray *temp_array;
-        ALsizei newcount = curarray->count + n;
-        ALCdevice *device;
-
-        newarray = al_calloc(DEF_ALIGN, FAM_SIZE(struct ALeffectslotArray, slot, newcount));
-        newarray->count = newcount;
-        memcpy(newarray->slot, tmpslots, sizeof(ALeffectslot*)*n);
-        if(curarray)
-            memcpy(newarray->slot+n, curarray->slot, sizeof(ALeffectslot*)*curarray->count);
-
-        temp_array = newarray;
-        newarray = context->ActiveAuxSlots;
-        context->ActiveAuxSlots = temp_array;
-        device = context->Device;
-        al_free(newarray);
-    }
-
-done:
-    al_free(tmpslots);
-    ALCcontext_DecRef(context);
 }
 
 AL_API ALvoid AL_APIENTRY alDeleteAuxiliaryEffectSlots(ALsizei n, const ALuint *effectslots)
 {
-    ALCcontext *context;
-    ALeffectslot *slot;
-    ALsizei i;
-
-    context = GetContextRef();
-    if(!context) return;
-
-    if(!(n >= 0))
-        SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
-    for(i = 0;i < n;i++)
-    {
-        if((slot=LookupEffectSlot(context, effectslots[i])) == NULL)
-            SET_ERROR_AND_GOTO(context, AL_INVALID_NAME, done);
-        if(slot->ref != 0)
-            SET_ERROR_AND_GOTO(context, AL_INVALID_OPERATION, done);
-    }
-
-    // All effectslots are valid
-    if(n > 0)
-    {
-        struct ALeffectslotArray *curarray = context->ActiveAuxSlots;
-        struct ALeffectslotArray *newarray = NULL;
-        struct ALeffectslotArray *temp_array;
-        ALsizei newcount = curarray->count - n;
-        ALCdevice *device;
-        ALsizei j, k;
-
-        assert(newcount >= 0);
-        newarray = al_calloc(DEF_ALIGN, FAM_SIZE(struct ALeffectslotArray, slot, newcount));
-        newarray->count = newcount;
-        for(i = j = 0;i < newarray->count;)
-        {
-            slot = curarray->slot[j++];
-            for(k = 0;k < n;k++)
-            {
-                if(slot->id == effectslots[k])
-                    break;
-            }
-            if(k == n)
-                newarray->slot[i++] = slot;
-        }
-
-        temp_array = newarray;
-        newarray = context->ActiveAuxSlots;
-        context->ActiveAuxSlots = temp_array;
-        device = context->Device;
-        al_free(newarray);
-    }
-
-    for(i = 0;i < n;i++)
-    {
-        if((slot=RemoveEffectSlot(context, effectslots[i])) == NULL)
-            continue;
-        FreeThunkEntry(slot->id);
-
-        DeinitEffectSlot(slot);
-
-        memset(slot, 0, sizeof(*slot));
-        al_free(slot);
-    }
-
-done:
-    ALCcontext_DecRef(context);
 }
 
 AL_API ALboolean AL_APIENTRY alIsAuxiliaryEffectSlot(ALuint effectslot)
@@ -223,7 +92,8 @@ AL_API ALvoid AL_APIENTRY alAuxiliaryEffectSloti(ALuint effectslot, ALenum param
     context = GetContextRef();
     if(!context) return;
 
-    if((slot=LookupEffectSlot(context, effectslot)) == NULL)
+    slot = context->Device->effect_slot;
+    if(slot == NULL)
         SET_ERROR_AND_GOTO(context, AL_INVALID_NAME, done);
     switch(param)
     {

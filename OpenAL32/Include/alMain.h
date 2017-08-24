@@ -724,6 +724,7 @@ struct ALCdevice_struct
 
     struct ALsource* source;
     const ALfloat* source_data;
+    struct ALeffectslot* effect_slot;
 };
 
 // Frequency was requested by the app or config file

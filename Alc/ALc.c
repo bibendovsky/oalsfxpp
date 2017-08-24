@@ -1940,6 +1940,9 @@ static ALCvoid FreeDevice(ALCdevice *device)
     }
     ResetUIntMap(&device->FilterMap);
 
+    DeinitEffectSlot(device->effect_slot);
+    al_free(device->effect_slot);
+
     DeinitSource(device->source, device->NumAuxSends);
     al_free(device->source);
 
@@ -2055,17 +2058,10 @@ static ALvoid InitContext(ALCcontext *Context)
     InitUIntMap(&Context->SourceMap, Context->Device->SourcesMax);
     InitUIntMap(&Context->EffectSlotMap, Context->Device->AuxiliaryEffectSlotMax);
 
-    if(Context->DefaultSlot)
-    {
-        auxslots = al_calloc(DEF_ALIGN, FAM_SIZE(struct ALeffectslotArray, slot, 1));
-        auxslots->count = 1;
-        auxslots->slot[0] = Context->DefaultSlot;
-    }
-    else
-    {
-        auxslots = al_calloc(DEF_ALIGN, sizeof(struct ALeffectslotArray));
-        auxslots->count = 0;
-    }
+    auxslots = al_calloc(DEF_ALIGN, FAM_SIZE(struct ALeffectslotArray, slot, 1));
+    auxslots->count = 1;
+    auxslots->slot[0] = Context->Device->effect_slot;
+
     Context->ActiveAuxSlots = auxslots;
 
     //Set globals
@@ -3161,6 +3157,11 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
 
     device->source = al_calloc(16, sizeof(ALsource));
     InitSourceParams(device->source, device->NumAuxSends);
+
+    device->effect_slot = al_calloc(16, sizeof(ALeffectslot));
+    InitEffectSlot(device->effect_slot);
+    aluInitEffectPanning(device->effect_slot);
+
 
     DeviceList = device;
 
