@@ -39,9 +39,6 @@
 #include "almalloc.h"
 
 
-extern inline struct ALsource *LookupSource(ALCcontext *context, ALuint id);
-extern inline struct ALsource *RemoveSource(ALCcontext *context, ALuint id);
-
 void InitSourceParams(ALsource *Source, ALsizei num_sends);
 void DeinitSource(ALsource *source, ALsizei num_sends);
 static void UpdateSourceProps(ALsource *source, ALvoice *voice, ALsizei num_sends);
@@ -990,17 +987,7 @@ AL_API ALvoid AL_APIENTRY alDeleteSources(ALsizei n, const ALuint *sources)
 
 AL_API ALboolean AL_APIENTRY alIsSource(ALuint source)
 {
-    ALCcontext *context;
-    ALboolean ret;
-
-    context = GetContextRef();
-    if(!context) return AL_FALSE;
-
-    ret = (LookupSource(context, source) ? AL_TRUE : AL_FALSE);
-
-    ALCcontext_DecRef(context);
-
-    return ret;
+    return AL_FALSE;
 }
 
 
@@ -1012,7 +999,7 @@ AL_API ALvoid AL_APIENTRY alSourcef(ALuint source, ALenum param, ALfloat value)
     Context = GetContextRef();
     if(!Context) return;
 
-    if((Source=LookupSource(Context, source)) == NULL)
+    if((Source=Context->Device->source) == NULL)
         alSetError(Context, AL_INVALID_NAME);
     else if(!(FloatValsByProp(param) == 1))
         alSetError(Context, AL_INVALID_ENUM);
@@ -1050,7 +1037,7 @@ AL_API ALvoid AL_APIENTRY alSourcefv(ALuint source, ALenum param, const ALfloat 
     Context = GetContextRef();
     if(!Context) return;
 
-    if((Source=LookupSource(Context, source)) == NULL)
+    if((Source=Context->Device->source) == NULL)
         alSetError(Context, AL_INVALID_NAME);
     else if(!values)
         alSetError(Context, AL_INVALID_VALUE);
@@ -1071,7 +1058,7 @@ AL_API ALvoid AL_APIENTRY alSourcedSOFT(ALuint source, ALenum param, ALdouble va
     Context = GetContextRef();
     if(!Context) return;
 
-    if((Source=LookupSource(Context, source)) == NULL)
+    if((Source=Context->Device->source) == NULL)
         alSetError(Context, AL_INVALID_NAME);
     else if(!(DoubleValsByProp(param) == 1))
         alSetError(Context, AL_INVALID_ENUM);
@@ -1092,7 +1079,7 @@ AL_API ALvoid AL_APIENTRY alSource3dSOFT(ALuint source, ALenum param, ALdouble v
     Context = GetContextRef();
     if(!Context) return;
 
-    if((Source=LookupSource(Context, source)) == NULL)
+    if((Source=Context->Device->source) == NULL)
         alSetError(Context, AL_INVALID_NAME);
     else if(!(DoubleValsByProp(param) == 3))
         alSetError(Context, AL_INVALID_ENUM);
@@ -1114,7 +1101,7 @@ AL_API ALvoid AL_APIENTRY alSourcedvSOFT(ALuint source, ALenum param, const ALdo
     Context = GetContextRef();
     if(!Context) return;
 
-    if((Source=LookupSource(Context, source)) == NULL)
+    if((Source=Context->Device->source) == NULL)
         alSetError(Context, AL_INVALID_NAME);
     else if(!values)
         alSetError(Context, AL_INVALID_VALUE);
@@ -1179,7 +1166,7 @@ AL_API void AL_APIENTRY alSourceiv(ALuint source, ALenum param, const ALint *val
     Context = GetContextRef();
     if(!Context) return;
 
-    if((Source=LookupSource(Context, source)) == NULL)
+    if((Source=Context->Device->source) == NULL)
         alSetError(Context, AL_INVALID_NAME);
     else if(!values)
         alSetError(Context, AL_INVALID_VALUE);
@@ -1200,7 +1187,7 @@ AL_API ALvoid AL_APIENTRY alSourcei64SOFT(ALuint source, ALenum param, ALint64SO
     Context = GetContextRef();
     if(!Context) return;
 
-    if((Source=LookupSource(Context, source)) == NULL)
+    if((Source=Context->Device->source) == NULL)
         alSetError(Context, AL_INVALID_NAME);
     else if(!(Int64ValsByProp(param) == 1))
         alSetError(Context, AL_INVALID_ENUM);
@@ -1218,7 +1205,7 @@ AL_API void AL_APIENTRY alSource3i64SOFT(ALuint source, ALenum param, ALint64SOF
     Context = GetContextRef();
     if(!Context) return;
 
-    if((Source=LookupSource(Context, source)) == NULL)
+    if((Source=Context->Device->source) == NULL)
         alSetError(Context, AL_INVALID_NAME);
     else if(!(Int64ValsByProp(param) == 3))
         alSetError(Context, AL_INVALID_ENUM);
@@ -1239,7 +1226,7 @@ AL_API void AL_APIENTRY alSourcei64vSOFT(ALuint source, ALenum param, const ALin
     Context = GetContextRef();
     if(!Context) return;
 
-    if((Source=LookupSource(Context, source)) == NULL)
+    if((Source=Context->Device->source) == NULL)
         alSetError(Context, AL_INVALID_NAME);
     else if(!values)
         alSetError(Context, AL_INVALID_VALUE);

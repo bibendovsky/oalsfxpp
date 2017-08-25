@@ -41,11 +41,6 @@ typedef struct ALsource {
 } ALsource;
 
 
-inline struct ALsource *LookupSource(ALCcontext *context, ALuint id)
-{ return (struct ALsource*)LookupUIntMapKeyNoLock(&context->SourceMap, id); }
-inline struct ALsource *RemoveSource(ALCcontext *context, ALuint id)
-{ return (struct ALsource*)RemoveUIntMapKeyNoLock(&context->SourceMap, id); }
-
 void UpdateAllSourceProps(ALCcontext *context);
 
 ALvoid ReleaseALSources(ALCcontext *Context);
