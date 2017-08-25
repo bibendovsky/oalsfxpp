@@ -460,40 +460,6 @@ static ALboolean SetSourcefv(ALsource *Source, ALCcontext *Context, SourceProp p
             /* Query only */
             SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_OPERATION, AL_FALSE);
 
-        case AL_SEC_OFFSET:
-        case AL_SAMPLE_OFFSET:
-        case AL_BYTE_OFFSET:
-            CHECKVAL(*values >= 0.0f);
-
-            Source->OffsetType = prop;
-            Source->Offset = *values;
-
-            if(IsPlayingOrPaused(Source))
-            {
-                ALvoice *voice;
-
-                /* Double-check that the source is still playing while we have
-                 * the lock.
-                 */
-                voice = GetSourceVoice(Source, Context);
-                if(voice)
-                {
-                    if(ApplyOffset(Source, voice) == AL_FALSE)
-                    {
-                        SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_VALUE, AL_FALSE);
-                    }
-                }
-            }
-            return AL_TRUE;
-
-        case AL_SOURCE_RADIUS:
-            CHECKVAL(*values >= 0.0f && isfinite(*values));
-
-            Source->Radius = *values;
-            DO_UPDATEPROPS();
-            return AL_TRUE;
-
-
         case AL_SOURCE_RELATIVE:
         case AL_LOOPING:
         case AL_SOURCE_STATE:
@@ -542,29 +508,6 @@ static ALboolean SetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
         case AL_SEC_LENGTH_SOFT:
             /* Query only */
             SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_OPERATION, AL_FALSE);
-
-        case AL_SEC_OFFSET:
-        case AL_SAMPLE_OFFSET:
-        case AL_BYTE_OFFSET:
-            CHECKVAL(*values >= 0);
-
-            Source->OffsetType = prop;
-            Source->Offset = *values;
-
-            if(IsPlayingOrPaused(Source))
-            {
-                ALvoice *voice;
-
-                voice = GetSourceVoice(Source, Context);
-                if(voice)
-                {
-                    if(ApplyOffset(Source, voice) == AL_FALSE)
-                    {
-                        SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_VALUE, AL_FALSE);
-                    }
-                }
-            }
-            return AL_TRUE;
 
         case AL_DIRECT_FILTER:
             if(!(*values == 0 || (filter=LookupFilter(device, *values)) != NULL))
@@ -816,10 +759,6 @@ static ALboolean GetSourcedv(ALsource *Source, ALCcontext *Context, SourceProp p
             *values = GetSourceOffset(Source, prop, Context);
             return AL_TRUE;
 
-        case AL_SOURCE_RADIUS:
-            *values = Source->Radius;
-            return AL_TRUE;
-
         case AL_SEC_OFFSET_LATENCY_SOFT:
             return AL_FALSE;
 
@@ -863,10 +802,6 @@ static ALboolean GetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
     {
         case AL_SOURCE_STATE:
             *values = GetSourceState(Source, GetSourceVoice(Source, Context));
-            return AL_TRUE;
-
-        case AL_SOURCE_TYPE:
-            *values = Source->SourceType;
             return AL_TRUE;
 
         /* 1x float/double */
@@ -1763,13 +1698,6 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
 
         voice->position = 0;
         voice->position_fraction = 0;
-        if(source->OffsetType != AL_NONE)
-        {
-            ApplyOffset(source, voice);
-            start_fading = voice->position != 0 ||
-                voice->position_fraction != 0;
-        }
-
         voice->NumChannels = device->Dry.NumChannels;
 
         /* Clear the stepping value so the mixer knows not to mix this until
@@ -1868,8 +1796,6 @@ AL_API ALvoid AL_APIENTRY alSourceStopv(ALsizei n, const ALuint *sources)
         }
         if(source->state != AL_INITIAL)
             source->state = AL_STOPPED;
-        source->OffsetType = AL_NONE;
-        source->Offset = 0.0;
     }
 
 done:
@@ -2141,8 +2067,6 @@ void InitSourceParams(ALsource *Source, ALsizei num_sends)
 {
     ALsizei i;
 
-    Source->Radius = 0.0f;
-
     Source->Direct.Gain = 1.0f;
     Source->Direct.GainHF = 1.0f;
     Source->Direct.HFReference = LOWPASSFREQREF;
@@ -2159,9 +2083,6 @@ void InitSourceParams(ALsource *Source, ALsizei num_sends)
         Source->Send[i].LFReference = HIGHPASSFREQREF;
     }
 
-    Source->Offset = 0.0;
-    Source->OffsetType = AL_NONE;
-    Source->SourceType = AL_UNDETERMINED;
     Source->state = AL_INITIAL;
 
     /* No way to do an 'init' here, so just test+set with relaxed ordering and
@@ -2206,8 +2127,6 @@ static void UpdateSourceProps(ALsource *source, ALvoice *voice, ALsizei num_send
     }
 
     /* Copy in current property values. */
-    props->Radius = source->Radius;
-
     props->Direct.Gain = source->Direct.Gain;
     props->Direct.GainHF = source->Direct.GainHF;
     props->Direct.HFReference = source->Direct.HFReference;

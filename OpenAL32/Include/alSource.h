@@ -17,9 +17,6 @@ struct ALsource;
 
 
 typedef struct ALsource {
-    /** Source properties. */
-    ALfloat Radius;
-
     /** Direct filter and auxiliary send info. */
     struct {
         ALfloat Gain;
@@ -36,16 +33,6 @@ typedef struct ALsource {
         ALfloat GainLF;
         ALfloat LFReference;
     } *Send;
-
-    /**
-     * Last user-specified offset, and the offset type (bytes, samples, or
-     * seconds).
-     */
-    ALdouble Offset;
-    ALenum   OffsetType;
-
-    /** Source type (static, streaming, or undetermined) */
-    ALint SourceType;
 
     /** Source state (initial, playing, paused, or stopped) */
     ALenum state;
