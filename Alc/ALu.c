@@ -390,7 +390,7 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
                                   const ALfloat DryGainHF, const ALfloat DryGainLF,
                                   const ALfloat *WetGain, const ALfloat *WetGainLF,
                                   const ALfloat *WetGainHF, ALeffectslot **SendSlots,
-                                  const ALbuffer *Buffer, const struct ALvoiceProps *props,
+                                  const struct ALvoiceProps *props,
                                   const ALlistener *Listener, const ALCdevice *Device)
 {
     struct ChanMap StereoMap[2] = {
@@ -406,7 +406,7 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
     ALfloat downmix_gain = 1.0f;
     ALsizei c, i, j;
 
-    switch(Buffer->FmtChannels)
+    switch(Device->FmtChans)
     {
     case FmtMono:
         chans = MonoMap;
@@ -740,7 +740,7 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
     }
 }
 
-static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *props, const ALbuffer *ALBuffer, const ALCcontext *ALContext)
+static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *props, const ALCcontext *ALContext)
 {
     static const ALfloat dir[3] = { 0.0f, 0.0f, -1.0f };
     const ALCdevice *Device = ALContext->Device;
@@ -774,7 +774,7 @@ static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *p
     }
 
     /* Calculate the stepping value */
-    Pitch = (ALfloat)ALBuffer->Frequency/(ALfloat)Device->Frequency * props->Pitch;
+    Pitch = props->Pitch;
     if(Pitch > (ALfloat)MAX_PITCH)
         voice->Step = MAX_PITCH<<FRACTIONBITS;
     else
@@ -798,7 +798,7 @@ static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *p
     }
 
     CalcPanningAndFilters(voice, 0.0f, dir, 0.0f, DryGain, DryGainHF, DryGainLF, WetGain,
-                          WetGainLF, WetGainHF, SendSlots, ALBuffer, props, Listener, Device);
+                          WetGainLF, WetGainHF, SendSlots, props, Listener, Device);
 }
 
 static void CalcAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *props, const ALbuffer *ALBuffer, const ALCcontext *ALContext)
@@ -1148,12 +1148,11 @@ static void CalcAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *prop
         spread = 0.0f;
 
     CalcPanningAndFilters(voice, Distance, dir, spread, DryGain, DryGainHF, DryGainLF, WetGain,
-                          WetGainLF, WetGainHF, SendSlots, ALBuffer, props, Listener, Device);
+                          WetGainLF, WetGainHF, SendSlots, props, Listener, Device);
 }
 
 static void CalcSourceParams(ALvoice *voice, ALCcontext *context, ALboolean force)
 {
-    ALbufferlistitem *BufferListItem;
     struct ALvoiceProps *props;
 
     props = voice->Update;
@@ -1170,21 +1169,7 @@ static void CalcSourceParams(ALvoice *voice, ALCcontext *context, ALboolean forc
     }
     props = voice->Props;
 
-    BufferListItem = voice->current_buffer;
-    while(BufferListItem != NULL)
-    {
-        const ALbuffer *buffer;
-        if((buffer=BufferListItem->buffer) != NULL)
-        {
-            if(props->SpatializeMode == SpatializeOn ||
-               (props->SpatializeMode == SpatializeAuto && buffer->FmtChannels == FmtMono))
-                CalcAttnSourceParams(voice, props, buffer, context);
-            else
-                CalcNonAttnSourceParams(voice, props, buffer, context);
-            break;
-        }
-        BufferListItem = BufferListItem->next;
-    }
+    CalcNonAttnSourceParams(voice, props, context);
 }
 
 

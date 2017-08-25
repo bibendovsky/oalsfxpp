@@ -703,17 +703,6 @@ static ALboolean SetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
             CHECKVAL(*values == AL_FALSE || *values == AL_TRUE);
 
             Source->Looping = (ALboolean)*values;
-            if(IsPlayingOrPaused(Source))
-            {
-                ALvoice *voice = GetSourceVoice(Source, Context);
-                if(voice)
-                {
-                    if(Source->Looping)
-                        voice->loop_buffer = Source->queue;
-                    else
-                        voice->loop_buffer = NULL;
-                }
-            }
             return AL_TRUE;
 
         case AL_BUFFER:
@@ -1316,31 +1305,7 @@ static ALboolean GetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
             return AL_TRUE;
 
         case AL_BUFFERS_PROCESSED:
-            if(Source->Looping || Source->SourceType != AL_STREAMING)
-            {
-                /* Buffers on a looping source are in a perpetual state of
-                 * PENDING, so don't report any as PROCESSED */
-                *values = 0;
-            }
-            else
-            {
-                const ALbufferlistitem *BufferList = Source->queue;
-                const ALbufferlistitem *Current = NULL;
-                ALsizei played = 0;
-                ALvoice *voice;
-
-                if((voice=GetSourceVoice(Source, Context)) != NULL)
-                    Current = voice->current_buffer;
-                else if(Source->state == AL_INITIAL)
-                    Current = BufferList;
-
-                while(BufferList && BufferList != Current)
-                {
-                    played++;
-                    BufferList = CONST_CAST(ALbufferlistitem*,BufferList)->next;
-                }
-                *values = played;
-            }
+            *values = 0;
             return AL_TRUE;
 
         case AL_SOURCE_TYPE:
@@ -2222,35 +2187,10 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
 
     for(i = 0;i < n;i++)
     {
-        ALbufferlistitem *BufferList;
-        ALbuffer *buffer = NULL;
         bool start_fading = false;
         ALsizei s;
 
         source = context->Device->source;
-        /* Check that there is a queue containing at least one valid, non zero
-         * length Buffer.
-         */
-        BufferList = source->queue;
-        while(BufferList)
-        {
-            if((buffer=BufferList->buffer) != NULL && buffer->SampleLen > 0)
-                break;
-            BufferList = BufferList->next;
-        }
-
-        /* If there's nothing to play, go right to stopped. */
-        if(!BufferList)
-        {
-            /* NOTE: A source without any playable buffers should not have an
-             * ALvoice since it shouldn't be in a playing or paused state. So
-             * there's no need to look up its voice and clear the source.
-             */
-            source->state = AL_STOPPED;
-            source->OffsetType = AL_NONE;
-            source->Offset = 0.0;
-            goto finish_play;
-        }
 
         voice = GetSourceVoice(source, context);
         switch(GetSourceState(source, voice))
@@ -2258,7 +2198,6 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
             case AL_PLAYING:
                 assert(voice != NULL);
                 /* A source that's already playing is restarted from the beginning. */
-                voice->current_buffer = BufferList;
                 voice->position = 0;
                 voice->position_fraction = 0;
                 goto finish_play;
@@ -2293,26 +2232,17 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
         source->PropsClean = 1;
         UpdateSourceProps(source, voice, device->NumAuxSends);
 
-        /* A source that's not playing or paused has any offset applied when it
-         * starts playing.
-         */
-        if(source->Looping)
-            voice->loop_buffer = source->queue;
-        else
-            voice->loop_buffer = NULL;
-        voice->current_buffer = BufferList;
         voice->position = 0;
         voice->position_fraction = 0;
         if(source->OffsetType != AL_NONE)
         {
             ApplyOffset(source, voice);
             start_fading = voice->position != 0 ||
-                voice->position_fraction != 0 ||
-                voice->current_buffer != BufferList;
+                voice->position_fraction != 0;
         }
 
-        voice->NumChannels = ChannelsFromFmt(buffer->FmtChannels);
-        voice->SampleSize  = BytesFromFmt(buffer->FmtType);
+        voice->NumChannels = device->Dry.NumChannels;
+        voice->SampleSize  = BytesFromFmt(DevFmtFloat);
 
         /* Clear the stepping value so the mixer knows not to mix this until
          * the update gets applied.
@@ -2902,19 +2832,15 @@ void UpdateAllSourceProps(ALCcontext *context)
 static ALint64 GetSourceSampleOffset(ALsource *Source, ALCcontext *context, ALuint64 *clocktime)
 {
     ALCdevice *device = context->Device;
-    const ALbufferlistitem *Current;
     ALuint64 readPos;
     ALvoice *voice;
 
-    Current = NULL;
     readPos = 0;
     *clocktime = GetDeviceClockTime(device);
 
     voice = GetSourceVoice(Source, context);
     if(voice)
     {
-        Current = voice->current_buffer;
-
         readPos  = (ALuint64)voice->position << 32;
         readPos |= (ALuint64)voice->position_fraction <<
                     (32-FRACTIONBITS);
@@ -2922,14 +2848,7 @@ static ALint64 GetSourceSampleOffset(ALsource *Source, ALCcontext *context, ALui
 
     if(voice)
     {
-        const ALbufferlistitem *BufferList = Source->queue;
-        while(BufferList && BufferList != Current)
-        {
-            if(BufferList->buffer)
-                readPos += (ALuint64)BufferList->buffer->SampleLen << 32;
-            BufferList = CONST_CAST(ALbufferlistitem*,BufferList)->next;
-        }
-        readPos = minu64(readPos, U64(0x7fffffffffffffff));
+        readPos = 0;
     }
 
     return (ALint64)readPos;
@@ -2943,51 +2862,22 @@ static ALint64 GetSourceSampleOffset(ALsource *Source, ALCcontext *context, ALui
 static ALdouble GetSourceSecOffset(ALsource *Source, ALCcontext *context, ALuint64 *clocktime)
 {
     ALCdevice *device = context->Device;
-    const ALbufferlistitem *Current;
     ALuint64 readPos;
     ALdouble offset;
     ALvoice *voice;
 
-    Current = NULL;
     readPos = 0;
     *clocktime = GetDeviceClockTime(device);
 
     voice = GetSourceVoice(Source, context);
     if(voice)
     {
-        Current = voice->current_buffer;
-
         readPos  = (ALuint64)voice->position <<
                     FRACTIONBITS;
         readPos |= voice->position_fraction;
     }
 
     offset = 0.0;
-    if(voice)
-    {
-        const ALbufferlistitem *BufferList = Source->queue;
-        const ALbuffer *BufferFmt = NULL;
-        while(BufferList && BufferList != Current)
-        {
-            const ALbuffer *buffer = BufferList->buffer;
-            if(buffer != NULL)
-            {
-                if(!BufferFmt) BufferFmt = buffer;
-                readPos += (ALuint64)buffer->SampleLen << FRACTIONBITS;
-            }
-            BufferList = CONST_CAST(ALbufferlistitem*,BufferList)->next;
-        }
-
-        while(BufferList && !BufferFmt)
-        {
-            BufferFmt = BufferList->buffer;
-            BufferList = CONST_CAST(ALbufferlistitem*,BufferList)->next;
-        }
-        assert(BufferFmt != NULL);
-
-        offset = (ALdouble)readPos / (ALdouble)FRACTIONONE /
-                 (ALdouble)BufferFmt->Frequency;
-    }
 
     return offset;
 }
@@ -3001,74 +2891,13 @@ static ALdouble GetSourceSecOffset(ALsource *Source, ALCcontext *context, ALuint
 static ALdouble GetSourceOffset(ALsource *Source, ALenum name, ALCcontext *context)
 {
     ALCdevice *device = context->Device;
-    const ALbufferlistitem *Current;
     ALuint readPos;
     ALsizei readPosFrac;
     ALdouble offset;
-    ALvoice *voice;
 
-    Current = NULL;
     readPos = readPosFrac = 0;
-    voice = GetSourceVoice(Source, context);
-    if(voice)
-    {
-        Current = voice->current_buffer;
-
-        readPos = voice->position;
-        readPosFrac = voice->position_fraction;
-    }
 
     offset = 0.0;
-    if(voice)
-    {
-        const ALbufferlistitem *BufferList = Source->queue;
-        const ALbuffer *BufferFmt = NULL;
-        ALboolean readFin = AL_FALSE;
-        ALuint totalBufferLen = 0;
-
-        while(BufferList != NULL)
-        {
-            const ALbuffer *buffer;
-            readFin = readFin || (BufferList == Current);
-            if((buffer=BufferList->buffer) != NULL)
-            {
-                if(!BufferFmt) BufferFmt = buffer;
-                totalBufferLen += buffer->SampleLen;
-                if(!readFin) readPos += buffer->SampleLen;
-            }
-            BufferList = CONST_CAST(ALbufferlistitem*,BufferList)->next;
-        }
-        assert(BufferFmt != NULL);
-
-        if(Source->Looping)
-            readPos %= totalBufferLen;
-        else
-        {
-            /* Wrap back to 0 */
-            if(readPos >= totalBufferLen)
-                readPos = readPosFrac = 0;
-        }
-
-        offset = 0.0;
-        switch(name)
-        {
-            case AL_SEC_OFFSET:
-                offset = (readPos + (ALdouble)readPosFrac/FRACTIONONE) / BufferFmt->Frequency;
-                break;
-
-            case AL_SAMPLE_OFFSET:
-                offset = readPos + (ALdouble)readPosFrac/FRACTIONONE;
-                break;
-
-            case AL_BYTE_OFFSET:
-            {
-                ALuint FrameSize = FrameSizeFromUserFmt(BufferFmt->OriginalChannels,
-                                                        BufferFmt->OriginalType);
-                offset = (ALdouble)(readPos * FrameSize);
-                break;
-            }
-        }
-    }
 
     return offset;
 }
@@ -3103,7 +2932,6 @@ static ALboolean ApplyOffset(ALsource *Source, ALvoice *voice)
             /* Offset is in this buffer */
             voice->position = offset - totalBufferLen;
             voice->position_fraction = frac;
-            voice->current_buffer = BufferList;
             return AL_TRUE;
         }
 

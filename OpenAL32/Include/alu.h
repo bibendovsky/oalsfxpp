@@ -224,14 +224,6 @@ typedef struct ALvoice {
     ALuint position;
     ALsizei position_fraction;
 
-    /* Current buffer queue item being played. */
-    struct ALbufferlistitem* current_buffer;
-
-    /* Buffer queue item to loop to at end of queue (will be NULL for non-
-     * looping voices).
-     */
-    struct ALbufferlistitem* loop_buffer;
-
     /**
      * Number of channels and bytes-per-sample for the attached source's
      * buffer(s).

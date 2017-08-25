@@ -57,7 +57,6 @@ int main()
     LPALDELETEAUXILIARYEFFECTSLOTS alDeleteAuxiliaryEffectSlots = NULL;
     ALuint oal_effect_slot = AL_EFFECTSLOT_NULL;
     ALuint oal_effect = AL_EFFECT_NULL;
-    ALuint oal_buffer = 0;
     ALuint oal_source = 0;
 
 
@@ -366,32 +365,6 @@ int main()
     {
         alGetError();
 
-        alGenBuffers(1, &oal_buffer);
-
-        if (alGetError() != AL_NO_ERROR)
-        {
-            is_succeed = 0;
-            printf("%s\n", "Failed to generate a buffer.");
-        }
-    }
-
-    if (is_succeed)
-    {
-        alGetError();
-
-        alBufferData(oal_buffer, AL_FORMAT_MONO_FLOAT32, src_buffer_f32, (ALsizei)(total_sample_count * 4), 44100);
-
-        if (alGetError() != AL_NO_ERROR)
-        {
-            is_succeed = 0;
-            printf("%s\n", "Failed to fill OAL buffer.");
-        }
-    }
-
-    if (is_succeed)
-    {
-        alGetError();
-
         alGenSources(1, &oal_source);
 
         if (alGetError() != AL_NO_ERROR)
@@ -411,19 +384,6 @@ int main()
         {
             is_succeed = 0;
             printf("%s\n", "Failed to make a source relative.");
-        }
-    }
-
-    if (is_succeed)
-    {
-        alGetError();
-
-        alSourcei(oal_source, AL_BUFFER, (ALint)(oal_buffer));
-
-        if (alGetError() != AL_NO_ERROR)
-        {
-            is_succeed = 0;
-            printf("%s\n", "Failed to assign a buffer to a source.");
         }
     }
 
@@ -499,9 +459,7 @@ int main()
     }
 
     alSourceStop(oal_source);
-    alSourcei(oal_source, AL_BUFFER, 0);
     alDeleteSources(1, &oal_source);
-    alDeleteBuffers(1, &oal_buffer);
 
     if (alDeleteEffects)
     {
