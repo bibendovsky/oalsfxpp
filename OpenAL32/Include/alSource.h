@@ -12,14 +12,8 @@
 extern "C" {
 #endif
 
-struct ALbuffer;
+
 struct ALsource;
-
-
-typedef struct ALbufferlistitem {
-    struct ALbuffer *buffer;
-    struct ALbufferlistitem* next;
-} ALbufferlistitem;
 
 
 typedef struct ALsource {
@@ -90,9 +84,6 @@ typedef struct ALsource {
 
     /** Source state (initial, playing, paused, or stopped) */
     ALenum state;
-
-    /** Source Buffer Queue head. */
-    ALbufferlistitem *queue;
 
     int PropsClean;
 

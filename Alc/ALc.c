@@ -150,22 +150,6 @@ static const struct {
     DECL(alSourcePause),
     DECL(alSourceQueueBuffers),
     DECL(alSourceUnqueueBuffers),
-    DECL(alGenBuffers),
-    DECL(alDeleteBuffers),
-    DECL(alIsBuffer),
-    DECL(alBufferData),
-    DECL(alBufferf),
-    DECL(alBuffer3f),
-    DECL(alBufferfv),
-    DECL(alBufferi),
-    DECL(alBuffer3i),
-    DECL(alBufferiv),
-    DECL(alGetBufferf),
-    DECL(alGetBuffer3f),
-    DECL(alGetBufferfv),
-    DECL(alGetBufferi),
-    DECL(alGetBuffer3i),
-    DECL(alGetBufferiv),
     DECL(alDopplerFactor),
     DECL(alDopplerVelocity),
     DECL(alSpeedOfSound),
@@ -220,10 +204,6 @@ static const struct {
     DECL(alGetSourcei64SOFT),
     DECL(alGetSource3i64SOFT),
     DECL(alGetSourcei64vSOFT),
-
-    DECL(alBufferSamplesSOFT),
-    DECL(alGetBufferSamplesSOFT),
-    DECL(alIsBufferFormatSupportedSOFT),
 
     DECL(alGetStringiSOFT),
 };
@@ -1916,14 +1896,6 @@ static ALCvoid FreeDevice(ALCdevice *device)
 
     TRACE("%p\n", device);
 
-    if(device->BufferMap.size > 0)
-    {
-        WARN("(%p) Deleting %d Buffer%s\n", device, device->BufferMap.size,
-             (device->BufferMap.size==1)?"":"s");
-        ReleaseALBuffers(device);
-    }
-    ResetUIntMap(&device->BufferMap);
-
     if(device->EffectMap.size > 0)
     {
         WARN("(%p) Deleting %d Effect%s\n", device, device->EffectMap.size,
@@ -3124,7 +3096,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     device->AuxiliaryEffectSlotMax = 64;
     device->NumAuxSends = DEFAULT_SENDS;
 
-    InitUIntMap(&device->BufferMap, INT_MAX);
     InitUIntMap(&device->EffectMap, INT_MAX);
     InitUIntMap(&device->FilterMap, INT_MAX);
 

@@ -650,9 +650,6 @@ struct ALCdevice_struct
     ALCuint NumStereoSources;
     ALsizei NumAuxSends;
 
-    // Map of Buffers for this device
-    UIntMap BufferMap;
-
     // Map of Effects for this device
     UIntMap EffectMap;
 

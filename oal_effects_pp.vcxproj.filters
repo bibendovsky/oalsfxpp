@@ -81,9 +81,6 @@
     <ClCompile Include="OpenAL32\alAuxEffectSlot.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OpenAL32\alBuffer.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="OpenAL32\alEffect.c">
       <Filter>Source Files</Filter>
     </ClCompile>

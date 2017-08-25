@@ -229,7 +229,6 @@ typedef struct ALvoice {
      * buffer(s).
      */
     ALsizei NumChannels;
-    ALsizei SampleSize;
 
     /** Current target parameters used for mixing. */
     ALint Step;

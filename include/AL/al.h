@@ -548,32 +548,6 @@ AL_API void AL_APIENTRY alSourceQueueBuffers(ALuint source, ALsizei nb, const AL
 AL_API void AL_APIENTRY alSourceUnqueueBuffers(ALuint source, ALsizei nb, ALuint *buffers);
 
 
-/** Create Buffer objects */
-AL_API void AL_APIENTRY alGenBuffers(ALsizei n, ALuint *buffers);
-/** Delete Buffer objects */
-AL_API void AL_APIENTRY alDeleteBuffers(ALsizei n, const ALuint *buffers);
-/** Verify a handle is a valid Buffer */
-AL_API ALboolean AL_APIENTRY alIsBuffer(ALuint buffer);
-
-/** Specifies the data to be copied into a buffer */
-AL_API void AL_APIENTRY alBufferData(ALuint buffer, ALenum format, const ALvoid *data, ALsizei size, ALsizei freq);
-
-/** Set Buffer parameters, */
-AL_API void AL_APIENTRY alBufferf(ALuint buffer, ALenum param, ALfloat value);
-AL_API void AL_APIENTRY alBuffer3f(ALuint buffer, ALenum param, ALfloat value1, ALfloat value2, ALfloat value3);
-AL_API void AL_APIENTRY alBufferfv(ALuint buffer, ALenum param, const ALfloat *values);
-AL_API void AL_APIENTRY alBufferi(ALuint buffer, ALenum param, ALint value);
-AL_API void AL_APIENTRY alBuffer3i(ALuint buffer, ALenum param, ALint value1, ALint value2, ALint value3);
-AL_API void AL_APIENTRY alBufferiv(ALuint buffer, ALenum param, const ALint *values);
-
-/** Get Buffer parameters. */
-AL_API void AL_APIENTRY alGetBufferf(ALuint buffer, ALenum param, ALfloat *value);
-AL_API void AL_APIENTRY alGetBuffer3f(ALuint buffer, ALenum param, ALfloat *value1, ALfloat *value2, ALfloat *value3);
-AL_API void AL_APIENTRY alGetBufferfv(ALuint buffer, ALenum param, ALfloat *values);
-AL_API void AL_APIENTRY alGetBufferi(ALuint buffer, ALenum param, ALint *value);
-AL_API void AL_APIENTRY alGetBuffer3i(ALuint buffer, ALenum param, ALint *value1, ALint *value2, ALint *value3);
-AL_API void AL_APIENTRY alGetBufferiv(ALuint buffer, ALenum param, ALint *values);
-
 /** Pointer-to-function type, useful for dynamically getting AL entry points. */
 typedef void          (AL_APIENTRY *LPALENABLE)(ALenum capability);
 typedef void          (AL_APIENTRY *LPALDISABLE)(ALenum capability);
@@ -628,22 +602,6 @@ typedef void          (AL_APIENTRY *LPALSOURCEREWIND)(ALuint source);
 typedef void          (AL_APIENTRY *LPALSOURCEPAUSE)(ALuint source);
 typedef void          (AL_APIENTRY *LPALSOURCEQUEUEBUFFERS)(ALuint source, ALsizei nb, const ALuint *buffers);
 typedef void          (AL_APIENTRY *LPALSOURCEUNQUEUEBUFFERS)(ALuint source, ALsizei nb, ALuint *buffers);
-typedef void          (AL_APIENTRY *LPALGENBUFFERS)(ALsizei n, ALuint *buffers);
-typedef void          (AL_APIENTRY *LPALDELETEBUFFERS)(ALsizei n, const ALuint *buffers);
-typedef ALboolean     (AL_APIENTRY *LPALISBUFFER)(ALuint buffer);
-typedef void          (AL_APIENTRY *LPALBUFFERDATA)(ALuint buffer, ALenum format, const ALvoid *data, ALsizei size, ALsizei freq);
-typedef void          (AL_APIENTRY *LPALBUFFERF)(ALuint buffer, ALenum param, ALfloat value);
-typedef void          (AL_APIENTRY *LPALBUFFER3F)(ALuint buffer, ALenum param, ALfloat value1, ALfloat value2, ALfloat value3);
-typedef void          (AL_APIENTRY *LPALBUFFERFV)(ALuint buffer, ALenum param, const ALfloat *values);
-typedef void          (AL_APIENTRY *LPALBUFFERI)(ALuint buffer, ALenum param, ALint value);
-typedef void          (AL_APIENTRY *LPALBUFFER3I)(ALuint buffer, ALenum param, ALint value1, ALint value2, ALint value3);
-typedef void          (AL_APIENTRY *LPALBUFFERIV)(ALuint buffer, ALenum param, const ALint *values);
-typedef void          (AL_APIENTRY *LPALGETBUFFERF)(ALuint buffer, ALenum param, ALfloat *value);
-typedef void          (AL_APIENTRY *LPALGETBUFFER3F)(ALuint buffer, ALenum param, ALfloat *value1, ALfloat *value2, ALfloat *value3);
-typedef void          (AL_APIENTRY *LPALGETBUFFERFV)(ALuint buffer, ALenum param, ALfloat *values);
-typedef void          (AL_APIENTRY *LPALGETBUFFERI)(ALuint buffer, ALenum param, ALint *value);
-typedef void          (AL_APIENTRY *LPALGETBUFFER3I)(ALuint buffer, ALenum param, ALint *value1, ALint *value2, ALint *value3);
-typedef void          (AL_APIENTRY *LPALGETBUFFERIV)(ALuint buffer, ALenum param, ALint *values);
 typedef void          (AL_APIENTRY *LPALDOPPLERFACTOR)(ALfloat value);
 typedef void          (AL_APIENTRY *LPALDOPPLERVELOCITY)(ALfloat value);
 typedef void          (AL_APIENTRY *LPALSPEEDOFSOUND)(ALfloat value);
