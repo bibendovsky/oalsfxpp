@@ -456,7 +456,7 @@ enum DistanceModel {
     ExponentDistance = AL_EXPONENT_DISTANCE,
     DisableDistance  = AL_NONE,
 
-    DefaultDistanceModel = InverseDistanceClamped
+    DefaultDistanceModel = DisableDistance
 };
 
 enum Channel {

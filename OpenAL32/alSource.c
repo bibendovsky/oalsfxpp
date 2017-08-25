@@ -2515,7 +2515,7 @@ void InitSourceParams(ALsource *Source, ALsizei num_sends)
     Source->AirAbsorptionFactor = 0.0f;
     Source->RoomRolloffFactor = 0.0f;
     Source->DopplerFactor = 1.0f;
-    Source->HeadRelative = AL_FALSE;
+    Source->HeadRelative = AL_TRUE;
     Source->Looping = AL_FALSE;
     Source->DistanceModel = DefaultDistanceModel;
     Source->Resampler = ResamplerDefault;
