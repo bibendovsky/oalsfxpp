@@ -2906,7 +2906,7 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
         ALCdevice_DecRef(device);
         return NULL;
     }
-    AllocateVoices(ALContext, 256, device->NumAuxSends);
+    AllocateVoices(ALContext, 1, device->NumAuxSends);
 
     if(DefaultEffect.type != AL_EFFECT_NULL && device->Type == Playback)
     {

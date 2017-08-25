@@ -2220,16 +2220,6 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
 
     device = context->Device;
 
-    while(n > context->MaxVoices-context->VoiceCount)
-    {
-        ALsizei newcount = context->MaxVoices << 1;
-        if(context->MaxVoices >= newcount)
-        {
-            SET_ERROR_AND_GOTO(context, AL_OUT_OF_MEMORY, done);
-        }
-        AllocateVoices(context, newcount, device->NumAuxSends);
-    }
-
     for(i = 0;i < n;i++)
     {
         ALbufferlistitem *BufferList;
