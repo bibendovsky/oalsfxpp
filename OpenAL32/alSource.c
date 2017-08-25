@@ -2291,7 +2291,6 @@ ALvoid ReleaseALSources(ALCcontext *Context)
 
         DeinitSource(temp, device->NumAuxSends);
 
-        FreeThunkEntry(temp->id);
         memset(temp, 0, sizeof(*temp));
         al_free(temp);
     }

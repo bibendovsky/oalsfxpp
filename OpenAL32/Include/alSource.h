@@ -38,9 +38,6 @@ typedef struct ALsource {
     ALenum state;
 
     int PropsClean;
-
-    /** Self ID */
-    ALuint id;
 } ALsource;
 
 
