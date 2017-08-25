@@ -176,6 +176,41 @@ static inline void SilenceSamples(ALfloat *dst, ALsizei samples)
         dst[i] = 0.0f;
 }
 
+static const ALfloat *DoFilters(ALfilterState *lpfilter, ALfilterState *hpfilter,
+                                ALfloat *restrict dst, const ALfloat *restrict src,
+                                ALsizei numsamples, enum ActiveFilters type)
+{
+    ALsizei i;
+    switch(type)
+    {
+        case AF_None:
+            ALfilterState_processPassthru(lpfilter, src, numsamples);
+            ALfilterState_processPassthru(hpfilter, src, numsamples);
+            break;
+
+        case AF_LowPass:
+            ALfilterState_process(lpfilter, dst, src, numsamples);
+            ALfilterState_processPassthru(hpfilter, dst, numsamples);
+            return dst;
+        case AF_HighPass:
+            ALfilterState_processPassthru(lpfilter, src, numsamples);
+            ALfilterState_process(hpfilter, dst, src, numsamples);
+            return dst;
+
+        case AF_BandPass:
+            for(i = 0;i < numsamples;)
+            {
+                ALfloat temp[256];
+                ALsizei todo = mini(256, numsamples-i);
+
+                ALfilterState_process(lpfilter, temp, src+i, todo);
+                ALfilterState_process(hpfilter, dst+i, temp, todo);
+                i += todo;
+            }
+            return dst;
+    }
+    return src;
+}
 
 ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei SamplesToDo)
 {
@@ -199,6 +234,14 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
 
         parms = &voice->Direct.Params[chan];
 
+        DoFilters(
+            &parms->LowPass,
+            &parms->HighPass,
+            Device->FilteredData,
+            Device->ResampledData,
+            SamplesToDo,
+            voice->Direct.FilterType);
+
         memcpy(parms->Gains.Current, parms->Gains.Target, sizeof(parms->Gains.Current));
 
         MixSamples(
@@ -219,6 +262,14 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
             {
                 continue;
             }
+
+            DoFilters(
+                &parms->LowPass,
+                &parms->HighPass,
+                Device->FilteredData,
+                Device->ResampledData,
+                SamplesToDo,
+                voice->Direct.FilterType);
 
             memcpy(parms->Gains.Current, parms->Gains.Target, sizeof(parms->Gains.Current));
 
