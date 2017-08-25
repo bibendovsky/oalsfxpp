@@ -493,14 +493,6 @@ static ALboolean SetSourcefv(ALsource *Source, ALCcontext *Context, SourceProp p
             DO_UPDATEPROPS();
             return AL_TRUE;
 
-        case AL_STEREO_ANGLES:
-            CHECKVAL(isfinite(values[0]) && isfinite(values[1]));
-
-            Source->StereoPan[0] = values[0];
-            Source->StereoPan[1] = values[1];
-            DO_UPDATEPROPS();
-            return AL_TRUE;
-
 
         case AL_SOURCE_RELATIVE:
         case AL_LOOPING:
@@ -826,11 +818,6 @@ static ALboolean GetSourcedv(ALsource *Source, ALCcontext *Context, SourceProp p
 
         case AL_SOURCE_RADIUS:
             *values = Source->Radius;
-            return AL_TRUE;
-
-        case AL_STEREO_ANGLES:
-            values[0] = Source->StereoPan[0];
-            values[1] = Source->StereoPan[1];
             return AL_TRUE;
 
         case AL_SEC_OFFSET_LATENCY_SOFT:
@@ -2154,9 +2141,6 @@ void InitSourceParams(ALsource *Source, ALsizei num_sends)
 {
     ALsizei i;
 
-    Source->StereoPan[0] = DEG2RAD( 30.0f);
-    Source->StereoPan[1] = DEG2RAD(-30.0f);
-
     Source->Radius = 0.0f;
 
     Source->Direct.Gain = 1.0f;
@@ -2222,9 +2206,6 @@ static void UpdateSourceProps(ALsource *source, ALvoice *voice, ALsizei num_send
     }
 
     /* Copy in current property values. */
-    props->StereoPan[0] = source->StereoPan[0];
-    props->StereoPan[1] = source->StereoPan[1];
-
     props->Radius = source->Radius;
 
     props->Direct.Gain = source->Direct.Gain;

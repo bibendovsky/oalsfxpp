@@ -18,12 +18,6 @@ struct ALsource;
 
 typedef struct ALsource {
     /** Source properties. */
-
-    /* NOTE: Stereo pan angles are specified in radians, counter-clockwise
-     * rather than clockwise.
-     */
-    ALfloat StereoPan[2];
-
     ALfloat Radius;
 
     /** Direct filter and auxiliary send info. */
