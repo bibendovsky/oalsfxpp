@@ -376,19 +376,6 @@ int main()
 
     if (is_succeed)
     {
-        alSourcei(oal_source, AL_SOURCE_RELATIVE, AL_TRUE);
-        alSource3f(oal_source, AL_POSITION, 0.0F, 0.0F, 0.0F);
-        alSource3f(oal_source, AL_VELOCITY, 0.0F, 0.0F, 0.0F);
-
-        if (alGetError() != AL_NO_ERROR)
-        {
-            is_succeed = 0;
-            printf("%s\n", "Failed to make a source relative.");
-        }
-    }
-
-    if (is_succeed)
-    {
         alGetError();
 
         alSource3i(oal_source, AL_AUXILIARY_SEND_FILTER, oal_effect_slot, 0, 0);

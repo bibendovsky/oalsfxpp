@@ -18,34 +18,6 @@ struct ALsource;
 
 typedef struct ALsource {
     /** Source properties. */
-    ALfloat   Gain;
-    ALfloat   OuterGain;
-    ALfloat   MinGain;
-    ALfloat   MaxGain;
-    ALfloat   InnerAngle;
-    ALfloat   OuterAngle;
-    ALfloat   RefDistance;
-    ALfloat   MaxDistance;
-    ALfloat   RolloffFactor;
-    ALfloat   Position[3];
-    ALfloat   Velocity[3];
-    ALfloat   Direction[3];
-    ALfloat   Orientation[2][3];
-    ALboolean HeadRelative;
-    ALboolean Looping;
-    enum DistanceModel DistanceModel;
-    enum Resampler Resampler;
-    ALboolean DirectChannels;
-    enum SpatializeMode Spatialize;
-
-    ALboolean DryGainHFAuto;
-    ALboolean WetGainAuto;
-    ALboolean WetGainHFAuto;
-    ALfloat   OuterGainHF;
-
-    ALfloat AirAbsorptionFactor;
-    ALfloat RoomRolloffFactor;
-    ALfloat DopplerFactor;
 
     /* NOTE: Stereo pan angles are specified in radians, counter-clockwise
      * rather than clockwise.

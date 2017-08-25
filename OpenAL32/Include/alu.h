@@ -153,34 +153,6 @@ typedef struct SendParams {
 struct ALvoiceProps {
     struct ALvoiceProps* next;
 
-    ALfloat Gain;
-    ALfloat OuterGain;
-    ALfloat MinGain;
-    ALfloat MaxGain;
-    ALfloat InnerAngle;
-    ALfloat OuterAngle;
-    ALfloat RefDistance;
-    ALfloat MaxDistance;
-    ALfloat RolloffFactor;
-    ALfloat Position[3];
-    ALfloat Velocity[3];
-    ALfloat Direction[3];
-    ALfloat Orientation[2][3];
-    ALboolean HeadRelative;
-    enum DistanceModel DistanceModel;
-    enum Resampler Resampler;
-    ALboolean DirectChannels;
-    enum SpatializeMode SpatializeMode;
-
-    ALboolean DryGainHFAuto;
-    ALboolean WetGainAuto;
-    ALboolean WetGainHFAuto;
-    ALfloat   OuterGainHF;
-
-    ALfloat AirAbsorptionFactor;
-    ALfloat RoomRolloffFactor;
-    ALfloat DopplerFactor;
-
     ALfloat StereoPan[2];
 
     ALfloat Radius;
@@ -231,8 +203,6 @@ typedef struct ALvoice {
 
     /** Current target parameters used for mixing. */
     ALint Step;
-
-    ResamplerFunc Resampler;
 
     ALuint Flags;
 

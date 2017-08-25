@@ -397,7 +397,7 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
         { FrontLeft,  DEG2RAD(-30.0f), DEG2RAD(0.0f) },
         { FrontRight, DEG2RAD( 30.0f), DEG2RAD(0.0f) }
     };
-    bool DirectChannels = props->DirectChannels;
+    bool DirectChannels = AL_FALSE;
     const ALsizei NumSends = Device->NumAuxSends;
     const ALuint Frequency = Device->Frequency;
     const struct ChanMap *chans = NULL;
@@ -426,138 +426,41 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
         break;
     }
 
-    if(isbformat)
-    {
-        /* Special handling for B-Format sources. */
+    /* Non-HRTF rendering. Use normal panning to the output. */
 
-        if(Distance > FLT_EPSILON)
+    {
+        ALfloat w0 = 0.0f;
+
+        for(c = 0;c < num_channels;c++)
         {
-            /* Panning a B-Format sound toward some direction is easy. Just pan
-             * the first (W) channel as a normal mono sound and silence the
-             * others.
-             */
             ALfloat coeffs[MAX_AMBI_COEFFS];
 
-            if(Device->Render_Mode == StereoPair)
-            {
-                ALfloat ev = asinf(Dir[1]);
-                ALfloat az = atan2f(Dir[0], -Dir[2]);
-                CalcAnglePairwiseCoeffs(az, ev, Spread, coeffs);
-            }
-            else
-                CalcDirectionCoeffs(Dir, Spread, coeffs);
-
-            /* NOTE: W needs to be scaled by sqrt(2) due to FuMa normalization. */
-            ComputePanningGains(Device->Dry, coeffs, DryGain*1.414213562f,
-                                voice->Direct.Params[0].Gains.Target);
-            for(c = 1;c < num_channels;c++)
+            /* Special-case LFE */
+            if(chans[c].channel == LFE)
             {
                 for(j = 0;j < MAX_OUTPUT_CHANNELS;j++)
                     voice->Direct.Params[c].Gains.Target[j] = 0.0f;
-            }
+                if(Device->Dry.Buffer == Device->RealOut.Buffer)
+                {
+                    int idx = GetChannelIdxByName(Device->RealOut, chans[c].channel);
+                    if(idx != -1) voice->Direct.Params[c].Gains.Target[idx] = DryGain;
+                }
 
-            for(i = 0;i < NumSends;i++)
-            {
-                const ALeffectslot *Slot = SendSlots[i];
-                if(Slot)
-                    ComputePanningGainsBF(Slot->ChanMap, Slot->NumChannels,
-                        coeffs, WetGain[i]*1.414213562f, voice->Send[i].Params[0].Gains.Target
-                    );
-                else
-                    for(j = 0;j < MAX_EFFECT_CHANNELS;j++)
-                        voice->Send[i].Params[0].Gains.Target[j] = 0.0f;
-                for(c = 1;c < num_channels;c++)
+                for(i = 0;i < NumSends;i++)
                 {
                     for(j = 0;j < MAX_EFFECT_CHANNELS;j++)
                         voice->Send[i].Params[c].Gains.Target[j] = 0.0f;
                 }
+                continue;
             }
-        }
-        else
-        {
-            /* Local B-Format sources have their XYZ channels rotated according
-             * to the orientation.
-             */
-            ALfloat N[3], V[3], U[3];
-            aluMatrixf matrix;
-            ALfloat scale;
 
-            /* AT then UP */
-            N[0] = props->Orientation[0][0];
-            N[1] = props->Orientation[0][1];
-            N[2] = props->Orientation[0][2];
-            aluNormalize(N);
-            V[0] = props->Orientation[1][0];
-            V[1] = props->Orientation[1][1];
-            V[2] = props->Orientation[1][2];
-            aluNormalize(V);
-            if(!props->HeadRelative)
-            {
-                const aluMatrixf *lmatrix = &Listener->Params.Matrix;
-                aluMatrixfFloat3(N, 0.0f, lmatrix);
-                aluMatrixfFloat3(V, 0.0f, lmatrix);
-            }
-            /* Build and normalize right-vector */
-            aluCrossproduct(N, V, U);
-            aluNormalize(U);
-
-            /* Build a rotate + conversion matrix (FuMa -> ACN+N3D). */
-            scale = 1.732050808f;
-            aluMatrixfSet(&matrix,
-                1.414213562f,        0.0f,        0.0f,        0.0f,
-                        0.0f, -N[0]*scale,  N[1]*scale, -N[2]*scale,
-                        0.0f,  U[0]*scale, -U[1]*scale,  U[2]*scale,
-                        0.0f, -V[0]*scale,  V[1]*scale, -V[2]*scale
+            if(Device->Render_Mode == StereoPair)
+                CalcAnglePairwiseCoeffs(chans[c].angle, chans[c].elevation, Spread, coeffs);
+            else
+                CalcAngleCoeffs(chans[c].angle, chans[c].elevation, Spread, coeffs);
+            ComputePanningGains(Device->Dry,
+                coeffs, DryGain, voice->Direct.Params[c].Gains.Target
             );
-
-            voice->Direct.Buffer = Device->FOAOut.Buffer;
-            voice->Direct.Channels = Device->FOAOut.NumChannels;
-            for(c = 0;c < num_channels;c++)
-                ComputeFirstOrderGains(Device->FOAOut, matrix.m[c], DryGain,
-                                       voice->Direct.Params[c].Gains.Target);
-            for(i = 0;i < NumSends;i++)
-            {
-                const ALeffectslot *Slot = SendSlots[i];
-                if(Slot)
-                {
-                    for(c = 0;c < num_channels;c++)
-                        ComputeFirstOrderGainsBF(Slot->ChanMap, Slot->NumChannels,
-                            matrix.m[c], WetGain[i], voice->Send[i].Params[c].Gains.Target
-                        );
-                }
-                else
-                {
-                    for(c = 0;c < num_channels;c++)
-                        for(j = 0;j < MAX_EFFECT_CHANNELS;j++)
-                            voice->Send[i].Params[c].Gains.Target[j] = 0.0f;
-                }
-            }
-        }
-    }
-    else if(DirectChannels)
-    {
-        /* Direct source channels always play local. Skip the virtual channels
-         * and write inputs to the matching real outputs.
-         */
-        voice->Direct.Buffer = Device->RealOut.Buffer;
-        voice->Direct.Channels = Device->RealOut.NumChannels;
-
-        for(c = 0;c < num_channels;c++)
-        {
-            int idx;
-            for(j = 0;j < MAX_OUTPUT_CHANNELS;j++)
-                voice->Direct.Params[c].Gains.Target[j] = 0.0f;
-            if((idx=GetChannelIdxByName(Device->RealOut, chans[c].channel)) != -1)
-                voice->Direct.Params[c].Gains.Target[idx] = DryGain;
-        }
-
-        /* Auxiliary sends still use normal channel panning since they mix to
-         * B-Format, which can't channel-match.
-         */
-        for(c = 0;c < num_channels;c++)
-        {
-            ALfloat coeffs[MAX_AMBI_COEFFS];
-            CalcAngleCoeffs(chans[c].angle, chans[c].elevation, 0.0f, coeffs);
 
             for(i = 0;i < NumSends;i++)
             {
@@ -569,120 +472,6 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
                 else
                     for(j = 0;j < MAX_EFFECT_CHANNELS;j++)
                         voice->Send[i].Params[c].Gains.Target[j] = 0.0f;
-            }
-        }
-    }
-    else
-    {
-        /* Non-HRTF rendering. Use normal panning to the output. */
-
-        if(Distance > FLT_EPSILON)
-        {
-            ALfloat coeffs[MAX_AMBI_COEFFS];
-            ALfloat w0 = 0.0f;
-
-            /* Calculate the directional coefficients once, which apply to all
-             * input channels.
-             */
-            if(Device->Render_Mode == StereoPair)
-            {
-                ALfloat ev = asinf(Dir[1]);
-                ALfloat az = atan2f(Dir[0], -Dir[2]);
-                CalcAnglePairwiseCoeffs(az, ev, Spread, coeffs);
-            }
-            else
-                CalcDirectionCoeffs(Dir, Spread, coeffs);
-
-            for(c = 0;c < num_channels;c++)
-            {
-                /* Special-case LFE */
-                if(chans[c].channel == LFE)
-                {
-                    for(j = 0;j < MAX_OUTPUT_CHANNELS;j++)
-                        voice->Direct.Params[c].Gains.Target[j] = 0.0f;
-                    if(Device->Dry.Buffer == Device->RealOut.Buffer)
-                    {
-                        int idx = GetChannelIdxByName(Device->RealOut, chans[c].channel);
-                        if(idx != -1) voice->Direct.Params[c].Gains.Target[idx] = DryGain;
-                    }
-                    continue;
-                }
-
-                ComputePanningGains(Device->Dry,
-                    coeffs, DryGain * downmix_gain, voice->Direct.Params[c].Gains.Target
-                );
-            }
-
-            for(i = 0;i < NumSends;i++)
-            {
-                const ALeffectslot *Slot = SendSlots[i];
-                if(Slot)
-                    for(c = 0;c < num_channels;c++)
-                    {
-                        /* Skip LFE */
-                        if(chans[c].channel == LFE)
-                            for(j = 0;j < MAX_EFFECT_CHANNELS;j++)
-                                voice->Send[i].Params[c].Gains.Target[j] = 0.0f;
-                        else
-                            ComputePanningGainsBF(Slot->ChanMap,
-                                Slot->NumChannels, coeffs, WetGain[i] * downmix_gain,
-                                voice->Send[i].Params[c].Gains.Target
-                            );
-                    }
-                else
-                    for(c = 0;c < num_channels;c++)
-                    {
-                        for(j = 0;j < MAX_EFFECT_CHANNELS;j++)
-                            voice->Send[i].Params[c].Gains.Target[j] = 0.0f;
-                    }
-            }
-        }
-        else
-        {
-            ALfloat w0 = 0.0f;
-
-            for(c = 0;c < num_channels;c++)
-            {
-                ALfloat coeffs[MAX_AMBI_COEFFS];
-
-                /* Special-case LFE */
-                if(chans[c].channel == LFE)
-                {
-                    for(j = 0;j < MAX_OUTPUT_CHANNELS;j++)
-                        voice->Direct.Params[c].Gains.Target[j] = 0.0f;
-                    if(Device->Dry.Buffer == Device->RealOut.Buffer)
-                    {
-                        int idx = GetChannelIdxByName(Device->RealOut, chans[c].channel);
-                        if(idx != -1) voice->Direct.Params[c].Gains.Target[idx] = DryGain;
-                    }
-
-                    for(i = 0;i < NumSends;i++)
-                    {
-                        for(j = 0;j < MAX_EFFECT_CHANNELS;j++)
-                            voice->Send[i].Params[c].Gains.Target[j] = 0.0f;
-                    }
-                    continue;
-                }
-
-                if(Device->Render_Mode == StereoPair)
-                    CalcAnglePairwiseCoeffs(chans[c].angle, chans[c].elevation, Spread, coeffs);
-                else
-                    CalcAngleCoeffs(chans[c].angle, chans[c].elevation, Spread, coeffs);
-                ComputePanningGains(Device->Dry,
-                    coeffs, DryGain, voice->Direct.Params[c].Gains.Target
-                );
-
-                for(i = 0;i < NumSends;i++)
-                {
-                    const ALeffectslot *Slot = SendSlots[i];
-                    if(Slot)
-                        ComputePanningGainsBF(Slot->ChanMap, Slot->NumChannels,
-                            coeffs, WetGain[i], voice->Send[i].Params[c].Gains.Target
-                        );
-                    else
-                        for(j = 0;j < MAX_EFFECT_CHANNELS;j++)
-                            voice->Send[i].Params[c].Gains.Target[j] = 0.0f;
-                }
             }
         }
     }
@@ -780,17 +569,16 @@ static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *p
     else
         voice->Step = maxi(fastf2i(Pitch*FRACTIONONE + 0.5f), 1);
     BsincPrepare(voice->Step, &voice->ResampleState.bsinc);
-    voice->Resampler = SelectResampler(props->Resampler);
 
     /* Calculate gains */
-    DryGain  = clampf(props->Gain, props->MinGain, props->MaxGain);
+    DryGain  = 1.0F;
     DryGain *= props->Direct.Gain * Listener->Params.Gain;
     DryGain  = minf(DryGain, GAIN_MIX_MAX);
     DryGainHF = props->Direct.GainHF;
     DryGainLF = props->Direct.GainLF;
     for(i = 0;i < Device->NumAuxSends;i++)
     {
-        WetGain[i]  = clampf(props->Gain, props->MinGain, props->MaxGain);
+        WetGain[i]  = 1.0F;
         WetGain[i] *= props->Send[i].Gain * Listener->Params.Gain;
         WetGain[i]  = minf(WetGain[i], GAIN_MIX_MAX);
         WetGainHF[i] = props->Send[i].GainHF;

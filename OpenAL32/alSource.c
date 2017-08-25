@@ -460,97 +460,6 @@ static ALboolean SetSourcefv(ALsource *Source, ALCcontext *Context, SourceProp p
             /* Query only */
             SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_OPERATION, AL_FALSE);
 
-        case AL_CONE_INNER_ANGLE:
-            CHECKVAL(*values >= 0.0f && *values <= 360.0f);
-
-            Source->InnerAngle = *values;
-            DO_UPDATEPROPS();
-            return AL_TRUE;
-
-        case AL_CONE_OUTER_ANGLE:
-            CHECKVAL(*values >= 0.0f && *values <= 360.0f);
-
-            Source->OuterAngle = *values;
-            DO_UPDATEPROPS();
-            return AL_TRUE;
-
-        case AL_GAIN:
-            CHECKVAL(*values >= 0.0f);
-
-            Source->Gain = *values;
-            DO_UPDATEPROPS();
-            return AL_TRUE;
-
-        case AL_MAX_DISTANCE:
-            CHECKVAL(*values >= 0.0f);
-
-            Source->MaxDistance = *values;
-            DO_UPDATEPROPS();
-            return AL_TRUE;
-
-        case AL_ROLLOFF_FACTOR:
-            CHECKVAL(*values >= 0.0f);
-
-            Source->RolloffFactor = *values;
-            DO_UPDATEPROPS();
-            return AL_TRUE;
-
-        case AL_REFERENCE_DISTANCE:
-            CHECKVAL(*values >= 0.0f);
-
-            Source->RefDistance = *values;
-            DO_UPDATEPROPS();
-            return AL_TRUE;
-
-        case AL_MIN_GAIN:
-            CHECKVAL(*values >= 0.0f);
-
-            Source->MinGain = *values;
-            DO_UPDATEPROPS();
-            return AL_TRUE;
-
-        case AL_MAX_GAIN:
-            CHECKVAL(*values >= 0.0f);
-
-            Source->MaxGain = *values;
-            DO_UPDATEPROPS();
-            return AL_TRUE;
-
-        case AL_CONE_OUTER_GAIN:
-            CHECKVAL(*values >= 0.0f && *values <= 1.0f);
-
-            Source->OuterGain = *values;
-            DO_UPDATEPROPS();
-            return AL_TRUE;
-
-        case AL_CONE_OUTER_GAINHF:
-            CHECKVAL(*values >= 0.0f && *values <= 1.0f);
-
-            Source->OuterGainHF = *values;
-            DO_UPDATEPROPS();
-            return AL_TRUE;
-
-        case AL_AIR_ABSORPTION_FACTOR:
-            CHECKVAL(*values >= 0.0f && *values <= 10.0f);
-
-            Source->AirAbsorptionFactor = *values;
-            DO_UPDATEPROPS();
-            return AL_TRUE;
-
-        case AL_ROOM_ROLLOFF_FACTOR:
-            CHECKVAL(*values >= 0.0f && *values <= 10.0f);
-
-            Source->RoomRolloffFactor = *values;
-            DO_UPDATEPROPS();
-            return AL_TRUE;
-
-        case AL_DOPPLER_FACTOR:
-            CHECKVAL(*values >= 0.0f && *values <= 1.0f);
-
-            Source->DopplerFactor = *values;
-            DO_UPDATEPROPS();
-            return AL_TRUE;
-
         case AL_SEC_OFFSET:
         case AL_SAMPLE_OFFSET:
         case AL_BYTE_OFFSET:
@@ -589,47 +498,6 @@ static ALboolean SetSourcefv(ALsource *Source, ALCcontext *Context, SourceProp p
 
             Source->StereoPan[0] = values[0];
             Source->StereoPan[1] = values[1];
-            DO_UPDATEPROPS();
-            return AL_TRUE;
-
-
-        case AL_POSITION:
-            CHECKVAL(isfinite(values[0]) && isfinite(values[1]) && isfinite(values[2]));
-
-            Source->Position[0] = values[0];
-            Source->Position[1] = values[1];
-            Source->Position[2] = values[2];
-            DO_UPDATEPROPS();
-            return AL_TRUE;
-
-        case AL_VELOCITY:
-            CHECKVAL(isfinite(values[0]) && isfinite(values[1]) && isfinite(values[2]));
-
-            Source->Velocity[0] = values[0];
-            Source->Velocity[1] = values[1];
-            Source->Velocity[2] = values[2];
-            DO_UPDATEPROPS();
-            return AL_TRUE;
-
-        case AL_DIRECTION:
-            CHECKVAL(isfinite(values[0]) && isfinite(values[1]) && isfinite(values[2]));
-
-            Source->Direction[0] = values[0];
-            Source->Direction[1] = values[1];
-            Source->Direction[2] = values[2];
-            DO_UPDATEPROPS();
-            return AL_TRUE;
-
-        case AL_ORIENTATION:
-            CHECKVAL(isfinite(values[0]) && isfinite(values[1]) && isfinite(values[2]) &&
-                     isfinite(values[3]) && isfinite(values[4]) && isfinite(values[5]));
-
-            Source->Orientation[0][0] = values[0];
-            Source->Orientation[0][1] = values[1];
-            Source->Orientation[0][2] = values[2];
-            Source->Orientation[1][0] = values[3];
-            Source->Orientation[1][1] = values[4];
-            Source->Orientation[1][2] = values[5];
             DO_UPDATEPROPS();
             return AL_TRUE;
 
@@ -683,19 +551,6 @@ static ALboolean SetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
             /* Query only */
             SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_OPERATION, AL_FALSE);
 
-        case AL_SOURCE_RELATIVE:
-            CHECKVAL(*values == AL_FALSE || *values == AL_TRUE);
-
-            Source->HeadRelative = (ALboolean)*values;
-            DO_UPDATEPROPS();
-            return AL_TRUE;
-
-        case AL_LOOPING:
-            CHECKVAL(*values == AL_FALSE || *values == AL_TRUE);
-
-            Source->Looping = (ALboolean)*values;
-            return AL_TRUE;
-
         case AL_SEC_OFFSET:
         case AL_SAMPLE_OFFSET:
         case AL_BYTE_OFFSET:
@@ -743,63 +598,6 @@ static ALboolean SetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
             }
             DO_UPDATEPROPS();
             return AL_TRUE;
-
-        case AL_DIRECT_FILTER_GAINHF_AUTO:
-            CHECKVAL(*values == AL_FALSE || *values == AL_TRUE);
-
-            Source->DryGainHFAuto = *values;
-            DO_UPDATEPROPS();
-            return AL_TRUE;
-
-        case AL_AUXILIARY_SEND_FILTER_GAIN_AUTO:
-            CHECKVAL(*values == AL_FALSE || *values == AL_TRUE);
-
-            Source->WetGainAuto = *values;
-            DO_UPDATEPROPS();
-            return AL_TRUE;
-
-        case AL_AUXILIARY_SEND_FILTER_GAINHF_AUTO:
-            CHECKVAL(*values == AL_FALSE || *values == AL_TRUE);
-
-            Source->WetGainHFAuto = *values;
-            DO_UPDATEPROPS();
-            return AL_TRUE;
-
-        case AL_DIRECT_CHANNELS_SOFT:
-            CHECKVAL(*values == AL_FALSE || *values == AL_TRUE);
-
-            Source->DirectChannels = *values;
-            DO_UPDATEPROPS();
-            return AL_TRUE;
-
-        case AL_DISTANCE_MODEL:
-            CHECKVAL(*values == AL_NONE ||
-                     *values == AL_INVERSE_DISTANCE ||
-                     *values == AL_INVERSE_DISTANCE_CLAMPED ||
-                     *values == AL_LINEAR_DISTANCE ||
-                     *values == AL_LINEAR_DISTANCE_CLAMPED ||
-                     *values == AL_EXPONENT_DISTANCE ||
-                     *values == AL_EXPONENT_DISTANCE_CLAMPED);
-
-            Source->DistanceModel = *values;
-            if(Context->SourceDistanceModel)
-                DO_UPDATEPROPS();
-            return AL_TRUE;
-
-        case AL_SOURCE_RESAMPLER_SOFT:
-            CHECKVAL(*values >= 0 && *values <= ResamplerMax);
-
-            Source->Resampler = *values;
-            DO_UPDATEPROPS();
-            return AL_TRUE;
-
-        case AL_SOURCE_SPATIALIZE_SOFT:
-            CHECKVAL(*values >= AL_FALSE && *values <= AL_AUTO_SOFT);
-
-            Source->Spatialize = *values;
-            DO_UPDATEPROPS();
-            return AL_TRUE;
-
 
         case AL_AUXILIARY_SEND_FILTER:
             slot = Context->Device->effect_slot;
@@ -1020,62 +818,10 @@ static ALboolean GetSourcedv(ALsource *Source, ALCcontext *Context, SourceProp p
 
     switch(prop)
     {
-        case AL_GAIN:
-            *values = Source->Gain;
-            return AL_TRUE;
-
-        case AL_MAX_DISTANCE:
-            *values = Source->MaxDistance;
-            return AL_TRUE;
-
-        case AL_ROLLOFF_FACTOR:
-            *values = Source->RolloffFactor;
-            return AL_TRUE;
-
-        case AL_REFERENCE_DISTANCE:
-            *values = Source->RefDistance;
-            return AL_TRUE;
-
-        case AL_CONE_INNER_ANGLE:
-            *values = Source->InnerAngle;
-            return AL_TRUE;
-
-        case AL_CONE_OUTER_ANGLE:
-            *values = Source->OuterAngle;
-            return AL_TRUE;
-
-        case AL_MIN_GAIN:
-            *values = Source->MinGain;
-            return AL_TRUE;
-
-        case AL_MAX_GAIN:
-            *values = Source->MaxGain;
-            return AL_TRUE;
-
-        case AL_CONE_OUTER_GAIN:
-            *values = Source->OuterGain;
-            return AL_TRUE;
-
         case AL_SEC_OFFSET:
         case AL_SAMPLE_OFFSET:
         case AL_BYTE_OFFSET:
             *values = GetSourceOffset(Source, prop, Context);
-            return AL_TRUE;
-
-        case AL_CONE_OUTER_GAINHF:
-            *values = Source->OuterGainHF;
-            return AL_TRUE;
-
-        case AL_AIR_ABSORPTION_FACTOR:
-            *values = Source->AirAbsorptionFactor;
-            return AL_TRUE;
-
-        case AL_ROOM_ROLLOFF_FACTOR:
-            *values = Source->RoomRolloffFactor;
-            return AL_TRUE;
-
-        case AL_DOPPLER_FACTOR:
-            *values = Source->DopplerFactor;
             return AL_TRUE;
 
         case AL_SOURCE_RADIUS:
@@ -1089,33 +835,6 @@ static ALboolean GetSourcedv(ALsource *Source, ALCcontext *Context, SourceProp p
 
         case AL_SEC_OFFSET_LATENCY_SOFT:
             return AL_FALSE;
-
-        case AL_POSITION:
-            values[0] = Source->Position[0];
-            values[1] = Source->Position[1];
-            values[2] = Source->Position[2];
-            return AL_TRUE;
-
-        case AL_VELOCITY:
-            values[0] = Source->Velocity[0];
-            values[1] = Source->Velocity[1];
-            values[2] = Source->Velocity[2];
-            return AL_TRUE;
-
-        case AL_DIRECTION:
-            values[0] = Source->Direction[0];
-            values[1] = Source->Direction[1];
-            values[2] = Source->Direction[2];
-            return AL_TRUE;
-
-        case AL_ORIENTATION:
-            values[0] = Source->Orientation[0][0];
-            values[1] = Source->Orientation[0][1];
-            values[2] = Source->Orientation[0][2];
-            values[3] = Source->Orientation[1][0];
-            values[4] = Source->Orientation[1][1];
-            values[5] = Source->Orientation[1][2];
-            return AL_TRUE;
 
         /* 1x int */
         case AL_SOURCE_RELATIVE:
@@ -1155,48 +874,12 @@ static ALboolean GetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
 
     switch(prop)
     {
-        case AL_SOURCE_RELATIVE:
-            *values = Source->HeadRelative;
-            return AL_TRUE;
-
-        case AL_LOOPING:
-            *values = Source->Looping;
-            return AL_TRUE;
-
         case AL_SOURCE_STATE:
             *values = GetSourceState(Source, GetSourceVoice(Source, Context));
             return AL_TRUE;
 
         case AL_SOURCE_TYPE:
             *values = Source->SourceType;
-            return AL_TRUE;
-
-        case AL_DIRECT_FILTER_GAINHF_AUTO:
-            *values = Source->DryGainHFAuto;
-            return AL_TRUE;
-
-        case AL_AUXILIARY_SEND_FILTER_GAIN_AUTO:
-            *values = Source->WetGainAuto;
-            return AL_TRUE;
-
-        case AL_AUXILIARY_SEND_FILTER_GAINHF_AUTO:
-            *values = Source->WetGainHFAuto;
-            return AL_TRUE;
-
-        case AL_DIRECT_CHANNELS_SOFT:
-            *values = Source->DirectChannels;
-            return AL_TRUE;
-
-        case AL_DISTANCE_MODEL:
-            *values = Source->DistanceModel;
-            return AL_TRUE;
-
-        case AL_SOURCE_RESAMPLER_SOFT:
-            *values = Source->Resampler;
-            return AL_TRUE;
-
-        case AL_SOURCE_SPATIALIZE_SOFT:
-            *values = Source->Spatialize;
             return AL_TRUE;
 
         /* 1x float/double */
@@ -2471,45 +2154,6 @@ void InitSourceParams(ALsource *Source, ALsizei num_sends)
 {
     ALsizei i;
 
-    Source->InnerAngle = 360.0f;
-    Source->OuterAngle = 360.0f;
-    Source->Position[0] = 0.0f;
-    Source->Position[1] = 0.0f;
-    Source->Position[2] = 0.0f;
-    Source->Velocity[0] = 0.0f;
-    Source->Velocity[1] = 0.0f;
-    Source->Velocity[2] = 0.0f;
-    Source->Direction[0] = 0.0f;
-    Source->Direction[1] = 0.0f;
-    Source->Direction[2] = 0.0f;
-    Source->Orientation[0][0] =  0.0f;
-    Source->Orientation[0][1] =  0.0f;
-    Source->Orientation[0][2] = -1.0f;
-    Source->Orientation[1][0] =  0.0f;
-    Source->Orientation[1][1] =  1.0f;
-    Source->Orientation[1][2] =  0.0f;
-    Source->RefDistance = 1.0f;
-    Source->MaxDistance = FLT_MAX;
-    Source->RolloffFactor = 1.0f;
-    Source->Gain = 1.0f;
-    Source->MinGain = 0.0f;
-    Source->MaxGain = 1.0f;
-    Source->OuterGain = 0.0f;
-    Source->OuterGainHF = 1.0f;
-
-    Source->DryGainHFAuto = AL_TRUE;
-    Source->WetGainAuto = AL_TRUE;
-    Source->WetGainHFAuto = AL_TRUE;
-    Source->AirAbsorptionFactor = 0.0f;
-    Source->RoomRolloffFactor = 0.0f;
-    Source->DopplerFactor = 1.0f;
-    Source->HeadRelative = AL_TRUE;
-    Source->Looping = AL_FALSE;
-    Source->DistanceModel = DefaultDistanceModel;
-    Source->Resampler = ResamplerDefault;
-    Source->DirectChannels = AL_FALSE;
-    Source->Spatialize = SpatializeOff;
-
     Source->StereoPan[0] = DEG2RAD( 30.0f);
     Source->StereoPan[1] = DEG2RAD(-30.0f);
 
@@ -2578,42 +2222,6 @@ static void UpdateSourceProps(ALsource *source, ALvoice *voice, ALsizei num_send
     }
 
     /* Copy in current property values. */
-    props->Gain = source->Gain;
-    props->OuterGain = source->OuterGain;
-    props->MinGain = source->MinGain;
-    props->MaxGain = source->MaxGain;
-    props->InnerAngle = source->InnerAngle;
-    props->OuterAngle = source->OuterAngle;
-    props->RefDistance = source->RefDistance;
-    props->MaxDistance = source->MaxDistance;
-    props->RolloffFactor = source->RolloffFactor;
-    for(i = 0;i < 3;i++)
-        props->Position[i] = source->Position[i];
-    for(i = 0;i < 3;i++)
-        props->Velocity[i] = source->Velocity[i];
-    for(i = 0;i < 3;i++)
-        props->Direction[i] = source->Direction[i];
-    for(i = 0;i < 2;i++)
-    {
-        ALsizei j;
-        for(j = 0;j < 3;j++)
-            props->Orientation[i][j] = source->Orientation[i][j];
-    }
-    props->HeadRelative = source->HeadRelative;
-    props->DistanceModel = source->DistanceModel;
-    props->Resampler = source->Resampler;
-    props->DirectChannels = source->DirectChannels;
-    props->SpatializeMode = source->Spatialize;
-
-    props->DryGainHFAuto = source->DryGainHFAuto;
-    props->WetGainAuto = source->WetGainAuto;
-    props->WetGainHFAuto = source->WetGainHFAuto;
-    props->OuterGainHF = source->OuterGainHF;
-
-    props->AirAbsorptionFactor = source->AirAbsorptionFactor;
-    props->RoomRolloffFactor = source->RoomRolloffFactor;
-    props->DopplerFactor = source->DopplerFactor;
-
     props->StereoPan[0] = source->StereoPan[0];
     props->StereoPan[1] = source->StereoPan[1];
 
