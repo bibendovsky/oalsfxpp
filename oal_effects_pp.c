@@ -4,12 +4,19 @@
 #include <malloc.h>
 #include <stdio.h>
 #include <stdint.h>
+#include "config.h"
 #include "AL\al.h"
 #include "AL\alc.h"
 #include "AL\alext.h"
 #include "AL\efx.h"
 #include "AL\efx-presets.h"
+#include "alMain.h"
+#include "alEffect.h"
 
+
+void InitEffectParams(
+    ALeffect* effect,
+    ALenum type);
 
 void aluMixData(
     ALCdevice* device,
@@ -46,13 +53,7 @@ int main()
     ALCdevice* oal_device = NULL;
     ALCcontext* oal_context = NULL;
     ALCint sends_count = 0;
-    LPALGENEFFECTS alGenEffects = NULL;
-    LPALDELETEEFFECTS alDeleteEffects = NULL;
-    LPALISEFFECT alIsEffect = NULL;
     LPALGENAUXILIARYEFFECTSLOTS alGenAuxiliaryEffectSlots = NULL;
-    LPALEFFECTI alEffecti = NULL;
-    LPALEFFECTF alEffectf = NULL;
-    LPALEFFECTFV alEffectfv = NULL;
     LPALAUXILIARYEFFECTSLOTI alAuxiliaryEffectSloti = NULL;
     LPALDELETEAUXILIARYEFFECTSLOTS alDeleteAuxiliaryEffectSlots = NULL;
     ALuint oal_effect_slot = AL_EFFECTSLOT_NULL;
@@ -190,32 +191,6 @@ int main()
 
     if (is_succeed)
     {
-        alGenEffects = (LPALGENEFFECTS)(alGetProcAddress("alGenEffects"));
-
-        if (!alGenEffects)
-        {
-            is_succeed = 0;
-            printf("%s\n", "Failed to make a alGenEffects current.");
-        }
-
-        alDeleteEffects = (LPALDELETEEFFECTS)(alGetProcAddress("alDeleteEffects"));
-
-        if (!alDeleteEffects)
-        {
-            is_succeed = 0;
-            printf("%s\n", "Failed to make a alDeleteEffects current.");
-        }
-
-
-        alIsEffect = (LPALISEFFECT)(alGetProcAddress("alIsEffect"));
-
-        if (!alIsEffect)
-        {
-            is_succeed = 0;
-            printf("%s\n", "Failed to make a alIsEffect current.");
-        }
-
-
         alGenAuxiliaryEffectSlots = (LPALGENAUXILIARYEFFECTSLOTS)(alGetProcAddress("alGenAuxiliaryEffectSlots"));
 
         if (!alGenAuxiliaryEffectSlots)
@@ -223,34 +198,6 @@ int main()
             is_succeed = 0;
             printf("%s\n", "Failed to make a alGenAuxiliaryEffectSlots current.");
         }
-
-
-        alEffecti = (LPALEFFECTI)(alGetProcAddress("alEffecti"));
-
-        if (!alEffecti)
-        {
-            is_succeed = 0;
-            printf("%s\n", "Failed to make a alEffecti current.");
-        }
-
-
-        alEffectf = (LPALEFFECTF)(alGetProcAddress("alEffectf"));
-
-        if (!alEffectf)
-        {
-            is_succeed = 0;
-            printf("%s\n", "Failed to make a alEffectf current.");
-        }
-
-
-        alEffectfv = (LPALEFFECTFV)(alGetProcAddress("alEffectfv"));
-
-        if (!alEffectfv)
-        {
-            is_succeed = 0;
-            printf("%s\n", "Failed to make a alEffectfv current.");
-        }
-
 
         alAuxiliaryEffectSloti = (LPALAUXILIARYEFFECTSLOTI)(alGetProcAddress("alAuxiliaryEffectSloti"));
 
@@ -285,66 +232,42 @@ int main()
 
     if (is_succeed)
     {
-        alGetError();
-
-        alGenEffects(1, &oal_effect);
-
-        if (alGetError() != AL_NO_ERROR)
-        {
-            is_succeed = 0;
-            printf("%s\n", "Failed to generate an effect.");
-        }
-    }
-
-    if (is_succeed)
-    {
-        alGetError();
-
-        alEffecti(oal_effect, AL_EFFECT_TYPE, AL_EFFECT_EAXREVERB);
-
-        if (alGetError() != AL_NO_ERROR)
-        {
-            is_succeed = 0;
-            printf("%s\n", "EAX reverb not supported.");
-        }
+        InitEffectParams(oal_device->effect, AL_EFFECT_EAXREVERB);
     }
 
     if (is_succeed)
     {
 #if 1
         EFXEAXREVERBPROPERTIES props = EFX_REVERB_PRESET_BATHROOM;
+        ALeffectProps* oal_props = &oal_device->effect->Props;
 
-        alGetError();
-
-        alEffectf(oal_effect, AL_EAXREVERB_DENSITY, props.flDensity);
-        alEffectf(oal_effect, AL_EAXREVERB_DIFFUSION, props.flDiffusion);
-        alEffectf(oal_effect, AL_EAXREVERB_GAIN, props.flGain);
-        alEffectf(oal_effect, AL_EAXREVERB_GAINHF, props.flGainHF);
-        alEffectf(oal_effect, AL_EAXREVERB_GAINLF, props.flGainLF);
-        alEffectf(oal_effect, AL_EAXREVERB_DECAY_TIME, props.flDecayTime);
-        alEffectf(oal_effect, AL_EAXREVERB_DECAY_HFRATIO, props.flDecayHFRatio);
-        alEffectf(oal_effect, AL_EAXREVERB_DECAY_LFRATIO, props.flDecayLFRatio);
-        alEffectf(oal_effect, AL_EAXREVERB_REFLECTIONS_GAIN, props.flReflectionsGain);
-        alEffectf(oal_effect, AL_EAXREVERB_REFLECTIONS_DELAY, props.flReflectionsDelay);
-        alEffectfv(oal_effect, AL_EAXREVERB_REFLECTIONS_PAN, props.flReflectionsPan);
-        alEffectf(oal_effect, AL_EAXREVERB_LATE_REVERB_GAIN, props.flLateReverbGain);
-        alEffectf(oal_effect, AL_EAXREVERB_LATE_REVERB_DELAY, props.flLateReverbDelay);
-        alEffectfv(oal_effect, AL_EAXREVERB_LATE_REVERB_PAN, props.flLateReverbPan);
-        alEffectf(oal_effect, AL_EAXREVERB_ECHO_TIME, props.flEchoTime);
-        alEffectf(oal_effect, AL_EAXREVERB_ECHO_DEPTH, props.flEchoDepth);
-        alEffectf(oal_effect, AL_EAXREVERB_MODULATION_TIME, props.flModulationTime);
-        alEffectf(oal_effect, AL_EAXREVERB_MODULATION_DEPTH, props.flModulationDepth);
-        alEffectf(oal_effect, AL_EAXREVERB_AIR_ABSORPTION_GAINHF, props.flAirAbsorptionGainHF);
-        alEffectf(oal_effect, AL_EAXREVERB_HFREFERENCE, props.flHFReference);
-        alEffectf(oal_effect, AL_EAXREVERB_LFREFERENCE, props.flLFReference);
-        alEffectf(oal_effect, AL_EAXREVERB_ROOM_ROLLOFF_FACTOR, props.flRoomRolloffFactor);
-        alEffecti(oal_effect, AL_EAXREVERB_DECAY_HFLIMIT, props.iDecayHFLimit);
-
-        if (alGetError() != AL_NO_ERROR)
-        {
-            is_succeed = 0;
-            printf("%s\n", "Failed to set EAX reverb properties.");
-        }
+        oal_props->Reverb.Density = props.flDensity;
+        oal_props->Reverb.Diffusion = props.flDiffusion;
+        oal_props->Reverb.Gain = props.flGain;
+        oal_props->Reverb.GainHF = props.flGainHF;
+        oal_props->Reverb.GainLF = props.flGainLF;
+        oal_props->Reverb.DecayTime = props.flDecayTime;
+        oal_props->Reverb.DecayHFRatio = props.flDecayHFRatio;
+        oal_props->Reverb.DecayLFRatio = props.flDecayLFRatio;
+        oal_props->Reverb.ReflectionsGain = props.flReflectionsGain;
+        oal_props->Reverb.ReflectionsDelay = props.flReflectionsDelay;
+        oal_props->Reverb.ReflectionsPan[0] = props.flReflectionsPan[0];
+        oal_props->Reverb.ReflectionsPan[1] = props.flReflectionsPan[1];
+        oal_props->Reverb.ReflectionsPan[2] = props.flReflectionsPan[2];
+        oal_props->Reverb.LateReverbGain = props.flLateReverbGain;
+        oal_props->Reverb.LateReverbDelay = props.flLateReverbDelay;
+        oal_props->Reverb.LateReverbPan[0] = props.flLateReverbPan[0];
+        oal_props->Reverb.LateReverbPan[1] = props.flLateReverbPan[1];
+        oal_props->Reverb.LateReverbPan[2] = props.flLateReverbPan[2];
+        oal_props->Reverb.EchoTime = props.flEchoTime;
+        oal_props->Reverb.EchoDepth = props.flEchoDepth;
+        oal_props->Reverb.ModulationTime = props.flModulationTime;
+        oal_props->Reverb.ModulationDepth = props.flModulationDepth;
+        oal_props->Reverb.AirAbsorptionGainHF = props.flAirAbsorptionGainHF;
+        oal_props->Reverb.HFReference = props.flHFReference;
+        oal_props->Reverb.LFReference = props.flLFReference;
+        oal_props->Reverb.RoomRolloffFactor = props.flRoomRolloffFactor;
+        oal_props->Reverb.DecayHFLimit = props.iDecayHFLimit;
 #endif
     }
 
@@ -447,11 +370,6 @@ int main()
 
     alSourceStop(oal_source);
     alDeleteSources(1, &oal_source);
-
-    if (alDeleteEffects)
-    {
-        alDeleteEffects(1, &oal_effect);
-    }
 
     if (alDeleteAuxiliaryEffectSlots)
     {

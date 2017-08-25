@@ -321,16 +321,6 @@ static const aluMatrixf A2B = {{
 
 static const ALfloat FadeStep = 1.0f / FADE_SAMPLES;
 
-/* This is a user config option for modifying the overall output of the reverb
- * effect.
- */
-ALfloat ReverbBoost = 1.0f;
-
-/* Specifies whether to use a standard reverb effect in place of EAX reverb (no
- * high-pass, modulation, or echo).
- */
-ALboolean EmulateEAXReverb = AL_FALSE;
-
 /* The all-pass and delay lines have a variable length dependent on the
  * effect's density parameter.  The resulting density multiplier is:
  *
@@ -1315,9 +1305,9 @@ static ALvoid ALreverbState_update(ALreverbState *State, const ALCdevice *Device
     ALfloat gain, gainlf, gainhf;
     ALsizei i;
 
-    if(Slot->Params.EffectType == AL_EFFECT_EAXREVERB && !EmulateEAXReverb)
+    if(Slot->Params.EffectType == AL_EFFECT_EAXREVERB)
         State->IsEax = AL_TRUE;
-    else if(Slot->Params.EffectType == AL_EFFECT_REVERB || EmulateEAXReverb)
+    else if(Slot->Params.EffectType == AL_EFFECT_REVERB)
         State->IsEax = AL_FALSE;
 
     /* Calculate the master filters */
@@ -1379,7 +1369,7 @@ static ALvoid ALreverbState_update(ALreverbState *State, const ALCdevice *Device
                     frequency, State);
 
     /* Update early and late 3D panning. */
-    gain = props->Reverb.Gain * Slot->Params.Gain * ReverbBoost;
+    gain = props->Reverb.Gain * Slot->Params.Gain;
     Update3DPanning(Device, props->Reverb.ReflectionsPan,
                     props->Reverb.LateReverbPan, gain,
                     props->Reverb.ReflectionsGain,

@@ -166,17 +166,6 @@ static const struct {
     DECL(alGetFilteriv),
     DECL(alGetFilterf),
     DECL(alGetFilterfv),
-    DECL(alGenEffects),
-    DECL(alDeleteEffects),
-    DECL(alIsEffect),
-    DECL(alEffecti),
-    DECL(alEffectiv),
-    DECL(alEffectf),
-    DECL(alEffectfv),
-    DECL(alGetEffecti),
-    DECL(alGetEffectiv),
-    DECL(alGetEffectf),
-    DECL(alGetEffectfv),
     DECL(alGenAuxiliaryEffectSlots),
     DECL(alDeleteAuxiliaryEffectSlots),
     DECL(alIsAuxiliaryEffectSlot),
@@ -904,9 +893,6 @@ static void alc_initconfig(void)
     InitEffectFactoryMap();
 
     InitEffect(&DefaultEffect);
-    str = getenv("ALSOFT_DEFAULT_REVERB");
-    if(str && str[0])
-        LoadReverbPreset(str, &DefaultEffect);
 }
 void DO_INITCONFIG()
 {
@@ -1895,14 +1881,6 @@ static ALCvoid FreeDevice(ALCdevice *device)
     ALsizei i;
 
     TRACE("%p\n", device);
-
-    if(device->EffectMap.size > 0)
-    {
-        WARN("(%p) Deleting %d Effect%s\n", device, device->EffectMap.size,
-             (device->EffectMap.size==1)?"":"s");
-        ReleaseALEffects(device);
-    }
-    ResetUIntMap(&device->EffectMap);
 
     if(device->FilterMap.size > 0)
     {
@@ -3096,7 +3074,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     device->AuxiliaryEffectSlotMax = 64;
     device->NumAuxSends = DEFAULT_SENDS;
 
-    InitUIntMap(&device->EffectMap, INT_MAX);
     InitUIntMap(&device->FilterMap, INT_MAX);
 
     for(i = 0;i < MAX_OUTPUT_CHANNELS;i++)

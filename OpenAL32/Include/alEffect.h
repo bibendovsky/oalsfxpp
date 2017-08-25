@@ -23,10 +23,7 @@ enum {
 
     MAX_EFFECTS
 };
-extern ALboolean DisabledEffects[MAX_EFFECTS];
 
-extern ALfloat ReverbBoost;
-extern ALboolean EmulateEAXReverb;
 
 struct ALeffectVtable {
     void (*const setParami)(struct ALeffect *effect, ALCcontext *context, ALenum param, ALint val);
@@ -162,24 +159,14 @@ typedef struct ALeffect {
     ALeffectProps Props;
 
     const struct ALeffectVtable *vtbl;
-
-    /* Self ID */
-    ALuint id;
 } ALeffect;
 
-
-inline struct ALeffect *LookupEffect(ALCdevice *device, ALuint id)
-{ return (struct ALeffect*)LookupUIntMapKeyNoLock(&device->EffectMap, id); }
-inline struct ALeffect *RemoveEffect(ALCdevice *device, ALuint id)
-{ return (struct ALeffect*)RemoveUIntMapKeyNoLock(&device->EffectMap, id); }
 
 inline ALboolean IsReverbEffect(ALenum type)
 { return type == AL_EFFECT_REVERB || type == AL_EFFECT_EAXREVERB; }
 
 ALenum InitEffect(ALeffect *effect);
-ALvoid ReleaseALEffects(ALCdevice *device);
 
-ALvoid LoadReverbPreset(const char *name, ALeffect *effect);
 
 #ifdef __cplusplus
 }
