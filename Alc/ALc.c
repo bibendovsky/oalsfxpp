@@ -31,7 +31,6 @@
 
 #include "alMain.h"
 #include "alSource.h"
-#include "alListener.h"
 #include "alThunk.h"
 #include "alSource.h"
 #include "alBuffer.h"
@@ -113,18 +112,6 @@ static const struct {
     DECL(alIsExtensionPresent),
     DECL(alGetProcAddress),
     DECL(alGetEnumValue),
-    DECL(alListenerf),
-    DECL(alListener3f),
-    DECL(alListenerfv),
-    DECL(alListeneri),
-    DECL(alListener3i),
-    DECL(alListeneriv),
-    DECL(alGetListenerf),
-    DECL(alGetListener3f),
-    DECL(alGetListenerfv),
-    DECL(alGetListeneri),
-    DECL(alGetListener3i),
-    DECL(alGetListeneriv),
     DECL(alGenSources),
     DECL(alDeleteSources),
     DECL(alIsSource),
@@ -150,10 +137,6 @@ static const struct {
     DECL(alSourcePause),
     DECL(alSourceQueueBuffers),
     DECL(alSourceUnqueueBuffers),
-    DECL(alDopplerFactor),
-    DECL(alDopplerVelocity),
-    DECL(alSpeedOfSound),
-    DECL(alDistanceModel),
 
     DECL(alGenFilters),
     DECL(alDeleteFilters),
@@ -1324,7 +1307,6 @@ extern inline ALint GetChannelIndex(const enum Channel names[MAX_OUTPUT_CHANNELS
  */
 void ALCcontext_DeferUpdates(ALCcontext *context)
 {
-    context->DeferUpdates = AL_TRUE;
 }
 
 /* ALCcontext_ProcessUpdates
@@ -1333,25 +1315,18 @@ void ALCcontext_DeferUpdates(ALCcontext *context)
  */
 void ALCcontext_ProcessUpdates(ALCcontext *context)
 {
-    ALenum old_defer_updates;
-    old_defer_updates = context->DeferUpdates;
-    context->DeferUpdates = AL_FALSE;
-    if(old_defer_updates)
-    {
-        /* Tell the mixer to stop applying updates, then wait for any active
-         * updating to finish, before providing updates.
-         */
-        context->HoldUpdates = AL_TRUE;
+    /* Tell the mixer to stop applying updates, then wait for any active
+        * updating to finish, before providing updates.
+        */
+    context->HoldUpdates = AL_TRUE;
 
-        UpdateListenerProps(context);
-        UpdateAllEffectSlotProps(context);
-        UpdateAllSourceProps(context);
+    UpdateAllEffectSlotProps(context);
+    UpdateAllSourceProps(context);
 
-        /* Now with all updates declared, let the mixer continue applying them
-         * so they all happen at once.
-         */
-        context->HoldUpdates = AL_FALSE;
-    }
+    /* Now with all updates declared, let the mixer continue applying them
+        * so they all happen at once.
+        */
+    context->HoldUpdates = AL_FALSE;
 }
 
 
@@ -1856,7 +1831,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
                 continue;
         }
 
-        UpdateListenerProps(context);
         UpdateAllSourceProps(context);
     }
     END_MIXER_MODE();
@@ -1968,39 +1942,7 @@ static ALCboolean VerifyDevice(ALCdevice **device)
  */
 static ALvoid InitContext(ALCcontext *Context)
 {
-    ALlistener *listener = Context->Listener;
     struct ALeffectslotArray *auxslots;
-
-    //Initialise listener
-    listener->Gain = 1.0f;
-    listener->MetersPerUnit = 1.0f;
-    listener->Position[0] = 0.0f;
-    listener->Position[1] = 0.0f;
-    listener->Position[2] = 0.0f;
-    listener->Velocity[0] = 0.0f;
-    listener->Velocity[1] = 0.0f;
-    listener->Velocity[2] = 0.0f;
-    listener->Forward[0] = 0.0f;
-    listener->Forward[1] = 0.0f;
-    listener->Forward[2] = -1.0f;
-    listener->Up[0] = 0.0f;
-    listener->Up[1] = 1.0f;
-    listener->Up[2] = 0.0f;
-
-    aluMatrixfSet(&listener->Params.Matrix,
-        1.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f
-    );
-    aluVectorSet(&listener->Params.Velocity, 0.0f, 0.0f, 0.0f, 0.0f);
-    listener->Params.Gain = 1.0f;
-    listener->Params.MetersPerUnit = 1.0f;
-    listener->Params.DopplerFactor = 1.0f;
-    listener->Params.SpeedOfSound = SPEEDOFSOUNDMETRESPERSEC;
-
-    listener->Update = NULL;
-    listener->FreeList = NULL;
 
     //Validate Context
     Context->UpdateCount = 0;
@@ -2016,14 +1958,6 @@ static ALvoid InitContext(ALCcontext *Context)
 
     Context->ActiveAuxSlots = auxslots;
 
-    //Set globals
-    Context->DistanceModel = DefaultDistanceModel;
-    Context->SourceDistanceModel = AL_FALSE;
-    Context->DopplerFactor = 1.0f;
-    Context->DopplerVelocity = 1.0f;
-    Context->SpeedOfSound = SPEEDOFSOUNDMETRESPERSEC;
-    Context->DeferUpdates = AL_FALSE;
-
     Context->ExtensionList = alExtList;
 }
 
@@ -2035,9 +1969,7 @@ static ALvoid InitContext(ALCcontext *Context)
  */
 static void FreeContext(ALCcontext *context)
 {
-    ALlistener *listener = context->Listener;
     struct ALeffectslotArray *auxslots;
-    struct ALlistenerProps *lprops;
     size_t count;
     ALsizei i;
 
@@ -2076,21 +2008,7 @@ static void FreeContext(ALCcontext *context)
     context->VoiceCount = 0;
     context->MaxVoices = 0;
 
-    if((lprops=listener->Update) != NULL)
-    {
-        TRACE("Freed unapplied listener update %p\n", lprops);
-        al_free(lprops);
-    }
     count = 0;
-    lprops = listener->FreeList;
-    while(lprops)
-    {
-        struct ALlistenerProps *next = lprops->next;
-        al_free(lprops);
-        lprops = next;
-        ++count;
-    }
-    TRACE("Freed "SZFMT" listener property object%s\n", count, (count==1)?"":"s");
 
     ALCdevice_DecRef(context->Device);
     context->Device = NULL;
@@ -2823,9 +2741,9 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
     device->LastError = ALC_NO_ERROR;
 
     if(device->Type == Playback && DefaultEffect.type != AL_EFFECT_NULL)
-        ALContext = al_calloc(16, sizeof(ALCcontext)+sizeof(ALlistener)+sizeof(ALeffectslot));
+        ALContext = al_calloc(16, sizeof(ALCcontext)+sizeof(ALeffectslot));
     else
-        ALContext = al_calloc(16, sizeof(ALCcontext)+sizeof(ALlistener));
+        ALContext = al_calloc(16, sizeof(ALCcontext));
     if(!ALContext)
     {
         alcSetError(device, ALC_OUT_OF_MEMORY);
@@ -2834,7 +2752,6 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
     }
 
     ALContext->ref = 1;
-    ALContext->Listener = (ALlistener*)ALContext->_listener_mem;
     ALContext->DefaultSlot = NULL;
 
     ALContext->Voices = NULL;
@@ -2860,7 +2777,7 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
 
     if(DefaultEffect.type != AL_EFFECT_NULL && device->Type == Playback)
     {
-        ALContext->DefaultSlot = (ALeffectslot*)(ALContext->_listener_mem + sizeof(ALlistener));
+        ALContext->DefaultSlot = (ALeffectslot*)(ALContext->_listener_mem);
         if(InitEffectSlot(ALContext->DefaultSlot) == AL_NO_ERROR)
             aluInitEffectPanning(ALContext->DefaultSlot);
         else
@@ -2872,8 +2789,6 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
 
     ALCdevice_IncRef(ALContext->Device);
     InitContext(ALContext);
-
-    UpdateListenerProps(ALContext);
 
     device->ContextList = ALContext;
 

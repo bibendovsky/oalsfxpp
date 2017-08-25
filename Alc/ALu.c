@@ -29,7 +29,6 @@
 #include "alMain.h"
 #include "alSource.h"
 #include "alBuffer.h"
-#include "alListener.h"
 #include "alAuxEffectSlot.h"
 #include "alu.h"
 #include "bformatdec.h"
@@ -252,60 +251,6 @@ ALboolean BsincPrepare(const ALuint increment, BsincState *state)
     return uncut;
 }
 
-
-static ALboolean CalcListenerParams(ALCcontext *Context)
-{
-    ALlistener *Listener = Context->Listener;
-    ALfloat N[3], V[3], U[3], P[3];
-    struct ALlistenerProps *props;
-    aluVector vel;
-
-    props = Listener->Update;
-    Listener->Update = NULL;
-    if(!props) return AL_FALSE;
-
-    /* AT then UP */
-    N[0] = props->Forward[0];
-    N[1] = props->Forward[1];
-    N[2] = props->Forward[2];
-    aluNormalize(N);
-    V[0] = props->Up[0];
-    V[1] = props->Up[1];
-    V[2] = props->Up[2];
-    aluNormalize(V);
-    /* Build and normalize right-vector */
-    aluCrossproduct(N, V, U);
-    aluNormalize(U);
-
-    aluMatrixfSet(&Listener->Params.Matrix,
-        U[0], V[0], -N[0], 0.0,
-        U[1], V[1], -N[1], 0.0,
-        U[2], V[2], -N[2], 0.0,
-         0.0,  0.0,   0.0, 1.0
-    );
-
-    P[0] = props->Position[0];
-    P[1] = props->Position[1];
-    P[2] = props->Position[2];
-    aluMatrixfFloat3(P, 1.0, &Listener->Params.Matrix);
-    aluMatrixfSetRow(&Listener->Params.Matrix, 3, -P[0], -P[1], -P[2], 1.0f);
-
-    aluVectorSet(&vel, props->Velocity[0], props->Velocity[1], props->Velocity[2], 0.0f);
-    Listener->Params.Velocity = aluMatrixfVector(&Listener->Params.Matrix, &vel);
-
-    Listener->Params.Gain = props->Gain * Context->GainBoost;
-    Listener->Params.MetersPerUnit = props->MetersPerUnit;
-
-    Listener->Params.DopplerFactor = props->DopplerFactor;
-    Listener->Params.SpeedOfSound = props->SpeedOfSound * props->DopplerVelocity;
-
-    Listener->Params.SourceDistanceModel = props->SourceDistanceModel;
-    Listener->Params.DistanceModel = props->DistanceModel;
-
-    props->next = Listener->FreeList;
-    return AL_TRUE;
-}
-
 static ALboolean CalcEffectSlotParams(ALeffectslot *slot, ALCdevice *device)
 {
     struct ALeffectslotProps *props;
@@ -391,7 +336,7 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
                                   const ALfloat *WetGain, const ALfloat *WetGainLF,
                                   const ALfloat *WetGainHF, ALeffectslot **SendSlots,
                                   const struct ALvoiceProps *props,
-                                  const ALlistener *Listener, const ALCdevice *Device)
+                                  const ALCdevice *Device)
 {
     struct ChanMap StereoMap[2] = {
         { FrontLeft,  DEG2RAD(-30.0f), DEG2RAD(0.0f) },
@@ -533,7 +478,6 @@ static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *p
 {
     static const ALfloat dir[3] = { 0.0f, 0.0f, -1.0f };
     const ALCdevice *Device = ALContext->Device;
-    const ALlistener *Listener = ALContext->Listener;
     ALfloat DryGain, DryGainHF, DryGainLF;
     ALfloat WetGain[MAX_SENDS];
     ALfloat WetGainHF[MAX_SENDS];
@@ -572,21 +516,21 @@ static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *p
 
     /* Calculate gains */
     DryGain  = 1.0F;
-    DryGain *= props->Direct.Gain * Listener->Params.Gain;
+    DryGain *= props->Direct.Gain;
     DryGain  = minf(DryGain, GAIN_MIX_MAX);
     DryGainHF = props->Direct.GainHF;
     DryGainLF = props->Direct.GainLF;
     for(i = 0;i < Device->NumAuxSends;i++)
     {
         WetGain[i]  = 1.0F;
-        WetGain[i] *= props->Send[i].Gain * Listener->Params.Gain;
+        WetGain[i] *= props->Send[i].Gain;
         WetGain[i]  = minf(WetGain[i], GAIN_MIX_MAX);
         WetGainHF[i] = props->Send[i].GainHF;
         WetGainLF[i] = props->Send[i].GainLF;
     }
 
     CalcPanningAndFilters(voice, 0.0f, dir, 0.0f, DryGain, DryGainHF, DryGainLF, WetGain,
-                          WetGainLF, WetGainHF, SendSlots, props, Listener, Device);
+                          WetGainLF, WetGainHF, SendSlots, props, Device);
 }
 
 static void CalcSourceParams(ALvoice *voice, ALCcontext *context, ALboolean force)
@@ -620,7 +564,7 @@ static void UpdateContextSources(ALCcontext *ctx, const struct ALeffectslotArray
     ctx->UpdateCount += 1;
     if(!ctx->HoldUpdates)
     {
-        ALboolean force = CalcListenerParams(ctx);
+        ALboolean force = AL_TRUE;
         for(i = 0;i < slots->count;i++)
             force |= CalcEffectSlotParams(slots->slot[i], ctx->Device);
 

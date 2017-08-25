@@ -757,14 +757,6 @@ struct ALCcontext_struct {
 
     ALenum LastError;
 
-    enum DistanceModel DistanceModel;
-    ALboolean SourceDistanceModel;
-
-    ALfloat DopplerFactor;
-    ALfloat DopplerVelocity;
-    ALfloat SpeedOfSound;
-    ALenum DeferUpdates;
-
     /* Counter for the pre-mixing updates, in 31.1 fixed point (lowest bit
      * indicates if updates are currently happening).
      */

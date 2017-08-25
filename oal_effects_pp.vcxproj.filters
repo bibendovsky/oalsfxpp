@@ -93,9 +93,6 @@
     <ClCompile Include="OpenAL32\alFilter.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OpenAL32\alListener.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="OpenAL32\alSource.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -177,9 +174,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OpenAL32\Include\alFilter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="OpenAL32\Include\alListener.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OpenAL32\Include\alMain.h">

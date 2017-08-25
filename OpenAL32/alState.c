@@ -28,7 +28,6 @@
 #include "AL/al.h"
 #include "AL/alext.h"
 #include "alError.h"
-#include "alListener.h"
 #include "alSource.h"
 #include "alAuxEffectSlot.h"
 
@@ -62,15 +61,9 @@ AL_API ALvoid AL_APIENTRY alEnable(ALenum capability)
 
     switch(capability)
     {
-    case AL_SOURCE_DISTANCE_MODEL:
-        context->SourceDistanceModel = AL_TRUE;
-        break;
-
     default:
         SET_ERROR_AND_GOTO(context, AL_INVALID_ENUM, done);
     }
-    if(!context->DeferUpdates)
-        UpdateListenerProps(context);
 
 done:
     ALCcontext_DecRef(context);
@@ -85,15 +78,9 @@ AL_API ALvoid AL_APIENTRY alDisable(ALenum capability)
 
     switch(capability)
     {
-    case AL_SOURCE_DISTANCE_MODEL:
-        context->SourceDistanceModel = AL_FALSE;
-        break;
-
     default:
         SET_ERROR_AND_GOTO(context, AL_INVALID_ENUM, done);
     }
-    if(!context->DeferUpdates)
-        UpdateListenerProps(context);
 
 done:
     ALCcontext_DecRef(context);
@@ -109,10 +96,6 @@ AL_API ALboolean AL_APIENTRY alIsEnabled(ALenum capability)
 
     switch(capability)
     {
-    case AL_SOURCE_DISTANCE_MODEL:
-        value = context->SourceDistanceModel;
-        break;
-
     default:
         SET_ERROR_AND_GOTO(context, AL_INVALID_ENUM, done);
     }
@@ -133,31 +116,6 @@ AL_API ALboolean AL_APIENTRY alGetBoolean(ALenum pname)
 
     switch(pname)
     {
-    case AL_DOPPLER_FACTOR:
-        if(context->DopplerFactor != 0.0f)
-            value = AL_TRUE;
-        break;
-
-    case AL_DOPPLER_VELOCITY:
-        if(context->DopplerVelocity != 0.0f)
-            value = AL_TRUE;
-        break;
-
-    case AL_DISTANCE_MODEL:
-        if(context->DistanceModel == AL_INVERSE_DISTANCE_CLAMPED)
-            value = AL_TRUE;
-        break;
-
-    case AL_SPEED_OF_SOUND:
-        if(context->SpeedOfSound != 0.0f)
-            value = AL_TRUE;
-        break;
-
-    case AL_DEFERRED_UPDATES_SOFT:
-        if(context->DeferUpdates)
-            value = AL_TRUE;
-        break;
-
     case AL_GAIN_LIMIT_SOFT:
         if(GAIN_MIX_MAX/context->GainBoost != 0.0f)
             value = AL_TRUE;
@@ -192,27 +150,6 @@ AL_API ALdouble AL_APIENTRY alGetDouble(ALenum pname)
 
     switch(pname)
     {
-    case AL_DOPPLER_FACTOR:
-        value = (ALdouble)context->DopplerFactor;
-        break;
-
-    case AL_DOPPLER_VELOCITY:
-        value = (ALdouble)context->DopplerVelocity;
-        break;
-
-    case AL_DISTANCE_MODEL:
-        value = (ALdouble)context->DistanceModel;
-        break;
-
-    case AL_SPEED_OF_SOUND:
-        value = (ALdouble)context->SpeedOfSound;
-        break;
-
-    case AL_DEFERRED_UPDATES_SOFT:
-        if(context->DeferUpdates)
-            value = (ALdouble)AL_TRUE;
-        break;
-
     case AL_GAIN_LIMIT_SOFT:
         value = (ALdouble)GAIN_MIX_MAX/context->GainBoost;
         break;
@@ -245,27 +182,6 @@ AL_API ALfloat AL_APIENTRY alGetFloat(ALenum pname)
 
     switch(pname)
     {
-    case AL_DOPPLER_FACTOR:
-        value = context->DopplerFactor;
-        break;
-
-    case AL_DOPPLER_VELOCITY:
-        value = context->DopplerVelocity;
-        break;
-
-    case AL_DISTANCE_MODEL:
-        value = (ALfloat)context->DistanceModel;
-        break;
-
-    case AL_SPEED_OF_SOUND:
-        value = context->SpeedOfSound;
-        break;
-
-    case AL_DEFERRED_UPDATES_SOFT:
-        if(context->DeferUpdates)
-            value = (ALfloat)AL_TRUE;
-        break;
-
     case AL_GAIN_LIMIT_SOFT:
         value = GAIN_MIX_MAX/context->GainBoost;
         break;
@@ -298,27 +214,6 @@ AL_API ALint AL_APIENTRY alGetInteger(ALenum pname)
 
     switch(pname)
     {
-    case AL_DOPPLER_FACTOR:
-        value = (ALint)context->DopplerFactor;
-        break;
-
-    case AL_DOPPLER_VELOCITY:
-        value = (ALint)context->DopplerVelocity;
-        break;
-
-    case AL_DISTANCE_MODEL:
-        value = (ALint)context->DistanceModel;
-        break;
-
-    case AL_SPEED_OF_SOUND:
-        value = (ALint)context->SpeedOfSound;
-        break;
-
-    case AL_DEFERRED_UPDATES_SOFT:
-        if(context->DeferUpdates)
-            value = (ALint)AL_TRUE;
-        break;
-
     case AL_GAIN_LIMIT_SOFT:
         value = (ALint)(GAIN_MIX_MAX/context->GainBoost);
         break;
@@ -351,27 +246,6 @@ AL_API ALint64SOFT AL_APIENTRY alGetInteger64SOFT(ALenum pname)
 
     switch(pname)
     {
-    case AL_DOPPLER_FACTOR:
-        value = (ALint64SOFT)context->DopplerFactor;
-        break;
-
-    case AL_DOPPLER_VELOCITY:
-        value = (ALint64SOFT)context->DopplerVelocity;
-        break;
-
-    case AL_DISTANCE_MODEL:
-        value = (ALint64SOFT)context->DistanceModel;
-        break;
-
-    case AL_SPEED_OF_SOUND:
-        value = (ALint64SOFT)context->SpeedOfSound;
-        break;
-
-    case AL_DEFERRED_UPDATES_SOFT:
-        if(context->DeferUpdates)
-            value = (ALint64SOFT)AL_TRUE;
-        break;
-
     case AL_GAIN_LIMIT_SOFT:
         value = (ALint64SOFT)(GAIN_MIX_MAX/context->GainBoost);
         break;
@@ -637,12 +511,7 @@ AL_API ALvoid AL_APIENTRY alDopplerFactor(ALfloat value)
     context = GetContextRef();
     if(!context) return;
 
-    if(!(value >= 0.0f && isfinite(value)))
-        SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
-
-    context->DopplerFactor = value;
-    if(!context->DeferUpdates)
-        UpdateListenerProps(context);
+    SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
 
 done:
     ALCcontext_DecRef(context);
@@ -655,12 +524,7 @@ AL_API ALvoid AL_APIENTRY alDopplerVelocity(ALfloat value)
     context = GetContextRef();
     if(!context) return;
 
-    if(!(value >= 0.0f && isfinite(value)))
-        SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
-
-    context->DopplerVelocity = value;
-    if(!context->DeferUpdates)
-        UpdateListenerProps(context);
+    SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
 
 done:
     ALCcontext_DecRef(context);
@@ -673,12 +537,7 @@ AL_API ALvoid AL_APIENTRY alSpeedOfSound(ALfloat value)
     context = GetContextRef();
     if(!context) return;
 
-    if(!(value > 0.0f && isfinite(value)))
-        SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
-
-    context->SpeedOfSound = value;
-    if(!context->DeferUpdates)
-        UpdateListenerProps(context);
+    SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
 
 done:
     ALCcontext_DecRef(context);
@@ -691,18 +550,7 @@ AL_API ALvoid AL_APIENTRY alDistanceModel(ALenum value)
     context = GetContextRef();
     if(!context) return;
 
-    if(!(value == AL_INVERSE_DISTANCE || value == AL_INVERSE_DISTANCE_CLAMPED ||
-         value == AL_LINEAR_DISTANCE || value == AL_LINEAR_DISTANCE_CLAMPED ||
-         value == AL_EXPONENT_DISTANCE || value == AL_EXPONENT_DISTANCE_CLAMPED ||
-         value == AL_NONE))
-        SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
-
-    context->DistanceModel = value;
-    if(!context->SourceDistanceModel)
-    {
-        if(!context->DeferUpdates)
-            UpdateListenerProps(context);
-    }
+    SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
 
 done:
     ALCcontext_DecRef(context);

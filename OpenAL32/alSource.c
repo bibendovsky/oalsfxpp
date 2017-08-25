@@ -169,8 +169,7 @@ static inline ALenum GetSourceState(ALsource *source, ALvoice *voice)
  */
 static inline bool SourceShouldUpdate(ALsource *source, ALCcontext *context)
 {
-    return !context->DeferUpdates &&
-           IsPlayingOrPaused(source);
+    return IsPlayingOrPaused(source);
 }
 
 static ALint FloatValsByProp(ALenum prop)

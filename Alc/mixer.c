@@ -31,7 +31,6 @@
 #include "AL/alc.h"
 #include "alSource.h"
 #include "alBuffer.h"
-#include "alListener.h"
 #include "alAuxEffectSlot.h"
 #include "alu.h"
 

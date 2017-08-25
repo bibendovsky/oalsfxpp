@@ -483,23 +483,6 @@ AL_API void* AL_APIENTRY alGetProcAddress(const ALchar *fname);
 AL_API ALenum AL_APIENTRY alGetEnumValue(const ALchar *ename);
 
 
-/** Set Listener parameters */
-AL_API void AL_APIENTRY alListenerf(ALenum param, ALfloat value);
-AL_API void AL_APIENTRY alListener3f(ALenum param, ALfloat value1, ALfloat value2, ALfloat value3);
-AL_API void AL_APIENTRY alListenerfv(ALenum param, const ALfloat *values);
-AL_API void AL_APIENTRY alListeneri(ALenum param, ALint value);
-AL_API void AL_APIENTRY alListener3i(ALenum param, ALint value1, ALint value2, ALint value3);
-AL_API void AL_APIENTRY alListeneriv(ALenum param, const ALint *values);
-
-/** Get Listener parameters */
-AL_API void AL_APIENTRY alGetListenerf(ALenum param, ALfloat *value);
-AL_API void AL_APIENTRY alGetListener3f(ALenum param, ALfloat *value1, ALfloat *value2, ALfloat *value3);
-AL_API void AL_APIENTRY alGetListenerfv(ALenum param, ALfloat *values);
-AL_API void AL_APIENTRY alGetListeneri(ALenum param, ALint *value);
-AL_API void AL_APIENTRY alGetListener3i(ALenum param, ALint *value1, ALint *value2, ALint *value3);
-AL_API void AL_APIENTRY alGetListeneriv(ALenum param, ALint *values);
-
-
 /** Create Source objects. */
 AL_API void AL_APIENTRY alGenSources(ALsizei n, ALuint *sources);
 /** Delete Source objects. */
@@ -565,18 +548,6 @@ typedef ALenum        (AL_APIENTRY *LPALGETERROR)(void);
 typedef ALboolean     (AL_APIENTRY *LPALISEXTENSIONPRESENT)(const ALchar *extname);
 typedef void*         (AL_APIENTRY *LPALGETPROCADDRESS)(const ALchar *fname);
 typedef ALenum        (AL_APIENTRY *LPALGETENUMVALUE)(const ALchar *ename);
-typedef void          (AL_APIENTRY *LPALLISTENERF)(ALenum param, ALfloat value);
-typedef void          (AL_APIENTRY *LPALLISTENER3F)(ALenum param, ALfloat value1, ALfloat value2, ALfloat value3);
-typedef void          (AL_APIENTRY *LPALLISTENERFV)(ALenum param, const ALfloat *values);
-typedef void          (AL_APIENTRY *LPALLISTENERI)(ALenum param, ALint value);
-typedef void          (AL_APIENTRY *LPALLISTENER3I)(ALenum param, ALint value1, ALint value2, ALint value3);
-typedef void          (AL_APIENTRY *LPALLISTENERIV)(ALenum param, const ALint *values);
-typedef void          (AL_APIENTRY *LPALGETLISTENERF)(ALenum param, ALfloat *value);
-typedef void          (AL_APIENTRY *LPALGETLISTENER3F)(ALenum param, ALfloat *value1, ALfloat *value2, ALfloat *value3);
-typedef void          (AL_APIENTRY *LPALGETLISTENERFV)(ALenum param, ALfloat *values);
-typedef void          (AL_APIENTRY *LPALGETLISTENERI)(ALenum param, ALint *value);
-typedef void          (AL_APIENTRY *LPALGETLISTENER3I)(ALenum param, ALint *value1, ALint *value2, ALint *value3);
-typedef void          (AL_APIENTRY *LPALGETLISTENERIV)(ALenum param, ALint *values);
 typedef void          (AL_APIENTRY *LPALGENSOURCES)(ALsizei n, ALuint *sources);
 typedef void          (AL_APIENTRY *LPALDELETESOURCES)(ALsizei n, const ALuint *sources);
 typedef ALboolean     (AL_APIENTRY *LPALISSOURCE)(ALuint source);

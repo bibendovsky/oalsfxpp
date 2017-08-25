@@ -29,7 +29,6 @@
 #include "alAuxEffectSlot.h"
 #include "alThunk.h"
 #include "alError.h"
-#include "alListener.h"
 #include "alSource.h"
 
 #include "almalloc.h"
@@ -51,10 +50,7 @@ static void ALeffectState_IncRef(ALeffectState *state);
 static void ALeffectState_DecRef(ALeffectState *state);
 
 #define DO_UPDATEPROPS() do {                                                 \
-    if(!context->DeferUpdates)          \
-        UpdateEffectSlotProps(slot);                                          \
-    else                                                                      \
-        slot->PropsClean = 0;         \
+    UpdateEffectSlotProps(slot);                                          \
 } while(0)
 
 
