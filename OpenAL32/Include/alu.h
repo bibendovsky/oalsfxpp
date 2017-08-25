@@ -153,7 +153,6 @@ typedef struct SendParams {
 struct ALvoiceProps {
     struct ALvoiceProps* next;
 
-    ALfloat Pitch;
     ALfloat Gain;
     ALfloat OuterGain;
     ALfloat MinGain;

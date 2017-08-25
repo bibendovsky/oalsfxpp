@@ -460,13 +460,6 @@ static ALboolean SetSourcefv(ALsource *Source, ALCcontext *Context, SourceProp p
             /* Query only */
             SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_OPERATION, AL_FALSE);
 
-        case AL_PITCH:
-            CHECKVAL(*values >= 0.0f);
-
-            Source->Pitch = *values;
-            DO_UPDATEPROPS();
-            return AL_TRUE;
-
         case AL_CONE_INNER_ANGLE:
             CHECKVAL(*values >= 0.0f && *values <= 360.0f);
 
@@ -1029,10 +1022,6 @@ static ALboolean GetSourcedv(ALsource *Source, ALCcontext *Context, SourceProp p
     {
         case AL_GAIN:
             *values = Source->Gain;
-            return AL_TRUE;
-
-        case AL_PITCH:
-            *values = Source->Pitch;
             return AL_TRUE;
 
         case AL_MAX_DISTANCE:
@@ -2484,7 +2473,6 @@ void InitSourceParams(ALsource *Source, ALsizei num_sends)
 
     Source->InnerAngle = 360.0f;
     Source->OuterAngle = 360.0f;
-    Source->Pitch = 1.0f;
     Source->Position[0] = 0.0f;
     Source->Position[1] = 0.0f;
     Source->Position[2] = 0.0f;
@@ -2590,7 +2578,6 @@ static void UpdateSourceProps(ALsource *source, ALvoice *voice, ALsizei num_send
     }
 
     /* Copy in current property values. */
-    props->Pitch = source->Pitch;
     props->Gain = source->Gain;
     props->OuterGain = source->OuterGain;
     props->MinGain = source->MinGain;

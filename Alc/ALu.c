@@ -774,7 +774,7 @@ static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *p
     }
 
     /* Calculate the stepping value */
-    Pitch = props->Pitch;
+    Pitch = 1.0F;
     if(Pitch > (ALfloat)MAX_PITCH)
         voice->Step = MAX_PITCH<<FRACTIONBITS;
     else

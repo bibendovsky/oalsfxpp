@@ -18,7 +18,6 @@ struct ALsource;
 
 typedef struct ALsource {
     /** Source properties. */
-    ALfloat   Pitch;
     ALfloat   Gain;
     ALfloat   OuterGain;
     ALfloat   MinGain;
