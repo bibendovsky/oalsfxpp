@@ -115,11 +115,6 @@ void DeinitVoice(ALvoice *voice)
         props = next;
         ++count;
     }
-    /* This is excessively spammy if it traces every voice destruction, so just
-     * warn if it was unexpectedly large.
-     */
-    if(count > 3)
-        WARN("Freed "SZFMT" voice property objects\n", count);
 }
 
 

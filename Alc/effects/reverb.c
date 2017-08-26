@@ -573,7 +573,6 @@ static ALboolean AllocLines(const ALuint frequency, ALreverbState *State)
     {
         ALfloat *newBuffer;
 
-        TRACE("New reverb buffer length: %ux4 samples\n", totalSamples);
         newBuffer = al_calloc(16, sizeof(ALfloat[4]) * totalSamples);
         if(!newBuffer) return AL_FALSE;
 

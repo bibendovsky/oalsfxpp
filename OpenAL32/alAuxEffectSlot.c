@@ -111,7 +111,6 @@ ALenum InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *e
         factory = getFactoryByType(newtype);
         if(!factory)
         {
-            ERR("Failed to find factory for effect type 0x%04x\n", newtype);
             return AL_INVALID_ENUM;
         }
         State = V0(factory,create)();
@@ -163,14 +162,12 @@ static void ALeffectState_IncRef(ALeffectState *state)
 {
     unsigned int ref;
     ref = ++state->Ref;
-    TRACEREF("%p increasing refcount to %u\n", state, ref);
 }
 
 static void ALeffectState_DecRef(ALeffectState *state)
 {
     unsigned int ref;
     ref = --state->Ref;
-    TRACEREF("%p decreasing refcount to %u\n", state, ref);
     if(ref == 0) DELETE_OBJ(state);
 }
 
@@ -217,7 +214,6 @@ void DeinitEffectSlot(ALeffectslot *slot)
     if(props)
     {
         if(props->State) ALeffectState_DecRef(props->State);
-        TRACE("Freed unapplied AuxiliaryEffectSlot update %p\n", props);
         al_free(props);
     }
     props = slot->FreeList;
@@ -229,7 +225,6 @@ void DeinitEffectSlot(ALeffectslot *slot)
         props = next;
         ++count;
     }
-    TRACE("Freed "SZFMT" AuxiliaryEffectSlot property object%s\n", count, (count==1)?"":"s");
 
     ALeffectState_DecRef(slot->Effect.State);
     if(slot->Params.EffectState)

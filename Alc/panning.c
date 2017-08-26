@@ -349,8 +349,6 @@ static void SetChannelMap(const enum Channel *devchans, ChannelConfig *ambicoeff
                 ambicoeffs[i][k] = chanmap[j].Config[k];
             break;
         }
-        if(j == count)
-            ERR("Failed to match %s channel (%u) in channel map\n", GetLabelFromChannel(devchans[i]), i);
     }
     *outcount = i;
 }
@@ -505,12 +503,7 @@ void aluInitRenderer(ALCdevice *device)
 
     headphones = device->IsHeadphones;
 
-    TRACE("HRTF disabled\n");
-
     device->Render_Mode = StereoPair;
-
-    TRACE("BS2B disabled\n");
-    TRACE("UHJ disabled\n");
 
     InitPanning(device);
 }

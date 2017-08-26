@@ -37,7 +37,6 @@ ALvoid alSetError(ALCcontext *Context, ALenum errorCode)
 {
     ALenum curerr = AL_NO_ERROR;
 
-    WARN("Error generated on context %p, code 0x%04x\n", Context, errorCode);
     if(TrapALError)
     {
 #ifdef _WIN32
@@ -63,8 +62,6 @@ AL_API ALenum AL_APIENTRY alGetError(void)
     Context = GetContextRef();
     if(!Context)
     {
-        WARN("Querying error state on null context (implicitly 0x%04x)\n",
-             AL_INVALID_OPERATION);
         if(TrapALError)
         {
 #ifdef _WIN32

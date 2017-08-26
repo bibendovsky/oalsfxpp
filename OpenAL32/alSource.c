@@ -479,7 +479,6 @@ static ALboolean SetSourcefv(ALsource *Source, ALCcontext *Context, SourceProp p
             break;
     }
 
-    ERR("Unexpected property: 0x%04x\n", prop);
     SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_ENUM, AL_FALSE);
 }
 
@@ -581,7 +580,6 @@ static ALboolean SetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
             break;
     }
 
-    ERR("Unexpected property: 0x%04x\n", prop);
     SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_ENUM, AL_FALSE);
 }
 
@@ -684,7 +682,6 @@ static ALboolean SetSourcei64v(ALsource *Source, ALCcontext *Context, SourceProp
             break;
     }
 
-    ERR("Unexpected property: 0x%04x\n", prop);
     SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_ENUM, AL_FALSE);
 }
 
@@ -735,7 +732,6 @@ static ALboolean GetSourcedv(ALsource *Source, ALCcontext *Context, SourceProp p
             break;
     }
 
-    ERR("Unexpected property: 0x%04x\n", prop);
     SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_ENUM, AL_FALSE);
 }
 
@@ -811,7 +807,6 @@ static ALboolean GetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
             break; /* ??? */
     }
 
-    ERR("Unexpected property: 0x%04x\n", prop);
     SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_ENUM, AL_FALSE);
 }
 
@@ -919,7 +914,6 @@ static ALboolean GetSourcei64v(ALsource *Source, ALCcontext *Context, SourceProp
             break; /* Float/double only */
     }
 
-    ERR("Unexpected property: 0x%04x\n", prop);
     SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_ENUM, AL_FALSE);
 }
 

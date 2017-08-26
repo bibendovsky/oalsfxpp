@@ -182,9 +182,7 @@ void FillCPUCaps(ALuint capfilter)
     } cpuinf[3];
 
     (__cpuid)(cpuinf[0].regs, 0);
-    if(cpuinf[0].regs[0] == 0)
-        ERR("Failed to get CPUID\n");
-    else
+    if(cpuinf[0].regs[0] != 0)
     {
         unsigned int maxfunc = cpuinf[0].regs[0];
         unsigned int maxextfunc;
@@ -192,15 +190,11 @@ void FillCPUCaps(ALuint capfilter)
         (__cpuid)(cpuinf[0].regs, 0x80000000);
         maxextfunc = cpuinf[0].regs[0];
 
-        TRACE("Detected max CPUID function: 0x%x (ext. 0x%x)\n", maxfunc, maxextfunc);
-
-        TRACE("Vendor ID: \"%.4s%.4s%.4s\"\n", cpuinf[0].str+4, cpuinf[0].str+12, cpuinf[0].str+8);
         if(maxextfunc >= 0x80000004)
         {
             (__cpuid)(cpuinf[0].regs, 0x80000002);
             (__cpuid)(cpuinf[1].regs, 0x80000003);
             (__cpuid)(cpuinf[2].regs, 0x80000004);
-            TRACE("Name: \"%.16s%.16s%.16s\"\n", cpuinf[0].str, cpuinf[1].str, cpuinf[2].str);
         }
 
         if(maxfunc >= 1)
@@ -277,14 +271,6 @@ void FillCPUCaps(ALuint capfilter)
     }
 #endif
 
-    TRACE("Extensions:%s%s%s%s%s%s\n",
-        ((capfilter&CPU_CAP_SSE)    ? ((caps&CPU_CAP_SSE)    ? " +SSE"    : " -SSE")    : ""),
-        ((capfilter&CPU_CAP_SSE2)   ? ((caps&CPU_CAP_SSE2)   ? " +SSE2"   : " -SSE2")   : ""),
-        ((capfilter&CPU_CAP_SSE3)   ? ((caps&CPU_CAP_SSE3)   ? " +SSE3"   : " -SSE3")   : ""),
-        ((capfilter&CPU_CAP_SSE4_1) ? ((caps&CPU_CAP_SSE4_1) ? " +SSE4.1" : " -SSE4.1") : ""),
-        ((capfilter&CPU_CAP_NEON)   ? ((caps&CPU_CAP_NEON)   ? " +NEON"   : " -NEON")   : ""),
-        ((!capfilter) ? " -none-" : "")
-    );
     CPUCapFlags = caps & capfilter;
 }
 
@@ -397,7 +383,6 @@ al_string GetProcPath(void)
     if(len == 0)
     {
         free(pathname);
-        ERR("Failed to get process name: error %lu\n", GetLastError());
         return ret;
     }
 
@@ -413,7 +398,6 @@ al_string GetProcPath(void)
     alstr_copy_wcstr(&ret, pathname);
     free(pathname);
 
-    TRACE("Got: %s\n", alstr_get_cstr(ret));
     return ret;
 }
 
@@ -438,9 +422,7 @@ void *LoadLib(const char *name)
     WCHAR *wname;
 
     wname = FromUTF8(name);
-    if(!wname)
-        ERR("Failed to convert UTF-8 filename: \"%s\"\n", name);
-    else
+    if(wname)
     {
         hdl = LoadLibraryW(wname);
         free(wname);
@@ -454,8 +436,6 @@ void *GetSymbol(void *handle, const char *name)
     void *ret;
 
     ret = (void*)GetProcAddress((HANDLE)handle, name);
-    if(ret == NULL)
-        ERR("Failed to load %s\n", name);
     return ret;
 }
 
@@ -482,11 +462,7 @@ FILE *al_fopen(const char *fname, const char *mode)
 
     wname = FromUTF8(fname);
     wmode = FromUTF8(mode);
-    if(!wname)
-        ERR("Failed to convert UTF-8 filename: \"%s\"\n", fname);
-    else if(!wmode)
-        ERR("Failed to convert UTF-8 mode: \"%s\"\n", mode);
-    else
+    if(wname && wmode)
         file = _wfopen(wname, wmode);
 
     free(wname);
@@ -494,31 +470,6 @@ FILE *al_fopen(const char *fname, const char *mode)
 
     return file;
 }
-
-
-void al_print(const char *type, const char *func, const char *fmt, ...)
-{
-    char str[1024];
-    WCHAR *wstr;
-    va_list ap;
-
-    va_start(ap, fmt);
-    vsnprintf(str, sizeof(str), fmt, ap);
-    va_end(ap);
-
-    str[sizeof(str)-1] = 0;
-    wstr = FromUTF8(str);
-    if(!wstr)
-        fprintf(LogFile, "AL lib: %s %s: <UTF-8 error> %s", type, func, str);
-    else
-    {
-        fprintf(LogFile, "AL lib: %s %s: %ls", type, func, wstr);
-        free(wstr);
-        wstr = NULL;
-    }
-    fflush(LogFile);
-}
-
 
 static inline int is_slash(int c)
 { return (c == '\\' || c == '/'); }
@@ -534,8 +485,6 @@ static void DirectorySearch(const char *path, const char *ext, vector_al_string 
     alstr_append_cstr(&pathstr, "\\*");
     alstr_append_cstr(&pathstr, ext);
 
-    TRACE("Searching %s\n", alstr_get_cstr(pathstr));
-
     wpath = FromUTF8(alstr_get_cstr(pathstr));
 
     hdl = FindFirstFileW(wpath, &fdata);
@@ -547,7 +496,6 @@ static void DirectorySearch(const char *path, const char *ext, vector_al_string 
             alstr_copy_cstr(&str, path);
             alstr_append_char(&str, '\\');
             alstr_append_wcstr(&str, fdata.cFileName);
-            TRACE("Got result %s\n", alstr_get_cstr(str));
             VECTOR_PUSH_BACK(*results, str);
         } while(FindNextFileW(hdl, &fdata));
         FindClose(hdl);
@@ -656,7 +604,6 @@ struct FileMapping MapFileToMem(const char *fname)
                        OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if(file == INVALID_HANDLE_VALUE)
     {
-        ERR("Failed to open %s: %lu\n", fname, GetLastError());
         free(wname);
         return ret;
     }
@@ -666,7 +613,6 @@ struct FileMapping MapFileToMem(const char *fname)
     fmap = CreateFileMappingW(file, NULL, PAGE_READONLY, 0, 0, NULL);
     if(!fmap)
     {
-        ERR("Failed to create map for %s: %lu\n", fname, GetLastError());
         CloseHandle(file);
         return ret;
     }
@@ -674,7 +620,6 @@ struct FileMapping MapFileToMem(const char *fname)
     ptr = MapViewOfFile(fmap, FILE_MAP_READ, 0, 0, 0);
     if(!ptr)
     {
-        ERR("Failed to map %s: %lu\n", fname, GetLastError());
         CloseHandle(fmap);
         CloseHandle(file);
         return ret;
@@ -682,7 +627,6 @@ struct FileMapping MapFileToMem(const char *fname)
 
     if(VirtualQuery(ptr, &meminfo, sizeof(meminfo)) != sizeof(meminfo))
     {
-        ERR("Failed to get map size for %s: %lu\n", fname, GetLastError());
         UnmapViewOfFile(ptr);
         CloseHandle(fmap);
         CloseHandle(file);
@@ -994,8 +938,6 @@ void SetRTPriority(void)
     /* Real-time priority not available */
     failed = (RTPrioLevel>0);
 #endif
-    if(failed)
-        ERR("Failed to set priority level for thread\n");
 }
 
 
