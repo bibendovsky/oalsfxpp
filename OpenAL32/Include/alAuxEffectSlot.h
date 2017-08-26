@@ -110,9 +110,6 @@ typedef struct ALeffectslot {
         ALeffectState *EffectState;
     } Params;
 
-    /* Self ID */
-    ALuint id;
-
     ALsizei NumChannels;
     BFChannelConfig ChanMap[MAX_EFFECT_CHANNELS];
     /* Wet buffer configuration is ACN channel order with N3D scaling:
