@@ -12,6 +12,7 @@
 #include "AL\efx-presets.h"
 #include "alMain.h"
 #include "alEffect.h"
+#include "alAuxEffectSlot.h"
 
 
 void InitEffectParams(
@@ -52,10 +53,6 @@ int main()
     int is_succeed = 1;
     ALCdevice* oal_device = NULL;
     ALCcontext* oal_context = NULL;
-    ALCint sends_count = 0;
-    LPALGENAUXILIARYEFFECTSLOTS alGenAuxiliaryEffectSlots = NULL;
-    LPALAUXILIARYEFFECTSLOTI alAuxiliaryEffectSloti = NULL;
-    LPALDELETEAUXILIARYEFFECTSLOTS alDeleteAuxiliaryEffectSlots = NULL;
     ALuint oal_effect_slot = AL_EFFECTSLOT_NULL;
     ALuint oal_effect = AL_EFFECT_NULL;
     ALuint oal_source = 0;
@@ -185,54 +182,8 @@ int main()
 
     if (is_succeed)
     {
-        alcGetIntegerv(oal_device, ALC_MAX_AUXILIARY_SENDS, 1, &sends_count);
-    }
-
-
-    if (is_succeed)
-    {
-        alGenAuxiliaryEffectSlots = (LPALGENAUXILIARYEFFECTSLOTS)(alGetProcAddress("alGenAuxiliaryEffectSlots"));
-
-        if (!alGenAuxiliaryEffectSlots)
-        {
-            is_succeed = 0;
-            printf("%s\n", "Failed to make a alGenAuxiliaryEffectSlots current.");
-        }
-
-        alAuxiliaryEffectSloti = (LPALAUXILIARYEFFECTSLOTI)(alGetProcAddress("alAuxiliaryEffectSloti"));
-
-        if (!alAuxiliaryEffectSloti)
-        {
-            is_succeed = 0;
-            printf("%s\n", "Failed to make a alAuxiliaryEffectSloti current.");
-        }
-
-
-        alDeleteAuxiliaryEffectSlots = (LPALDELETEAUXILIARYEFFECTSLOTS)(alGetProcAddress("alDeleteAuxiliaryEffectSlots"));
-
-        if (!alDeleteAuxiliaryEffectSlots)
-        {
-            is_succeed = 0;
-            printf("%s\n", "Failed to make a alDeleteAuxiliaryEffectSlots current.");
-        }
-    }
-
-    if (is_succeed)
-    {
-        alGetError();
-
-        alGenAuxiliaryEffectSlots(1, &oal_effect_slot);
-
-        if (alGetError() != AL_NO_ERROR)
-        {
-            is_succeed = 0;
-            printf("%s\n", "Failed to generate an effect slot.");
-        }
-    }
-
-    if (is_succeed)
-    {
         InitEffectParams(oal_device->effect, AL_EFFECT_EAXREVERB);
+        UpdateEffectSlotProps(oal_device->effect_slot);
     }
 
     if (is_succeed)
@@ -273,15 +224,8 @@ int main()
 
     if (is_succeed)
     {
-        alGetError();
-
-        alAuxiliaryEffectSloti(oal_effect_slot, AL_EFFECTSLOT_EFFECT, oal_effect);
-
-        if (alGetError() != AL_NO_ERROR)
-        {
-            is_succeed = 0;
-            printf("%s\n", "Failed to load effect in slot.");
-        }
+        InitializeEffect(oal_device, oal_device->effect_slot, oal_device->effect);
+        UpdateEffectSlotProps(oal_device->effect_slot);
     }
 
     if (is_succeed)
@@ -370,11 +314,6 @@ int main()
 
     alSourceStop(oal_source);
     alDeleteSources(1, &oal_source);
-
-    if (alDeleteAuxiliaryEffectSlots)
-    {
-        alDeleteAuxiliaryEffectSlots(1, &oal_effect_slot);
-    }
 
     alcMakeContextCurrent(NULL);
     alcDestroyContext(oal_context);
