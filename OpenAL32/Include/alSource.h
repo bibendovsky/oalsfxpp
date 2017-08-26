@@ -36,8 +36,6 @@ typedef struct ALsource {
 
     /** Source state (initial, playing, paused, or stopped) */
     ALenum state;
-
-    int PropsClean;
 } ALsource;
 
 

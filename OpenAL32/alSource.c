@@ -570,8 +570,6 @@ static ALboolean SetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
                  */
                 if((voice=GetSourceVoice(Source, Context)) != NULL)
                     UpdateSourceProps(Source, voice, device->NumAuxSends);
-                else
-                    Source->PropsClean = 0;
             }
             else
             {
@@ -1677,7 +1675,6 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
             voice = context->Voices[context->VoiceCount++];
         voice->Playing = false;
 
-        source->PropsClean = 1;
         UpdateSourceProps(source, voice, device->NumAuxSends);
 
         voice->position = 0;
@@ -2068,11 +2065,6 @@ void InitSourceParams(ALsource *Source, ALsizei num_sends)
     }
 
     Source->state = AL_INITIAL;
-
-    /* No way to do an 'init' here, so just test+set with relaxed ordering and
-     * ignore the test.
-     */
-    Source->PropsClean = 1;
 }
 
 void DeinitSource(ALsource *source, ALsizei num_sends)
@@ -2149,9 +2141,7 @@ void UpdateAllSourceProps(ALCcontext *context)
     {
         ALvoice *voice = context->Voices[pos];
         ALsource *source = voice->Source;
-        int old_props_clean = source->PropsClean;
-        source->PropsClean = 1;
-        if(source && !old_props_clean)
+        if(source)
             UpdateSourceProps(source, voice, num_sends);
     }
 }

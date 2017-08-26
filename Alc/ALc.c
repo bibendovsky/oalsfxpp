@@ -1786,8 +1786,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
                     source->Send[s].LFReference = HIGHPASSFREQREF;
                 }
             }
-
-            source->PropsClean = 0;
         }
         AllocateVoices(context, context->MaxVoices, old_sends);
         for(pos = 0;pos < context->VoiceCount;pos++)
