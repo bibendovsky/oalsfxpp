@@ -766,9 +766,6 @@ struct ALCcontext_struct {
 
     ALCdevice  *Device;
     const ALCchar *ExtensionList;
-
-    /* Memory space used by the listener (and possibly default effect slot) */
-    alignas(16) ALCbyte _listener_mem[];
 };
 
 ALCcontext *GetContextRef(void);
