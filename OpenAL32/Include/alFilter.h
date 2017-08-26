@@ -107,48 +107,6 @@ inline void ALfilterState_processPassthru(ALfilterState *filter, const ALfloat *
 }
 
 
-typedef struct ALfilter {
-    // Filter type (AL_FILTER_NULL, ...)
-    ALenum type;
-
-    ALfloat Gain;
-    ALfloat GainHF;
-    ALfloat HFReference;
-    ALfloat GainLF;
-    ALfloat LFReference;
-
-    void (*SetParami)(struct ALfilter *filter, ALCcontext *context, ALenum param, ALint val);
-    void (*SetParamiv)(struct ALfilter *filter, ALCcontext *context, ALenum param, const ALint *vals);
-    void (*SetParamf)(struct ALfilter *filter, ALCcontext *context, ALenum param, ALfloat val);
-    void (*SetParamfv)(struct ALfilter *filter, ALCcontext *context, ALenum param, const ALfloat *vals);
-
-    void (*GetParami)(struct ALfilter *filter, ALCcontext *context, ALenum param, ALint *val);
-    void (*GetParamiv)(struct ALfilter *filter, ALCcontext *context, ALenum param, ALint *vals);
-    void (*GetParamf)(struct ALfilter *filter, ALCcontext *context, ALenum param, ALfloat *val);
-    void (*GetParamfv)(struct ALfilter *filter, ALCcontext *context, ALenum param, ALfloat *vals);
-
-    /* Self ID */
-    ALuint id;
-} ALfilter;
-
-#define ALfilter_SetParami(x, c, p, v)  ((x)->SetParami((x),(c),(p),(v)))
-#define ALfilter_SetParamiv(x, c, p, v) ((x)->SetParamiv((x),(c),(p),(v)))
-#define ALfilter_SetParamf(x, c, p, v)  ((x)->SetParamf((x),(c),(p),(v)))
-#define ALfilter_SetParamfv(x, c, p, v) ((x)->SetParamfv((x),(c),(p),(v)))
-
-#define ALfilter_GetParami(x, c, p, v)  ((x)->GetParami((x),(c),(p),(v)))
-#define ALfilter_GetParamiv(x, c, p, v) ((x)->GetParamiv((x),(c),(p),(v)))
-#define ALfilter_GetParamf(x, c, p, v)  ((x)->GetParamf((x),(c),(p),(v)))
-#define ALfilter_GetParamfv(x, c, p, v) ((x)->GetParamfv((x),(c),(p),(v)))
-
-
-inline struct ALfilter *LookupFilter(ALCdevice *device, ALuint id)
-{ return (struct ALfilter*)LookupUIntMapKeyNoLock(&device->FilterMap, id); }
-inline struct ALfilter *RemoveFilter(ALCdevice *device, ALuint id)
-{ return (struct ALfilter*)RemoveUIntMapKeyNoLock(&device->FilterMap, id); }
-
-ALvoid ReleaseALFilters(ALCdevice *device);
-
 #ifdef __cplusplus
 }
 #endif

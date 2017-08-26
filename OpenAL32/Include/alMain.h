@@ -650,9 +650,6 @@ struct ALCdevice_struct
     ALCuint NumStereoSources;
     ALsizei NumAuxSends;
 
-    // Map of Filters for this device
-    UIntMap FilterMap;
-
     /* Rendering mode. */
     enum RenderMode Render_Mode;
 

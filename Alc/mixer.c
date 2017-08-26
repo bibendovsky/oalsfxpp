@@ -223,6 +223,7 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
     for (chan = 0; chan < NumChannels; ++chan)
     {
         DirectParams* parms;
+        const ALfloat* samples;
 
         /* Load what's left to play from the source buffer, and
             * clear the rest of the temp buffer */
@@ -233,7 +234,7 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
 
         parms = &voice->Direct.Params[chan];
 
-        DoFilters(
+        samples = DoFilters(
             &parms->LowPass,
             &parms->HighPass,
             Device->FilteredData,
@@ -244,7 +245,7 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
         memcpy(parms->Gains.Current, parms->Gains.Target, sizeof(parms->Gains.Current));
 
         MixSamples(
-            Device->ResampledData,
+            samples,
             voice->Direct.Channels,
             voice->Direct.Buffer,
             parms->Gains.Current,
@@ -262,18 +263,18 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
                 continue;
             }
 
-            DoFilters(
+            samples = DoFilters(
                 &parms->LowPass,
                 &parms->HighPass,
                 Device->FilteredData,
                 Device->ResampledData,
                 SamplesToDo,
-                voice->Direct.FilterType);
+                voice->Send[send].FilterType);
 
             memcpy(parms->Gains.Current, parms->Gains.Target, sizeof(parms->Gains.Current));
 
             MixSamples(
-                Device->ResampledData,
+                samples,
                 voice->Send[send].Channels,
                 voice->Send[send].Buffer,
                 parms->Gains.Current,

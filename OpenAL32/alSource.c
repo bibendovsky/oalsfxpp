@@ -487,7 +487,6 @@ static ALboolean SetSourcefv(ALsource *Source, ALCcontext *Context, SourceProp p
 static ALboolean SetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp prop, const ALint *values)
 {
     ALCdevice *device = Context->Device;
-    ALfilter  *filter = NULL;
     ALeffectslot *slot = NULL;
     ALfloat fvals[6];
 
@@ -503,57 +502,13 @@ static ALboolean SetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
             /* Query only */
             SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_OPERATION, AL_FALSE);
 
-        case AL_DIRECT_FILTER:
-            if(!(*values == 0 || (filter=LookupFilter(device, *values)) != NULL))
-            {
-                SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_VALUE, AL_FALSE);
-            }
-
-            if(!filter)
-            {
-                Source->Direct.Gain = 1.0f;
-                Source->Direct.GainHF = 1.0f;
-                Source->Direct.HFReference = LOWPASSFREQREF;
-                Source->Direct.GainLF = 1.0f;
-                Source->Direct.LFReference = HIGHPASSFREQREF;
-            }
-            else
-            {
-                Source->Direct.Gain = filter->Gain;
-                Source->Direct.GainHF = filter->GainHF;
-                Source->Direct.HFReference = filter->HFReference;
-                Source->Direct.GainLF = filter->GainLF;
-                Source->Direct.LFReference = filter->LFReference;
-            }
-            DO_UPDATEPROPS();
-            return AL_TRUE;
-
         case AL_AUXILIARY_SEND_FILTER:
             slot = Context->Device->effect_slot;
 
             if(!((ALuint)values[1] < (ALuint)device->NumAuxSends &&
-                 (values[0] == 0 || !slot) &&
-                 (values[2] == 0 || (filter=LookupFilter(device, values[2])) != NULL)))
+                 (values[0] == 0 || !slot)))
             {
                 SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_VALUE, AL_FALSE);
-            }
-
-            if(!filter)
-            {
-                /* Disable filter */
-                Source->Send[values[1]].Gain = 1.0f;
-                Source->Send[values[1]].GainHF = 1.0f;
-                Source->Send[values[1]].HFReference = LOWPASSFREQREF;
-                Source->Send[values[1]].GainLF = 1.0f;
-                Source->Send[values[1]].LFReference = HIGHPASSFREQREF;
-            }
-            else
-            {
-                Source->Send[values[1]].Gain = filter->Gain;
-                Source->Send[values[1]].GainHF = filter->GainHF;
-                Source->Send[values[1]].HFReference = filter->HFReference;
-                Source->Send[values[1]].GainLF = filter->GainLF;
-                Source->Send[values[1]].LFReference = filter->LFReference;
             }
 
             if(slot != Source->Send[values[1]].Slot && IsPlayingOrPaused(Source))

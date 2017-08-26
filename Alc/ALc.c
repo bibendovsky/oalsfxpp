@@ -138,18 +138,6 @@ static const struct {
     DECL(alSourceQueueBuffers),
     DECL(alSourceUnqueueBuffers),
 
-    DECL(alGenFilters),
-    DECL(alDeleteFilters),
-    DECL(alIsFilter),
-    DECL(alFilteri),
-    DECL(alFilteriv),
-    DECL(alFilterf),
-    DECL(alFilterfv),
-    DECL(alGetFilteri),
-    DECL(alGetFilteriv),
-    DECL(alGetFilterf),
-    DECL(alGetFilterfv),
-
     DECL(alDeferUpdatesSOFT),
     DECL(alProcessUpdatesSOFT),
 
@@ -1823,14 +1811,6 @@ static ALCvoid FreeDevice(ALCdevice *device)
 
     TRACE("%p\n", device);
 
-    if(device->FilterMap.size > 0)
-    {
-        WARN("(%p) Deleting %d Filter%s\n", device, device->FilterMap.size,
-             (device->FilterMap.size==1)?"":"s");
-        ReleaseALFilters(device);
-    }
-    ResetUIntMap(&device->FilterMap);
-
     al_free(device->effect);
 
     DeinitEffectSlot(device->effect_slot);
@@ -2909,8 +2889,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     device->SourcesMax = 256;
     device->AuxiliaryEffectSlotMax = 64;
     device->NumAuxSends = DEFAULT_SENDS;
-
-    InitUIntMap(&device->FilterMap, INT_MAX);
 
     for(i = 0;i < MAX_OUTPUT_CHANNELS;i++)
     {
