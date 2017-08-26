@@ -1729,19 +1729,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
     {
         ALsizei pos;
 
-        if(context->DefaultSlot)
-        {
-            ALeffectslot *slot = context->DefaultSlot;
-            ALeffectState *state = slot->Effect.State;
-
-            state->OutBuffer = device->Dry.Buffer;
-            state->OutChannels = device->Dry.NumChannels;
-            if(V(state,deviceUpdate)(device) == AL_FALSE)
-                update_failed = AL_TRUE;
-            else
-                UpdateEffectSlotProps(slot);
-        }
-
         {
             ALeffectslot *slot = device->effect_slot;
             ALeffectState *state = slot->Effect.State;
@@ -1951,12 +1938,6 @@ static void FreeContext(ALCcontext *context)
     ALsizei i;
 
     TRACE("%p\n", context);
-
-    if(context->DefaultSlot)
-    {
-        DeinitEffectSlot(context->DefaultSlot);
-        context->DefaultSlot = NULL;
-    }
 
     auxslots = context->ActiveAuxSlots;
     context->ActiveAuxSlots = NULL;
@@ -2713,7 +2694,6 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
     }
 
     ALContext->ref = 1;
-    ALContext->DefaultSlot = NULL;
 
     ALContext->Voices = NULL;
     ALContext->VoiceCount = 0;
@@ -2736,30 +2716,10 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
     }
     AllocateVoices(ALContext, 1, device->NumAuxSends);
 
-    if(DefaultEffect.type != AL_EFFECT_NULL && device->Type == Playback)
-    {
-        ALContext->DefaultSlot = (ALeffectslot*)(ALContext->_listener_mem);
-        if(InitEffectSlot(ALContext->DefaultSlot) == AL_NO_ERROR)
-            aluInitEffectPanning(ALContext->DefaultSlot);
-        else
-        {
-            ALContext->DefaultSlot = NULL;
-            ERR("Failed to initialize the default effect slot\n");
-        }
-    }
-
     ALCdevice_IncRef(ALContext->Device);
     InitContext(ALContext);
 
     device->ContextList = ALContext;
-
-    if(ALContext->DefaultSlot)
-    {
-        if(InitializeEffect(device, ALContext->DefaultSlot, &DefaultEffect) == AL_NO_ERROR)
-            UpdateEffectSlotProps(ALContext->DefaultSlot);
-        else
-            ERR("Failed to initialize the default effect\n");
-    }
 
     ALCdevice_DecRef(device);
 

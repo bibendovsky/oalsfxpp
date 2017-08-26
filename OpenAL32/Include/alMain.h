@@ -764,9 +764,6 @@ struct ALCcontext_struct {
 
     struct ALeffectslotArray* ActiveAuxSlots;
 
-    /* Default effect slot */
-    struct ALeffectslot *DefaultSlot;
-
     ALCdevice  *Device;
     const ALCchar *ExtensionList;
 

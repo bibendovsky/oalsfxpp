@@ -473,8 +473,6 @@ static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *p
     for(i = 0;i < Device->NumAuxSends;i++)
     {
         SendSlots[i] = props->Send[i].Slot;
-        if(!SendSlots[i] && i == 0)
-            SendSlots[i] = ALContext->DefaultSlot;
         if(!SendSlots[i] || SendSlots[i]->Params.EffectType == AL_EFFECT_NULL)
         {
             SendSlots[i] = NULL;
