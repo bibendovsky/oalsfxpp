@@ -132,16 +132,10 @@ typedef struct ALeffectslot {
     alignas(16) ALfloat WetBuffer[MAX_EFFECT_CHANNELS][BUFFERSIZE];
 } ALeffectslot;
 
-inline struct ALeffectslot *LookupEffectSlot(ALCcontext *context, ALuint id)
-{ return (struct ALeffectslot*)LookupUIntMapKeyNoLock(&context->EffectSlotMap, id); }
-inline struct ALeffectslot *RemoveEffectSlot(ALCcontext *context, ALuint id)
-{ return (struct ALeffectslot*)RemoveUIntMapKeyNoLock(&context->EffectSlotMap, id); }
-
 ALenum InitEffectSlot(ALeffectslot *slot);
 void DeinitEffectSlot(ALeffectslot *slot);
 void UpdateEffectSlotProps(ALeffectslot *slot);
 void UpdateAllEffectSlotProps(ALCcontext *context);
-ALvoid ReleaseALAuxiliaryEffectSlots(ALCcontext *Context);
 
 
 ALeffectStateFactory *ALnullStateFactory_getFactory(void);
@@ -153,14 +147,11 @@ ALeffectStateFactory *ALechoStateFactory_getFactory(void);
 ALeffectStateFactory *ALequalizerStateFactory_getFactory(void);
 ALeffectStateFactory *ALflangerStateFactory_getFactory(void);
 ALeffectStateFactory *ALmodulatorStateFactory_getFactory(void);
-
 ALeffectStateFactory *ALdedicatedStateFactory_getFactory(void);
 
 
 ALenum InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *effect);
 
-void InitEffectFactoryMap(void);
-void DeinitEffectFactoryMap(void);
 
 #ifdef __cplusplus
 }

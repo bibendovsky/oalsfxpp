@@ -27,51 +27,75 @@
 #include "AL/alc.h"
 #include "alMain.h"
 #include "alAuxEffectSlot.h"
-#include "alThunk.h"
 #include "alError.h"
 #include "alSource.h"
 
 #include "almalloc.h"
 
 
-extern inline struct ALeffectslot *LookupEffectSlot(ALCcontext *context, ALuint id);
-extern inline struct ALeffectslot *RemoveEffectSlot(ALCcontext *context, ALuint id);
-
-static UIntMap EffectStateFactoryMap;
 static inline ALeffectStateFactory *getFactoryByType(ALenum type)
 {
-    ALeffectStateFactory* (*getFactory)(void) = LookupUIntMapKey(&EffectStateFactoryMap, type);
-    if(getFactory != NULL)
-        return getFactory();
-    return NULL;
+    ALeffectStateFactory* (*get_factory)() = NULL;
+
+    switch (type)
+    {
+    case AL_EFFECT_NULL:
+        get_factory = ALnullStateFactory_getFactory;
+        break;
+
+    case AL_EFFECT_EAXREVERB:
+        get_factory = ALreverbStateFactory_getFactory;
+        break;
+
+    case AL_EFFECT_REVERB:
+        get_factory = ALreverbStateFactory_getFactory;
+        break;
+
+    case AL_EFFECT_CHORUS:
+        get_factory = ALchorusStateFactory_getFactory;
+        break;
+
+    case AL_EFFECT_COMPRESSOR:
+        get_factory = ALcompressorStateFactory_getFactory;
+        break;
+
+    case AL_EFFECT_DISTORTION:
+        get_factory = ALdistortionStateFactory_getFactory;
+        break;
+
+    case AL_EFFECT_ECHO:
+        get_factory = ALechoStateFactory_getFactory;
+        break;
+
+    case AL_EFFECT_EQUALIZER:
+        get_factory = ALequalizerStateFactory_getFactory;
+        break;
+
+    case AL_EFFECT_FLANGER:
+        get_factory = ALflangerStateFactory_getFactory;
+        break;
+
+    case AL_EFFECT_RING_MODULATOR:
+        get_factory = ALmodulatorStateFactory_getFactory;
+        break;
+
+    case AL_EFFECT_DEDICATED_DIALOGUE:
+        get_factory = ALdedicatedStateFactory_getFactory;
+        break;
+
+    case AL_EFFECT_DEDICATED_LOW_FREQUENCY_EFFECT:
+        get_factory = ALdedicatedStateFactory_getFactory;
+        break;
+
+    default:
+        return NULL;
+    }
+
+    return get_factory();
 }
 
 static void ALeffectState_IncRef(ALeffectState *state);
 static void ALeffectState_DecRef(ALeffectState *state);
-
-
-void InitEffectFactoryMap(void)
-{
-    InitUIntMap(&EffectStateFactoryMap, INT_MAX);
-
-    InsertUIntMapEntry(&EffectStateFactoryMap, AL_EFFECT_NULL, ALnullStateFactory_getFactory);
-    InsertUIntMapEntry(&EffectStateFactoryMap, AL_EFFECT_EAXREVERB, ALreverbStateFactory_getFactory);
-    InsertUIntMapEntry(&EffectStateFactoryMap, AL_EFFECT_REVERB, ALreverbStateFactory_getFactory);
-    InsertUIntMapEntry(&EffectStateFactoryMap, AL_EFFECT_CHORUS, ALchorusStateFactory_getFactory);
-    InsertUIntMapEntry(&EffectStateFactoryMap, AL_EFFECT_COMPRESSOR, ALcompressorStateFactory_getFactory);
-    InsertUIntMapEntry(&EffectStateFactoryMap, AL_EFFECT_DISTORTION, ALdistortionStateFactory_getFactory);
-    InsertUIntMapEntry(&EffectStateFactoryMap, AL_EFFECT_ECHO, ALechoStateFactory_getFactory);
-    InsertUIntMapEntry(&EffectStateFactoryMap, AL_EFFECT_EQUALIZER, ALequalizerStateFactory_getFactory);
-    InsertUIntMapEntry(&EffectStateFactoryMap, AL_EFFECT_FLANGER, ALflangerStateFactory_getFactory);
-    InsertUIntMapEntry(&EffectStateFactoryMap, AL_EFFECT_RING_MODULATOR, ALmodulatorStateFactory_getFactory);
-    InsertUIntMapEntry(&EffectStateFactoryMap, AL_EFFECT_DEDICATED_DIALOGUE, ALdedicatedStateFactory_getFactory);
-    InsertUIntMapEntry(&EffectStateFactoryMap, AL_EFFECT_DEDICATED_LOW_FREQUENCY_EFFECT, ALdedicatedStateFactory_getFactory);
-}
-
-void DeinitEffectFactoryMap(void)
-{
-    ResetUIntMap(&EffectStateFactoryMap);
-}
 
 
 ALenum InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *effect)
@@ -274,21 +298,5 @@ void UpdateAllEffectSlotProps(ALCcontext *context)
         slot->PropsClean = 1;
         if(!old_props_clean)
             UpdateEffectSlotProps(slot);
-    }
-}
-
-ALvoid ReleaseALAuxiliaryEffectSlots(ALCcontext *Context)
-{
-    ALsizei pos;
-    for(pos = 0;pos < Context->EffectSlotMap.size;pos++)
-    {
-        ALeffectslot *temp = Context->EffectSlotMap.values[pos];
-        Context->EffectSlotMap.values[pos] = NULL;
-
-        DeinitEffectSlot(temp);
-
-        FreeThunkEntry(temp->id);
-        memset(temp, 0, sizeof(ALeffectslot));
-        al_free(temp);
     }
 }

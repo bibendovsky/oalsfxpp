@@ -862,8 +862,6 @@ static void alc_initconfig(void)
         } while(next++);
     }
 
-    InitEffectFactoryMap();
-
     InitEffect(&DefaultEffect);
 }
 void DO_INITCONFIG()
@@ -963,8 +961,6 @@ static void alc_cleanup(void)
     {
         ERR("Device not closed\n");
     }
-
-    DeinitEffectFactoryMap();
 }
 
 static void alc_deinit_safe(void)
@@ -1981,14 +1977,6 @@ static void FreeContext(ALCcontext *context)
         ReleaseALSources(context);
     }
     ResetUIntMap(&context->SourceMap);
-
-    if(context->EffectSlotMap.size > 0)
-    {
-        WARN("(%p) Deleting %d AuxiliaryEffectSlot%s\n", context, context->EffectSlotMap.size,
-             (context->EffectSlotMap.size==1)?"":"s");
-        ReleaseALAuxiliaryEffectSlots(context);
-    }
-    ResetUIntMap(&context->EffectSlotMap);
 
     for(i = 0;i < context->VoiceCount;i++)
         DeinitVoice(context->Voices[i]);
