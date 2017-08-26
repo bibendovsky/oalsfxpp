@@ -735,7 +735,6 @@ static void alc_init(void)
 static void alc_initconfig(void)
 {
     const char *devs, *str;
-    ALuint capfilter;
     int i;
 
     str = getenv("__ALSOFT_SUSPEND_CONTEXT");
@@ -746,21 +745,6 @@ static void alc_initconfig(void)
             SuspendDefers = ALC_FALSE;
         }
     }
-
-    capfilter = 0;
-#if defined(HAVE_SSE4_1)
-    capfilter |= CPU_CAP_SSE | CPU_CAP_SSE2 | CPU_CAP_SSE3 | CPU_CAP_SSE4_1;
-#elif defined(HAVE_SSE3)
-    capfilter |= CPU_CAP_SSE | CPU_CAP_SSE2 | CPU_CAP_SSE3;
-#elif defined(HAVE_SSE2)
-    capfilter |= CPU_CAP_SSE | CPU_CAP_SSE2;
-#elif defined(HAVE_SSE)
-    capfilter |= CPU_CAP_SSE;
-#endif
-#ifdef HAVE_NEON
-    capfilter |= CPU_CAP_NEON;
-#endif
-    FillCPUCaps(capfilter);
 
 #ifdef _WIN32
     RTPrioLevel = 1;
@@ -1495,9 +1479,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
 
         device->UpdateSize = (ALuint64)device->UpdateSize * freq /
                              device->Frequency;
-        /* SSE and Neon do best with the update size being a multiple of 4 */
-        if((CPUCapFlags&(CPU_CAP_SSE|CPU_CAP_NEON)) != 0)
-            device->UpdateSize = (device->UpdateSize+3)&~3;
 
         device->Frequency = freq;
 
@@ -2790,9 +2771,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
 
     device->NumUpdates = clampu(device->NumUpdates, 2, 16);
     device->UpdateSize = clampu(device->UpdateSize, 64, 8192);
-
-    if((CPUCapFlags&(CPU_CAP_SSE|CPU_CAP_NEON)) != 0)
-        device->UpdateSize = (device->UpdateSize+3)&~3;
 
     if(device->SourcesMax == 0) device->SourcesMax = 256;
 
