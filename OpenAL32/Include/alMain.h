@@ -758,8 +758,6 @@ struct ALCcontext_struct {
     unsigned int UpdateCount;
     ALenum HoldUpdates;
 
-    ALfloat GainBoost;
-
     struct ALvoice **Voices;
     ALsizei VoiceCount;
     ALsizei MaxVoices;

@@ -116,11 +116,6 @@ AL_API ALboolean AL_APIENTRY alGetBoolean(ALenum pname)
 
     switch(pname)
     {
-    case AL_GAIN_LIMIT_SOFT:
-        if(GAIN_MIX_MAX/context->GainBoost != 0.0f)
-            value = AL_TRUE;
-        break;
-
     case AL_NUM_RESAMPLERS_SOFT:
         /* Always non-0. */
         value = AL_TRUE;
@@ -150,10 +145,6 @@ AL_API ALdouble AL_APIENTRY alGetDouble(ALenum pname)
 
     switch(pname)
     {
-    case AL_GAIN_LIMIT_SOFT:
-        value = (ALdouble)GAIN_MIX_MAX/context->GainBoost;
-        break;
-
     case AL_NUM_RESAMPLERS_SOFT:
         value = (ALdouble)(ResamplerMax + 1);
         break;
@@ -182,10 +173,6 @@ AL_API ALfloat AL_APIENTRY alGetFloat(ALenum pname)
 
     switch(pname)
     {
-    case AL_GAIN_LIMIT_SOFT:
-        value = GAIN_MIX_MAX/context->GainBoost;
-        break;
-
     case AL_NUM_RESAMPLERS_SOFT:
         value = (ALfloat)(ResamplerMax + 1);
         break;
@@ -214,10 +201,6 @@ AL_API ALint AL_APIENTRY alGetInteger(ALenum pname)
 
     switch(pname)
     {
-    case AL_GAIN_LIMIT_SOFT:
-        value = (ALint)(GAIN_MIX_MAX/context->GainBoost);
-        break;
-
     case AL_NUM_RESAMPLERS_SOFT:
         value = ResamplerMax + 1;
         break;
@@ -246,10 +229,6 @@ AL_API ALint64SOFT AL_APIENTRY alGetInteger64SOFT(ALenum pname)
 
     switch(pname)
     {
-    case AL_GAIN_LIMIT_SOFT:
-        value = (ALint64SOFT)(GAIN_MIX_MAX/context->GainBoost);
-        break;
-
     case AL_NUM_RESAMPLERS_SOFT:
         value = (ALint64SOFT)(ResamplerMax + 1);
         break;

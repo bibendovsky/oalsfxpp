@@ -1927,7 +1927,6 @@ static ALvoid InitContext(ALCcontext *Context)
     //Validate Context
     Context->UpdateCount = 0;
     Context->HoldUpdates = AL_FALSE;
-    Context->GainBoost = 1.0f;
     Context->LastError = AL_NO_ERROR;
 
     auxslots = al_calloc(DEF_ALIGN, FAM_SIZE(struct ALeffectslotArray, slot, 1));
