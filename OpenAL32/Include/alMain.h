@@ -750,8 +750,6 @@ struct ALCdevice_struct
 struct ALCcontext_struct {
     unsigned int ref;
 
-    struct ALlistener *Listener;
-
     ALenum LastError;
 
     /* Counter for the pre-mixing updates, in 31.1 fixed point (lowest bit
