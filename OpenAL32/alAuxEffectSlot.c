@@ -180,15 +180,8 @@ ALenum InitEffectSlot(ALeffectslot *slot)
     slot->Update = NULL;
     slot->FreeList = NULL;
 
-    slot->Params.Gain = 1.0f;
-    slot->Params.AuxSendAuto = AL_TRUE;
     ALeffectState_IncRef(slot->Effect.State);
     slot->Params.EffectState = slot->Effect.State;
-    slot->Params.RoomRolloff = 0.0f;
-    slot->Params.DecayTime = 0.0f;
-    slot->Params.DecayHFRatio = 0.0f;
-    slot->Params.DecayHFLimit = AL_FALSE;
-    slot->Params.AirAbsorptionGainHF = 1.0f;
 
     return AL_NO_ERROR;
 }

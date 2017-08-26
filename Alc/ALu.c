@@ -260,24 +260,7 @@ static ALboolean CalcEffectSlotParams(ALeffectslot *slot, ALCdevice *device)
     slot->Update = NULL;
     if(!props) return AL_FALSE;
 
-    slot->Params.Gain = props->Gain;
     slot->Params.EffectType = props->Type;
-    if(IsReverbEffect(slot->Params.EffectType))
-    {
-        slot->Params.RoomRolloff = props->Props.Reverb.RoomRolloffFactor;
-        slot->Params.DecayTime = props->Props.Reverb.DecayTime;
-        slot->Params.DecayHFRatio = props->Props.Reverb.DecayHFRatio;
-        slot->Params.DecayHFLimit = props->Props.Reverb.DecayHFLimit;
-        slot->Params.AirAbsorptionGainHF = props->Props.Reverb.AirAbsorptionGainHF;
-    }
-    else
-    {
-        slot->Params.RoomRolloff = 0.0f;
-        slot->Params.DecayTime = 0.0f;
-        slot->Params.DecayHFRatio = 0.0f;
-        slot->Params.DecayHFLimit = AL_FALSE;
-        slot->Params.AirAbsorptionGainHF = 1.0f;
-    }
 
     /* Swap effect states. No need to play with the ref counts since they keep
      * the same number of refs.

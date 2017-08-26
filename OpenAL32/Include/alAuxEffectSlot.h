@@ -110,17 +110,8 @@ typedef struct ALeffectslot {
     struct ALeffectslotProps* FreeList;
 
     struct {
-        ALfloat   Gain;
-        ALboolean AuxSendAuto;
-
         ALenum EffectType;
         ALeffectState *EffectState;
-
-        ALfloat RoomRolloff; /* Added to the source's room rolloff, not multiplied. */
-        ALfloat DecayTime;
-        ALfloat DecayHFRatio;
-        ALboolean DecayHFLimit;
-        ALfloat AirAbsorptionGainHF;
     } Params;
 
     /* Self ID */

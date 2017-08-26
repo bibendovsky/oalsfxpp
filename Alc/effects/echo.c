@@ -131,7 +131,7 @@ static ALvoid ALechoState_update(ALechoState *state, const ALCdevice *Device, co
                             gain, LOWPASSFREQREF/frequency,
                             calc_rcpQ_from_slope(gain, 1.0f));
 
-    gain = Slot->Params.Gain;
+    gain = 1.0F;
 
     /* First tap panning */
     CalcAngleCoeffs(-F_PI_2*lrpan, 0.0f, spread, coeffs);

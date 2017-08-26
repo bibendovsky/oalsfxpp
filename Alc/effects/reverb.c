@@ -1369,7 +1369,7 @@ static ALvoid ALreverbState_update(ALreverbState *State, const ALCdevice *Device
                     frequency, State);
 
     /* Update early and late 3D panning. */
-    gain = props->Reverb.Gain * Slot->Params.Gain;
+    gain = props->Reverb.Gain;
     Update3DPanning(Device, props->Reverb.ReflectionsPan,
                     props->Reverb.LateReverbPan, gain,
                     props->Reverb.ReflectionsGain,
