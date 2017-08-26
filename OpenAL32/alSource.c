@@ -41,7 +41,7 @@
 
 void InitSourceParams(ALsource *Source, ALsizei num_sends);
 void DeinitSource(ALsource *source, ALsizei num_sends);
-static void UpdateSourceProps(ALsource *source, ALvoice *voice, ALsizei num_sends);
+void UpdateSourceProps(ALsource *source, ALvoice *voice, ALsizei num_sends);
 static ALint64 GetSourceSampleOffset(ALsource *Source, ALCcontext *context, ALuint64 *clocktime);
 static ALdouble GetSourceSecOffset(ALsource *Source, ALCcontext *context, ALuint64 *clocktime);
 static ALdouble GetSourceOffset(ALsource *Source, ALenum name, ALCcontext *context);
@@ -2039,7 +2039,7 @@ void DeinitSource(ALsource *source, ALsizei num_sends)
     }
 }
 
-static void UpdateSourceProps(ALsource *source, ALvoice *voice, ALsizei num_sends)
+void UpdateSourceProps(ALsource *source, ALvoice *voice, ALsizei num_sends)
 {
     struct ALvoiceProps *props;
     struct ALvoiceProps *temp_props;

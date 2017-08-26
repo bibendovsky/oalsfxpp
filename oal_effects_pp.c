@@ -20,6 +20,11 @@ void InitEffectParams(
     ALeffect* effect,
     ALenum type);
 
+void UpdateSourceProps(
+    ALsource* source,
+    ALvoice* voice,
+    ALsizei num_sends);
+
 void aluMixData(
     ALCdevice* device,
     ALvoid* OutBuffer,
@@ -231,28 +236,8 @@ int main()
 
     if (is_succeed)
     {
-        alGetError();
-
-        alGenSources(1, &oal_source);
-
-        if (alGetError() != AL_NO_ERROR)
-        {
-            is_succeed = 0;
-            printf("%s\n", "Failed to generate a source.");
-        }
-    }
-
-    if (is_succeed)
-    {
-        alGetError();
-
-        alSource3i(oal_source, AL_AUXILIARY_SEND_FILTER, oal_effect_slot, 0, 0);
-
-        if (alGetError() != AL_NO_ERROR)
-        {
-            is_succeed = 0;
-            printf("%s\n", "Failed to configure a send.");
-        }
+        oal_device->source->Send[0].Slot = oal_device->effect_slot;
+        UpdateSourceProps(oal_device->source, oal_context->Voices[0], 1);
     }
 
     if (is_succeed)
