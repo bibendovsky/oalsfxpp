@@ -197,7 +197,6 @@ ALenum InitEffectSlot(ALeffectslot *slot)
     if(!(slot->Effect.State=V0(factory,create)()))
         return AL_OUT_OF_MEMORY;
 
-    slot->Gain = 1.0;
     slot->PropsClean = 1;
     slot->ref = 0;
 
@@ -257,8 +256,6 @@ void UpdateEffectSlotProps(ALeffectslot *slot)
     }
 
     /* Copy in current property values. */
-    props->Gain = slot->Gain;
-
     props->Type = slot->Effect.Type;
     props->Props = slot->Effect.Props;
     /* Swap out any stale effect state object there may be in the container, to

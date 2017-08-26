@@ -81,8 +81,6 @@ struct ALeffectslotArray {
 
 
 struct ALeffectslotProps {
-    ALfloat   Gain;
-
     ALenum Type;
     ALeffectProps Props;
 
@@ -93,8 +91,6 @@ struct ALeffectslotProps {
 
 
 typedef struct ALeffectslot {
-    ALfloat   Gain;
-
     struct {
         ALenum Type;
         ALeffectProps Props;
