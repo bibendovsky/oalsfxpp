@@ -98,8 +98,6 @@ typedef struct ALeffectslot {
         ALeffectState *State;
     } Effect;
 
-    int PropsClean;
-
     unsigned int ref;
 
     struct ALeffectslotProps* Update;

@@ -438,8 +438,6 @@ static ALint Int64ValsByProp(ALenum prop)
     if(SourceShouldUpdate(Source, Context) &&                                 \
        (voice=GetSourceVoice(Source, Context)) != NULL)                       \
         UpdateSourceProps(Source, voice, device->NumAuxSends);                \
-    else                                                                      \
-        Source->PropsClean = 0;       \
 } while(0)
 
 static ALboolean SetSourcefv(ALsource *Source, ALCcontext *Context, SourceProp prop, const ALfloat *values)

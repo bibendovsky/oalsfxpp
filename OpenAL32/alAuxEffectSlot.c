@@ -197,7 +197,6 @@ ALenum InitEffectSlot(ALeffectslot *slot)
     if(!(slot->Effect.State=V0(factory,create)()))
         return AL_OUT_OF_MEMORY;
 
-    slot->PropsClean = 1;
     slot->ref = 0;
 
     slot->Update = NULL;
@@ -291,9 +290,6 @@ void UpdateAllEffectSlotProps(ALCcontext *context)
     for(i = 0;i < auxslots->count;i++)
     {
         ALeffectslot *slot = auxslots->slot[i];
-        int old_props_clean = slot->PropsClean;
-        slot->PropsClean = 1;
-        if(!old_props_clean)
-            UpdateEffectSlotProps(slot);
+        UpdateEffectSlotProps(slot);
     }
 }
