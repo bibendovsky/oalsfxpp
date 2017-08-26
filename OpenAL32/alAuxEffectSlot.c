@@ -174,7 +174,6 @@ ALenum InitEffectSlot(ALeffectslot *slot)
         return AL_OUT_OF_MEMORY;
 
     slot->Gain = 1.0;
-    slot->AuxSendAuto = AL_TRUE;
     slot->PropsClean = 1;
     slot->ref = 0;
 
@@ -242,7 +241,6 @@ void UpdateEffectSlotProps(ALeffectslot *slot)
 
     /* Copy in current property values. */
     props->Gain = slot->Gain;
-    props->AuxSendAuto = slot->AuxSendAuto;
 
     props->Type = slot->Effect.Type;
     props->Props = slot->Effect.Props;

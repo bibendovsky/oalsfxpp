@@ -261,7 +261,6 @@ static ALboolean CalcEffectSlotParams(ALeffectslot *slot, ALCdevice *device)
     if(!props) return AL_FALSE;
 
     slot->Params.Gain = props->Gain;
-    slot->Params.AuxSendAuto = props->AuxSendAuto;
     slot->Params.EffectType = props->Type;
     if(IsReverbEffect(slot->Params.EffectType))
     {
