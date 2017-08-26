@@ -1755,10 +1755,8 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
                 UpdateEffectSlotProps(slot);
         }
 
-        RelimitUIntMapNoLock(&context->SourceMap, device->SourcesMax);
-        for(pos = 0;pos < context->SourceMap.size;pos++)
         {
-            ALsource *source = context->SourceMap.values[pos];
+            ALsource *source = device->source;
 
             if(old_sends != device->NumAuxSends)
             {
@@ -1932,7 +1930,6 @@ static ALvoid InitContext(ALCcontext *Context)
     Context->HoldUpdates = AL_FALSE;
     Context->GainBoost = 1.0f;
     Context->LastError = AL_NO_ERROR;
-    InitUIntMap(&Context->SourceMap, Context->Device->SourcesMax);
     InitUIntMap(&Context->EffectSlotMap, Context->Device->AuxiliaryEffectSlotMax);
 
     auxslots = al_calloc(DEF_ALIGN, FAM_SIZE(struct ALeffectslotArray, slot, 1));
@@ -1967,14 +1964,6 @@ static void FreeContext(ALCcontext *context)
     auxslots = context->ActiveAuxSlots;
     context->ActiveAuxSlots = NULL;
     al_free(auxslots);
-
-    if(context->SourceMap.size > 0)
-    {
-        WARN("(%p) Deleting %d Source%s\n", context, context->SourceMap.size,
-             (context->SourceMap.size==1)?"":"s");
-        ReleaseALSources(context);
-    }
-    ResetUIntMap(&context->SourceMap);
 
     for(i = 0;i < context->VoiceCount;i++)
         DeinitVoice(context->Voices[i]);

@@ -752,7 +752,6 @@ struct ALCcontext_struct {
 
     struct ALlistener *Listener;
 
-    UIntMap SourceMap;
     UIntMap EffectSlotMap;
 
     ALenum LastError;

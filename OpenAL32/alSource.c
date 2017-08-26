@@ -2256,16 +2256,4 @@ static ALboolean GetSampleOffset(ALsource *Source, ALuint *offset, ALsizei *frac
  */
 ALvoid ReleaseALSources(ALCcontext *Context)
 {
-    ALCdevice *device = Context->Device;
-    ALsizei pos;
-    for(pos = 0;pos < Context->SourceMap.size;pos++)
-    {
-        ALsource *temp = Context->SourceMap.values[pos];
-        Context->SourceMap.values[pos] = NULL;
-
-        DeinitSource(temp, device->NumAuxSends);
-
-        memset(temp, 0, sizeof(*temp));
-        al_free(temp);
-    }
 }
