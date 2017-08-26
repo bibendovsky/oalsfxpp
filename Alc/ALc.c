@@ -1742,9 +1742,8 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
                 UpdateEffectSlotProps(slot);
         }
 
-        for(pos = 0;pos < context->EffectSlotMap.size;pos++)
         {
-            ALeffectslot *slot = context->EffectSlotMap.values[pos];
+            ALeffectslot *slot = device->effect_slot;
             ALeffectState *state = slot->Effect.State;
 
             state->OutBuffer = device->Dry.Buffer;
@@ -1930,7 +1929,6 @@ static ALvoid InitContext(ALCcontext *Context)
     Context->HoldUpdates = AL_FALSE;
     Context->GainBoost = 1.0f;
     Context->LastError = AL_NO_ERROR;
-    InitUIntMap(&Context->EffectSlotMap, Context->Device->AuxiliaryEffectSlotMax);
 
     auxslots = al_calloc(DEF_ALIGN, FAM_SIZE(struct ALeffectslotArray, slot, 1));
     auxslots->count = 1;

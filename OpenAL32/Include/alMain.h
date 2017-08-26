@@ -752,8 +752,6 @@ struct ALCcontext_struct {
 
     struct ALlistener *Listener;
 
-    UIntMap EffectSlotMap;
-
     ALenum LastError;
 
     /* Counter for the pre-mixing updates, in 31.1 fixed point (lowest bit
