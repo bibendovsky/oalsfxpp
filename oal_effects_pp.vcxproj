@@ -148,7 +148,6 @@
     <ClCompile Include="OpenAL32\alFilter.c" />
     <ClCompile Include="OpenAL32\alSource.c" />
     <ClCompile Include="OpenAL32\alState.c" />
-    <ClCompile Include="OpenAL32\alThunk.c" />
     <ClCompile Include="OpenAL32\sample_cvt.c" />
   </ItemGroup>
   <ItemGroup>
@@ -176,7 +175,6 @@
     <ClInclude Include="OpenAL32\Include\alFilter.h" />
     <ClInclude Include="OpenAL32\Include\alMain.h" />
     <ClInclude Include="OpenAL32\Include\alSource.h" />
-    <ClInclude Include="OpenAL32\Include\alThunk.h" />
     <ClInclude Include="OpenAL32\Include\alu.h" />
     <ClInclude Include="OpenAL32\Include\sample_cvt.h" />
   </ItemGroup>

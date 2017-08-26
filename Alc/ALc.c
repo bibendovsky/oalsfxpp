@@ -31,7 +31,6 @@
 
 #include "alMain.h"
 #include "alSource.h"
-#include "alThunk.h"
 #include "alSource.h"
 #include "alBuffer.h"
 #include "alAuxEffectSlot.h"
@@ -740,8 +739,6 @@ static void alc_init(void)
     str = getenv("__ALSOFT_REVERSE_Z");
     if(str && (strcasecmp(str, "true") == 0 || strtol(str, NULL, 0) == 1))
         ZScale *= -1.0f;
-
-    ThunkInit();
 }
 
 static void alc_initconfig(void)
@@ -954,8 +951,6 @@ static void alc_cleanup(void)
 static void alc_deinit_safe(void)
 {
     alc_cleanup();
-
-    ThunkExit();
 
     if(LogFile != stderr)
         fclose(LogFile);
