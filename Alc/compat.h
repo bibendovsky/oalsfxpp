@@ -40,12 +40,6 @@ void UnmapFileMem(const struct FileMapping *mapping);
 
 al_string GetProcPath(void);
 
-#ifdef HAVE_DYNLOAD
-void *LoadLib(const char *name);
-void CloseLib(void *handle);
-void *GetSymbol(void *handle, const char *name);
-#endif
-
 #ifdef __ANDROID__
 #define JCALL(obj, func)  ((*(obj))->func((obj), EXTRACT_VCALL_ARGS
 #define JCALL0(obj, func)  ((*(obj))->func((obj) EXTRACT_VCALL_ARGS

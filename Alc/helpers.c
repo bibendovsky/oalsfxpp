@@ -189,30 +189,6 @@ static WCHAR *FromUTF8(const char *str)
     return out;
 }
 
-
-void *LoadLib(const char *name)
-{
-    HANDLE hdl = NULL;
-    WCHAR *wname;
-
-    wname = FromUTF8(name);
-    if(wname)
-    {
-        hdl = LoadLibraryW(wname);
-        free(wname);
-    }
-    return hdl;
-}
-void CloseLib(void *handle)
-{ FreeLibrary((HANDLE)handle); }
-void *GetSymbol(void *handle, const char *name)
-{
-    void *ret;
-
-    ret = (void*)GetProcAddress((HANDLE)handle, name);
-    return ret;
-}
-
 WCHAR *strdupW(const WCHAR *str)
 {
     const WCHAR *n;
