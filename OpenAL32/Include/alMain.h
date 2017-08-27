@@ -676,7 +676,6 @@ struct ALCcontext_struct {
     struct ALeffectslotArray* ActiveAuxSlots;
 
     ALCdevice  *Device;
-    const ALCchar *ExtensionList;
 };
 
 ALCcontext *GetContextRef(void);
