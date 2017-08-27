@@ -627,8 +627,6 @@ struct ALCdevice_struct
         ALsizei NumChannels;
     } RealOut;
 
-    struct Compressor *Limiter;
-
     // Contexts created on this device
     ALCcontext* ContextList;
 

@@ -167,13 +167,6 @@ void SetDefaultWFXChannelOrder(ALCdevice *device)
 extern inline ALint GetChannelIndex(const enum Channel names[MAX_OUTPUT_CHANNELS], enum Channel chan);
 
 
-struct Compressor *CreateDeviceLimiter(const ALCdevice *device)
-{
-    return CompressorInit(0.0f, 0.0f, AL_FALSE, AL_TRUE, 0.0f, 0.0f, 0.5f, 2.0f,
-                          0.0f, -3.0f, 3.0f, device->Frequency);
-}
-
-
 /* UpdateDeviceParams
  *
  * Updates device parameters according to the attribute list (caller is
@@ -181,7 +174,6 @@ struct Compressor *CreateDeviceLimiter(const ALCdevice *device)
  */
 static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
 {
-    ALCenum gainLimiter = device->Limiter ? ALC_TRUE : ALC_FALSE;
     const ALsizei old_sends = device->NumAuxSends;
     ALsizei new_sends = device->NumAuxSends;
     enum DevFmtChannels oldChans;
@@ -249,24 +241,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
     }
 
     device->NumAuxSends = new_sends;
-
-    /* Valid values for gainLimiter are ALC_DONT_CARE_SOFT, ALC_TRUE, and
-     * ALC_FALSE. We default to on, so ALC_DONT_CARE_SOFT is the same as
-     * ALC_TRUE.
-     */
-    if(gainLimiter != ALC_FALSE)
-    {
-        if(!device->Limiter || device->Frequency != GetCompressorSampleRate(device->Limiter))
-        {
-            al_free(device->Limiter);
-            device->Limiter = CreateDeviceLimiter(device);
-        }
-    }
-    else
-    {
-        al_free(device->Limiter);
-        device->Limiter = NULL;
-    }
 
     /* Need to delay returning failure until replacement Send arrays have been
      * allocated with the appropriate size.
@@ -373,9 +347,6 @@ static ALCvoid FreeDevice(ALCdevice *device)
 
     DeinitSource(device->source, device->NumAuxSends);
     al_free(device->source);
-
-    al_free(device->Limiter);
-    device->Limiter = NULL;
 
     al_free(device->Dry.Buffer);
     device->Dry.Buffer = NULL;
@@ -801,7 +772,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     device->FOAOut.NumChannels = 0;
     device->RealOut.Buffer = NULL;
     device->RealOut.NumChannels = 0;
-    device->Limiter = NULL;
 
     device->ContextList = NULL;
 
@@ -815,8 +785,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     device->UpdateSize = clampu(1024, 64, 8192);
 
     if(device->AuxiliaryEffectSlotMax == 0) device->AuxiliaryEffectSlotMax = 64;
-
-    device->Limiter = CreateDeviceLimiter(device);
 
     device->source = al_calloc(16, sizeof(ALsource));
     InitSourceParams(device->source, device->NumAuxSends);

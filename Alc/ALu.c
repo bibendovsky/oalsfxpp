@@ -706,9 +706,6 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const 
             ALfloat (*Buffer)[BUFFERSIZE] = device->RealOut.Buffer;
             ALsizei Channels = device->RealOut.NumChannels;
 
-            if(device->Limiter)
-                ApplyCompression(device->Limiter, Channels, SamplesToDo, Buffer);
-
             switch(device->FmtType)
             {
                 case DevFmtByte:
