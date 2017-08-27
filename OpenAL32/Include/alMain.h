@@ -538,12 +538,6 @@ extern const struct EffectList {
 } EffectList[];
 
 
-enum DeviceType {
-    Playback,
-    Loopback
-};
-
-
 enum RenderMode {
     NormalRender,
     StereoPair
@@ -607,7 +601,6 @@ struct ALCdevice_struct
     unsigned int ref;
 
     ALCboolean Connected;
-    enum DeviceType Type;
 
     ALuint Frequency;
     ALuint UpdateSize;

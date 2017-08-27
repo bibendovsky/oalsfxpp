@@ -1145,7 +1145,7 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
 
     device->LastError = ALC_NO_ERROR;
 
-    if(device->Type == Playback && DefaultEffect.type != AL_EFFECT_NULL)
+    if(DefaultEffect.type != AL_EFFECT_NULL)
         ALContext = al_calloc(16, sizeof(ALCcontext)+sizeof(ALeffectslot));
     else
         ALContext = al_calloc(16, sizeof(ALCcontext));
@@ -1278,7 +1278,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     //Validate device
     device->ref = 1;
     device->Connected = ALC_TRUE;
-    device->Type = Playback;
     device->LastError = ALC_NO_ERROR;
 
     device->Flags = 0;
