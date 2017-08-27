@@ -96,23 +96,6 @@ const aluMatrixf IdentityMatrixf = {{
 
 void DeinitVoice(ALvoice *voice)
 {
-    struct ALvoiceProps *props;
-    size_t count = 0;
-
-    props = voice->Update;
-    voice->Update =  NULL;
-    if(props) al_free(props);
-
-    props = voice->FreeList;
-    voice->FreeList = NULL;
-    while(props)
-    {
-        struct ALvoiceProps *next;
-        next = props->next;
-        al_free(props);
-        props = next;
-        ++count;
-    }
 }
 
 
@@ -505,23 +488,7 @@ static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *p
 
 static void CalcSourceParams(ALvoice *voice, ALCcontext *context, ALboolean force)
 {
-    struct ALvoiceProps *props;
-
-    props = voice->Update;
-    voice->Update = NULL;
-    if(!props && !force) return;
-
-    if(props)
-    {
-        memcpy(voice->Props, props,
-            FAM_SIZE(struct ALvoiceProps, Send, context->Device->NumAuxSends)
-        );
-
-        props->next = voice->FreeList;
-    }
-    props = voice->Props;
-
-    CalcNonAttnSourceParams(voice, props, context);
+    CalcNonAttnSourceParams(voice, voice->Props, context);
 }
 
 

@@ -274,24 +274,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
         for(pos = 0;pos < context->VoiceCount;pos++)
         {
             ALvoice *voice = context->voice;
-            struct ALvoiceProps *props;
-
-            /* Clear any pre-existing voice property structs, in case the
-             * number of auxiliary sends changed. Active sources will have
-             * updates respecified in UpdateAllSourceProps.
-             */
-            props = voice->Update;
-            voice->Update = NULL;
-            al_free(props);
-
-            props = voice->FreeList;
-            voice->FreeList = NULL;
-            while(props)
-            {
-                struct ALvoiceProps *next = props->next;
-                al_free(props);
-                props = next;
-            }
 
             if(voice->Source == NULL)
                 continue;
@@ -534,9 +516,6 @@ void AllocateVoices(ALCcontext *context, ALsizei num_voices, ALsizei old_sends)
     props = (struct ALvoiceProps*)((char*)voice + sizeof_voice);
 
     /* Finish setting the voices' property set pointers and references. */
-    voice->Update = NULL;
-    voice->FreeList = NULL;
-
     voice->Props = props;
 
     al_free(context->voice);

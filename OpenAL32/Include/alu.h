@@ -182,9 +182,6 @@ struct ALvoiceProps {
 typedef struct ALvoice {
     struct ALvoiceProps *Props;
 
-    struct ALvoiceProps* Update;
-    struct ALvoiceProps* FreeList;
-
     struct ALsource* Source;
     bool Playing;
 

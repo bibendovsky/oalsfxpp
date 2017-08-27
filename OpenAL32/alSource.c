@@ -323,20 +323,10 @@ void DeinitSource(ALsource *source, ALsizei num_sends)
 void UpdateSourceProps(ALsource *source, ALvoice *voice, ALsizei num_sends)
 {
     struct ALvoiceProps *props;
-    struct ALvoiceProps *temp_props;
     ALsizei i;
 
     /* Get an unused property container, or allocate a new one as needed. */
-    props = voice->FreeList;
-    if(!props)
-        props = al_calloc(16, FAM_SIZE(struct ALvoiceProps, Send, num_sends));
-    else
-    {
-        struct ALvoiceProps *next;
-        do {
-            next = props->next;
-        } while((voice->FreeList == props ? (voice->FreeList = next, true) : (props = voice->FreeList, false)) == 0);
-    }
+    props = voice->Props;
 
     /* Copy in current property values. */
     props->Direct.Gain = source->Direct.Gain;
@@ -353,18 +343,6 @@ void UpdateSourceProps(ALsource *source, ALvoice *voice, ALsizei num_sends)
         props->Send[i].HFReference = source->Send[i].HFReference;
         props->Send[i].GainLF = source->Send[i].GainLF;
         props->Send[i].LFReference = source->Send[i].LFReference;
-    }
-
-    /* Set the new container for updating internal parameters. */
-    temp_props = props;
-    props = voice->Update;
-    voice->Update = temp_props;;
-    if(props)
-    {
-        /* If there was an unused update container, put it back in the
-         * freelist.
-         */
-        props->next = voice->FreeList;
     }
 }
 
