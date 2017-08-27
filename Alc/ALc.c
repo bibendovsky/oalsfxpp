@@ -719,32 +719,13 @@ static void alc_deinit(void) __attribute__((destructor));
 static void ReleaseThreadCtx(void *ptr);
 static void alc_init(void)
 {
-    const char *str;
-
     AL_STRING_INIT(alcAllDevicesList);
-
-    str = getenv("__ALSOFT_HALF_ANGLE_CONES");
-    if(str && (strcasecmp(str, "true") == 0 || strtol(str, NULL, 0) == 1))
-        ConeScale *= 0.5f;
-
-    str = getenv("__ALSOFT_REVERSE_Z");
-    if(str && (strcasecmp(str, "true") == 0 || strtol(str, NULL, 0) == 1))
-        ZScale *= -1.0f;
 }
 
 static void alc_initconfig(void)
 {
     const char *devs, *str;
     int i;
-
-    str = getenv("__ALSOFT_SUSPEND_CONTEXT");
-    if(str && *str)
-    {
-        if(strcasecmp(str, "ignore") == 0)
-        {
-            SuspendDefers = ALC_FALSE;
-        }
-    }
 
 #ifdef _WIN32
     RTPrioLevel = 1;
@@ -753,52 +734,6 @@ static void alc_initconfig(void)
 #endif
 
     aluInitMixer();
-
-    str = getenv("ALSOFT_TRAP_ERROR");
-    if(str && (strcasecmp(str, "true") == 0 || strtol(str, NULL, 0) == 1))
-    {
-        TrapALError  = AL_TRUE;
-        TrapALCError = AL_TRUE;
-    }
-    else
-    {
-        str = getenv("ALSOFT_TRAP_AL_ERROR");
-        if(str && (strcasecmp(str, "true") == 0 || strtol(str, NULL, 0) == 1))
-            TrapALError = AL_TRUE;
-
-        str = getenv("ALSOFT_TRAP_ALC_ERROR");
-        if(str && (strcasecmp(str, "true") == 0 || strtol(str, NULL, 0) == 1))
-            TrapALCError = ALC_TRUE;
-    }
-
-    if((devs=getenv("ALSOFT_DRIVERS")) && devs[0])
-    {
-        size_t len;
-        const char *next = devs;
-        int endlist, delitem;
-
-        i = 0;
-        do {
-            devs = next;
-            while(isspace(devs[0]))
-                devs++;
-            next = strchr(devs, ',');
-
-            delitem = (devs[0] == '-');
-            if(devs[0] == '-') devs++;
-
-            if(!devs[0] || devs[0] == ',')
-            {
-                endlist = 0;
-                continue;
-            }
-            endlist = 1;
-
-            len = (next ? ((size_t)(next-devs)) : strlen(devs));
-            while(len > 0 && isspace(devs[len-1]))
-                len--;
-        } while(next++);
-    }
 
     InitEffect(&DefaultEffect);
 }
