@@ -623,8 +623,7 @@ struct ALCdevice_struct
         ALsizei NumChannels;
     } RealOut;
 
-    // Contexts created on this device
-    ALCcontext* ContextList;
+    ALCcontext* context;
 
     struct ALsource* source;
     const ALfloat* source_data;

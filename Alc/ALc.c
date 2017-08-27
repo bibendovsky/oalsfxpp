@@ -223,7 +223,7 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
      * allocated with the appropriate size.
      */
     update_failed = AL_FALSE;
-    context = device->ContextList;
+    context = device->context;
     if(context)
     {
         ALsizei pos;
@@ -434,7 +434,7 @@ static bool ReleaseContext(ALCcontext *context, ALCdevice *device)
 
     origctx = context;
     newhead = NULL;
-    if(device->ContextList == origctx ? (device->ContextList = newhead, true) : (origctx = device->ContextList, false))
+    if(device->context == origctx ? (device->context = newhead, true) : (origctx = device->context, false))
     {
         ret = !!newhead;
     }
@@ -465,7 +465,7 @@ static ALCboolean VerifyContext(ALCcontext **context)
     dev = DeviceList;
     if(dev)
     {
-        ALCcontext *ctx = dev->ContextList;
+        ALCcontext *ctx = dev->context;
         if(ctx)
         {
             if(ctx == *context)
@@ -613,7 +613,7 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
         return NULL;
     }
 
-    if (device->ContextList)
+    if (device->context)
     {
         return NULL;
     }
@@ -653,7 +653,7 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
     ALCdevice_IncRef(ALContext->Device);
     InitContext(ALContext);
 
-    device->ContextList = ALContext;
+    device->context = ALContext;
 
     ALCdevice_DecRef(device);
 
@@ -741,7 +741,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     device->RealOut.Buffer = NULL;
     device->RealOut.NumChannels = 0;
 
-    device->ContextList = NULL;
+    device->context = NULL;
 
     device->AuxiliaryEffectSlotMax = 64;
     device->NumAuxSends = DEFAULT_SENDS;
@@ -783,7 +783,7 @@ ALC_API ALCboolean ALC_APIENTRY alcCloseDevice(ALCdevice *device)
         return ALC_FALSE;
     }
 
-    ctx = device->ContextList;
+    ctx = device->context;
     if(ctx != NULL)
     {
         ReleaseContext(ctx, device);

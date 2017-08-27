@@ -654,7 +654,7 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const 
             for(c = 0;c < device->RealOut.NumChannels;c++)
                 memset(device->RealOut.Buffer[c], 0, SamplesToDo*sizeof(ALfloat));
 
-        ctx = device->ContextList;
+        ctx = device->context;
         if(ctx)
         {
             const struct ALeffectslotArray *auxslots;
@@ -711,7 +711,7 @@ void aluHandleDisconnect(ALCdevice *device)
 {
     ALCcontext *ctx;
 
-    ctx = device->ContextList;
+    ctx = device->context;
     if(ctx)
     {
         ALsizei i;
