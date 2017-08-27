@@ -658,7 +658,6 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const 
 
     device->source_data = src_samples;
 
-    START_MIXER_MODE();
     for(SamplesDone = 0;SamplesDone < NumSamples;)
     {
         SamplesToDo = mini(NumSamples-SamplesDone, BUFFERSIZE);
@@ -759,7 +758,6 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const 
 
         SamplesDone += SamplesToDo;
     }
-    END_MIXER_MODE();
 }
 
 

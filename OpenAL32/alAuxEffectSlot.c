@@ -115,16 +115,13 @@ ALenum InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *e
         State = V0(factory,create)();
         if(!State) return AL_OUT_OF_MEMORY;
 
-        START_MIXER_MODE();
         State->OutBuffer = Device->Dry.Buffer;
         State->OutChannels = Device->Dry.NumChannels;
         if(V(State,deviceUpdate)(Device) == AL_FALSE)
         {
-            LEAVE_MIXER_MODE();
             ALeffectState_DecRef(State);
             return AL_OUT_OF_MEMORY;
         }
-        END_MIXER_MODE();
 
         if(!effect)
         {

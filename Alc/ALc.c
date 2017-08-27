@@ -1462,7 +1462,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
      * allocated with the appropriate size.
      */
     update_failed = AL_FALSE;
-    START_MIXER_MODE();
     context = device->ContextList;
     if(context)
     {
@@ -1539,7 +1538,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
 
         UpdateAllSourceProps(context);
     }
-    END_MIXER_MODE();
     if(update_failed)
         return ALC_INVALID_DEVICE;
 
