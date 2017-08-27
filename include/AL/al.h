@@ -439,7 +439,6 @@ AL_API void AL_APIENTRY alSpeedOfSound(ALfloat value);
  * distance calculated is clamped between the reference and max distances.
  */
 #define AL_DISTANCE_MODEL                        0xD000
-AL_API void AL_APIENTRY alDistanceModel(ALenum distanceModel);
 
 /** Distance model value. */
 #define AL_INVERSE_DISTANCE                      0xD001
@@ -449,21 +448,6 @@ AL_API void AL_APIENTRY alDistanceModel(ALenum distanceModel);
 #define AL_EXPONENT_DISTANCE                     0xD005
 #define AL_EXPONENT_DISTANCE_CLAMPED             0xD006
 
-/** Renderer State management. */
-AL_API void AL_APIENTRY alEnable(ALenum capability);
-AL_API void AL_APIENTRY alDisable(ALenum capability);
-AL_API ALboolean AL_APIENTRY alIsEnabled(ALenum capability);
-
-/** State retrieval. */
-AL_API const ALchar* AL_APIENTRY alGetString(ALenum param);
-AL_API void AL_APIENTRY alGetBooleanv(ALenum param, ALboolean *values);
-AL_API void AL_APIENTRY alGetIntegerv(ALenum param, ALint *values);
-AL_API void AL_APIENTRY alGetFloatv(ALenum param, ALfloat *values);
-AL_API void AL_APIENTRY alGetDoublev(ALenum param, ALdouble *values);
-AL_API ALboolean AL_APIENTRY alGetBoolean(ALenum param);
-AL_API ALint AL_APIENTRY alGetInteger(ALenum param);
-AL_API ALfloat AL_APIENTRY alGetFloat(ALenum param);
-AL_API ALdouble AL_APIENTRY alGetDouble(ALenum param);
 
 /**
  * Error retrieval.

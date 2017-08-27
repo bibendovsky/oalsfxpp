@@ -95,18 +95,6 @@ static const struct {
 
     DECL(alcGetInteger64vSOFT),
 
-    DECL(alEnable),
-    DECL(alDisable),
-    DECL(alIsEnabled),
-    DECL(alGetString),
-    DECL(alGetBooleanv),
-    DECL(alGetIntegerv),
-    DECL(alGetFloatv),
-    DECL(alGetDoublev),
-    DECL(alGetBoolean),
-    DECL(alGetInteger),
-    DECL(alGetFloat),
-    DECL(alGetDouble),
     DECL(alGetError),
     DECL(alGenSources),
     DECL(alDeleteSources),
@@ -134,9 +122,6 @@ static const struct {
     DECL(alSourceQueueBuffers),
     DECL(alSourceUnqueueBuffers),
 
-    DECL(alDeferUpdatesSOFT),
-    DECL(alProcessUpdatesSOFT),
-
     DECL(alSourcedSOFT),
     DECL(alSource3dSOFT),
     DECL(alSourcedvSOFT),
@@ -149,8 +134,6 @@ static const struct {
     DECL(alGetSourcei64SOFT),
     DECL(alGetSource3i64SOFT),
     DECL(alGetSourcei64vSOFT),
-
-    DECL(alGetStringiSOFT),
 };
 #undef DECL
 

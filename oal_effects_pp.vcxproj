@@ -145,7 +145,6 @@
     <ClCompile Include="OpenAL32\alError.c" />
     <ClCompile Include="OpenAL32\alFilter.c" />
     <ClCompile Include="OpenAL32\alSource.c" />
-    <ClCompile Include="OpenAL32\alState.c" />
     <ClCompile Include="OpenAL32\sample_cvt.c" />
   </ItemGroup>
   <ItemGroup>

@@ -90,9 +90,6 @@
     <ClCompile Include="OpenAL32\alSource.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OpenAL32\alState.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="OpenAL32\sample_cvt.c">
       <Filter>Source Files</Filter>
     </ClCompile>

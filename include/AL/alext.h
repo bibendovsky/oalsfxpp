@@ -345,12 +345,6 @@ AL_API void AL_APIENTRY alGetSourcei64vSOFT(ALuint source, ALenum param, ALint64
 #ifndef AL_SOFT_deferred_updates
 #define AL_SOFT_deferred_updates 1
 #define AL_DEFERRED_UPDATES_SOFT                 0xC002
-typedef ALvoid (AL_APIENTRY*LPALDEFERUPDATESSOFT)(void);
-typedef ALvoid (AL_APIENTRY*LPALPROCESSUPDATESSOFT)(void);
-#ifdef AL_ALEXT_PROTOTYPES
-AL_API ALvoid AL_APIENTRY alDeferUpdatesSOFT(void);
-AL_API ALvoid AL_APIENTRY alProcessUpdatesSOFT(void);
-#endif
 #endif
 
 #ifndef AL_SOFT_block_alignment
@@ -431,10 +425,6 @@ ALC_API ALCboolean ALC_APIENTRY alcResetDeviceSOFT(ALCdevice *device, const ALCi
 #define AL_DEFAULT_RESAMPLER_SOFT                0x1211
 #define AL_SOURCE_RESAMPLER_SOFT                 0x1212
 #define AL_RESAMPLER_NAME_SOFT                   0x1213
-typedef const ALchar* (AL_APIENTRY*LPALGETSTRINGISOFT)(ALenum pname, ALsizei index);
-#ifdef AL_ALEXT_PROTOTYPES
-AL_API const ALchar* AL_APIENTRY alGetStringiSOFT(ALenum pname, ALsizei index);
-#endif
 #endif
 
 #ifndef AL_SOFT_source_spatialize
