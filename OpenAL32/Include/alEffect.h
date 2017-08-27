@@ -108,8 +108,6 @@ typedef struct ALeffect {
     ALenum type;
 
     ALeffectProps Props;
-
-    const struct ALeffectVtable *vtbl;
 } ALeffect;
 
 
