@@ -36,8 +36,6 @@
 
 #include "mixer_defs.h"
 
-#include "backends/base.h"
-
 
 struct ChanMap {
     enum Channel channel;
@@ -718,7 +716,6 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const 
          * overflow during conversion. This also guarantees an exact, stable
          * conversion. */
         device->SamplesDone += SamplesToDo;
-        device->ClockBase += (device->SamplesDone/device->Frequency) * DEVICE_CLOCK_RES;
         device->SamplesDone %= device->Frequency;
         device->MixCount += 1;
 

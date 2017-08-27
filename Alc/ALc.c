@@ -40,8 +40,6 @@
 #include "alstring.h"
 #include "almalloc.h"
 
-#include "backends/base.h"
-
 
 void InitSourceParams(ALsource *Source, ALsizei num_sends);
 void DeinitSource(ALsource *source, ALsizei num_sends);
@@ -1124,20 +1122,6 @@ struct Compressor *CreateDeviceLimiter(const ALCdevice *device)
                           0.0f, -3.0f, 3.0f, device->Frequency);
 }
 
-/* UpdateClockBase
- *
- * Updates the device's base clock time with however many samples have been
- * done. This is used so frequency changes on the device don't cause the time
- * to jump forward or back. Must not be called while the device is running/
- * mixing.
- */
-static inline void UpdateClockBase(ALCdevice *device)
-{
-    device->MixCount += 1;
-    device->ClockBase += device->SamplesDone * DEVICE_CLOCK_RES / device->Frequency;
-    device->SamplesDone = 0;
-    device->MixCount += 1;
-}
 
 /* UpdateDeviceParams
  *
@@ -1254,9 +1238,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
         }
 
         device->Flags &= ~DEVICE_RUNNING;
-
-        UpdateClockBase(device);
-
         device->Frequency = freq;
         device->FmtChans = schans;
         device->FmtType = stype;
@@ -1283,9 +1264,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
         /* If a context is already running on the device, stop playback so the
          * device attributes can be updated. */
         device->Flags &= ~DEVICE_RUNNING;
-
-        UpdateClockBase(device);
-
         freq = device->Frequency;
         numMono = device->NumMonoSources;
         numStereo = device->NumStereoSources;
@@ -1364,8 +1342,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
     device->FOAOut.NumChannels = 0;
     device->RealOut.Buffer = NULL;
     device->RealOut.NumChannels = 0;
-
-    UpdateClockBase(device);
 
     oldFreq  = device->Frequency;
     oldChans = device->FmtChans;
@@ -2164,9 +2140,6 @@ ALC_API void ALC_APIENTRY alcGetInteger64vSOFT(ALCdevice *device, ALCenum pname,
     }
     else /* render device */
     {
-        ALuint64 basecount;
-        ALuint samplecount;
-
         switch(pname)
         {
             case ALC_ATTRIBUTES_SIZE:
@@ -2213,12 +2186,6 @@ ALC_API void ALC_APIENTRY alcGetInteger64vSOFT(ALCdevice *device, ALCenum pname,
 
                     values[i++] = 0;
                 }
-                break;
-
-            case ALC_DEVICE_CLOCK_SOFT:
-                basecount = device->ClockBase;
-                samplecount = device->SamplesDone;
-                *values = basecount + (samplecount*DEVICE_CLOCK_RES/device->Frequency);
                 break;
 
             default:
@@ -2571,7 +2538,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
 
     device->ContextList = NULL;
 
-    device->ClockBase = 0;
     device->SamplesDone = 0;
 
     device->SourcesMax = 256;

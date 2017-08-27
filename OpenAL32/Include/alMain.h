@@ -655,7 +655,6 @@ struct ALCdevice_struct
     // Device flags
     ALuint Flags;
 
-    ALuint64 ClockBase;
     ALuint SamplesDone;
 
     /* Temp storage used for each source when mixing. */
