@@ -894,7 +894,6 @@ static ALvoid InitContext(ALCcontext *Context)
     struct ALeffectslotArray *auxslots;
 
     //Validate Context
-    Context->UpdateCount = 0;
     Context->HoldUpdates = AL_FALSE;
 
     auxslots = al_calloc(DEF_ALIGN, FAM_SIZE(struct ALeffectslotArray, slot, 1));

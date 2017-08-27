@@ -531,7 +531,6 @@ static void UpdateContextSources(ALCcontext *ctx, const struct ALeffectslotArray
     ALsource *source;
     ALsizei i;
 
-    ctx->UpdateCount += 1;
     if(!ctx->HoldUpdates)
     {
         ALboolean force = AL_TRUE;
@@ -546,7 +545,6 @@ static void UpdateContextSources(ALCcontext *ctx, const struct ALeffectslotArray
             if(source) CalcSourceParams(*voice, ctx, force);
         }
     }
-    ctx->UpdateCount += 1;
 }
 
 

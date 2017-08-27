@@ -691,7 +691,6 @@ struct ALCcontext_struct {
     /* Counter for the pre-mixing updates, in 31.1 fixed point (lowest bit
      * indicates if updates are currently happening).
      */
-    unsigned int UpdateCount;
     ALenum HoldUpdates;
 
     struct ALvoice **Voices;
