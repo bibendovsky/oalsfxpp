@@ -24,40 +24,6 @@ enum {
     MAX_EFFECTS
 };
 
-
-struct ALeffectVtable {
-    void (*const setParami)(struct ALeffect *effect, ALCcontext *context, ALenum param, ALint val);
-    void (*const setParamiv)(struct ALeffect *effect, ALCcontext *context, ALenum param, const ALint *vals);
-    void (*const setParamf)(struct ALeffect *effect, ALCcontext *context, ALenum param, ALfloat val);
-    void (*const setParamfv)(struct ALeffect *effect, ALCcontext *context, ALenum param, const ALfloat *vals);
-
-    void (*const getParami)(const struct ALeffect *effect, ALCcontext *context, ALenum param, ALint *val);
-    void (*const getParamiv)(const struct ALeffect *effect, ALCcontext *context, ALenum param, ALint *vals);
-    void (*const getParamf)(const struct ALeffect *effect, ALCcontext *context, ALenum param, ALfloat *val);
-    void (*const getParamfv)(const struct ALeffect *effect, ALCcontext *context, ALenum param, ALfloat *vals);
-};
-
-#define DEFINE_ALEFFECT_VTABLE(T)           \
-const struct ALeffectVtable T##_vtable = {  \
-    T##_setParami, T##_setParamiv,          \
-    T##_setParamf, T##_setParamfv,          \
-    T##_getParami, T##_getParamiv,          \
-    T##_getParamf, T##_getParamfv,          \
-}
-
-extern const struct ALeffectVtable ALeaxreverb_vtable;
-extern const struct ALeffectVtable ALreverb_vtable;
-extern const struct ALeffectVtable ALchorus_vtable;
-extern const struct ALeffectVtable ALcompressor_vtable;
-extern const struct ALeffectVtable ALdistortion_vtable;
-extern const struct ALeffectVtable ALecho_vtable;
-extern const struct ALeffectVtable ALequalizer_vtable;
-extern const struct ALeffectVtable ALflanger_vtable;
-extern const struct ALeffectVtable ALmodulator_vtable;
-extern const struct ALeffectVtable ALnull_vtable;
-extern const struct ALeffectVtable ALdedicated_vtable;
-
-
 typedef union ALeffectProps {
     struct {
         // Shared Reverb Properties
