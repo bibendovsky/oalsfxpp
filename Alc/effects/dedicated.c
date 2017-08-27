@@ -25,7 +25,6 @@
 #include "alMain.h"
 #include "alFilter.h"
 #include "alAuxEffectSlot.h"
-#include "alError.h"
 #include "alu.h"
 
 
@@ -151,7 +150,8 @@ ALeffectStateFactory *ALdedicatedStateFactory_getFactory(void)
 
 
 void ALdedicated_setParami(ALeffect *UNUSED(effect), ALCcontext *context, ALenum UNUSED(param), ALint UNUSED(val))
-{ SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM); }
+{
+}
 void ALdedicated_setParamiv(ALeffect *effect, ALCcontext *context, ALenum param, const ALint *vals)
 {
     ALdedicated_setParami(effect, context, param, vals[0]);
@@ -163,12 +163,12 @@ void ALdedicated_setParamf(ALeffect *effect, ALCcontext *context, ALenum param, 
     {
         case AL_DEDICATED_GAIN:
             if(!(val >= 0.0f && isfinite(val)))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Dedicated.Gain = val;
             break;
 
         default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
+            return;
     }
 }
 void ALdedicated_setParamfv(ALeffect *effect, ALCcontext *context, ALenum param, const ALfloat *vals)
@@ -177,7 +177,8 @@ void ALdedicated_setParamfv(ALeffect *effect, ALCcontext *context, ALenum param,
 }
 
 void ALdedicated_getParami(const ALeffect *UNUSED(effect), ALCcontext *context, ALenum UNUSED(param), ALint *UNUSED(val))
-{ SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM); }
+{
+}
 void ALdedicated_getParamiv(const ALeffect *effect, ALCcontext *context, ALenum param, ALint *vals)
 {
     ALdedicated_getParami(effect, context, param, vals);
@@ -192,7 +193,7 @@ void ALdedicated_getParamf(const ALeffect *effect, ALCcontext *context, ALenum p
             break;
 
         default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
+            return;
     }
 }
 void ALdedicated_getParamfv(const ALeffect *effect, ALCcontext *context, ALenum param, ALfloat *vals)

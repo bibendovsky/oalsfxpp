@@ -25,7 +25,6 @@
 #include "alMain.h"
 #include "alu.h"
 #include "alFilter.h"
-#include "alError.h"
 
 
 extern inline void ALfilterState_clear(ALfilterState *filter);

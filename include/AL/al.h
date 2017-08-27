@@ -449,14 +449,6 @@ AL_API void AL_APIENTRY alSpeedOfSound(ALfloat value);
 #define AL_EXPONENT_DISTANCE_CLAMPED             0xD006
 
 
-/**
- * Error retrieval.
- *
- * Obtain the first error generated in the AL context since the last check.
- */
-AL_API ALenum AL_APIENTRY alGetError(void);
-
-
 /** Create Source objects. */
 AL_API void AL_APIENTRY alGenSources(ALsizei n, ALuint *sources);
 /** Delete Source objects. */

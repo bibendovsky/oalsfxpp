@@ -28,7 +28,6 @@
 #include "AL/alc.h"
 #include "alMain.h"
 #include "alEffect.h"
-#include "alError.h"
 
 
 extern inline ALboolean IsReverbEffect(ALenum type);

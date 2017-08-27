@@ -242,15 +242,7 @@ int main()
 
     if (is_succeed)
     {
-        alGetError();
-
         alSourcePlay(oal_source);
-
-        if (alGetError() != AL_NO_ERROR)
-        {
-            is_succeed = 0;
-            printf("%s\n", "Failed to play a source.");
-        }
     }
 
     if (is_succeed)

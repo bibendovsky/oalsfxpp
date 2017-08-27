@@ -6,7 +6,6 @@
 #include "AL/alc.h"
 #include "alMain.h"
 #include "alAuxEffectSlot.h"
-#include "alError.h"
 
 
 typedef struct ALnullState {
@@ -112,68 +111,28 @@ ALeffectStateFactory *ALnullStateFactory_getFactory(void)
 
 void ALnull_setParami(ALeffect* UNUSED(effect), ALCcontext *context, ALenum param, ALint UNUSED(val))
 {
-    switch(param)
-    {
-        default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
-    }
 }
 void ALnull_setParamiv(ALeffect* UNUSED(effect), ALCcontext *context, ALenum param, const ALint* UNUSED(vals))
 {
-    switch(param)
-    {
-        default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
-    }
 }
 void ALnull_setParamf(ALeffect* UNUSED(effect), ALCcontext *context, ALenum param, ALfloat UNUSED(val))
 {
-    switch(param)
-    {
-        default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
-    }
 }
 void ALnull_setParamfv(ALeffect* UNUSED(effect), ALCcontext *context, ALenum param, const ALfloat* UNUSED(vals))
 {
-    switch(param)
-    {
-        default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
-    }
 }
 
 void ALnull_getParami(const ALeffect* UNUSED(effect), ALCcontext *context, ALenum param, ALint* UNUSED(val))
 {
-    switch(param)
-    {
-        default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
-    }
 }
 void ALnull_getParamiv(const ALeffect* UNUSED(effect), ALCcontext *context, ALenum param, ALint* UNUSED(vals))
 {
-    switch(param)
-    {
-        default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
-    }
 }
 void ALnull_getParamf(const ALeffect* UNUSED(effect), ALCcontext *context, ALenum param, ALfloat* UNUSED(val))
 {
-    switch(param)
-    {
-        default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
-    }
 }
 void ALnull_getParamfv(const ALeffect* UNUSED(effect), ALCcontext *context, ALenum param, ALfloat* UNUSED(vals))
 {
-    switch(param)
-    {
-        default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
-    }
 }
 
 DEFINE_ALEFFECT_VTABLE(ALnull);

@@ -26,7 +26,6 @@
 #include "alMain.h"
 #include "alFilter.h"
 #include "alAuxEffectSlot.h"
-#include "alError.h"
 #include "alu.h"
 
 
@@ -234,7 +233,8 @@ ALeffectStateFactory *ALechoStateFactory_getFactory(void)
 
 
 void ALecho_setParami(ALeffect *UNUSED(effect), ALCcontext *context, ALenum UNUSED(param), ALint UNUSED(val))
-{ SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM); }
+{
+}
 void ALecho_setParamiv(ALeffect *effect, ALCcontext *context, ALenum param, const ALint *vals)
 {
     ALecho_setParami(effect, context, param, vals[0]);
@@ -246,36 +246,36 @@ void ALecho_setParamf(ALeffect *effect, ALCcontext *context, ALenum param, ALflo
     {
         case AL_ECHO_DELAY:
             if(!(val >= AL_ECHO_MIN_DELAY && val <= AL_ECHO_MAX_DELAY))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Echo.Delay = val;
             break;
 
         case AL_ECHO_LRDELAY:
             if(!(val >= AL_ECHO_MIN_LRDELAY && val <= AL_ECHO_MAX_LRDELAY))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Echo.LRDelay = val;
             break;
 
         case AL_ECHO_DAMPING:
             if(!(val >= AL_ECHO_MIN_DAMPING && val <= AL_ECHO_MAX_DAMPING))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Echo.Damping = val;
             break;
 
         case AL_ECHO_FEEDBACK:
             if(!(val >= AL_ECHO_MIN_FEEDBACK && val <= AL_ECHO_MAX_FEEDBACK))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Echo.Feedback = val;
             break;
 
         case AL_ECHO_SPREAD:
             if(!(val >= AL_ECHO_MIN_SPREAD && val <= AL_ECHO_MAX_SPREAD))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Echo.Spread = val;
             break;
 
         default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
+            return;
     }
 }
 void ALecho_setParamfv(ALeffect *effect, ALCcontext *context, ALenum param, const ALfloat *vals)
@@ -284,7 +284,8 @@ void ALecho_setParamfv(ALeffect *effect, ALCcontext *context, ALenum param, cons
 }
 
 void ALecho_getParami(const ALeffect *UNUSED(effect), ALCcontext *context, ALenum UNUSED(param), ALint *UNUSED(val))
-{ SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM); }
+{
+}
 void ALecho_getParamiv(const ALeffect *effect, ALCcontext *context, ALenum param, ALint *vals)
 {
     ALecho_getParami(effect, context, param, vals);
@@ -315,7 +316,7 @@ void ALecho_getParamf(const ALeffect *effect, ALCcontext *context, ALenum param,
             break;
 
         default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
+            return;
     }
 }
 void ALecho_getParamfv(const ALeffect *effect, ALCcontext *context, ALenum param, ALfloat *vals)

@@ -26,7 +26,6 @@
 #include "alMain.h"
 #include "alFilter.h"
 #include "alAuxEffectSlot.h"
-#include "alError.h"
 #include "alu.h"
 
 
@@ -300,18 +299,18 @@ void ALchorus_setParami(ALeffect *effect, ALCcontext *context, ALenum param, ALi
     {
         case AL_CHORUS_WAVEFORM:
             if(!(val >= AL_CHORUS_MIN_WAVEFORM && val <= AL_CHORUS_MAX_WAVEFORM))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Chorus.Waveform = val;
             break;
 
         case AL_CHORUS_PHASE:
             if(!(val >= AL_CHORUS_MIN_PHASE && val <= AL_CHORUS_MAX_PHASE))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Chorus.Phase = val;
             break;
 
         default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
+            return;
     }
 }
 void ALchorus_setParamiv(ALeffect *effect, ALCcontext *context, ALenum param, const ALint *vals)
@@ -325,30 +324,30 @@ void ALchorus_setParamf(ALeffect *effect, ALCcontext *context, ALenum param, ALf
     {
         case AL_CHORUS_RATE:
             if(!(val >= AL_CHORUS_MIN_RATE && val <= AL_CHORUS_MAX_RATE))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Chorus.Rate = val;
             break;
 
         case AL_CHORUS_DEPTH:
             if(!(val >= AL_CHORUS_MIN_DEPTH && val <= AL_CHORUS_MAX_DEPTH))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Chorus.Depth = val;
             break;
 
         case AL_CHORUS_FEEDBACK:
             if(!(val >= AL_CHORUS_MIN_FEEDBACK && val <= AL_CHORUS_MAX_FEEDBACK))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Chorus.Feedback = val;
             break;
 
         case AL_CHORUS_DELAY:
             if(!(val >= AL_CHORUS_MIN_DELAY && val <= AL_CHORUS_MAX_DELAY))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Chorus.Delay = val;
             break;
 
         default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
+            return;
     }
 }
 void ALchorus_setParamfv(ALeffect *effect, ALCcontext *context, ALenum param, const ALfloat *vals)
@@ -370,7 +369,7 @@ void ALchorus_getParami(const ALeffect *effect, ALCcontext *context, ALenum para
             break;
 
         default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
+            return;
     }
 }
 void ALchorus_getParamiv(const ALeffect *effect, ALCcontext *context, ALenum param, ALint *vals)
@@ -399,7 +398,7 @@ void ALchorus_getParamf(const ALeffect *effect, ALCcontext *context, ALenum para
             break;
 
         default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
+            return;
     }
 }
 void ALchorus_getParamfv(const ALeffect *effect, ALCcontext *context, ALenum param, ALfloat *vals)

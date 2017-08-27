@@ -26,7 +26,6 @@
 #include "alMain.h"
 #include "alFilter.h"
 #include "alAuxEffectSlot.h"
-#include "alError.h"
 #include "alu.h"
 
 
@@ -298,18 +297,18 @@ void ALflanger_setParami(ALeffect *effect, ALCcontext *context, ALenum param, AL
     {
         case AL_FLANGER_WAVEFORM:
             if(!(val >= AL_FLANGER_MIN_WAVEFORM && val <= AL_FLANGER_MAX_WAVEFORM))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Flanger.Waveform = val;
             break;
 
         case AL_FLANGER_PHASE:
             if(!(val >= AL_FLANGER_MIN_PHASE && val <= AL_FLANGER_MAX_PHASE))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Flanger.Phase = val;
             break;
 
         default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
+            return;
     }
 }
 void ALflanger_setParamiv(ALeffect *effect, ALCcontext *context, ALenum param, const ALint *vals)
@@ -323,30 +322,30 @@ void ALflanger_setParamf(ALeffect *effect, ALCcontext *context, ALenum param, AL
     {
         case AL_FLANGER_RATE:
             if(!(val >= AL_FLANGER_MIN_RATE && val <= AL_FLANGER_MAX_RATE))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Flanger.Rate = val;
             break;
 
         case AL_FLANGER_DEPTH:
             if(!(val >= AL_FLANGER_MIN_DEPTH && val <= AL_FLANGER_MAX_DEPTH))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Flanger.Depth = val;
             break;
 
         case AL_FLANGER_FEEDBACK:
             if(!(val >= AL_FLANGER_MIN_FEEDBACK && val <= AL_FLANGER_MAX_FEEDBACK))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Flanger.Feedback = val;
             break;
 
         case AL_FLANGER_DELAY:
             if(!(val >= AL_FLANGER_MIN_DELAY && val <= AL_FLANGER_MAX_DELAY))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Flanger.Delay = val;
             break;
 
         default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
+            return;
     }
 }
 void ALflanger_setParamfv(ALeffect *effect, ALCcontext *context, ALenum param, const ALfloat *vals)
@@ -368,7 +367,7 @@ void ALflanger_getParami(const ALeffect *effect, ALCcontext *context, ALenum par
             break;
 
         default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
+            return;
     }
 }
 void ALflanger_getParamiv(const ALeffect *effect, ALCcontext *context, ALenum param, ALint *vals)
@@ -397,7 +396,7 @@ void ALflanger_getParamf(const ALeffect *effect, ALCcontext *context, ALenum par
             break;
 
         default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
+            return;
     }
 }
 void ALflanger_getParamfv(const ALeffect *effect, ALCcontext *context, ALenum param, ALfloat *vals)

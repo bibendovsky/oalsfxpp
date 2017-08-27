@@ -34,7 +34,6 @@
 #include "alSource.h"
 #include "alBuffer.h"
 #include "alAuxEffectSlot.h"
-#include "alError.h"
 #include "bformatdec.h"
 #include "alu.h"
 
@@ -95,7 +94,6 @@ static const struct {
 
     DECL(alcGetInteger64vSOFT),
 
-    DECL(alGetError),
     DECL(alGenSources),
     DECL(alDeleteSources),
     DECL(alIsSource),
@@ -126,7 +124,6 @@ static const struct {
     DECL(alSource3dSOFT),
     DECL(alSourcedvSOFT),
     DECL(alGetSourcedSOFT),
-    DECL(alGetSource3dSOFT),
     DECL(alGetSourcedvSOFT),
     DECL(alSourcei64SOFT),
     DECL(alSource3i64SOFT),

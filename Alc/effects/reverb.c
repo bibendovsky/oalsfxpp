@@ -29,7 +29,6 @@
 #include "alAuxEffectSlot.h"
 #include "alEffect.h"
 #include "alFilter.h"
-#include "alError.h"
 #include "mixer_defs.h"
 
 /* This is the maximum number of samples processed for each inner loop
@@ -1916,12 +1915,12 @@ void ALeaxreverb_setParami(ALeffect *effect, ALCcontext *context, ALenum param, 
     {
         case AL_EAXREVERB_DECAY_HFLIMIT:
             if(!(val >= AL_EAXREVERB_MIN_DECAY_HFLIMIT && val <= AL_EAXREVERB_MAX_DECAY_HFLIMIT))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.DecayHFLimit = val;
             break;
 
         default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
+            return;
     }
 }
 void ALeaxreverb_setParamiv(ALeffect *effect, ALCcontext *context, ALenum param, const ALint *vals)
@@ -1935,126 +1934,126 @@ void ALeaxreverb_setParamf(ALeffect *effect, ALCcontext *context, ALenum param, 
     {
         case AL_EAXREVERB_DENSITY:
             if(!(val >= AL_EAXREVERB_MIN_DENSITY && val <= AL_EAXREVERB_MAX_DENSITY))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.Density = val;
             break;
 
         case AL_EAXREVERB_DIFFUSION:
             if(!(val >= AL_EAXREVERB_MIN_DIFFUSION && val <= AL_EAXREVERB_MAX_DIFFUSION))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.Diffusion = val;
             break;
 
         case AL_EAXREVERB_GAIN:
             if(!(val >= AL_EAXREVERB_MIN_GAIN && val <= AL_EAXREVERB_MAX_GAIN))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.Gain = val;
             break;
 
         case AL_EAXREVERB_GAINHF:
             if(!(val >= AL_EAXREVERB_MIN_GAINHF && val <= AL_EAXREVERB_MAX_GAINHF))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.GainHF = val;
             break;
 
         case AL_EAXREVERB_GAINLF:
             if(!(val >= AL_EAXREVERB_MIN_GAINLF && val <= AL_EAXREVERB_MAX_GAINLF))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.GainLF = val;
             break;
 
         case AL_EAXREVERB_DECAY_TIME:
             if(!(val >= AL_EAXREVERB_MIN_DECAY_TIME && val <= AL_EAXREVERB_MAX_DECAY_TIME))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.DecayTime = val;
             break;
 
         case AL_EAXREVERB_DECAY_HFRATIO:
             if(!(val >= AL_EAXREVERB_MIN_DECAY_HFRATIO && val <= AL_EAXREVERB_MAX_DECAY_HFRATIO))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.DecayHFRatio = val;
             break;
 
         case AL_EAXREVERB_DECAY_LFRATIO:
             if(!(val >= AL_EAXREVERB_MIN_DECAY_LFRATIO && val <= AL_EAXREVERB_MAX_DECAY_LFRATIO))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.DecayLFRatio = val;
             break;
 
         case AL_EAXREVERB_REFLECTIONS_GAIN:
             if(!(val >= AL_EAXREVERB_MIN_REFLECTIONS_GAIN && val <= AL_EAXREVERB_MAX_REFLECTIONS_GAIN))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.ReflectionsGain = val;
             break;
 
         case AL_EAXREVERB_REFLECTIONS_DELAY:
             if(!(val >= AL_EAXREVERB_MIN_REFLECTIONS_DELAY && val <= AL_EAXREVERB_MAX_REFLECTIONS_DELAY))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.ReflectionsDelay = val;
             break;
 
         case AL_EAXREVERB_LATE_REVERB_GAIN:
             if(!(val >= AL_EAXREVERB_MIN_LATE_REVERB_GAIN && val <= AL_EAXREVERB_MAX_LATE_REVERB_GAIN))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.LateReverbGain = val;
             break;
 
         case AL_EAXREVERB_LATE_REVERB_DELAY:
             if(!(val >= AL_EAXREVERB_MIN_LATE_REVERB_DELAY && val <= AL_EAXREVERB_MAX_LATE_REVERB_DELAY))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.LateReverbDelay = val;
             break;
 
         case AL_EAXREVERB_AIR_ABSORPTION_GAINHF:
             if(!(val >= AL_EAXREVERB_MIN_AIR_ABSORPTION_GAINHF && val <= AL_EAXREVERB_MAX_AIR_ABSORPTION_GAINHF))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.AirAbsorptionGainHF = val;
             break;
 
         case AL_EAXREVERB_ECHO_TIME:
             if(!(val >= AL_EAXREVERB_MIN_ECHO_TIME && val <= AL_EAXREVERB_MAX_ECHO_TIME))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.EchoTime = val;
             break;
 
         case AL_EAXREVERB_ECHO_DEPTH:
             if(!(val >= AL_EAXREVERB_MIN_ECHO_DEPTH && val <= AL_EAXREVERB_MAX_ECHO_DEPTH))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.EchoDepth = val;
             break;
 
         case AL_EAXREVERB_MODULATION_TIME:
             if(!(val >= AL_EAXREVERB_MIN_MODULATION_TIME && val <= AL_EAXREVERB_MAX_MODULATION_TIME))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.ModulationTime = val;
             break;
 
         case AL_EAXREVERB_MODULATION_DEPTH:
             if(!(val >= AL_EAXREVERB_MIN_MODULATION_DEPTH && val <= AL_EAXREVERB_MAX_MODULATION_DEPTH))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.ModulationDepth = val;
             break;
 
         case AL_EAXREVERB_HFREFERENCE:
             if(!(val >= AL_EAXREVERB_MIN_HFREFERENCE && val <= AL_EAXREVERB_MAX_HFREFERENCE))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.HFReference = val;
             break;
 
         case AL_EAXREVERB_LFREFERENCE:
             if(!(val >= AL_EAXREVERB_MIN_LFREFERENCE && val <= AL_EAXREVERB_MAX_LFREFERENCE))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.LFReference = val;
             break;
 
         case AL_EAXREVERB_ROOM_ROLLOFF_FACTOR:
             if(!(val >= AL_EAXREVERB_MIN_ROOM_ROLLOFF_FACTOR && val <= AL_EAXREVERB_MAX_ROOM_ROLLOFF_FACTOR))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.RoomRolloffFactor = val;
             break;
 
         default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
+            return;
     }
 }
 void ALeaxreverb_setParamfv(ALeffect *effect, ALCcontext *context, ALenum param, const ALfloat *vals)
@@ -2064,14 +2063,14 @@ void ALeaxreverb_setParamfv(ALeffect *effect, ALCcontext *context, ALenum param,
     {
         case AL_EAXREVERB_REFLECTIONS_PAN:
             if(!(isfinite(vals[0]) && isfinite(vals[1]) && isfinite(vals[2])))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.ReflectionsPan[0] = vals[0];
             props->Reverb.ReflectionsPan[1] = vals[1];
             props->Reverb.ReflectionsPan[2] = vals[2];
             break;
         case AL_EAXREVERB_LATE_REVERB_PAN:
             if(!(isfinite(vals[0]) && isfinite(vals[1]) && isfinite(vals[2])))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.LateReverbPan[0] = vals[0];
             props->Reverb.LateReverbPan[1] = vals[1];
             props->Reverb.LateReverbPan[2] = vals[2];
@@ -2093,7 +2092,7 @@ void ALeaxreverb_getParami(const ALeffect *effect, ALCcontext *context, ALenum p
             break;
 
         default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
+            return;
     }
 }
 void ALeaxreverb_getParamiv(const ALeffect *effect, ALCcontext *context, ALenum param, ALint *vals)
@@ -2186,7 +2185,7 @@ void ALeaxreverb_getParamf(const ALeffect *effect, ALCcontext *context, ALenum p
             break;
 
         default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
+            return;
     }
 }
 void ALeaxreverb_getParamfv(const ALeffect *effect, ALCcontext *context, ALenum param, ALfloat *vals)
@@ -2220,12 +2219,12 @@ void ALreverb_setParami(ALeffect *effect, ALCcontext *context, ALenum param, ALi
     {
         case AL_REVERB_DECAY_HFLIMIT:
             if(!(val >= AL_REVERB_MIN_DECAY_HFLIMIT && val <= AL_REVERB_MAX_DECAY_HFLIMIT))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.DecayHFLimit = val;
             break;
 
         default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
+            return;
     }
 }
 void ALreverb_setParamiv(ALeffect *effect, ALCcontext *context, ALenum param, const ALint *vals)
@@ -2239,78 +2238,78 @@ void ALreverb_setParamf(ALeffect *effect, ALCcontext *context, ALenum param, ALf
     {
         case AL_REVERB_DENSITY:
             if(!(val >= AL_REVERB_MIN_DENSITY && val <= AL_REVERB_MAX_DENSITY))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.Density = val;
             break;
 
         case AL_REVERB_DIFFUSION:
             if(!(val >= AL_REVERB_MIN_DIFFUSION && val <= AL_REVERB_MAX_DIFFUSION))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.Diffusion = val;
             break;
 
         case AL_REVERB_GAIN:
             if(!(val >= AL_REVERB_MIN_GAIN && val <= AL_REVERB_MAX_GAIN))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.Gain = val;
             break;
 
         case AL_REVERB_GAINHF:
             if(!(val >= AL_REVERB_MIN_GAINHF && val <= AL_REVERB_MAX_GAINHF))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.GainHF = val;
             break;
 
         case AL_REVERB_DECAY_TIME:
             if(!(val >= AL_REVERB_MIN_DECAY_TIME && val <= AL_REVERB_MAX_DECAY_TIME))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.DecayTime = val;
             break;
 
         case AL_REVERB_DECAY_HFRATIO:
             if(!(val >= AL_REVERB_MIN_DECAY_HFRATIO && val <= AL_REVERB_MAX_DECAY_HFRATIO))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.DecayHFRatio = val;
             break;
 
         case AL_REVERB_REFLECTIONS_GAIN:
             if(!(val >= AL_REVERB_MIN_REFLECTIONS_GAIN && val <= AL_REVERB_MAX_REFLECTIONS_GAIN))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.ReflectionsGain = val;
             break;
 
         case AL_REVERB_REFLECTIONS_DELAY:
             if(!(val >= AL_REVERB_MIN_REFLECTIONS_DELAY && val <= AL_REVERB_MAX_REFLECTIONS_DELAY))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.ReflectionsDelay = val;
             break;
 
         case AL_REVERB_LATE_REVERB_GAIN:
             if(!(val >= AL_REVERB_MIN_LATE_REVERB_GAIN && val <= AL_REVERB_MAX_LATE_REVERB_GAIN))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.LateReverbGain = val;
             break;
 
         case AL_REVERB_LATE_REVERB_DELAY:
             if(!(val >= AL_REVERB_MIN_LATE_REVERB_DELAY && val <= AL_REVERB_MAX_LATE_REVERB_DELAY))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.LateReverbDelay = val;
             break;
 
         case AL_REVERB_AIR_ABSORPTION_GAINHF:
             if(!(val >= AL_REVERB_MIN_AIR_ABSORPTION_GAINHF && val <= AL_REVERB_MAX_AIR_ABSORPTION_GAINHF))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.AirAbsorptionGainHF = val;
             break;
 
         case AL_REVERB_ROOM_ROLLOFF_FACTOR:
             if(!(val >= AL_REVERB_MIN_ROOM_ROLLOFF_FACTOR && val <= AL_REVERB_MAX_ROOM_ROLLOFF_FACTOR))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Reverb.RoomRolloffFactor = val;
             break;
 
         default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
+            return;
     }
 }
 void ALreverb_setParamfv(ALeffect *effect, ALCcontext *context, ALenum param, const ALfloat *vals)
@@ -2328,7 +2327,7 @@ void ALreverb_getParami(const ALeffect *effect, ALCcontext *context, ALenum para
             break;
 
         default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
+            return;
     }
 }
 void ALreverb_getParamiv(const ALeffect *effect, ALCcontext *context, ALenum param, ALint *vals)
@@ -2389,7 +2388,7 @@ void ALreverb_getParamf(const ALeffect *effect, ALCcontext *context, ALenum para
             break;
 
         default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
+            return;
     }
 }
 void ALreverb_getParamfv(const ALeffect *effect, ALCcontext *context, ALenum param, ALfloat *vals)

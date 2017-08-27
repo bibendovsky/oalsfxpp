@@ -21,7 +21,6 @@
 #include <stdlib.h>
 
 #include "config.h"
-#include "alError.h"
 #include "alMain.h"
 #include "alAuxEffectSlot.h"
 #include "alu.h"
@@ -209,12 +208,12 @@ void ALcompressor_setParami(ALeffect *effect, ALCcontext *context, ALenum param,
     {
         case AL_COMPRESSOR_ONOFF:
             if(!(val >= AL_COMPRESSOR_MIN_ONOFF && val <= AL_COMPRESSOR_MAX_ONOFF))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Compressor.OnOff = val;
             break;
 
     default:
-        SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
+        return;
     }
 }
 void ALcompressor_setParamiv(ALeffect *effect, ALCcontext *context, ALenum param, const ALint *vals)
@@ -222,7 +221,8 @@ void ALcompressor_setParamiv(ALeffect *effect, ALCcontext *context, ALenum param
     ALcompressor_setParami(effect, context, param, vals[0]);
 }
 void ALcompressor_setParamf(ALeffect *UNUSED(effect), ALCcontext *context, ALenum UNUSED(param), ALfloat UNUSED(val))
-{ SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM); }
+{
+}
 void ALcompressor_setParamfv(ALeffect *effect, ALCcontext *context, ALenum param, const ALfloat *vals)
 {
     ALcompressor_setParamf(effect, context, param, vals[0]);
@@ -237,7 +237,7 @@ void ALcompressor_getParami(const ALeffect *effect, ALCcontext *context, ALenum 
             *val = props->Compressor.OnOff;
             break;
         default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
+            return;
     }
 }
 void ALcompressor_getParamiv(const ALeffect *effect, ALCcontext *context, ALenum param, ALint *vals)
@@ -245,7 +245,8 @@ void ALcompressor_getParamiv(const ALeffect *effect, ALCcontext *context, ALenum
     ALcompressor_getParami(effect, context, param, vals);
 }
 void ALcompressor_getParamf(const ALeffect *UNUSED(effect), ALCcontext *context, ALenum UNUSED(param), ALfloat *UNUSED(val))
-{ SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM); }
+{
+}
 void ALcompressor_getParamfv(const ALeffect *effect, ALCcontext *context, ALenum param, ALfloat *vals)
 {
     ALcompressor_getParamf(effect, context, param, vals);

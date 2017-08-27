@@ -26,7 +26,6 @@
 #include "alMain.h"
 #include "alFilter.h"
 #include "alAuxEffectSlot.h"
-#include "alError.h"
 #include "alu.h"
 
 
@@ -205,7 +204,8 @@ ALeffectStateFactory *ALdistortionStateFactory_getFactory(void)
 
 
 void ALdistortion_setParami(ALeffect *UNUSED(effect), ALCcontext *context, ALenum UNUSED(param), ALint UNUSED(val))
-{ SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM); }
+{
+}
 void ALdistortion_setParamiv(ALeffect *effect, ALCcontext *context, ALenum param, const ALint *vals)
 {
     ALdistortion_setParami(effect, context, param, vals[0]);
@@ -217,36 +217,36 @@ void ALdistortion_setParamf(ALeffect *effect, ALCcontext *context, ALenum param,
     {
         case AL_DISTORTION_EDGE:
             if(!(val >= AL_DISTORTION_MIN_EDGE && val <= AL_DISTORTION_MAX_EDGE))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Distortion.Edge = val;
             break;
 
         case AL_DISTORTION_GAIN:
             if(!(val >= AL_DISTORTION_MIN_GAIN && val <= AL_DISTORTION_MAX_GAIN))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Distortion.Gain = val;
             break;
 
         case AL_DISTORTION_LOWPASS_CUTOFF:
             if(!(val >= AL_DISTORTION_MIN_LOWPASS_CUTOFF && val <= AL_DISTORTION_MAX_LOWPASS_CUTOFF))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Distortion.LowpassCutoff = val;
             break;
 
         case AL_DISTORTION_EQCENTER:
             if(!(val >= AL_DISTORTION_MIN_EQCENTER && val <= AL_DISTORTION_MAX_EQCENTER))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Distortion.EQCenter = val;
             break;
 
         case AL_DISTORTION_EQBANDWIDTH:
             if(!(val >= AL_DISTORTION_MIN_EQBANDWIDTH && val <= AL_DISTORTION_MAX_EQBANDWIDTH))
-                SET_ERROR_AND_RETURN(context, AL_INVALID_VALUE);
+                return;
             props->Distortion.EQBandwidth = val;
             break;
 
         default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
+            return;
     }
 }
 void ALdistortion_setParamfv(ALeffect *effect, ALCcontext *context, ALenum param, const ALfloat *vals)
@@ -255,7 +255,8 @@ void ALdistortion_setParamfv(ALeffect *effect, ALCcontext *context, ALenum param
 }
 
 void ALdistortion_getParami(const ALeffect *UNUSED(effect), ALCcontext *context, ALenum UNUSED(param), ALint *UNUSED(val))
-{ SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM); }
+{
+}
 void ALdistortion_getParamiv(const ALeffect *effect, ALCcontext *context, ALenum param, ALint *vals)
 {
     ALdistortion_getParami(effect, context, param, vals);
@@ -286,7 +287,7 @@ void ALdistortion_getParamf(const ALeffect *effect, ALCcontext *context, ALenum 
             break;
 
         default:
-            SET_ERROR_AND_RETURN(context, AL_INVALID_ENUM);
+            return;
     }
 }
 void ALdistortion_getParamfv(const ALeffect *effect, ALCcontext *context, ALenum param, ALfloat *vals)

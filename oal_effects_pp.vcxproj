@@ -142,7 +142,6 @@
     <ClCompile Include="oal_effects_pp.c" />
     <ClCompile Include="OpenAL32\alAuxEffectSlot.c" />
     <ClCompile Include="OpenAL32\alEffect.c" />
-    <ClCompile Include="OpenAL32\alError.c" />
     <ClCompile Include="OpenAL32\alFilter.c" />
     <ClCompile Include="OpenAL32\alSource.c" />
   </ItemGroup>
@@ -166,7 +165,6 @@
     <ClInclude Include="OpenAL32\Include\alAuxEffectSlot.h" />
     <ClInclude Include="OpenAL32\Include\alBuffer.h" />
     <ClInclude Include="OpenAL32\Include\alEffect.h" />
-    <ClInclude Include="OpenAL32\Include\alError.h" />
     <ClInclude Include="OpenAL32\Include\alFilter.h" />
     <ClInclude Include="OpenAL32\Include\alMain.h" />
     <ClInclude Include="OpenAL32\Include\alSource.h" />

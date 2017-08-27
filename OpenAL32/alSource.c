@@ -28,7 +28,6 @@
 #include "AL/al.h"
 #include "AL/alc.h"
 #include "alMain.h"
-#include "alError.h"
 #include "alSource.h"
 #include "alBuffer.h"
 #include "alAuxEffectSlot.h"
@@ -427,11 +426,6 @@ static ALint Int64ValsByProp(ALenum prop)
 }
 
 
-#define CHECKVAL(x) do {                                                      \
-    if(!(x))                                                                  \
-        SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_VALUE, AL_FALSE);      \
-} while(0)
-
 #define DO_UPDATEPROPS() do {                                                 \
     ALvoice *voice;                                                           \
     if(SourceShouldUpdate(Source, Context) &&                                 \
@@ -451,7 +445,7 @@ static ALboolean SetSourcefv(ALsource *Source, ALCcontext *Context, SourceProp p
         case AL_SEC_LENGTH_SOFT:
         case AL_SEC_OFFSET_LATENCY_SOFT:
             /* Query only */
-            SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_OPERATION, AL_FALSE);
+            return AL_FALSE;
 
         case AL_SOURCE_RELATIVE:
         case AL_LOOPING:
@@ -479,7 +473,7 @@ static ALboolean SetSourcefv(ALsource *Source, ALCcontext *Context, SourceProp p
             break;
     }
 
-    SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_ENUM, AL_FALSE);
+    return AL_FALSE;
 }
 
 static ALboolean SetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp prop, const ALint *values)
@@ -498,7 +492,7 @@ static ALboolean SetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
         case AL_SAMPLE_LENGTH_SOFT:
         case AL_SEC_LENGTH_SOFT:
             /* Query only */
-            SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_OPERATION, AL_FALSE);
+            return AL_FALSE;
 
         case AL_AUXILIARY_SEND_FILTER:
             slot = Context->Device->effect_slot;
@@ -506,7 +500,7 @@ static ALboolean SetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
             if(!((ALuint)values[1] < (ALuint)device->NumAuxSends &&
                  (values[0] == 0 || !slot)))
             {
-                SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_VALUE, AL_FALSE);
+                return AL_FALSE;
             }
 
             if(slot != Source->Send[values[1]].Slot && IsPlayingOrPaused(Source))
@@ -580,14 +574,11 @@ static ALboolean SetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
             break;
     }
 
-    SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_ENUM, AL_FALSE);
+    return AL_FALSE;
 }
 
 static ALboolean SetSourcei64v(ALsource *Source, ALCcontext *Context, SourceProp prop, const ALint64SOFT *values)
 {
-    ALfloat fvals[6];
-    ALint   ivals[3];
-
     switch(prop)
     {
         case AL_SOURCE_TYPE:
@@ -599,7 +590,7 @@ static ALboolean SetSourcei64v(ALsource *Source, ALCcontext *Context, SourceProp
         case AL_SAMPLE_LENGTH_SOFT:
         case AL_SEC_LENGTH_SOFT:
             /* Query only */
-            SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_OPERATION, AL_FALSE);
+            return AL_FALSE;
 
 
         /* 1x int */
@@ -615,29 +606,16 @@ static ALboolean SetSourcei64v(ALsource *Source, ALCcontext *Context, SourceProp
         case AL_DISTANCE_MODEL:
         case AL_SOURCE_RESAMPLER_SOFT:
         case AL_SOURCE_SPATIALIZE_SOFT:
-            CHECKVAL(*values <= INT_MAX && *values >= INT_MIN);
-
-            ivals[0] = (ALint)*values;
-            return SetSourceiv(Source, Context, (int)prop, ivals);
+            return AL_FALSE;
 
         /* 1x uint */
         case AL_BUFFER:
         case AL_DIRECT_FILTER:
-            CHECKVAL(*values <= UINT_MAX && *values >= 0);
-
-            ivals[0] = (ALuint)*values;
-            return SetSourceiv(Source, Context, (int)prop, ivals);
+            return AL_FALSE;;
 
         /* 3x uint */
         case AL_AUXILIARY_SEND_FILTER:
-            CHECKVAL(values[0] <= UINT_MAX && values[0] >= 0 &&
-                     values[1] <= UINT_MAX && values[1] >= 0 &&
-                     values[2] <= UINT_MAX && values[2] >= 0);
-
-            ivals[0] = (ALuint)values[0];
-            ivals[1] = (ALuint)values[1];
-            ivals[2] = (ALuint)values[2];
-            return SetSourceiv(Source, Context, (int)prop, ivals);
+            return AL_FALSE;;
 
         /* 1x float */
         case AL_CONE_INNER_ANGLE:
@@ -655,34 +633,24 @@ static ALboolean SetSourcei64v(ALsource *Source, ALCcontext *Context, SourceProp
         case AL_AIR_ABSORPTION_FACTOR:
         case AL_ROOM_ROLLOFF_FACTOR:
         case AL_SOURCE_RADIUS:
-            fvals[0] = (ALfloat)*values;
-            return SetSourcefv(Source, Context, (int)prop, fvals);
+            return AL_FALSE;;
 
         /* 3x float */
         case AL_POSITION:
         case AL_VELOCITY:
         case AL_DIRECTION:
-            fvals[0] = (ALfloat)values[0];
-            fvals[1] = (ALfloat)values[1];
-            fvals[2] = (ALfloat)values[2];
-            return SetSourcefv(Source, Context, (int)prop, fvals);
+            return AL_FALSE;;
 
         /* 6x float */
         case AL_ORIENTATION:
-            fvals[0] = (ALfloat)values[0];
-            fvals[1] = (ALfloat)values[1];
-            fvals[2] = (ALfloat)values[2];
-            fvals[3] = (ALfloat)values[3];
-            fvals[4] = (ALfloat)values[4];
-            fvals[5] = (ALfloat)values[5];
-            return SetSourcefv(Source, Context, (int)prop, fvals);
+            return AL_FALSE;;
 
         case AL_SEC_OFFSET_LATENCY_SOFT:
         case AL_STEREO_ANGLES:
             break;
     }
 
-    SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_ENUM, AL_FALSE);
+    return AL_FALSE;
 }
 
 #undef CHECKVAL
@@ -732,7 +700,7 @@ static ALboolean GetSourcedv(ALsource *Source, ALCcontext *Context, SourceProp p
             break;
     }
 
-    SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_ENUM, AL_FALSE);
+    return AL_FALSE;
 }
 
 static ALboolean GetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp prop, ALint *values)
@@ -807,7 +775,7 @@ static ALboolean GetSourceiv(ALsource *Source, ALCcontext *Context, SourceProp p
             break; /* ??? */
     }
 
-    SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_ENUM, AL_FALSE);
+    return AL_FALSE;
 }
 
 static ALboolean GetSourcei64v(ALsource *Source, ALCcontext *Context, SourceProp prop, ALint64 *values)
@@ -914,7 +882,7 @@ static ALboolean GetSourcei64v(ALsource *Source, ALCcontext *Context, SourceProp
             break; /* Float/double only */
     }
 
-    SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_ENUM, AL_FALSE);
+    return AL_FALSE;
 }
 
 
@@ -943,9 +911,11 @@ AL_API ALvoid AL_APIENTRY alSourcef(ALuint source, ALenum param, ALfloat value)
     if(!Context) return;
 
     if((Source=Context->Device->source) == NULL)
-        alSetError(Context, AL_INVALID_NAME);
+    {
+    }
     else if(!(FloatValsByProp(param) == 1))
-        alSetError(Context, AL_INVALID_ENUM);
+    {
+    }
     else
         SetSourcefv(Source, Context, param, &value);
 
@@ -961,9 +931,7 @@ AL_API ALvoid AL_APIENTRY alSource3f(ALuint source, ALenum param, ALfloat value1
     if(!Context) return;
 
     Source=Context->Device->source;
-    if(!(FloatValsByProp(param) == 3))
-        alSetError(Context, AL_INVALID_ENUM);
-    else
+    if(FloatValsByProp(param) == 3)
     {
         ALfloat fvals[3] = { value1, value2, value3 };
         SetSourcefv(Source, Context, param, fvals);
@@ -981,11 +949,14 @@ AL_API ALvoid AL_APIENTRY alSourcefv(ALuint source, ALenum param, const ALfloat 
     if(!Context) return;
 
     if((Source=Context->Device->source) == NULL)
-        alSetError(Context, AL_INVALID_NAME);
+    {
+    }
     else if(!values)
-        alSetError(Context, AL_INVALID_VALUE);
+    {
+    }
     else if(!(FloatValsByProp(param) > 0))
-        alSetError(Context, AL_INVALID_ENUM);
+    {
+    }
     else
         SetSourcefv(Source, Context, param, values);
 
@@ -1002,9 +973,11 @@ AL_API ALvoid AL_APIENTRY alSourcedSOFT(ALuint source, ALenum param, ALdouble va
     if(!Context) return;
 
     if((Source=Context->Device->source) == NULL)
-        alSetError(Context, AL_INVALID_NAME);
+    {
+    }
     else if(!(DoubleValsByProp(param) == 1))
-        alSetError(Context, AL_INVALID_ENUM);
+    {
+    }
     else
     {
         ALfloat fval = (ALfloat)value;
@@ -1023,9 +996,11 @@ AL_API ALvoid AL_APIENTRY alSource3dSOFT(ALuint source, ALenum param, ALdouble v
     if(!Context) return;
 
     if((Source=Context->Device->source) == NULL)
-        alSetError(Context, AL_INVALID_NAME);
+    {
+    }
     else if(!(DoubleValsByProp(param) == 3))
-        alSetError(Context, AL_INVALID_ENUM);
+    {
+    }
     else
     {
         ALfloat fvals[3] = { (ALfloat)value1, (ALfloat)value2, (ALfloat)value3 };
@@ -1045,11 +1020,11 @@ AL_API ALvoid AL_APIENTRY alSourcedvSOFT(ALuint source, ALenum param, const ALdo
     if(!Context) return;
 
     if((Source=Context->Device->source) == NULL)
-        alSetError(Context, AL_INVALID_NAME);
+    {}
     else if(!values)
-        alSetError(Context, AL_INVALID_VALUE);
+    {}
     else if(!((count=DoubleValsByProp(param)) > 0 && count <= 6))
-        alSetError(Context, AL_INVALID_ENUM);
+    {}
     else
     {
         ALfloat fvals[6];
@@ -1074,7 +1049,7 @@ AL_API ALvoid AL_APIENTRY alSourcei(ALuint source, ALenum param, ALint value)
 
     Source = Context->Device->source;
     if(!(IntValsByProp(param) == 1))
-        alSetError(Context, AL_INVALID_ENUM);
+    {}
     else
         SetSourceiv(Source, Context, param, &value);
 
@@ -1091,7 +1066,7 @@ AL_API void AL_APIENTRY alSource3i(ALuint source, ALenum param, ALint value1, AL
 
     Source=Context->Device->source;
     if(!(IntValsByProp(param) == 3))
-        alSetError(Context, AL_INVALID_ENUM);
+    {}
     else
     {
         ALint ivals[3] = { value1, value2, value3 };
@@ -1110,11 +1085,11 @@ AL_API void AL_APIENTRY alSourceiv(ALuint source, ALenum param, const ALint *val
     if(!Context) return;
 
     if((Source=Context->Device->source) == NULL)
-        alSetError(Context, AL_INVALID_NAME);
+    {}
     else if(!values)
-        alSetError(Context, AL_INVALID_VALUE);
+    {}
     else if(!(IntValsByProp(param) > 0))
-        alSetError(Context, AL_INVALID_ENUM);
+    {}
     else
         SetSourceiv(Source, Context, param, values);
 
@@ -1131,9 +1106,9 @@ AL_API ALvoid AL_APIENTRY alSourcei64SOFT(ALuint source, ALenum param, ALint64SO
     if(!Context) return;
 
     if((Source=Context->Device->source) == NULL)
-        alSetError(Context, AL_INVALID_NAME);
+    {}
     else if(!(Int64ValsByProp(param) == 1))
-        alSetError(Context, AL_INVALID_ENUM);
+    {}
     else
         SetSourcei64v(Source, Context, param, &value);
 
@@ -1149,9 +1124,9 @@ AL_API void AL_APIENTRY alSource3i64SOFT(ALuint source, ALenum param, ALint64SOF
     if(!Context) return;
 
     if((Source=Context->Device->source) == NULL)
-        alSetError(Context, AL_INVALID_NAME);
+    {}
     else if(!(Int64ValsByProp(param) == 3))
-        alSetError(Context, AL_INVALID_ENUM);
+    {}
     else
     {
         ALint64SOFT i64vals[3] = { value1, value2, value3 };
@@ -1170,11 +1145,11 @@ AL_API void AL_APIENTRY alSourcei64vSOFT(ALuint source, ALenum param, const ALin
     if(!Context) return;
 
     if((Source=Context->Device->source) == NULL)
-        alSetError(Context, AL_INVALID_NAME);
+    {}
     else if(!values)
-        alSetError(Context, AL_INVALID_VALUE);
+    {}
     else if(!(Int64ValsByProp(param) > 0))
-        alSetError(Context, AL_INVALID_ENUM);
+    {}
     else
         SetSourcei64v(Source, Context, param, values);
 
@@ -1208,45 +1183,12 @@ AL_API ALvoid AL_APIENTRY alGetSourcef(ALuint source, ALenum param, ALfloat *val
 #else
     ALCcontext *Context = GetContextRef();
     if(!Context) return;
-
-    alSetError(Context, AL_INVALID_NAME);
 #endif
 }
 
 
 AL_API ALvoid AL_APIENTRY alGetSource3f(ALuint source, ALenum param, ALfloat *value1, ALfloat *value2, ALfloat *value3)
 {
-#if 0
-    ALCcontext *Context;
-    ALsource   *Source;
-
-    Context = GetContextRef();
-    if(!Context) return;
-
-    if((Source=LookupSource(Context, source)) == NULL)
-        alSetError(Context, AL_INVALID_NAME);
-    else if(!(value1 && value2 && value3))
-        alSetError(Context, AL_INVALID_VALUE);
-    else if(!(FloatValsByProp(param) == 3))
-        alSetError(Context, AL_INVALID_ENUM);
-    else
-    {
-        ALdouble dvals[3];
-        if(GetSourcedv(Source, Context, param, dvals))
-        {
-            *value1 = (ALfloat)dvals[0];
-            *value2 = (ALfloat)dvals[1];
-            *value3 = (ALfloat)dvals[2];
-        }
-    }
-
-    ALCcontext_DecRef(Context);
-#else
-    ALCcontext *Context = GetContextRef();
-    if(!Context) return;
-
-    alSetError(Context, AL_INVALID_NAME);
-#endif
 }
 
 
@@ -1281,8 +1223,6 @@ AL_API ALvoid AL_APIENTRY alGetSourcefv(ALuint source, ALenum param, ALfloat *va
 #else
     ALCcontext *Context = GetContextRef();
     if(!Context) return;
-
-    alSetError(Context, AL_INVALID_NAME);
 #endif
 }
 
@@ -1309,43 +1249,6 @@ AL_API void AL_APIENTRY alGetSourcedSOFT(ALuint source, ALenum param, ALdouble *
 #else
     ALCcontext *Context = GetContextRef();
     if(!Context) return;
-
-    alSetError(Context, AL_INVALID_NAME);
-#endif
-}
-
-AL_API void AL_APIENTRY alGetSource3dSOFT(ALuint source, ALenum param, ALdouble *value1, ALdouble *value2, ALdouble *value3)
-{
-#if 0
-    ALCcontext *Context;
-    ALsource   *Source;
-
-    Context = GetContextRef();
-    if(!Context) return;
-
-    if((Source=LookupSource(Context, source)) == NULL)
-        alSetError(Context, AL_INVALID_NAME);
-    else if(!(value1 && value2 && value3))
-        alSetError(Context, AL_INVALID_VALUE);
-    else if(!(DoubleValsByProp(param) == 3))
-        alSetError(Context, AL_INVALID_ENUM);
-    else
-    {
-        ALdouble dvals[3];
-        if(GetSourcedv(Source, Context, param, dvals))
-        {
-            *value1 = dvals[0];
-            *value2 = dvals[1];
-            *value3 = dvals[2];
-        }
-    }
-
-    ALCcontext_DecRef(Context);
-#else
-    ALCcontext *Context = GetContextRef();
-    if(!Context) return;
-
-    alSetError(Context, AL_INVALID_NAME);
 #endif
 }
 
@@ -1371,8 +1274,6 @@ AL_API void AL_APIENTRY alGetSourcedvSOFT(ALuint source, ALenum param, ALdouble 
 #else
     ALCcontext *Context = GetContextRef();
     if(!Context) return;
-
-    alSetError(Context, AL_INVALID_NAME);
 #endif
 }
 
@@ -1399,8 +1300,6 @@ AL_API ALvoid AL_APIENTRY alGetSourcei(ALuint source, ALenum param, ALint *value
 #else
     ALCcontext *Context = GetContextRef();
     if(!Context) return;
-
-    alSetError(Context, AL_INVALID_NAME);
 #endif
 }
 
@@ -1435,8 +1334,6 @@ AL_API void AL_APIENTRY alGetSource3i(ALuint source, ALenum param, ALint *value1
 #else
     ALCcontext *Context = GetContextRef();
     if(!Context) return;
-
-    alSetError(Context, AL_INVALID_NAME);
 #endif
 }
 
@@ -1463,8 +1360,6 @@ AL_API void AL_APIENTRY alGetSourceiv(ALuint source, ALenum param, ALint *values
 #else
     ALCcontext *Context = GetContextRef();
     if(!Context) return;
-
-    alSetError(Context, AL_INVALID_NAME);
 #endif
 }
 
@@ -1491,8 +1386,6 @@ AL_API void AL_APIENTRY alGetSourcei64SOFT(ALuint source, ALenum param, ALint64S
 #else
     ALCcontext *Context = GetContextRef();
     if(!Context) return;
-
-    alSetError(Context, AL_INVALID_NAME);
 #endif
 }
 
@@ -1526,8 +1419,6 @@ AL_API void AL_APIENTRY alGetSource3i64SOFT(ALuint source, ALenum param, ALint64
 #else
     ALCcontext *Context = GetContextRef();
     if(!Context) return;
-
-    alSetError(Context, AL_INVALID_NAME);
 #endif
 }
 
@@ -1553,8 +1444,6 @@ AL_API void AL_APIENTRY alGetSourcei64vSOFT(ALuint source, ALenum param, ALint64
 #else
     ALCcontext *Context = GetContextRef();
     if(!Context) return;
-
-    alSetError(Context, AL_INVALID_NAME);
 #endif
 }
 
@@ -1575,7 +1464,7 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
     if(!context) return;
 
     if(!(n == 1))
-        SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
+        goto done;
 
     device = context->Device;
 
@@ -1691,8 +1580,6 @@ done:
 #else
     ALCcontext *Context = GetContextRef();
     if(!Context) return;
-
-    alSetError(Context, AL_INVALID_NAME);
 #endif
 }
 
@@ -1712,7 +1599,7 @@ AL_API ALvoid AL_APIENTRY alSourceStopv(ALsizei n, const ALuint *sources)
     if(!context) return;
 
     if(!(n == 1))
-        SET_ERROR_AND_GOTO(context, AL_INVALID_VALUE, done);
+        goto done;
 
     device = context->Device;
     for(i = 0;i < n;i++)
@@ -1775,8 +1662,6 @@ done:
 #else
     ALCcontext *Context = GetContextRef();
     if(!Context) return;
-
-    alSetError(Context, AL_INVALID_NAME);
 #endif
 }
 
@@ -1903,8 +1788,6 @@ done:
 #else
     ALCcontext *Context = GetContextRef();
     if(!Context) return;
-
-    alSetError(Context, AL_INVALID_NAME);
 #endif
 }
 
@@ -1986,8 +1869,6 @@ done:
 #else
     ALCcontext *Context = GetContextRef();
     if(!Context) return;
-
-    alSetError(Context, AL_INVALID_NAME);
 #endif
 }
 

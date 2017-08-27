@@ -81,9 +81,6 @@
     <ClCompile Include="OpenAL32\alEffect.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OpenAL32\alError.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="OpenAL32\alFilter.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -150,9 +147,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OpenAL32\Include\alEffect.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="OpenAL32\Include\alError.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OpenAL32\Include\alFilter.h">
