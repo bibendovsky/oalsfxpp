@@ -84,9 +84,6 @@
     <ClCompile Include="OpenAL32\alError.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OpenAL32\alExtension.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="OpenAL32\alFilter.c">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -472,16 +472,6 @@ AL_API ALdouble AL_APIENTRY alGetDouble(ALenum param);
  */
 AL_API ALenum AL_APIENTRY alGetError(void);
 
-/**
- * Extension support.
- *
- * Query for the presence of an extension, and obtain any appropriate function
- * pointers and enum values.
- */
-AL_API ALboolean AL_APIENTRY alIsExtensionPresent(const ALchar *extname);
-AL_API void* AL_APIENTRY alGetProcAddress(const ALchar *fname);
-AL_API ALenum AL_APIENTRY alGetEnumValue(const ALchar *ename);
-
 
 /** Create Source objects. */
 AL_API void AL_APIENTRY alGenSources(ALsizei n, ALuint *sources);
@@ -545,9 +535,6 @@ typedef ALint         (AL_APIENTRY *LPALGETINTEGER)(ALenum param);
 typedef ALfloat       (AL_APIENTRY *LPALGETFLOAT)(ALenum param);
 typedef ALdouble      (AL_APIENTRY *LPALGETDOUBLE)(ALenum param);
 typedef ALenum        (AL_APIENTRY *LPALGETERROR)(void);
-typedef ALboolean     (AL_APIENTRY *LPALISEXTENSIONPRESENT)(const ALchar *extname);
-typedef void*         (AL_APIENTRY *LPALGETPROCADDRESS)(const ALchar *fname);
-typedef ALenum        (AL_APIENTRY *LPALGETENUMVALUE)(const ALchar *ename);
 typedef void          (AL_APIENTRY *LPALGENSOURCES)(ALsizei n, ALuint *sources);
 typedef void          (AL_APIENTRY *LPALDELETESOURCES)(ALsizei n, const ALuint *sources);
 typedef ALboolean     (AL_APIENTRY *LPALISSOURCE)(ALuint source);
