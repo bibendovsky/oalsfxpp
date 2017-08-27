@@ -425,19 +425,6 @@ enum DevProbe {
 
 struct ALCbackend;
 
-
-enum DistanceModel {
-    InverseDistanceClamped  = AL_INVERSE_DISTANCE_CLAMPED,
-    LinearDistanceClamped   = AL_LINEAR_DISTANCE_CLAMPED,
-    ExponentDistanceClamped = AL_EXPONENT_DISTANCE_CLAMPED,
-    InverseDistance  = AL_INVERSE_DISTANCE,
-    LinearDistance   = AL_LINEAR_DISTANCE,
-    ExponentDistance = AL_EXPONENT_DISTANCE,
-    DisableDistance  = AL_NONE,
-
-    DefaultDistanceModel = DisableDistance
-};
-
 enum Channel {
     FrontLeft = 0,
     FrontRight,
