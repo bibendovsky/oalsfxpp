@@ -307,17 +307,9 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
     ALCcontext *context;
     ALCuint oldFreq;
     size_t size;
-    ALCsizei i;
 
     if((device->Flags&DEVICE_RUNNING))
         return ALC_NO_ERROR;
-
-    al_free(device->ChannelDelay[0].Buffer);
-    for(i = 0;i < MAX_OUTPUT_CHANNELS;i++)
-    {
-        device->ChannelDelay[i].Length = 0;
-        device->ChannelDelay[i].Buffer = NULL;
-    }
 
     al_free(device->Dry.Buffer);
     device->Dry.Buffer = NULL;
@@ -491,8 +483,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
  */
 static ALCvoid FreeDevice(ALCdevice *device)
 {
-    ALsizei i;
-
     al_free(device->effect);
 
     DeinitEffectSlot(device->effect_slot);
@@ -503,14 +493,6 @@ static ALCvoid FreeDevice(ALCdevice *device)
 
     al_free(device->Limiter);
     device->Limiter = NULL;
-
-    al_free(device->ChannelDelay[0].Buffer);
-    for(i = 0;i < MAX_OUTPUT_CHANNELS;i++)
-    {
-        device->ChannelDelay[i].Gain   = 1.0f;
-        device->ChannelDelay[i].Length = 0;
-        device->ChannelDelay[i].Buffer = NULL;
-    }
 
     al_free(device->Dry.Buffer);
     device->Dry.Buffer = NULL;
@@ -913,7 +895,6 @@ ALC_API ALCboolean ALC_APIENTRY alcMakeContextCurrent(ALCcontext *context)
 ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
 {
     ALCdevice *device;
-    ALCsizei i;
 
     DO_INITCONFIG();
 
@@ -956,13 +937,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
 
     device->AuxiliaryEffectSlotMax = 64;
     device->NumAuxSends = DEFAULT_SENDS;
-
-    for(i = 0;i < MAX_OUTPUT_CHANNELS;i++)
-    {
-        device->ChannelDelay[i].Gain   = 1.0f;
-        device->ChannelDelay[i].Length = 0;
-        device->ChannelDelay[i].Buffer = NULL;
-    }
 
     //Set output format
     device->FmtChans = DevFmtChannelsDefault;

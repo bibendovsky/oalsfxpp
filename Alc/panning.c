@@ -474,13 +474,6 @@ void aluInitRenderer(ALCdevice *device)
     for(i = 0;i < MAX_AMBI_ORDER+1;i++)
         device->Dry.NumChannelsPerOrder[i] = 0;
 
-    memset(device->ChannelDelay, 0, sizeof(device->ChannelDelay));
-    for(i = 0;i < MAX_OUTPUT_CHANNELS;i++)
-    {
-        device->ChannelDelay[i].Gain = 1.0f;
-        device->ChannelDelay[i].Length = 0;
-    }
-
     SetDefaultWFXChannelOrder(device);
 
     if(device->FmtChans != DevFmtStereo)

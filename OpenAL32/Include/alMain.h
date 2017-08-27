@@ -629,9 +629,6 @@ struct ALCdevice_struct
 
     struct Compressor *Limiter;
 
-    /* Delay buffers used to compensate for speaker distances. */
-    DistanceComp ChannelDelay[MAX_OUTPUT_CHANNELS];
-
     // Contexts created on this device
     ALCcontext* ContextList;
 
