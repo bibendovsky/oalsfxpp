@@ -90,9 +90,6 @@
     <ClCompile Include="OpenAL32\alSource.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OpenAL32\sample_cvt.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="oal_effects_pp.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -168,9 +165,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OpenAL32\Include\alu.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="OpenAL32\Include\sample_cvt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
