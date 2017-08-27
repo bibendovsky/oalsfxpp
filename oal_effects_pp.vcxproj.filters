@@ -95,9 +95,6 @@
     <ClInclude Include="Alc\alstring.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Alc\compat.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Alc\mixer_defs.h">
       <Filter>Header Files</Filter>
     </ClInclude>

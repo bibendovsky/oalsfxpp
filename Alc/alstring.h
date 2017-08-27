@@ -30,20 +30,9 @@ void alstr_clear(al_string *str);
 int alstr_cmp(const_al_string str1, const_al_string str2);
 int alstr_cmp_cstr(const_al_string str1, const al_string_char_type *str2);
 
-void alstr_copy(al_string *str, const_al_string from);
-void alstr_copy_cstr(al_string *str, const al_string_char_type *from);
-void alstr_copy_range(al_string *str, const al_string_char_type *from, const al_string_char_type *to);
-
 void alstr_append_char(al_string *str, const al_string_char_type c);
 void alstr_append_cstr(al_string *str, const al_string_char_type *from);
 void alstr_append_range(al_string *str, const al_string_char_type *from, const al_string_char_type *to);
 
-#ifdef _WIN32
-#include <wchar.h>
-/* Windows-only methods to deal with WideChar strings. */
-void alstr_copy_wcstr(al_string *str, const wchar_t *from);
-void alstr_append_wcstr(al_string *str, const wchar_t *from);
-void alstr_append_wrange(al_string *str, const wchar_t *from, const wchar_t *to);
-#endif
 
 #endif /* ALSTRING_H */

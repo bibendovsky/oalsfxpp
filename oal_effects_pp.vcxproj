@@ -147,7 +147,6 @@
   <ItemGroup>
     <ClInclude Include="Alc\alstring.h" />
     <ClInclude Include="Alc\backends\base.h" />
-    <ClInclude Include="Alc\compat.h" />
     <ClInclude Include="Alc\mixer_defs.h" />
     <ClInclude Include="Alc\vector.h" />
     <ClInclude Include="common\align.h" />

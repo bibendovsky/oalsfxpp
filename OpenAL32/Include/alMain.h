@@ -777,8 +777,6 @@ void ALCcontext_DeferUpdates(ALCcontext *context);
 void ALCcontext_ProcessUpdates(ALCcontext *context);
 
 
-void SetRTPriority(void);
-
 void SetDefaultChannelOrder(ALCdevice *device);
 void SetDefaultWFXChannelOrder(ALCdevice *device);
 
@@ -806,8 +804,6 @@ inline ALint GetChannelIndex(const enum Channel names[MAX_OUTPUT_CHANNELS], enum
 
 extern ALint RTPrioLevel;
 
-
-vector_al_string SearchDataFiles(const char *match, const char *subdir);
 
 /* Small hack to use a pointer-to-array types as a normal argument type.
  * Shouldn't be used directly.
