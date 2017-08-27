@@ -30,8 +30,6 @@
 #include "alEffect.h"
 
 
-extern inline ALboolean IsReverbEffect(ALenum type);
-
 void InitEffectParams(ALeffect *effect, ALenum type);
 
 
