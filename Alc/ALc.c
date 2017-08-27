@@ -49,8 +49,6 @@ void DeinitSource(ALsource *source, ALsizei num_sends);
  * Global variables
  ************************************************/
 
-static al_string alcAllDevicesList;
-
 /* Default is always the first in the list */
 static ALCchar *alcDefaultAllDevicesSpecifier;
 
@@ -100,72 +98,6 @@ static ALCdevice* DeviceList = NULL;
 /************************************************
  * Library initialization
  ************************************************/
-#if defined(_WIN32)
-static void alc_init(void);
-static void alc_deinit(void);
-static void alc_deinit_safe(void);
-
-#ifndef AL_LIBTYPE_STATIC
-BOOL APIENTRY DllMain(HINSTANCE hModule, DWORD reason, LPVOID lpReserved)
-{
-    switch(reason)
-    {
-        case DLL_PROCESS_ATTACH:
-            /* Pin the DLL so we won't get unloaded until the process terminates */
-            GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN | GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-                               (WCHAR*)hModule, &hModule);
-            alc_init();
-            break;
-
-        case DLL_THREAD_DETACH:
-            break;
-
-        case DLL_PROCESS_DETACH:
-            if(!lpReserved)
-                alc_deinit();
-            else
-                alc_deinit_safe();
-            break;
-    }
-    return TRUE;
-}
-#elif defined(_MSC_VER)
-#pragma section(".CRT$XCU",read)
-static void alc_constructor(void);
-static void alc_destructor(void);
-__declspec(allocate(".CRT$XCU")) void (__cdecl* alc_constructor_)(void) = alc_constructor;
-
-static void alc_constructor(void)
-{
-    atexit(alc_destructor);
-    alc_init();
-}
-
-static void alc_destructor(void)
-{
-    alc_deinit();
-}
-#elif defined(HAVE_GCC_DESTRUCTOR)
-static void alc_init(void) __attribute__((constructor));
-static void alc_deinit(void) __attribute__((destructor));
-#else
-#error "No static initialization available on this platform!"
-#endif
-
-#elif defined(HAVE_GCC_DESTRUCTOR)
-
-static void alc_init(void) __attribute__((constructor));
-static void alc_deinit(void) __attribute__((destructor));
-
-#else
-#error "No global initialization available on this platform!"
-#endif
-
-static void alc_init(void)
-{
-    AL_STRING_INIT(alcAllDevicesList);
-}
-
 static void alc_initconfig(void)
 {
     aluInitMixer();
@@ -179,34 +111,6 @@ void DO_INITCONFIG()
         alc_config_once = ALC_TRUE;
         alc_initconfig();
     }
-}
-
-
-/************************************************
- * Library deinitialization
- ************************************************/
-static void alc_cleanup(void)
-{
-    ALCdevice *dev;
-
-    AL_STRING_DEINIT(alcAllDevicesList);
-
-    free(alcDefaultAllDevicesSpecifier);
-    alcDefaultAllDevicesSpecifier = NULL;
-
-    dev = DeviceList;
-    DeviceList = NULL;
-}
-
-static void alc_deinit_safe(void)
-{
-    alc_cleanup();
-}
-
-static void alc_deinit(void)
-{
-    alc_cleanup();
-    alc_deinit_safe();
 }
 
 
