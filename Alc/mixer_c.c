@@ -1,31 +1,8 @@
 #include "config.h"
 
-#include <assert.h>
-
 #include "alMain.h"
 #include "alu.h"
-#include "alSource.h"
-#include "alAuxEffectSlot.h"
 
-
-static inline ALfloat point32(const ALfloat *restrict vals, ALsizei UNUSED(frac))
-{ return vals[0]; }
-static inline ALfloat lerp32(const ALfloat *restrict vals, ALsizei frac)
-{ return lerp(vals[0], vals[1], frac * (1.0f/FRACTIONONE)); }
-
-
-const ALfloat *Resample_copy32_C(const InterpState* UNUSED(state),
-  const ALfloat *restrict src, ALsizei UNUSED(frac), ALint UNUSED(increment),
-  ALfloat *restrict dst, ALsizei numsamples)
-{
-#if defined(HAVE_SSE) || defined(HAVE_NEON)
-    /* Avoid copying the source data if it's aligned like the destination. */
-    if((((intptr_t)src)&15) == (((intptr_t)dst)&15))
-        return src;
-#endif
-    memcpy(dst, src, numsamples*sizeof(ALfloat));
-    return dst;
-}
 
 void ALfilterState_processC(ALfilterState *filter, ALfloat *restrict dst, const ALfloat *restrict src, ALsizei numsamples)
 {
