@@ -661,7 +661,6 @@ struct ALCcontext_struct {
 
     struct ALvoice *voice;
     ALsizei VoiceCount;
-    ALsizei MaxVoices;
 
     struct ALeffectslotArray* ActiveAuxSlots;
 

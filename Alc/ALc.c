@@ -270,7 +270,7 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
                 }
             }
         }
-        AllocateVoices(context, context->MaxVoices, old_sends);
+        AllocateVoices(context, 1, old_sends);
         for(pos = 0;pos < context->VoiceCount;pos++)
         {
             ALvoice *voice = context->voice;
@@ -405,7 +405,6 @@ static void FreeContext(ALCcontext *context)
     al_free(context->voice);
     context->voice = NULL;
     context->VoiceCount = 0;
-    context->MaxVoices = 0;
 
     count = 0;
 
@@ -588,7 +587,6 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
 
     ALContext->voice = NULL;
     ALContext->VoiceCount = 0;
-    ALContext->MaxVoices = 0;
     ALContext->ActiveAuxSlots = NULL;
     ALContext->Device = device;
 
