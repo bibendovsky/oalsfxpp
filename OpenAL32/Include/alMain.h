@@ -600,8 +600,6 @@ struct ALCdevice_struct
     enum DevFmtChannels FmtChans;
     enum DevFmtType     FmtType;
 
-    ALCenum LastError;
-
     // Maximum number of sources that can be created
     ALuint SourcesMax;
     // Maximum number of slots that can be created
