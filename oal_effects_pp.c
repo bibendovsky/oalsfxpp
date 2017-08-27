@@ -155,16 +155,6 @@ int main()
 
     if (is_succeed)
     {
-        if (alcIsExtensionPresent(oal_device, "ALC_EXT_EFX") == AL_FALSE)
-        {
-            is_succeed = 0;
-            printf("%s\n", "No EFX.");
-        }
-    }
-
-
-    if (is_succeed)
-    {
         oal_context = alcCreateContext(oal_device, context_attribs);
 
         if (!oal_context)

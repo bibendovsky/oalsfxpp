@@ -169,44 +169,12 @@ typedef void ALCvoid;
 /** Context management. */
 ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCint* attrlist);
 ALC_API ALCboolean  ALC_APIENTRY alcMakeContextCurrent(ALCcontext *context);
-ALC_API void        ALC_APIENTRY alcProcessContext(ALCcontext *context);
-ALC_API void        ALC_APIENTRY alcSuspendContext(ALCcontext *context);
 ALC_API void        ALC_APIENTRY alcDestroyContext(ALCcontext *context);
-ALC_API ALCcontext* ALC_APIENTRY alcGetCurrentContext(void);
-ALC_API ALCdevice*  ALC_APIENTRY alcGetContextsDevice(ALCcontext *context);
 
 /** Device management. */
 ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *devicename);
 ALC_API ALCboolean ALC_APIENTRY alcCloseDevice(ALCdevice *device);
 
-
-/**
- * Error support.
- *
- * Obtain the most recent Device error.
- */
-ALC_API ALCenum ALC_APIENTRY alcGetError(ALCdevice *device);
-
-/**
- * Extension support.
- *
- * Query for the presence of an extension, and obtain any appropriate
- * function pointers and enum values.
- */
-ALC_API ALCboolean ALC_APIENTRY alcIsExtensionPresent(ALCdevice *device, const ALCchar *extname);
-ALC_API void*      ALC_APIENTRY alcGetProcAddress(ALCdevice *device, const ALCchar *funcname);
-ALC_API ALCenum    ALC_APIENTRY alcGetEnumValue(ALCdevice *device, const ALCchar *enumname);
-
-/** Query function. */
-ALC_API const ALCchar* ALC_APIENTRY alcGetString(ALCdevice *device, ALCenum param);
-ALC_API void           ALC_APIENTRY alcGetIntegerv(ALCdevice *device, ALCenum param, ALCsizei size, ALCint *values);
-
-/** Capture function. */
-ALC_API ALCdevice* ALC_APIENTRY alcCaptureOpenDevice(const ALCchar *devicename, ALCuint frequency, ALCenum format, ALCsizei buffersize);
-ALC_API ALCboolean ALC_APIENTRY alcCaptureCloseDevice(ALCdevice *device);
-ALC_API void       ALC_APIENTRY alcCaptureStart(ALCdevice *device);
-ALC_API void       ALC_APIENTRY alcCaptureStop(ALCdevice *device);
-ALC_API void       ALC_APIENTRY alcCaptureSamples(ALCdevice *device, ALCvoid *buffer, ALCsizei samples);
 
 /** Pointer-to-function type, useful for dynamically getting ALC entry points. */
 typedef ALCcontext*    (ALC_APIENTRY *LPALCCREATECONTEXT)(ALCdevice *device, const ALCint *attrlist);

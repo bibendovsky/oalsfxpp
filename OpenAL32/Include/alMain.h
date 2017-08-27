@@ -43,11 +43,6 @@
 /*#define ALC_FUMA_SOFT*/
 #define ALC_SN3D_SOFT                            0x1602
 #define ALC_N3D_SOFT                             0x1603
-
-typedef ALCboolean (ALC_APIENTRY*LPALCISAMBISONICFORMATSUPPORTEDSOFT)(ALCdevice *device, ALCenum layout, ALCenum scaling, ALsizei order);
-#ifdef AL_ALEXT_PROTOTYPES
-ALC_API ALCboolean ALC_APIENTRY alcIsAmbisonicFormatSupportedSOFT(ALCdevice *device, ALCenum layout, ALCenum scaling, ALsizei order);
-#endif
 #endif
 
 #ifndef ALC_SOFT_device_clock
@@ -57,10 +52,6 @@ typedef uint64_t ALCuint64SOFT;
 #define ALC_DEVICE_CLOCK_SOFT                    0x1600
 #define ALC_DEVICE_LATENCY_SOFT                  0x1601
 #define ALC_DEVICE_CLOCK_LATENCY_SOFT            0x1602
-typedef void (ALC_APIENTRY*LPALCGETINTEGER64VSOFT)(ALCdevice *device, ALCenum pname, ALsizei size, ALCint64SOFT *values);
-#ifdef AL_ALEXT_PROTOTYPES
-ALC_API void ALC_APIENTRY alcGetInteger64vSOFT(ALCdevice *device, ALCenum pname, ALsizei size, ALCint64SOFT *values);
-#endif
 #endif
 
 #ifndef AL_SOFT_buffer_samples2
@@ -123,17 +114,6 @@ ALC_API void ALC_APIENTRY alcGetInteger64vSOFT(ALCdevice *device, ALCenum pname,
 #define AL_BYTE_LENGTH_SOFT                      0x2009
 #define AL_SAMPLE_LENGTH_SOFT                    0x200A
 #define AL_SEC_LENGTH_SOFT                       0x200B
-
-#if 0
-typedef void (AL_APIENTRY*LPALBUFFERSAMPLESSOFT)(ALuint,ALuint,ALenum,ALsizei,ALenum,ALenum,const ALvoid*);
-typedef void (AL_APIENTRY*LPALGETBUFFERSAMPLESSOFT)(ALuint,ALsizei,ALsizei,ALenum,ALenum,ALvoid*);
-typedef ALboolean (AL_APIENTRY*LPALISBUFFERFORMATSUPPORTEDSOFT)(ALenum);
-#ifdef AL_ALEXT_PROTOTYPES
-AL_API void AL_APIENTRY alBufferSamplesSOFT(ALuint buffer, ALuint samplerate, ALenum internalformat, ALsizei samples, ALenum channels, ALenum type, const ALvoid *data);
-AL_API void AL_APIENTRY alGetBufferSamplesSOFT(ALuint buffer, ALsizei offset, ALsizei samples, ALenum channels, ALenum type, ALvoid *data);
-AL_API ALboolean AL_APIENTRY alIsBufferFormatSupportedSOFT(ALenum format);
-#endif
-#endif
 #endif
 
 
@@ -771,9 +751,6 @@ void ALCcontext_DecRef(ALCcontext *context);
 void AllocateVoices(ALCcontext *context, ALsizei num_voices, ALsizei old_sends);
 
 void AppendAllDevicesList(const ALCchar *name);
-
-void ALCcontext_DeferUpdates(ALCcontext *context);
-void ALCcontext_ProcessUpdates(ALCcontext *context);
 
 
 void SetDefaultChannelOrder(ALCdevice *device);
