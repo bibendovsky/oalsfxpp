@@ -9,21 +9,6 @@ extern "C" {
 
 struct ALeffect;
 
-enum {
-    AL__EAXREVERB = 0,
-    AL__REVERB,
-    AL__CHORUS,
-    AL__COMPRESSOR,
-    AL__DISTORTION,
-    AL__ECHO,
-    AL__EQUALIZER,
-    AL__FLANGER,
-    AL__MODULATOR,
-    AL__DEDICATED,
-
-    MAX_EFFECTS
-};
-
 typedef union ALeffectProps {
     struct {
         // Shared Reverb Properties
