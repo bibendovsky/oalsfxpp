@@ -688,8 +688,6 @@ struct ALCdevice_struct
 struct ALCcontext_struct {
     unsigned int ref;
 
-    ALenum LastError;
-
     /* Counter for the pre-mixing updates, in 31.1 fixed point (lowest bit
      * indicates if updates are currently happening).
      */
