@@ -1130,7 +1130,7 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
      * device is asynchronously destropyed, to ensure this new context is
      * properly cleaned up after being made.
      */
-    if(!VerifyDevice(&device) || !device->Connected)
+    if(!VerifyDevice(&device))
     {
         if(device) ALCdevice_DecRef(device);
         return NULL;
@@ -1275,7 +1275,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
 
     //Validate device
     device->ref = 1;
-    device->Connected = ALC_TRUE;
     device->LastError = ALC_NO_ERROR;
 
     device->Flags = 0;

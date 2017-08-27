@@ -594,8 +594,6 @@ struct ALCdevice_struct
 {
     unsigned int ref;
 
-    ALCboolean Connected;
-
     ALuint Frequency;
     ALuint UpdateSize;
     ALuint NumUpdates;

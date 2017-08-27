@@ -759,8 +759,6 @@ void aluHandleDisconnect(ALCdevice *device)
 {
     ALCcontext *ctx;
 
-    device->Connected = ALC_FALSE;
-
     ctx = device->ContextList;
     if(ctx)
     {
