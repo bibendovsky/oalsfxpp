@@ -374,10 +374,7 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
                 continue;
             }
 
-            if(Device->Render_Mode == StereoPair)
-                CalcAnglePairwiseCoeffs(chans[c].angle, chans[c].elevation, Spread, coeffs);
-            else
-                CalcAngleCoeffs(chans[c].angle, chans[c].elevation, Spread, coeffs);
+            CalcAngleCoeffs(chans[c].angle, chans[c].elevation, Spread, coeffs);
             ComputePanningGains(Device->Dry,
                 coeffs, DryGain, voice->Direct.Params[c].Gains.Target
             );

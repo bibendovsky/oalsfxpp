@@ -1281,7 +1281,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     device->LastError = ALC_NO_ERROR;
 
     device->Flags = 0;
-    device->Render_Mode = NormalRender;
     AL_STRING_INIT(device->DeviceName);
     device->Dry.Buffer = NULL;
     device->Dry.NumChannels = 0;

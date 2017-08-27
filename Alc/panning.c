@@ -189,15 +189,6 @@ void CalcDirectionCoeffs(const ALfloat dir[3], ALfloat spread, ALfloat coeffs[MA
     }
 }
 
-void CalcAnglePairwiseCoeffs(ALfloat azimuth, ALfloat elevation, ALfloat spread, ALfloat coeffs[MAX_AMBI_COEFFS])
-{
-    ALfloat sign = (azimuth < 0.0f) ? -1.0f : 1.0f;
-    if(!(fabsf(azimuth) > F_PI_2))
-        azimuth = minf(fabsf(azimuth) * F_PI_2 / (F_PI/6.0f), F_PI_2) * sign;
-    CalcAngleCoeffs(azimuth, elevation, spread, coeffs);
-}
-
-
 void ComputeAmbientGainsMC(const ChannelConfig *chancoeffs, ALsizei numchans, ALfloat ingain, ALfloat gains[MAX_OUTPUT_CHANNELS])
 {
     ALsizei i;
@@ -478,8 +469,6 @@ void aluInitRenderer(ALCdevice *device)
     bool headphones;
     size_t i;
 
-    device->Render_Mode = NormalRender;
-
     memset(&device->Dry.Ambi, 0, sizeof(device->Dry.Ambi));
     device->Dry.CoeffCount = 0;
     device->Dry.NumChannels = 0;
@@ -502,8 +491,6 @@ void aluInitRenderer(ALCdevice *device)
     }
 
     headphones = device->IsHeadphones;
-
-    device->Render_Mode = StereoPair;
 
     InitPanning(device);
 }

@@ -538,12 +538,6 @@ extern const struct EffectList {
 } EffectList[];
 
 
-enum RenderMode {
-    NormalRender,
-    StereoPair
-};
-
-
 /* The maximum number of Ambisonics coefficients. For a given order (o), the
  * size needed will be (o+1)**2, thus zero-order has 1, first-order has 4,
  * second-order has 9, third-order has 16, and fourth-order has 25.
@@ -621,9 +615,6 @@ struct ALCdevice_struct
     ALCuint NumMonoSources;
     ALCuint NumStereoSources;
     ALsizei NumAuxSends;
-
-    /* Rendering mode. */
-    enum RenderMode Render_Mode;
 
     // Device flags
     ALuint Flags;
