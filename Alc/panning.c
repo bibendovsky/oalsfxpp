@@ -466,7 +466,6 @@ static void InitPanning(ALCdevice *device)
 
 void aluInitRenderer(ALCdevice *device)
 {
-    bool headphones;
     size_t i;
 
     memset(&device->Dry.Ambi, 0, sizeof(device->Dry.Ambi));
@@ -489,8 +488,6 @@ void aluInitRenderer(ALCdevice *device)
         InitPanning(device);
         return;
     }
-
-    headphones = device->IsHeadphones;
 
     InitPanning(device);
 }

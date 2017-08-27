@@ -1306,7 +1306,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     device->FmtChans = DevFmtChannelsDefault;
     device->FmtType = DevFmtTypeDefault;
     device->Frequency = DEFAULT_OUTPUT_RATE;
-    device->IsHeadphones = AL_FALSE;
     device->NumUpdates = 3;
     device->UpdateSize = 1024;
 
