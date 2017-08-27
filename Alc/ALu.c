@@ -665,8 +665,6 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const 
             for(c = 0;c < device->RealOut.NumChannels;c++)
                 memset(device->RealOut.Buffer[c], 0, SamplesToDo*sizeof(ALfloat));
 
-        device->MixCount += 1;
-
         ctx = device->ContextList;
         if(ctx)
         {
@@ -707,14 +705,6 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const 
                                  state->OutChannels);
             }
         }
-
-        /* Increment the clock time. Every second's worth of samples is
-         * converted and added to clock base so that large sample counts don't
-         * overflow during conversion. This also guarantees an exact, stable
-         * conversion. */
-        device->SamplesDone += SamplesToDo;
-        device->SamplesDone %= device->Frequency;
-        device->MixCount += 1;
 
         if(OutBuffer)
         {

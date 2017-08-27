@@ -1285,9 +1285,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
 
     device->ContextList = NULL;
 
-    device->SamplesDone = 0;
-
-    device->SourcesMax = 256;
     device->AuxiliaryEffectSlotMax = 64;
     device->NumAuxSends = DEFAULT_SENDS;
 
@@ -1308,12 +1305,8 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     device->NumUpdates = clampu(device->NumUpdates, 2, 16);
     device->UpdateSize = clampu(device->UpdateSize, 64, 8192);
 
-    if(device->SourcesMax == 0) device->SourcesMax = 256;
-
     if(device->AuxiliaryEffectSlotMax == 0) device->AuxiliaryEffectSlotMax = 64;
 
-    device->NumStereoSources = 1;
-    device->NumMonoSources = device->SourcesMax - device->NumStereoSources;
     device->Limiter = CreateDeviceLimiter(device);
 
     device->source = al_calloc(16, sizeof(ALsource));

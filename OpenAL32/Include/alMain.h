@@ -600,19 +600,13 @@ struct ALCdevice_struct
     enum DevFmtChannels FmtChans;
     enum DevFmtType     FmtType;
 
-    // Maximum number of sources that can be created
-    ALuint SourcesMax;
     // Maximum number of slots that can be created
     ALuint AuxiliaryEffectSlotMax;
 
-    ALCuint NumMonoSources;
-    ALCuint NumStereoSources;
     ALsizei NumAuxSends;
 
     // Device flags
     ALuint Flags;
-
-    ALuint SamplesDone;
 
     /* Temp storage used for each source when mixing. */
     alignas(16) ALfloat SourceData[BUFFERSIZE];
@@ -657,13 +651,6 @@ struct ALCdevice_struct
 
     /* Delay buffers used to compensate for speaker distances. */
     DistanceComp ChannelDelay[MAX_OUTPUT_CHANNELS];
-
-    /* Running count of the mixer invocations, in 31.1 fixed point. This
-     * actually increments *twice* when mixing, first at the start and then at
-     * the end, so the bottom bit indicates if the device is currently mixing
-     * and the upper bits indicates how many mixes have been done.
-     */
-    unsigned int MixCount;
 
     // Contexts created on this device
     ALCcontext* ContextList;
