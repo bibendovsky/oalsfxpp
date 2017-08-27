@@ -120,7 +120,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Alc\ALc.c" />
-    <ClCompile Include="Alc\alcRing.c" />
     <ClCompile Include="Alc\ALu.c" />
     <ClCompile Include="Alc\bsinc.c" />
     <ClCompile Include="Alc\effects\chorus.c" />

@@ -48,9 +48,6 @@
     <ClCompile Include="Alc\ALc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Alc\alcRing.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Alc\ALu.c">
       <Filter>Source Files</Filter>
     </ClCompile>
