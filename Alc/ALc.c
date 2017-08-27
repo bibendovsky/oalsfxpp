@@ -177,7 +177,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
     const ALsizei old_sends = device->NumAuxSends;
     ALsizei new_sends = device->NumAuxSends;
     enum DevFmtChannels oldChans;
-    enum DevFmtType oldType;
     ALboolean update_failed;
     ALCcontext *context;
     ALCuint oldFreq;
@@ -196,15 +195,10 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
 
     oldFreq  = device->Frequency;
     oldChans = device->FmtChans;
-    oldType  = device->FmtType;
 
     if(device->FmtChans != oldChans && (device->Flags&DEVICE_CHANNELS_REQUEST))
     {
         device->Flags &= ~DEVICE_CHANNELS_REQUEST;
-    }
-    if(device->FmtType != oldType && (device->Flags&DEVICE_SAMPLE_TYPE_REQUEST))
-    {
-        device->Flags &= ~DEVICE_SAMPLE_TYPE_REQUEST;
     }
     if(device->Frequency != oldFreq && (device->Flags&DEVICE_FREQUENCY_REQUEST))
     {
@@ -780,7 +774,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
 
     //Set output format
     device->FmtChans = DevFmtChannelsDefault;
-    device->FmtType = DevFmtTypeDefault;
     device->Frequency = DEFAULT_OUTPUT_RATE;
     device->UpdateSize = clampu(1024, 64, 8192);
 

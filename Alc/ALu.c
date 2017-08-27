@@ -629,12 +629,6 @@ static void Write##A(const ALfloatBUFFERSIZE *InBuffer, ALvoid *OutBuffer,    \
 }
 
 DECL_TEMPLATE(ALfloat, F32)
-DECL_TEMPLATE(ALuint, UI32)
-DECL_TEMPLATE(ALint, I32)
-DECL_TEMPLATE(ALushort, UI16)
-DECL_TEMPLATE(ALshort, I16)
-DECL_TEMPLATE(ALubyte, UI8)
-DECL_TEMPLATE(ALbyte, I8)
 
 #undef DECL_TEMPLATE
 
@@ -705,31 +699,7 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const 
         {
             ALfloat (*Buffer)[BUFFERSIZE] = device->RealOut.Buffer;
             ALsizei Channels = device->RealOut.NumChannels;
-
-            switch(device->FmtType)
-            {
-                case DevFmtByte:
-                    WriteI8(Buffer, OutBuffer, SamplesDone, SamplesToDo, Channels);
-                    break;
-                case DevFmtUByte:
-                    WriteUI8(Buffer, OutBuffer, SamplesDone, SamplesToDo, Channels);
-                    break;
-                case DevFmtShort:
-                    WriteI16(Buffer, OutBuffer, SamplesDone, SamplesToDo, Channels);
-                    break;
-                case DevFmtUShort:
-                    WriteUI16(Buffer, OutBuffer, SamplesDone, SamplesToDo, Channels);
-                    break;
-                case DevFmtInt:
-                    WriteI32(Buffer, OutBuffer, SamplesDone, SamplesToDo, Channels);
-                    break;
-                case DevFmtUInt:
-                    WriteUI32(Buffer, OutBuffer, SamplesDone, SamplesToDo, Channels);
-                    break;
-                case DevFmtFloat:
-                    WriteF32(Buffer, OutBuffer, SamplesDone, SamplesToDo, Channels);
-                    break;
-            }
+            WriteF32(Buffer, OutBuffer, SamplesDone, SamplesToDo, Channels);
         }
 
         SamplesDone += SamplesToDo;

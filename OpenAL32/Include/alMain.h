@@ -578,7 +578,6 @@ struct ALCdevice_struct
     ALuint Frequency;
     ALuint UpdateSize;
     enum DevFmtChannels FmtChans;
-    enum DevFmtType     FmtType;
 
     // Maximum number of slots that can be created
     ALuint AuxiliaryEffectSlotMax;
