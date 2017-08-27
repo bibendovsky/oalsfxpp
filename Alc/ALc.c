@@ -1299,11 +1299,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     device->FmtChans = DevFmtChannelsDefault;
     device->FmtType = DevFmtTypeDefault;
     device->Frequency = DEFAULT_OUTPUT_RATE;
-    device->NumUpdates = 3;
-    device->UpdateSize = 1024;
-
-    device->NumUpdates = clampu(device->NumUpdates, 2, 16);
-    device->UpdateSize = clampu(device->UpdateSize, 64, 8192);
+    device->UpdateSize = clampu(1024, 64, 8192);
 
     if(device->AuxiliaryEffectSlotMax == 0) device->AuxiliaryEffectSlotMax = 64;
 

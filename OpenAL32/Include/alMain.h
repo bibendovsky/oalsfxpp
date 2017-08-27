@@ -596,7 +596,6 @@ struct ALCdevice_struct
 
     ALuint Frequency;
     ALuint UpdateSize;
-    ALuint NumUpdates;
     enum DevFmtChannels FmtChans;
     enum DevFmtType     FmtType;
 
