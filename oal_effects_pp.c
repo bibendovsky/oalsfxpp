@@ -291,7 +291,6 @@ int main()
     }
 
     alSourceStop(oal_source);
-    alDeleteSources(1, &oal_source);
 
     alcMakeContextCurrent(NULL);
     alcDestroyContext(oal_context);

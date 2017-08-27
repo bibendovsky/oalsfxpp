@@ -41,7 +41,6 @@ typedef struct ALsource {
 
 void UpdateAllSourceProps(ALCcontext *context);
 
-ALvoid ReleaseALSources(ALCcontext *Context);
 
 #ifdef __cplusplus
 }
