@@ -603,8 +603,6 @@ struct ALCdevice_struct
     enum DevFmtType     FmtType;
     ALboolean IsHeadphones;
 
-    al_string DeviceName;
-
     ALCenum LastError;
 
     // Maximum number of sources that can be created

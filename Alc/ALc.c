@@ -836,8 +836,6 @@ static ALCvoid FreeDevice(ALCdevice *device)
         device->ChannelDelay[i].Buffer = NULL;
     }
 
-    AL_STRING_DEINIT(device->DeviceName);
-
     al_free(device->Dry.Buffer);
     device->Dry.Buffer = NULL;
     device->Dry.NumChannels = 0;
@@ -1281,7 +1279,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     device->LastError = ALC_NO_ERROR;
 
     device->Flags = 0;
-    AL_STRING_INIT(device->DeviceName);
     device->Dry.Buffer = NULL;
     device->Dry.NumChannels = 0;
     device->FOAOut.Buffer = NULL;
