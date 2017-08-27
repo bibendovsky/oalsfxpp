@@ -584,9 +584,6 @@ struct ALCdevice_struct
 
     ALsizei NumAuxSends;
 
-    // Device flags
-    ALuint Flags;
-
     /* Temp storage used for each source when mixing. */
     alignas(16) ALfloat SourceData[BUFFERSIZE];
     alignas(16) ALfloat ResampledData[BUFFERSIZE];

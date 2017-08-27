@@ -176,14 +176,9 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
 {
     const ALsizei old_sends = device->NumAuxSends;
     ALsizei new_sends = device->NumAuxSends;
-    enum DevFmtChannels oldChans;
     ALboolean update_failed;
     ALCcontext *context;
-    ALCuint oldFreq;
     size_t size;
-
-    if((device->Flags&DEVICE_RUNNING))
-        return ALC_NO_ERROR;
 
     al_free(device->Dry.Buffer);
     device->Dry.Buffer = NULL;
@@ -192,18 +187,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
     device->FOAOut.NumChannels = 0;
     device->RealOut.Buffer = NULL;
     device->RealOut.NumChannels = 0;
-
-    oldFreq  = device->Frequency;
-    oldChans = device->FmtChans;
-
-    if(device->FmtChans != oldChans && (device->Flags&DEVICE_CHANNELS_REQUEST))
-    {
-        device->Flags &= ~DEVICE_CHANNELS_REQUEST;
-    }
-    if(device->Frequency != oldFreq && (device->Flags&DEVICE_FREQUENCY_REQUEST))
-    {
-        device->Flags &= ~DEVICE_FREQUENCY_REQUEST;
-    }
 
     aluInitRenderer(device);
 
@@ -318,11 +301,6 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
     }
     if(update_failed)
         return ALC_INVALID_DEVICE;
-
-    if(!(device->Flags&DEVICE_PAUSED))
-    {
-        device->Flags |= DEVICE_RUNNING;
-    }
 
     return ALC_NO_ERROR;
 }
@@ -698,10 +676,7 @@ ALC_API ALCvoid ALC_APIENTRY alcDestroyContext(ALCcontext *context)
     Device = context->Device;
     if(Device)
     {
-        if(!ReleaseContext(context, Device))
-        {
-            Device->Flags &= ~DEVICE_RUNNING;
-        }
+        ReleaseContext(context, Device);
     }
 
     ALCcontext_DecRef(context);
@@ -759,7 +734,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
 
     device->ref = 1;
 
-    device->Flags = 0;
     device->Dry.Buffer = NULL;
     device->Dry.NumChannels = 0;
     device->FOAOut.Buffer = NULL;
@@ -814,7 +788,6 @@ ALC_API ALCboolean ALC_APIENTRY alcCloseDevice(ALCdevice *device)
     {
         ReleaseContext(ctx, device);
     }
-    device->Flags &= ~DEVICE_RUNNING;
 
     ALCdevice_DecRef(device);
 
