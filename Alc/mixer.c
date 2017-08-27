@@ -73,56 +73,6 @@ RowMixerFunc SelectRowMixer(void)
     return MixRow_C;
 }
 
-ResamplerFunc SelectResampler(enum Resampler resampler)
-{
-    switch(resampler)
-    {
-        case PointResampler:
-            return Resample_point32_C;
-        case LinearResampler:
-#ifdef HAVE_NEON
-            if((CPUCapFlags&CPU_CAP_NEON))
-                return Resample_lerp32_Neon;
-#endif
-#ifdef HAVE_SSE4_1
-            if((CPUCapFlags&CPU_CAP_SSE4_1))
-                return Resample_lerp32_SSE41;
-#endif
-#ifdef HAVE_SSE2
-            if((CPUCapFlags&CPU_CAP_SSE2))
-                return Resample_lerp32_SSE2;
-#endif
-            return Resample_lerp32_C;
-        case FIR4Resampler:
-#ifdef HAVE_NEON
-            if((CPUCapFlags&CPU_CAP_NEON))
-                return Resample_fir4_32_Neon;
-#endif
-#ifdef HAVE_SSE4_1
-            if((CPUCapFlags&CPU_CAP_SSE4_1))
-                return Resample_fir4_32_SSE41;
-#endif
-#ifdef HAVE_SSE3
-            if((CPUCapFlags&CPU_CAP_SSE3))
-                return Resample_fir4_32_SSE3;
-#endif
-            return Resample_fir4_32_C;
-        case BSincResampler:
-#ifdef HAVE_NEON
-            if((CPUCapFlags&CPU_CAP_NEON))
-                return Resample_bsinc32_Neon;
-#endif
-#ifdef HAVE_SSE
-            if((CPUCapFlags&CPU_CAP_SSE))
-                return Resample_bsinc32_SSE;
-#endif
-            return Resample_bsinc32_C;
-    }
-
-    return Resample_point32_C;
-}
-
-
 void aluInitMixer(void)
 {
     MixSamples = SelectMixer();

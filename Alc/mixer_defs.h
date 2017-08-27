@@ -11,11 +11,6 @@ struct MixGains;
 
 /* C resamplers */
 const ALfloat *Resample_copy32_C(const InterpState *state, const ALfloat *restrict src, ALsizei frac, ALint increment, ALfloat *restrict dst, ALsizei dstlen);
-const ALfloat *Resample_point32_C(const InterpState *state, const ALfloat *restrict src, ALsizei frac, ALint increment, ALfloat *restrict dst, ALsizei dstlen);
-const ALfloat *Resample_lerp32_C(const InterpState *state, const ALfloat *restrict src, ALsizei frac, ALint increment, ALfloat *restrict dst, ALsizei dstlen);
-const ALfloat *Resample_fir4_32_C(const InterpState *state, const ALfloat *restrict src, ALsizei frac, ALint increment, ALfloat *restrict dst, ALsizei dstlen);
-const ALfloat *Resample_bsinc32_C(const InterpState *state, const ALfloat *restrict src, ALsizei frac, ALint increment, ALfloat *restrict dst, ALsizei dstlen);
-
 
 /* C mixers */
 void Mix_C(const ALfloat *data, ALsizei OutChans, ALfloat (*restrict OutBuffer)[BUFFERSIZE],

@@ -186,27 +186,10 @@ typedef struct ALvoice {
     bool Playing;
 
     /**
-     * Source offset in samples, relative to the currently playing buffer, NOT
-     * the whole queue, and the fractional (fixed-point) offset to the next
-     * sample.
-     */
-    ALuint position;
-    ALsizei position_fraction;
-
-    /**
      * Number of channels and bytes-per-sample for the attached source's
      * buffer(s).
      */
     ALsizei NumChannels;
-
-    /** Current target parameters used for mixing. */
-    ALint Step;
-
-    ALuint Flags;
-
-    ALuint Offset; /* Number of output samples mixed since starting. */
-
-    InterpState ResampleState;
 
     struct {
         enum ActiveFilters FilterType;
@@ -297,19 +280,12 @@ inline ALuint64 clampu64(ALuint64 val, ALuint64 min, ALuint64 max)
 
 
 extern alignas(16) const ALfloat bsincTab[18840];
-extern alignas(16) const ALfloat sinc4Tab[FRACTIONONE][4];
 
 
 inline ALfloat lerp(ALfloat val1, ALfloat val2, ALfloat mu)
 {
     return val1 + (val2-val1)*mu;
 }
-inline ALfloat resample_fir4(ALfloat val0, ALfloat val1, ALfloat val2, ALfloat val3, ALsizei frac)
-{
-    return sinc4Tab[frac][0]*val0 + sinc4Tab[frac][1]*val1 +
-           sinc4Tab[frac][2]*val2 + sinc4Tab[frac][3]*val3;
-}
-
 
 void aluInitMixer(void);
 

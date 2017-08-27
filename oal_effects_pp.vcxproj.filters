@@ -51,9 +51,6 @@
     <ClCompile Include="Alc\ALu.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Alc\bsinc.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Alc\helpers.c">
       <Filter>Source Files</Filter>
     </ClCompile>

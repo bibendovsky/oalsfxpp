@@ -121,7 +121,6 @@
   <ItemGroup>
     <ClCompile Include="Alc\ALc.c" />
     <ClCompile Include="Alc\ALu.c" />
-    <ClCompile Include="Alc\bsinc.c" />
     <ClCompile Include="Alc\effects\chorus.c" />
     <ClCompile Include="Alc\effects\compressor.c" />
     <ClCompile Include="Alc\effects\dedicated.c" />

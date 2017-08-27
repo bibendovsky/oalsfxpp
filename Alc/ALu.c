@@ -154,79 +154,6 @@ static aluVector aluMatrixfVector(const aluMatrixf *mtx, const aluVector *vec)
 }
 
 
-/* Prepares the interpolator for a given rate (determined by increment).  A
- * result of AL_FALSE indicates that the filter output will completely cut
- * the input signal.
- *
- * With a bit of work, and a trade of memory for CPU cost, this could be
- * modified for use with an interpolated increment for buttery-smooth pitch
- * changes.
- */
-ALboolean BsincPrepare(const ALuint increment, BsincState *state)
-{
-    static const ALfloat scaleBase = 1.510578918e-01f, scaleRange = 1.177936623e+00f;
-    static const ALuint m[BSINC_SCALE_COUNT] = { 24, 24, 24, 24, 24, 24, 24, 20, 20, 20, 16, 16, 16, 12, 12, 12 };
-    static const ALuint to[4][BSINC_SCALE_COUNT] =
-    {
-        { 0, 24, 408, 792, 1176, 1560, 1944, 2328, 2648, 2968, 3288, 3544, 3800, 4056, 4248, 4440 },
-        { 4632, 5016, 5400, 5784, 6168, 6552, 6936, 7320, 7640, 7960, 8280, 8536, 8792, 9048, 9240, 0 },
-        { 0, 9432, 9816, 10200, 10584, 10968, 11352, 11736, 12056, 12376, 12696, 12952, 13208, 13464, 13656, 13848 },
-        { 14040, 14424, 14808, 15192, 15576, 15960, 16344, 16728, 17048, 17368, 17688, 17944, 18200, 18456, 18648, 0 }
-    };
-    static const ALuint tm[2][BSINC_SCALE_COUNT] =
-    {
-        { 0, 24, 24, 24, 24, 24, 24, 20, 20, 20, 16, 16, 16, 12, 12, 12 },
-        { 24, 24, 24, 24, 24, 24, 24, 20, 20, 20, 16, 16, 16, 12, 12, 0 }
-    };
-    ALfloat sf;
-    ALsizei si, pi;
-    ALboolean uncut = AL_TRUE;
-
-    if(increment > FRACTIONONE)
-    {
-        sf = (ALfloat)FRACTIONONE / increment;
-        if(sf < scaleBase)
-        {
-            /* Signal has been completely cut.  The return result can be used
-             * to skip the filter (and output zeros) as an optimization.
-             */
-            sf = 0.0f;
-            si = 0;
-            uncut = AL_FALSE;
-        }
-        else
-        {
-            sf = (BSINC_SCALE_COUNT - 1) * (sf - scaleBase) * scaleRange;
-            si = fastf2i(sf);
-            /* The interpolation factor is fit to this diagonally-symmetric
-             * curve to reduce the transition ripple caused by interpolating
-             * different scales of the sinc function.
-             */
-            sf = 1.0f - cosf(asinf(sf - si));
-        }
-    }
-    else
-    {
-        sf = 0.0f;
-        si = BSINC_SCALE_COUNT - 1;
-    }
-
-    state->sf = sf;
-    state->m = m[si];
-    state->l = -(ALint)((m[si] / 2) - 1);
-    /* The CPU cost of this table re-mapping could be traded for the memory
-     * cost of a complete table map (1024 elements large).
-     */
-    for(pi = 0;pi < BSINC_PHASE_COUNT;pi++)
-    {
-        state->coeffs[pi].filter  = &bsincTab[to[0][si] + tm[0][si]*pi];
-        state->coeffs[pi].scDelta = &bsincTab[to[1][si] + tm[1][si]*pi];
-        state->coeffs[pi].phDelta = &bsincTab[to[2][si] + tm[0][si]*pi];
-        state->coeffs[pi].spDelta = &bsincTab[to[3][si] + tm[1][si]*pi];
-    }
-    return uncut;
-}
-
 static ALboolean CalcEffectSlotParams(ALeffectslot *slot, ALCdevice *device)
 {
     struct ALeffectslotProps *props;
@@ -438,7 +365,6 @@ static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *p
     ALfloat WetGainHF[MAX_SENDS];
     ALfloat WetGainLF[MAX_SENDS];
     ALeffectslot *SendSlots[MAX_SENDS];
-    ALfloat Pitch;
     ALsizei i;
 
     voice->Direct.Buffer = Device->Dry.Buffer;
@@ -458,14 +384,6 @@ static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *p
             voice->Send[i].Channels = SendSlots[i]->NumChannels;
         }
     }
-
-    /* Calculate the stepping value */
-    Pitch = 1.0F;
-    if(Pitch > (ALfloat)MAX_PITCH)
-        voice->Step = MAX_PITCH<<FRACTIONBITS;
-    else
-        voice->Step = maxi(fastf2i(Pitch*FRACTIONONE + 0.5f), 1);
-    BsincPrepare(voice->Step, &voice->ResampleState.bsinc);
 
     /* Calculate gains */
     DryGain  = 1.0F;
@@ -637,8 +555,7 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const 
             {
                 ALvoice *voice = ctx->voice;
                 ALsource *source = voice->Source;
-                if(source && voice->Playing &&
-                   voice->Step > 0)
+                if(source && voice->Playing)
                 {
                     if(!MixSource(voice, source, device, SamplesToDo))
                     {

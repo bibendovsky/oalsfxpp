@@ -189,8 +189,6 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
             case AL_PLAYING:
                 assert(voice != NULL);
                 /* A source that's already playing is restarted from the beginning. */
-                voice->position = 0;
-                voice->position_fraction = 0;
                 goto finish_play;
 
             case AL_PAUSED:
@@ -219,16 +217,8 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
 
         UpdateSourceProps(source, voice, device->NumAuxSends);
 
-        voice->position = 0;
-        voice->position_fraction = 0;
         voice->NumChannels = device->Dry.NumChannels;
 
-        /* Clear the stepping value so the mixer knows not to mix this until
-         * the update gets applied.
-         */
-        voice->Step = 0;
-
-        voice->Flags = start_fading ? VOICE_IS_FADING : 0;
         memset(voice->Direct.Params, 0, sizeof(voice->Direct.Params[0])*voice->NumChannels);
         for(s = 0;s < device->NumAuxSends;s++)
             memset(voice->Send[s].Params, 0, sizeof(voice->Send[s].Params[0])*voice->NumChannels);
