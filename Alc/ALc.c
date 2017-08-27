@@ -49,9 +49,6 @@ void DeinitSource(ALsource *source, ALsizei num_sends);
  * Global variables
  ************************************************/
 
-/* Enumerated device names */
-static const ALCchar alcDefaultName[] = "OpenAL Soft\0";
-
 static al_string alcAllDevicesList;
 
 /* Default is always the first in the list */
@@ -903,25 +900,12 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
         return NULL;
     }
 
-    if(deviceName && (!deviceName[0] || strcasecmp(deviceName, alcDefaultName) == 0 || strcasecmp(deviceName, "openal-soft") == 0
-#ifdef _WIN32
-        /* Some old Windows apps hardcode these expecting OpenAL to use a
-         * specific audio API, even when they're not enumerated. Creative's
-         * router effectively ignores them too.
-         */
-        || strcasecmp(deviceName, "DirectSound3D") == 0 || strcasecmp(deviceName, "DirectSound") == 0
-        || strcasecmp(deviceName, "MMSYSTEM") == 0
-#endif
-    ))
-        deviceName = NULL;
-
     device = al_calloc(16, sizeof(ALCdevice));
     if(!device)
     {
         return NULL;
     }
 
-    //Validate device
     device->ref = 1;
 
     device->Flags = 0;
