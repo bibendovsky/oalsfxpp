@@ -527,7 +527,7 @@ static void CalcSourceParams(ALvoice *voice, ALCcontext *context, ALboolean forc
 
 static void UpdateContextSources(ALCcontext *ctx, const struct ALeffectslotArray *slots)
 {
-    ALvoice **voice, **voice_end;
+    ALvoice *voice;
     ALsource *source;
     ALsizei i;
 
@@ -535,13 +535,9 @@ static void UpdateContextSources(ALCcontext *ctx, const struct ALeffectslotArray
     for(i = 0;i < slots->count;i++)
         force |= CalcEffectSlotParams(slots->slot[i], ctx->Device);
 
-    voice = ctx->Voices;
-    voice_end = voice + ctx->VoiceCount;
-    for(;voice != voice_end;++voice)
-    {
-        source = (*voice)->Source;
-        if(source) CalcSourceParams(*voice, ctx, force);
-    }
+    voice = ctx->voice;
+    source = voice->Source;
+    if(source) CalcSourceParams(voice, ctx, force);
 }
 
 
@@ -672,7 +668,7 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const 
             /* source processing */
             for(i = 0;i < ctx->VoiceCount;i++)
             {
-                ALvoice *voice = ctx->Voices[i];
+                ALvoice *voice = ctx->voice;
                 ALsource *source = voice->Source;
                 if(source && voice->Playing &&
                    voice->Step > 0)
@@ -717,7 +713,7 @@ void aluHandleDisconnect(ALCdevice *device)
         ALsizei i;
         for(i = 0;i < ctx->VoiceCount;i++)
         {
-            ALvoice *voice = ctx->Voices[i];
+            ALvoice *voice = ctx->voice;
             ALsource *source;
 
             source = voice->Source;

@@ -273,7 +273,7 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
         AllocateVoices(context, context->MaxVoices, old_sends);
         for(pos = 0;pos < context->VoiceCount;pos++)
         {
-            ALvoice *voice = context->Voices[pos];
+            ALvoice *voice = context->voice;
             struct ALvoiceProps *props;
 
             /* Clear any pre-existing voice property structs, in case the
@@ -401,9 +401,9 @@ static void FreeContext(ALCcontext *context)
     al_free(auxslots);
 
     for(i = 0;i < context->VoiceCount;i++)
-        DeinitVoice(context->Voices[i]);
-    al_free(context->Voices);
-    context->Voices = NULL;
+        DeinitVoice(context->voice);
+    al_free(context->voice);
+    context->voice = NULL;
     context->VoiceCount = 0;
     context->MaxVoices = 0;
 
@@ -511,13 +511,14 @@ void AllocateVoices(ALCcontext *context, ALsizei num_voices, ALsizei old_sends)
     struct ALvoiceProps *props;
     size_t sizeof_props;
     size_t sizeof_voice;
-    ALvoice **voices;
     ALvoice *voice;
     ALsizei v = 0;
     size_t size;
 
-    if(num_voices == context->MaxVoices && num_sends == old_sends)
+    if (context->voice)
+    {
         return;
+    }
 
     /* Allocate the voice pointers, voices, and the voices' stored source
      * property set (including the dynamically-sized Send[] array) in one
@@ -525,68 +526,23 @@ void AllocateVoices(ALCcontext *context, ALsizei num_voices, ALsizei old_sends)
      */
     sizeof_voice = RoundUp(FAM_SIZE(ALvoice, Send, num_sends), 16);
     sizeof_props = RoundUp(FAM_SIZE(struct ALvoiceProps, Send, num_sends), 16);
-    size = sizeof(ALvoice*) + sizeof_voice + sizeof_props;
+    size = sizeof_voice + sizeof_props;
 
-    voices = al_calloc(16, RoundUp(size*num_voices, 16));
+    voice = al_calloc(16, RoundUp(size*1, 16));
     /* The voice and property objects are stored interleaved since they're
      * paired together.
      */
-    voice = (ALvoice*)((char*)voices + RoundUp(num_voices*sizeof(ALvoice*), 16));
     props = (struct ALvoiceProps*)((char*)voice + sizeof_voice);
 
-    if(context->Voices)
-    {
-        const ALsizei v_count = mini(context->VoiceCount, num_voices);
-        const ALsizei s_count = mini(old_sends, num_sends);
-
-        for(;v < v_count;v++)
-        {
-            ALvoice *old_voice = context->Voices[v];
-            ALsizei i;
-
-            /* Copy the old voice data and source property set to the new
-             * storage.
-             */
-            *voice = *old_voice;
-            for(i = 0;i < s_count;i++)
-                voice->Send[i] = old_voice->Send[i];
-            *props = *(old_voice->Props);
-            for(i = 0;i < s_count;i++)
-                props->Send[i] = old_voice->Props->Send[i];
-
-            /* Set this voice's property set pointer and voice reference. */
-            voice->Props = props;
-            voices[v] = voice;
-
-            /* Increment pointers to the next storage space. */
-            voice = (ALvoice*)((char*)props + sizeof_props);
-            props = (struct ALvoiceProps*)((char*)voice + sizeof_voice);
-        }
-        /* Deinit any left over voices that weren't copied over to the new
-         * array. NOTE: If this does anything, v equals num_voices and
-         * num_voices is less than VoiceCount, so the following loop won't do
-         * anything.
-         */
-        for(;v < context->VoiceCount;v++)
-            DeinitVoice(context->Voices[v]);
-    }
     /* Finish setting the voices' property set pointers and references. */
-    for(;v < num_voices;v++)
-    {
-        voice->Update = NULL;
-        voice->FreeList = NULL;
+    voice->Update = NULL;
+    voice->FreeList = NULL;
 
-        voice->Props = props;
-        voices[v] = voice;
+    voice->Props = props;
 
-        voice = (ALvoice*)((char*)props + sizeof_props);
-        props = (struct ALvoiceProps*)((char*)voice + sizeof_voice);
-    }
-
-    al_free(context->Voices);
-    context->Voices = voices;
-    context->MaxVoices = num_voices;
-    context->VoiceCount = mini(context->VoiceCount, num_voices);
+    al_free(context->voice);
+    context->voice = voice;
+    context->VoiceCount = 1;
 }
 
 
@@ -630,7 +586,7 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
 
     ALContext->ref = 1;
 
-    ALContext->Voices = NULL;
+    ALContext->voice = NULL;
     ALContext->VoiceCount = 0;
     ALContext->MaxVoices = 0;
     ALContext->ActiveAuxSlots = NULL;

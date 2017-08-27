@@ -108,15 +108,7 @@ typedef enum SourceProp {
 
 static inline ALvoice *GetSourceVoice(const ALsource *source, const ALCcontext *context)
 {
-    ALvoice **voice = context->Voices;
-    ALvoice **voice_end = voice + context->VoiceCount;
-    while(voice != voice_end)
-    {
-        if((*voice)->Source == source)
-            return *voice;
-        ++voice;
-    }
-    return NULL;
+    return context->voice;
 }
 
 /**
@@ -215,17 +207,14 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
         /* Make sure this source isn't already active, and if not, look for an
          * unused voice to put it in.
          */
-        assert(voice == NULL);
         for(j = 0;j < context->VoiceCount;j++)
         {
-            if(context->Voices[j]->Source == NULL)
+            if(context->voice->Source == NULL)
             {
-                voice = context->Voices[j];
+                voice = context->voice;
                 break;
             }
         }
-        if(voice == NULL)
-            voice = context->Voices[context->VoiceCount++];
         voice->Playing = false;
 
         UpdateSourceProps(source, voice, device->NumAuxSends);
@@ -386,7 +375,7 @@ void UpdateAllSourceProps(ALCcontext *context)
 
     for(pos = 0;pos < context->VoiceCount;pos++)
     {
-        ALvoice *voice = context->Voices[pos];
+        ALvoice *voice = context->voice;
         ALsource *source = voice->Source;
         if(source)
             UpdateSourceProps(source, voice, num_sends);

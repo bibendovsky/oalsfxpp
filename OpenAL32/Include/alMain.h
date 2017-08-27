@@ -659,7 +659,7 @@ struct ALCdevice_struct
 struct ALCcontext_struct {
     unsigned int ref;
 
-    struct ALvoice **Voices;
+    struct ALvoice *voice;
     ALsizei VoiceCount;
     ALsizei MaxVoices;
 
