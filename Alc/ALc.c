@@ -724,9 +724,6 @@ static void alc_init(void)
 
 static void alc_initconfig(void)
 {
-    const char *devs, *str;
-    int i;
-
 #ifdef _WIN32
     RTPrioLevel = 1;
 #else

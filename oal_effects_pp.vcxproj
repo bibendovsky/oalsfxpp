@@ -139,7 +139,6 @@
     <ClCompile Include="Alc\mixer_c.c" />
     <ClCompile Include="Alc\panning.c" />
     <ClCompile Include="common\almalloc.c" />
-    <ClCompile Include="common\uintmap.c" />
     <ClCompile Include="oal_effects_pp.c" />
     <ClCompile Include="OpenAL32\alAuxEffectSlot.c" />
     <ClCompile Include="OpenAL32\alEffect.c" />
@@ -161,7 +160,6 @@
     <ClInclude Include="common\bool.h" />
     <ClInclude Include="common\math_defs.h" />
     <ClInclude Include="common\static_assert.h" />
-    <ClInclude Include="common\uintmap.h" />
     <ClInclude Include="include\AL\al.h" />
     <ClInclude Include="include\AL\alc.h" />
     <ClInclude Include="include\AL\alext.h" />

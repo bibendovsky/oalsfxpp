@@ -107,7 +107,6 @@ DEFINE_PROPERTYKEY(PKEY_AudioEndpoint_GUID, 0x1da5d803, 0xd492, 0x4edd, 0x8c, 0x
 
 #include "alMain.h"
 #include "alu.h"
-#include "uintmap.h"
 #include "vector.h"
 #include "alstring.h"
 #include "compat.h"

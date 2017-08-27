@@ -75,9 +75,6 @@
     <ClCompile Include="common\almalloc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="common\uintmap.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="OpenAL32\alAuxEffectSlot.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -135,9 +132,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="common\static_assert.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="common\uintmap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\AL\al.h">

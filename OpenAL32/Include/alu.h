@@ -17,6 +17,7 @@
 
 #include "align.h"
 #include "math_defs.h"
+#include "bool.h"
 
 
 #define MAX_PITCH  (255)
