@@ -82,8 +82,6 @@ static ALCdevice* DeviceList = NULL;
  ************************************************/
 static void alc_initconfig(void)
 {
-    aluInitMixer();
-
     InitEffect(&DefaultEffect);
 }
 void DO_INITCONFIG()

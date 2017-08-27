@@ -287,11 +287,6 @@ inline ALfloat lerp(ALfloat val1, ALfloat val2, ALfloat mu)
     return val1 + (val2-val1)*mu;
 }
 
-void aluInitMixer(void);
-
-MixerFunc SelectMixer(void);
-RowMixerFunc SelectRowMixer(void);
-ResamplerFunc SelectResampler(enum Resampler resampler);
 
 /* aluInitRenderer
  *

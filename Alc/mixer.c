@@ -43,87 +43,8 @@ static_assert((INT_MAX>>FRACTIONBITS)/MAX_PITCH > BUFFERSIZE,
 extern inline void InitiatePositionArrays(ALsizei frac, ALint increment, ALsizei *restrict frac_arr, ALint *restrict pos_arr, ALsizei size);
 
 
-enum Resampler ResamplerDefault = PointResampler;
-
 static MixerFunc MixSamples = Mix_C;
 
-MixerFunc SelectMixer(void)
-{
-#ifdef HAVE_NEON
-    if((CPUCapFlags&CPU_CAP_NEON))
-        return Mix_Neon;
-#endif
-#ifdef HAVE_SSE
-    if((CPUCapFlags&CPU_CAP_SSE))
-        return Mix_SSE;
-#endif
-    return Mix_C;
-}
-
-RowMixerFunc SelectRowMixer(void)
-{
-#ifdef HAVE_NEON
-    if((CPUCapFlags&CPU_CAP_NEON))
-        return MixRow_Neon;
-#endif
-#ifdef HAVE_SSE
-    if((CPUCapFlags&CPU_CAP_SSE))
-        return MixRow_SSE;
-#endif
-    return MixRow_C;
-}
-
-void aluInitMixer(void)
-{
-    MixSamples = SelectMixer();
-}
-
-
-static inline ALfloat Sample_ALbyte(ALbyte val)
-{ return val * (1.0f/128.0f); }
-
-static inline ALfloat Sample_ALshort(ALshort val)
-{ return val * (1.0f/32768.0f); }
-
-static inline ALfloat Sample_ALfloat(ALfloat val)
-{ return val; }
-
-#define DECL_TEMPLATE(T)                                                      \
-static inline void Load_##T(ALfloat *dst, const T *src, ALint srcstep, ALsizei samples)\
-{                                                                             \
-    ALsizei i;                                                                \
-    for(i = 0;i < samples;i++)                                                \
-        dst[i] = Sample_##T(src[i*srcstep]);                                  \
-}
-
-DECL_TEMPLATE(ALbyte)
-DECL_TEMPLATE(ALshort)
-DECL_TEMPLATE(ALfloat)
-
-#undef DECL_TEMPLATE
-
-static void LoadSamples(ALfloat *dst, const ALvoid *src, ALint srcstep, enum FmtType srctype, ALsizei samples)
-{
-    switch(srctype)
-    {
-        case FmtByte:
-            Load_ALbyte(dst, src, srcstep, samples);
-            break;
-        case FmtShort:
-            Load_ALshort(dst, src, srcstep, samples);
-            break;
-        case FmtFloat:
-            Load_ALfloat(dst, src, srcstep, samples);
-            break;
-    }
-}
-
-static inline void SilenceSamples(ALfloat *dst, ALsizei samples)
-{
-    ALsizei i;
-    for(i = 0;i < samples;i++)
-        dst[i] = 0.0f;
-}
 
 static const ALfloat *DoFilters(ALfilterState *lpfilter, ALfilterState *hpfilter,
                                 ALfloat *restrict dst, const ALfloat *restrict src,

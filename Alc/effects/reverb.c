@@ -51,13 +51,6 @@
 static MixerFunc MixSamples = Mix_C;
 static RowMixerFunc MixRowSamples = MixRow_C;
 
-static ALCboolean mixfunc_inited = ALC_FALSE;
-static void init_mixfunc(void)
-{
-    MixSamples = SelectMixer();
-    MixRowSamples = SelectRowMixer();
-}
-
 typedef struct DelayLineI {
     /* The delay lines use interleaved samples, with the lengths being powers
      * of 2 to allow the use of bit-masking instead of a modulus for wrapping.
@@ -1885,12 +1878,6 @@ typedef struct ALreverbStateFactory {
 static ALeffectState *ALreverbStateFactory_create(ALreverbStateFactory* UNUSED(factory))
 {
     ALreverbState *state;
-
-    if (!mixfunc_inited)
-    {
-        mixfunc_inited = ALC_TRUE;
-        init_mixfunc();
-    }
 
     NEW_OBJ0(state, ALreverbState)();
     if(!state) return NULL;
