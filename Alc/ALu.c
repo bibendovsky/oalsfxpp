@@ -531,19 +531,16 @@ static void UpdateContextSources(ALCcontext *ctx, const struct ALeffectslotArray
     ALsource *source;
     ALsizei i;
 
-    if(!ctx->HoldUpdates)
-    {
-        ALboolean force = AL_TRUE;
-        for(i = 0;i < slots->count;i++)
-            force |= CalcEffectSlotParams(slots->slot[i], ctx->Device);
+    ALboolean force = AL_TRUE;
+    for(i = 0;i < slots->count;i++)
+        force |= CalcEffectSlotParams(slots->slot[i], ctx->Device);
 
-        voice = ctx->Voices;
-        voice_end = voice + ctx->VoiceCount;
-        for(;voice != voice_end;++voice)
-        {
-            source = (*voice)->Source;
-            if(source) CalcSourceParams(*voice, ctx, force);
-        }
+    voice = ctx->Voices;
+    voice_end = voice + ctx->VoiceCount;
+    for(;voice != voice_end;++voice)
+    {
+        source = (*voice)->Source;
+        if(source) CalcSourceParams(*voice, ctx, force);
     }
 }
 
