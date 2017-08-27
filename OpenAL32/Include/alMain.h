@@ -494,12 +494,6 @@ enum DevFmtChannels {
 };
 #define MAX_OUTPUT_CHANNELS  (16)
 
-ALsizei BytesFromDevFmt(enum DevFmtType type);
-ALsizei ChannelsFromDevFmt(enum DevFmtChannels chans, ALsizei ambiorder);
-inline ALsizei FrameSizeFromDevFmt(enum DevFmtChannels chans, enum DevFmtType type, ALsizei ambiorder)
-{
-    return ChannelsFromDevFmt(chans, ambiorder) * BytesFromDevFmt(type);
-}
 
 enum AmbiLayout {
     AmbiLayout_FuMa = ALC_FUMA_SOFT, /* FuMa channel order */
@@ -692,14 +686,9 @@ void ALCcontext_DecRef(ALCcontext *context);
 
 void AllocateVoices(ALCcontext *context, ALsizei num_voices, ALsizei old_sends);
 
-void AppendAllDevicesList(const ALCchar *name);
 
-
-void SetDefaultChannelOrder(ALCdevice *device);
 void SetDefaultWFXChannelOrder(ALCdevice *device);
 
-const ALCchar *DevFmtTypeString(enum DevFmtType type);
-const ALCchar *DevFmtChannelsString(enum DevFmtChannels chans);
 
 /**
  * GetChannelIdxByName
@@ -719,8 +708,6 @@ inline ALint GetChannelIndex(const enum Channel names[MAX_OUTPUT_CHANNELS], enum
 }
 #define GetChannelIdxByName(x, c) GetChannelIndex((x).ChannelName, (c))
 
-
-extern ALint RTPrioLevel;
 
 
 /* Small hack to use a pointer-to-array types as a normal argument type.

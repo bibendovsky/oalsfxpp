@@ -75,12 +75,6 @@ static ALCcontext* LocalContext;
 /* Process-wide current context */
 static ALCcontext* GlobalContext = NULL;
 
-/* Mixing thread piority level */
-ALint RTPrioLevel;
-
-/* Flag to trap ALC device errors */
-static ALCboolean TrapALCError = ALC_FALSE;
-
 /* One-time configuration init control */
 static ALCboolean alc_config_once = ALC_FALSE;
 
@@ -188,12 +182,6 @@ static void alc_init(void)
 
 static void alc_initconfig(void)
 {
-#ifdef _WIN32
-    RTPrioLevel = 1;
-#else
-    RTPrioLevel = 0;
-#endif
-
     aluInitMixer();
 
     InitEffect(&DefaultEffect);
@@ -306,194 +294,6 @@ static void alc_deinit(void)
 
 
 /************************************************
- * Device enumeration
- ************************************************/
-static void ProbeDevices(al_string *list, struct BackendInfo *backendinfo, enum DevProbe type)
-{
-    DO_INITCONFIG();
-
-    alstr_clear(list);
-}
-
-static void AppendDevice(const ALCchar *name, al_string *devnames)
-{
-    size_t len = strlen(name);
-    if(len > 0)
-        alstr_append_range(devnames, name, name+len+1);
-}
-void AppendAllDevicesList(const ALCchar *name)
-{ AppendDevice(name, &alcAllDevicesList); }
-
-
-/************************************************
- * Device format information
- ************************************************/
-const ALCchar *DevFmtTypeString(enum DevFmtType type)
-{
-    switch(type)
-    {
-    case DevFmtByte: return "Signed Byte";
-    case DevFmtUByte: return "Unsigned Byte";
-    case DevFmtShort: return "Signed Short";
-    case DevFmtUShort: return "Unsigned Short";
-    case DevFmtInt: return "Signed Int";
-    case DevFmtUInt: return "Unsigned Int";
-    case DevFmtFloat: return "Float";
-    }
-    return "(unknown type)";
-}
-const ALCchar *DevFmtChannelsString(enum DevFmtChannels chans)
-{
-    switch(chans)
-    {
-    case DevFmtMono: return "Mono";
-    case DevFmtStereo: return "Stereo";
-    case DevFmtQuad: return "Quadraphonic";
-    case DevFmtX51: return "5.1 Surround";
-    case DevFmtX51Rear: return "5.1 Surround (Rear)";
-    case DevFmtX61: return "6.1 Surround";
-    case DevFmtX71: return "7.1 Surround";
-    case DevFmtAmbi3D: return "Ambisonic 3D";
-    }
-    return "(unknown channels)";
-}
-
-extern inline ALsizei FrameSizeFromDevFmt(enum DevFmtChannels chans, enum DevFmtType type, ALsizei ambiorder);
-ALsizei BytesFromDevFmt(enum DevFmtType type)
-{
-    switch(type)
-    {
-    case DevFmtByte: return sizeof(ALbyte);
-    case DevFmtUByte: return sizeof(ALubyte);
-    case DevFmtShort: return sizeof(ALshort);
-    case DevFmtUShort: return sizeof(ALushort);
-    case DevFmtInt: return sizeof(ALint);
-    case DevFmtUInt: return sizeof(ALuint);
-    case DevFmtFloat: return sizeof(ALfloat);
-    }
-    return 0;
-}
-ALsizei ChannelsFromDevFmt(enum DevFmtChannels chans, ALsizei ambiorder)
-{
-    switch(chans)
-    {
-    case DevFmtMono: return 1;
-    case DevFmtStereo: return 2;
-    case DevFmtQuad: return 4;
-    case DevFmtX51: return 6;
-    case DevFmtX51Rear: return 6;
-    case DevFmtX61: return 7;
-    case DevFmtX71: return 8;
-    case DevFmtAmbi3D: return (ambiorder >= 3) ? 16 :
-                              (ambiorder == 2) ? 9 :
-                              (ambiorder == 1) ? 4 : 1;
-    }
-    return 0;
-}
-
-static ALboolean DecomposeDevFormat(ALenum format, enum DevFmtChannels *chans,
-                                    enum DevFmtType *type)
-{
-    static const struct {
-        ALenum format;
-        enum DevFmtChannels channels;
-        enum DevFmtType type;
-    } list[] = {
-        { AL_FORMAT_MONO8,        DevFmtMono, DevFmtUByte },
-        { AL_FORMAT_MONO16,       DevFmtMono, DevFmtShort },
-        { AL_FORMAT_MONO_FLOAT32, DevFmtMono, DevFmtFloat },
-
-        { AL_FORMAT_STEREO8,        DevFmtStereo, DevFmtUByte },
-        { AL_FORMAT_STEREO16,       DevFmtStereo, DevFmtShort },
-        { AL_FORMAT_STEREO_FLOAT32, DevFmtStereo, DevFmtFloat },
-
-        { AL_FORMAT_QUAD8,  DevFmtQuad, DevFmtUByte },
-        { AL_FORMAT_QUAD16, DevFmtQuad, DevFmtShort },
-        { AL_FORMAT_QUAD32, DevFmtQuad, DevFmtFloat },
-
-        { AL_FORMAT_51CHN8,  DevFmtX51, DevFmtUByte },
-        { AL_FORMAT_51CHN16, DevFmtX51, DevFmtShort },
-        { AL_FORMAT_51CHN32, DevFmtX51, DevFmtFloat },
-
-        { AL_FORMAT_61CHN8,  DevFmtX61, DevFmtUByte },
-        { AL_FORMAT_61CHN16, DevFmtX61, DevFmtShort },
-        { AL_FORMAT_61CHN32, DevFmtX61, DevFmtFloat },
-
-        { AL_FORMAT_71CHN8,  DevFmtX71, DevFmtUByte },
-        { AL_FORMAT_71CHN16, DevFmtX71, DevFmtShort },
-        { AL_FORMAT_71CHN32, DevFmtX71, DevFmtFloat },
-    };
-    ALuint i;
-
-    for(i = 0;i < COUNTOF(list);i++)
-    {
-        if(list[i].format == format)
-        {
-            *chans = list[i].channels;
-            *type  = list[i].type;
-            return AL_TRUE;
-        }
-    }
-
-    return AL_FALSE;
-}
-
-static ALCboolean IsValidALCType(ALCenum type)
-{
-    switch(type)
-    {
-        case ALC_BYTE_SOFT:
-        case ALC_UNSIGNED_BYTE_SOFT:
-        case ALC_SHORT_SOFT:
-        case ALC_UNSIGNED_SHORT_SOFT:
-        case ALC_INT_SOFT:
-        case ALC_UNSIGNED_INT_SOFT:
-        case ALC_FLOAT_SOFT:
-            return ALC_TRUE;
-    }
-    return ALC_FALSE;
-}
-
-static ALCboolean IsValidALCChannels(ALCenum channels)
-{
-    switch(channels)
-    {
-        case ALC_MONO_SOFT:
-        case ALC_STEREO_SOFT:
-        case ALC_QUAD_SOFT:
-        case ALC_5POINT1_SOFT:
-        case ALC_6POINT1_SOFT:
-        case ALC_7POINT1_SOFT:
-        case ALC_BFORMAT3D_SOFT:
-            return ALC_TRUE;
-    }
-    return ALC_FALSE;
-}
-
-static ALCboolean IsValidAmbiLayout(ALCenum layout)
-{
-    switch(layout)
-    {
-        case ALC_ACN_SOFT:
-        case ALC_FUMA_SOFT:
-            return ALC_TRUE;
-    }
-    return ALC_FALSE;
-}
-
-static ALCboolean IsValidAmbiScaling(ALCenum scaling)
-{
-    switch(scaling)
-    {
-        case ALC_N3D_SOFT:
-        case ALC_SN3D_SOFT:
-        case ALC_FUMA_SOFT:
-            return ALC_TRUE;
-    }
-    return ALC_FALSE;
-}
-
-/************************************************
  * Miscellaneous ALC helpers
  ************************************************/
 
@@ -557,50 +357,6 @@ void SetDefaultWFXChannelOrder(ALCdevice *device)
         device->RealOut.ChannelName[5] = BackRight;
         device->RealOut.ChannelName[6] = SideLeft;
         device->RealOut.ChannelName[7] = SideRight;
-        break;
-    }
-}
-
-/* SetDefaultChannelOrder
- *
- * Sets the default channel order used by most non-WaveFormatEx-based APIs.
- */
-void SetDefaultChannelOrder(ALCdevice *device)
-{
-    ALsizei i;
-
-    for(i = 0;i < MAX_OUTPUT_CHANNELS;i++)
-        device->RealOut.ChannelName[i] = InvalidChannel;
-
-    switch(device->FmtChans)
-    {
-    case DevFmtX51Rear:
-        device->RealOut.ChannelName[0] = FrontLeft;
-        device->RealOut.ChannelName[1] = FrontRight;
-        device->RealOut.ChannelName[2] = BackLeft;
-        device->RealOut.ChannelName[3] = BackRight;
-        device->RealOut.ChannelName[4] = FrontCenter;
-        device->RealOut.ChannelName[5] = LFE;
-        return;
-    case DevFmtX71:
-        device->RealOut.ChannelName[0] = FrontLeft;
-        device->RealOut.ChannelName[1] = FrontRight;
-        device->RealOut.ChannelName[2] = BackLeft;
-        device->RealOut.ChannelName[3] = BackRight;
-        device->RealOut.ChannelName[4] = FrontCenter;
-        device->RealOut.ChannelName[5] = LFE;
-        device->RealOut.ChannelName[6] = SideLeft;
-        device->RealOut.ChannelName[7] = SideRight;
-        return;
-
-    /* Same as WFX order */
-    case DevFmtMono:
-    case DevFmtStereo:
-    case DevFmtQuad:
-    case DevFmtX51:
-    case DevFmtX61:
-    case DevFmtAmbi3D:
-        SetDefaultWFXChannelOrder(device);
         break;
     }
 }
