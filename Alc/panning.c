@@ -436,9 +436,6 @@ static void InitPanning(ALCdevice *device)
             chanmap = X71Cfg;
             coeffcount = 16;
             break;
-
-        case DevFmtAmbi3D:
-            break;
     }
 
     {

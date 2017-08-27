@@ -26,9 +26,7 @@
 #include <errno.h>
 #include <stdarg.h>
 #include <ctype.h>
-#ifdef HAVE_MALLOC_H
 #include <malloc.h>
-#endif
 
 #include "alMain.h"
 #include "alstring.h"

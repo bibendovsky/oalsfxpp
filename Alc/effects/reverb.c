@@ -42,11 +42,7 @@
  */
 #define FADE_SAMPLES  128
 
-#ifdef __GNUC__
-#define UNEXPECTED(x) __builtin_expect((bool)(x), 0)
-#else
 #define UNEXPECTED(x) (x)
-#endif
 
 static MixerFunc MixSamples = Mix_C;
 static RowMixerFunc MixRowSamples = MixRow_C;
@@ -454,17 +450,6 @@ static const ALfloat MODULATION_DEPTH_COEFF = 1.0f / 4096.0f;
  */
 static const ALfloat MODULATION_FILTER_COEFF = 0.048f;
 static const ALfloat MODULATION_FILTER_CONST = 100000.0f;
-
-
-/* Prior to VS2013, MSVC lacks the round() family of functions. */
-#if defined(_MSC_VER) && _MSC_VER < 1800
-static inline long lroundf(float val)
-{
-    if(val < 0.0)
-        return fastf2i(ceilf(val-0.5f));
-    return fastf2i(floorf(val+0.5f));
-}
-#endif
 
 
 /**************************************

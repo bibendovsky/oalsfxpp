@@ -98,17 +98,6 @@ void DeinitVoice(ALvoice *voice)
 {
 }
 
-
-/* Prior to VS2013, MSVC lacks the round() family of functions. */
-#if defined(_MSC_VER) && _MSC_VER < 1800
-static float roundf(float val)
-{
-    if(val < 0.0f)
-        return ceilf(val-0.5f);
-    return floorf(val+0.5f);
-}
-#endif
-
 static inline void aluCrossproduct(const ALfloat *inVector1, const ALfloat *inVector2, ALfloat *outVector)
 {
     outVector[0] = inVector1[1]*inVector2[2] - inVector1[2]*inVector2[1];

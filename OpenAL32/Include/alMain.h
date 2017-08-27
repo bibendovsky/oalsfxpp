@@ -9,14 +9,6 @@
 #include <math.h>
 #include <limits.h>
 
-#ifdef HAVE_STRINGS_H
-#include <strings.h>
-#endif
-
-#ifdef HAVE_FENV_H
-#include <fenv.h>
-#endif
-
 #include "AL/al.h"
 #include "AL/alc.h"
 #include "AL/alext.h"
@@ -27,195 +19,15 @@
 #include "alstring.h"
 #include "almalloc.h"
 
-#ifndef ALC_SOFT_loopback2
-#define ALC_SOFT_loopback2 1
-#define ALC_AMBISONIC_LAYOUT_SOFT                0x1997
-#define ALC_AMBISONIC_SCALING_SOFT               0x1998
-#define ALC_AMBISONIC_ORDER_SOFT                 0x1999
-
-#define ALC_BFORMAT3D_SOFT                       0x1508
-
-/* Ambisonic layouts */
-#define ALC_ACN_SOFT                             0x1600
-#define ALC_FUMA_SOFT                            0x1601
-
-/* Ambisonic scalings (normalization) */
-/*#define ALC_FUMA_SOFT*/
-#define ALC_SN3D_SOFT                            0x1602
-#define ALC_N3D_SOFT                             0x1603
-#endif
-
-#ifndef ALC_SOFT_device_clock
-#define ALC_SOFT_device_clock 1
-typedef int64_t ALCint64SOFT;
-typedef uint64_t ALCuint64SOFT;
-#define ALC_DEVICE_CLOCK_SOFT                    0x1600
-#define ALC_DEVICE_LATENCY_SOFT                  0x1601
-#define ALC_DEVICE_CLOCK_LATENCY_SOFT            0x1602
-#endif
-
-#ifndef AL_SOFT_buffer_samples2
-#define AL_SOFT_buffer_samples2 1
-/* Channel configurations */
-#define AL_MONO_SOFT                             0x1500
-#define AL_STEREO_SOFT                           0x1501
-#define AL_REAR_SOFT                             0x1502
-#define AL_QUAD_SOFT                             0x1503
-#define AL_5POINT1_SOFT                          0x1504
-#define AL_6POINT1_SOFT                          0x1505
-#define AL_7POINT1_SOFT                          0x1506
-#define AL_BFORMAT2D_SOFT                        0x1507
-#define AL_BFORMAT3D_SOFT                        0x1508
-
-/* Sample types */
-#define AL_BYTE_SOFT                             0x1400
-#define AL_UNSIGNED_BYTE_SOFT                    0x1401
-#define AL_SHORT_SOFT                            0x1402
-#define AL_UNSIGNED_SHORT_SOFT                   0x1403
-#define AL_INT_SOFT                              0x1404
-#define AL_UNSIGNED_INT_SOFT                     0x1405
-#define AL_FLOAT_SOFT                            0x1406
-#define AL_DOUBLE_SOFT                           0x1407
-#define AL_BYTE3_SOFT                            0x1408
-#define AL_UNSIGNED_BYTE3_SOFT                   0x1409
-#define AL_MULAW_SOFT                            0x140A
-
-/* Storage formats */
-#define AL_MONO8_SOFT                            0x1100
-#define AL_MONO16_SOFT                           0x1101
-#define AL_MONO32F_SOFT                          0x10010
-#define AL_STEREO8_SOFT                          0x1102
-#define AL_STEREO16_SOFT                         0x1103
-#define AL_STEREO32F_SOFT                        0x10011
-#define AL_QUAD8_SOFT                            0x1204
-#define AL_QUAD16_SOFT                           0x1205
-#define AL_QUAD32F_SOFT                          0x1206
-#define AL_REAR8_SOFT                            0x1207
-#define AL_REAR16_SOFT                           0x1208
-#define AL_REAR32F_SOFT                          0x1209
-#define AL_5POINT1_8_SOFT                        0x120A
-#define AL_5POINT1_16_SOFT                       0x120B
-#define AL_5POINT1_32F_SOFT                      0x120C
-#define AL_6POINT1_8_SOFT                        0x120D
-#define AL_6POINT1_16_SOFT                       0x120E
-#define AL_6POINT1_32F_SOFT                      0x120F
-#define AL_7POINT1_8_SOFT                        0x1210
-#define AL_7POINT1_16_SOFT                       0x1211
-#define AL_7POINT1_32F_SOFT                      0x1212
-#define AL_BFORMAT2D_8_SOFT                      0x20021
-#define AL_BFORMAT2D_16_SOFT                     0x20022
-#define AL_BFORMAT2D_32F_SOFT                    0x20023
-#define AL_BFORMAT3D_8_SOFT                      0x20031
-#define AL_BFORMAT3D_16_SOFT                     0x20032
-#define AL_BFORMAT3D_32F_SOFT                    0x20033
-
-/* Buffer attributes */
-#define AL_INTERNAL_FORMAT_SOFT                  0x2008
-#define AL_BYTE_LENGTH_SOFT                      0x2009
-#define AL_SAMPLE_LENGTH_SOFT                    0x200A
-#define AL_SEC_LENGTH_SOFT                       0x200B
-#endif
-
-
-#if defined(_WIN64)
-#define SZFMT "%I64u"
-#elif defined(_WIN32)
-#define SZFMT "%u"
-#else
-#define SZFMT "%zu"
-#endif
-
-
-#ifdef __GNUC__
-/* Because of a long-standing deficiency in C, you're not allowed to implicitly
- * cast a pointer-to-type-array to a pointer-to-const-type-array. For example,
- *
- * int (*ptr)[10];
- * const int (*cptr)[10] = ptr;
- *
- * is not allowed and most compilers will generate noisy warnings about
- * incompatible types, even though it just makes the array elements const.
- * Clang will allow it if you make the array type a typedef, like this:
- *
- * typedef int int10[10];
- * int10 *ptr;
- * const int10 *cptr = ptr;
- *
- * however GCC does not and still issues the incompatible type warning. The
- * "proper" way to fix it is to add an explicit cast for the constified type,
- * but that removes the vast majority of otherwise useful type-checking you'd
- * get, and runs the risk of improper casts if types are later changed. Leaving
- * it non-const can also be an issue if you use it as a function parameter, and
- * happen to have a const type as input (and also reduce the capabilities of
- * the compiler to better optimize the function).
- *
- * So to work around the problem, we use a macro. The macro first assigns the
- * incoming variable to the specified non-const type to ensure it's the correct
- * type, then casts the variable as the desired constified type. Very ugly, but
- * I'd rather not have hundreds of lines of warnings because I want to tell the
- * compiler that some array(s) can't be changed by the code, or have lots of
- * error-prone casts.
- */
-#define SAFE_CONST(T, var) __extension__({                                    \
-    T _tmp = (var);                                                           \
-    (const T)_tmp;                                                            \
-})
-#else
-/* Non-GNU-compatible compilers have to use a straight cast with no extra
- * checks, due to the lack of multi-statement expressions.
- */
-#define SAFE_CONST(T, var) ((const T)(var))
-#endif
-
-
-#ifdef __GNUC__
-/* This helps cast away the const-ness of a pointer without accidentally
- * changing the pointer type. This is necessary due to Clang's inability to use
- * atomic_load on a const _Atomic variable.
- */
-#define CONST_CAST(T, V) __extension__({                                      \
-    const T _tmp = (V);                                                       \
-    (T)_tmp;                                                                  \
-})
-#else
-#define CONST_CAST(T, V) ((T)(V))
-#endif
-
 
 typedef ALint64SOFT ALint64;
 typedef ALuint64SOFT ALuint64;
 
-#ifndef U64
-#if defined(_MSC_VER)
-#define U64(x) ((ALuint64)(x##ui64))
-#elif SIZEOF_LONG == 8
-#define U64(x) ((ALuint64)(x##ul))
-#elif SIZEOF_LONG_LONG == 8
-#define U64(x) ((ALuint64)(x##ull))
-#endif
-#endif
-
-#ifndef UINT64_MAX
-#define UINT64_MAX U64(18446744073709551615)
-#endif
-
 #ifndef UNUSED
-#if defined(__cplusplus)
-#define UNUSED(x)
-#elif defined(__GNUC__)
-#define UNUSED(x) UNUSED_##x __attribute__((unused))
-#elif defined(__LCLINT__)
-#define UNUSED(x) /*@unused@*/ x
-#else
 #define UNUSED(x) x
 #endif
-#endif
 
-#ifdef __GNUC__
-#define DECL_FORMAT(x, y, z) __attribute__((format(x, (y), (z))))
-#else
 #define DECL_FORMAT(x, y, z)
-#endif
 
 /* Calculates the size of a struct with N elements of a flexible array member.
  * GCC and Clang allow offsetof(Type, fam[N]) for this, but MSVC seems to have
@@ -223,51 +35,16 @@ typedef ALuint64SOFT ALuint64;
  */
 #define FAM_SIZE(T, M, N)  (offsetof(T, M) + sizeof(((T*)NULL)->M[0])*(N))
 
-#if defined(__GNUC__) && defined(__i386__)
-/* force_align_arg_pointer is required for proper function arguments aligning
- * when SSE code is used. Some systems (Windows, QNX) do not guarantee our
- * thread functions will be properly aligned on the stack, even though GCC may
- * generate code with the assumption that it is. */
-#define FORCE_ALIGN __attribute__((force_align_arg_pointer))
-#else
 #define FORCE_ALIGN
-#endif
 
-#ifdef HAVE_C99_VLA
-#define DECL_VLA(T, _name, _size)  T _name[(_size)]
-#else
 #define DECL_VLA(T, _name, _size)  T *_name = alloca((_size) * sizeof(T))
-#endif
-
-#ifndef PATH_MAX
-#ifdef MAX_PATH
-#define PATH_MAX MAX_PATH
-#else
-#define PATH_MAX 4096
-#endif
-#endif
-
-
-static const union {
-    ALuint u;
-    ALubyte b[sizeof(ALuint)];
-} EndianTest = { 1 };
-#define IS_LITTLE_ENDIAN (EndianTest.b[0] == 1)
 
 #define COUNTOF(x) (sizeof(x) / sizeof(0[x]))
 
 
 #define DERIVE_FROM_TYPE(t)          t t##_parent
 #define STATIC_CAST(to, obj)         (&(obj)->to##_parent)
-#ifdef __GNUC__
-#define STATIC_UPCAST(to, from, obj) __extension__({                          \
-    static_assert(__builtin_types_compatible_p(from, __typeof(*(obj))),       \
-                  "Invalid upcast object from type");                         \
-    (to*)((char*)(obj) - offsetof(to, from##_parent));                        \
-})
-#else
 #define STATIC_UPCAST(to, from, obj) ((to*)((char*)(obj) - offsetof(to, from##_parent)))
-#endif
 
 #define DECLARE_FORWARD(T1, T2, rettype, func)                                \
 rettype T1##_##func(T1 *obj)                                                  \
@@ -359,7 +136,6 @@ struct Compressor;
 
 
 #define DEFAULT_OUTPUT_RATE  (44100)
-#define MIN_OUTPUT_RATE      (8000)
 
 
 /* Find the next power-of-2 for non-power-of-2 numbers. */
@@ -406,16 +182,7 @@ inline ALuint64 ScaleCeil(ALuint64 val, ALuint64 new_scale, ALuint64 old_scale)
  * mode. */
 inline ALint fastf2i(ALfloat f)
 {
-#ifdef HAVE_LRINTF
     return lrintf(f);
-#elif defined(_MSC_VER) && defined(_M_IX86)
-    ALint i;
-    __asm fld f
-    __asm fistp i
-    return i;
-#else
-    return (ALint)f;
-#endif
 }
 
 
@@ -485,7 +252,6 @@ enum DevFmtChannels {
     DevFmtX51    = ALC_5POINT1_SOFT,
     DevFmtX61    = ALC_6POINT1_SOFT,
     DevFmtX71    = ALC_7POINT1_SOFT,
-    DevFmtAmbi3D = ALC_BFORMAT3D_SOFT,
 
     /* Similar to 5.1, except using rear channels instead of sides */
     DevFmtX51Rear = 0x80000000,
@@ -493,22 +259,6 @@ enum DevFmtChannels {
     DevFmtChannelsDefault = DevFmtMono
 };
 #define MAX_OUTPUT_CHANNELS  (16)
-
-
-enum AmbiLayout {
-    AmbiLayout_FuMa = ALC_FUMA_SOFT, /* FuMa channel order */
-    AmbiLayout_ACN = ALC_ACN_SOFT,   /* ACN channel order */
-
-    AmbiLayout_Default = AmbiLayout_ACN
-};
-
-enum AmbiNorm {
-    AmbiNorm_FuMa = ALC_FUMA_SOFT, /* FuMa normalization */
-    AmbiNorm_SN3D = ALC_SN3D_SOFT, /* SN3D normalization */
-    AmbiNorm_N3D = ALC_N3D_SOFT,   /* N3D normalization */
-
-    AmbiNorm_Default = AmbiNorm_SN3D
-};
 
 
 extern const struct EffectList {
@@ -643,10 +393,6 @@ struct ALCdevice_struct
 
 // Specifies if the device is currently running
 #define DEVICE_RUNNING                           (1u<<31)
-
-
-/* Nanosecond resolution for the device clock time. */
-#define DEVICE_CLOCK_RES  U64(1000000000)
 
 
 /* Must be less than 15 characters (16 including terminating null) for
