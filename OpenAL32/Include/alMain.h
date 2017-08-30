@@ -22,17 +22,11 @@ typedef ALint64SOFT ALint64;
 typedef ALuint64SOFT ALuint64;
 
 
-#define DECL_FORMAT(x, y, z)
-
 /* Calculates the size of a struct with N elements of a flexible array member.
  * GCC and Clang allow offsetof(Type, fam[N]) for this, but MSVC seems to have
  * trouble, so a bit more verbose workaround is needed.
  */
 #define FAM_SIZE(T, M, N)  (offsetof(T, M) + sizeof(((T*)NULL)->M[0])*(N))
-
-#define FORCE_ALIGN
-
-#define DECL_VLA(T, _name, _size)  T *_name = alloca((_size) * sizeof(T))
 
 #define COUNTOF(x) (sizeof(x) / sizeof(0[x]))
 
@@ -375,26 +369,6 @@ struct ALCdevice_struct
     struct ALeffectslot* effect_slot;
     struct ALeffect* effect;
 };
-
-// Frequency was requested by the app or config file
-#define DEVICE_FREQUENCY_REQUEST                 (1u<<1)
-// Channel configuration was requested by the config file
-#define DEVICE_CHANNELS_REQUEST                  (1u<<2)
-// Sample type was requested by the config file
-#define DEVICE_SAMPLE_TYPE_REQUEST               (1u<<3)
-
-// Specifies if the DSP is paused at user request
-#define DEVICE_PAUSED                            (1u<<30)
-
-// Specifies if the device is currently running
-#define DEVICE_RUNNING                           (1u<<31)
-
-
-/* Must be less than 15 characters (16 including terminating null) for
- * compatibility with pthread_setname_np limitations. */
-#define MIXER_THREAD_NAME "alsoft-mixer"
-
-#define RECORD_THREAD_NAME "alsoft-record"
 
 
 struct ALCcontext_struct {
