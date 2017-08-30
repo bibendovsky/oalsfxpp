@@ -24,8 +24,8 @@
 
 
 extern inline void ALfilterState_clear(ALfilterState *filter);
-extern inline void ALfilterState_copyParams(ALfilterState *restrict dst, const ALfilterState *restrict src);
-extern inline void ALfilterState_processPassthru(ALfilterState *filter, const ALfloat *restrict src, ALsizei numsamples);
+extern inline void ALfilterState_copyParams(ALfilterState *dst, const ALfilterState *src);
+extern inline void ALfilterState_processPassthru(ALfilterState *filter, const ALfloat *src, ALsizei numsamples);
 extern inline ALfloat calc_rcpQ_from_slope(ALfloat gain, ALfloat slope);
 extern inline ALfloat calc_rcpQ_from_bandwidth(ALfloat freq_mult, ALfloat bandwidth);
 

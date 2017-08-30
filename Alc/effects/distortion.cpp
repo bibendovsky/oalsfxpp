@@ -39,7 +39,7 @@ typedef struct ALdistortionState {
 static ALvoid ALdistortionState_Destruct(ALdistortionState *state);
 static ALboolean ALdistortionState_deviceUpdate(ALdistortionState *state, ALCdevice *device);
 static ALvoid ALdistortionState_update(ALdistortionState *state, const ALCdevice *Device, const ALeffectslot *Slot, const ALeffectProps *props);
-static ALvoid ALdistortionState_process(ALdistortionState *state, ALsizei SamplesToDo, const ALfloat (*restrict SamplesIn)[BUFFERSIZE], ALfloat (*restrict SamplesOut)[BUFFERSIZE], ALsizei NumChannels);
+static ALvoid ALdistortionState_process(ALdistortionState *state, ALsizei SamplesToDo, const ALfloat (*SamplesIn)[BUFFERSIZE], ALfloat (*SamplesOut)[BUFFERSIZE], ALsizei NumChannels);
 DECLARE_DEFAULT_ALLOCATORS(ALdistortionState)
 
 DEFINE_ALEFFECTSTATE_VTABLE(ALdistortionState);
@@ -99,7 +99,7 @@ static ALvoid ALdistortionState_update(ALdistortionState *state, const ALCdevice
     ComputeAmbientGains(Device->dry, 1.0F, state->Gain);
 }
 
-static ALvoid ALdistortionState_process(ALdistortionState *state, ALsizei SamplesToDo, const ALfloat (*restrict SamplesIn)[BUFFERSIZE], ALfloat (*restrict SamplesOut)[BUFFERSIZE], ALsizei NumChannels)
+static ALvoid ALdistortionState_process(ALdistortionState *state, ALsizei SamplesToDo, const ALfloat (*SamplesIn)[BUFFERSIZE], ALfloat (*SamplesOut)[BUFFERSIZE], ALsizei NumChannels)
 {
     const ALfloat fc = state->edge_coeff;
     ALsizei it, kt;

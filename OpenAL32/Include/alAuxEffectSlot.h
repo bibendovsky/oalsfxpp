@@ -29,7 +29,7 @@ struct ALeffectStateVtable {
 
     ALboolean (*const device_update)(ALeffectState *state, ALCdevice *device);
     void (*const update)(ALeffectState *state, const ALCdevice *device, const struct ALeffectslot *slot, const union ALeffectProps *props);
-    void (*const process)(ALeffectState *state, ALsizei samplesToDo, const ALfloat (*restrict samplesIn)[BUFFERSIZE], ALfloat (*restrict samplesOut)[BUFFERSIZE], ALsizei numChannels);
+    void (*const process)(ALeffectState *state, ALsizei samplesToDo, const ALfloat (*samplesIn)[BUFFERSIZE], ALfloat (*samplesOut)[BUFFERSIZE], ALsizei numChannels);
 
     void (*const delete1)(void *ptr);
 };

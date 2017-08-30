@@ -182,11 +182,11 @@ void DeinitVoice(ALvoice *voice);
 
 
 typedef void (*MixerFunc)(const ALfloat *data, ALsizei OutChans,
-                          ALfloat (*restrict OutBuffer)[BUFFERSIZE], ALfloat *CurrentGains,
+                          ALfloat (*OutBuffer)[BUFFERSIZE], ALfloat *CurrentGains,
                           const ALfloat *TargetGains, ALsizei Counter, ALsizei OutPos,
                           ALsizei BufferSize);
 typedef void (*RowMixerFunc)(ALfloat *OutBuffer, const ALfloat *gains,
-                             const ALfloat (*restrict data)[BUFFERSIZE], ALsizei InChans,
+                             const ALfloat (*data)[BUFFERSIZE], ALsizei InChans,
                              ALsizei InPos, ALsizei BufferSize);
 
 

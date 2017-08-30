@@ -52,7 +52,7 @@ typedef struct ALchorusState {
 static ALvoid ALchorusState_Destruct(ALchorusState *state);
 static ALboolean ALchorusState_deviceUpdate(ALchorusState *state, ALCdevice *Device);
 static ALvoid ALchorusState_update(ALchorusState *state, const ALCdevice *Device, const ALeffectslot *Slot, const ALeffectProps *props);
-static ALvoid ALchorusState_process(ALchorusState *state, ALsizei SamplesToDo, const ALfloat (*restrict SamplesIn)[BUFFERSIZE], ALfloat (*restrict SamplesOut)[BUFFERSIZE], ALsizei NumChannels);
+static ALvoid ALchorusState_process(ALchorusState *state, ALsizei SamplesToDo, const ALfloat (*SamplesIn)[BUFFERSIZE], ALfloat (*SamplesOut)[BUFFERSIZE], ALsizei NumChannels);
 DECLARE_DEFAULT_ALLOCATORS(ALchorusState)
 
 DEFINE_ALEFFECTSTATE_VTABLE(ALchorusState);
@@ -166,7 +166,7 @@ static ALvoid ALchorusState_update(ALchorusState *state, const ALCdevice *Device
     }
 }
 
-static void GetTriangleDelays(ALint *restrict delays, ALsizei offset, const ALsizei lfo_range,
+static void GetTriangleDelays(ALint *delays, ALsizei offset, const ALsizei lfo_range,
                               const ALfloat lfo_scale, const ALfloat depth, const ALsizei delay,
                               const ALsizei todo)
 {
@@ -178,7 +178,7 @@ static void GetTriangleDelays(ALint *restrict delays, ALsizei offset, const ALsi
     }
 }
 
-static void GetSinusoidDelays(ALint *restrict delays, ALsizei offset, const ALsizei lfo_range,
+static void GetSinusoidDelays(ALint *delays, ALsizei offset, const ALsizei lfo_range,
                               const ALfloat lfo_scale, const ALfloat depth, const ALsizei delay,
                               const ALsizei todo)
 {
@@ -191,10 +191,10 @@ static void GetSinusoidDelays(ALint *restrict delays, ALsizei offset, const ALsi
 }
 
 
-static ALvoid ALchorusState_process(ALchorusState *state, ALsizei SamplesToDo, const ALfloat (*restrict SamplesIn)[BUFFERSIZE], ALfloat (*restrict SamplesOut)[BUFFERSIZE], ALsizei NumChannels)
+static ALvoid ALchorusState_process(ALchorusState *state, ALsizei SamplesToDo, const ALfloat (*SamplesIn)[BUFFERSIZE], ALfloat (*SamplesOut)[BUFFERSIZE], ALsizei NumChannels)
 {
-    ALfloat *restrict leftbuf = state->SampleBuffer[0];
-    ALfloat *restrict rightbuf = state->SampleBuffer[1];
+    ALfloat *leftbuf = state->SampleBuffer[0];
+    ALfloat *rightbuf = state->SampleBuffer[1];
     const ALsizei bufmask = state->BufferLength-1;
     const ALfloat feedback = state->feedback;
     ALsizei offset = state->offset;

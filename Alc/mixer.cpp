@@ -31,7 +31,7 @@ static MixerFunc MixSamples = Mix_C;
 
 
 static const ALfloat *DoFilters(ALfilterState *lpfilter, ALfilterState *hpfilter,
-                                ALfloat *restrict dst, const ALfloat *restrict src,
+                                ALfloat *dst, const ALfloat *src,
                                 ALsizei numsamples, enum ActiveFilters type)
 {
     ALsizei i;

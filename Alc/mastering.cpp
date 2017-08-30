@@ -37,7 +37,7 @@ typedef struct Compressor {
  *   Maxed  - Absolute maximum of any channel.
  */
 static void SumChannels(Compressor *Comp, const ALsizei NumChans, const ALsizei SamplesToDo,
-                        ALfloat (*restrict OutBuffer)[BUFFERSIZE])
+                        ALfloat (*OutBuffer)[BUFFERSIZE])
 {
     ALsizei c, i;
 
@@ -55,7 +55,7 @@ static void SumChannels(Compressor *Comp, const ALsizei NumChans, const ALsizei 
 }
 
 static void MaxChannels(Compressor *Comp, const ALsizei NumChans, const ALsizei SamplesToDo,
-                        ALfloat (*restrict OutBuffer)[BUFFERSIZE])
+                        ALfloat (*OutBuffer)[BUFFERSIZE])
 {
     ALsizei c, i;
 
@@ -212,7 +212,7 @@ ALuint GetCompressorSampleRate(const Compressor *Comp)
 }
 
 void ApplyCompression(Compressor *Comp, const ALsizei NumChans, const ALsizei SamplesToDo,
-                      ALfloat (*restrict OutBuffer)[BUFFERSIZE])
+                      ALfloat (*OutBuffer)[BUFFERSIZE])
 {
     ALsizei c, i;
 

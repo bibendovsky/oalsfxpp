@@ -46,7 +46,7 @@ typedef struct ALechoState {
 static ALvoid ALechoState_Destruct(ALechoState *state);
 static ALboolean ALechoState_deviceUpdate(ALechoState *state, ALCdevice *Device);
 static ALvoid ALechoState_update(ALechoState *state, const ALCdevice *Device, const ALeffectslot *Slot, const ALeffectProps *props);
-static ALvoid ALechoState_process(ALechoState *state, ALsizei SamplesToDo, const ALfloat (*restrict SamplesIn)[BUFFERSIZE], ALfloat (*restrict SamplesOut)[BUFFERSIZE], ALsizei NumChannels);
+static ALvoid ALechoState_process(ALechoState *state, ALsizei SamplesToDo, const ALfloat (*SamplesIn)[BUFFERSIZE], ALfloat (*SamplesOut)[BUFFERSIZE], ALsizei NumChannels);
 DECLARE_DEFAULT_ALLOCATORS(ALechoState)
 
 DEFINE_ALEFFECTSTATE_VTABLE(ALechoState);
@@ -135,7 +135,7 @@ static ALvoid ALechoState_update(ALechoState *state, const ALCdevice *Device, co
     ComputePanningGains(Device->dry, coeffs, gain, state->Gain[1]);
 }
 
-static ALvoid ALechoState_process(ALechoState *state, ALsizei SamplesToDo, const ALfloat (*restrict SamplesIn)[BUFFERSIZE], ALfloat (*restrict SamplesOut)[BUFFERSIZE], ALsizei NumChannels)
+static ALvoid ALechoState_process(ALechoState *state, ALsizei SamplesToDo, const ALfloat (*SamplesIn)[BUFFERSIZE], ALfloat (*SamplesOut)[BUFFERSIZE], ALsizei NumChannels)
 {
     const ALsizei mask = state->BufferLength-1;
     const ALsizei tap1 = state->Tap[0].delay;

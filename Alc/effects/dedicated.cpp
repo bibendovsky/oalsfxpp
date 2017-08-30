@@ -33,7 +33,7 @@ typedef struct ALdedicatedState {
 static ALvoid ALdedicatedState_Destruct(ALdedicatedState *state);
 static ALboolean ALdedicatedState_deviceUpdate(ALdedicatedState *state, ALCdevice *device);
 static ALvoid ALdedicatedState_update(ALdedicatedState *state, const ALCdevice *device, const ALeffectslot *Slot, const ALeffectProps *props);
-static ALvoid ALdedicatedState_process(ALdedicatedState *state, ALsizei SamplesToDo, const ALfloat (*restrict SamplesIn)[BUFFERSIZE], ALfloat (*restrict SamplesOut)[BUFFERSIZE], ALsizei NumChannels);
+static ALvoid ALdedicatedState_process(ALdedicatedState *state, ALsizei SamplesToDo, const ALfloat (*SamplesIn)[BUFFERSIZE], ALfloat (*SamplesOut)[BUFFERSIZE], ALsizei NumChannels);
 DECLARE_DEFAULT_ALLOCATORS(ALdedicatedState)
 
 DEFINE_ALEFFECTSTATE_VTABLE(ALdedicatedState);
@@ -102,7 +102,7 @@ static ALvoid ALdedicatedState_update(ALdedicatedState *state, const ALCdevice *
     }
 }
 
-static ALvoid ALdedicatedState_process(ALdedicatedState *state, ALsizei SamplesToDo, const ALfloat (*restrict SamplesIn)[BUFFERSIZE], ALfloat (*restrict SamplesOut)[BUFFERSIZE], ALsizei NumChannels)
+static ALvoid ALdedicatedState_process(ALdedicatedState *state, ALsizei SamplesToDo, const ALfloat (*SamplesIn)[BUFFERSIZE], ALfloat (*SamplesOut)[BUFFERSIZE], ALsizei NumChannels)
 {
     ALsizei i, c;
 

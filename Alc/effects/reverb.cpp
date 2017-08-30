@@ -164,7 +164,7 @@ typedef struct ALreverbState {
 static ALvoid ALreverbState_Destruct(ALreverbState *State);
 static ALboolean ALreverbState_deviceUpdate(ALreverbState *State, ALCdevice *Device);
 static ALvoid ALreverbState_update(ALreverbState *State, const ALCdevice *Device, const ALeffectslot *Slot, const ALeffectProps *props);
-static ALvoid ALreverbState_process(ALreverbState *State, ALsizei SamplesToDo, const ALfloat (*restrict SamplesIn)[BUFFERSIZE], ALfloat (*restrict SamplesOut)[BUFFERSIZE], ALsizei NumChannels);
+static ALvoid ALreverbState_process(ALreverbState *State, ALsizei SamplesToDo, const ALfloat (*SamplesIn)[BUFFERSIZE], ALfloat (*SamplesOut)[BUFFERSIZE], ALsizei NumChannels);
 DECLARE_DEFAULT_ALLOCATORS(ALreverbState)
 
 DEFINE_ALEFFECTSTATE_VTABLE(ALreverbState);
@@ -1403,7 +1403,7 @@ static inline ALvoid DelayLineIn4Rev(DelayLineI *Delay, ALsizei offset, const AL
         Delay->Line[offset][i] = in[3-i];
 }
 
-static void CalcModulationDelays(ALreverbState *State, ALint *restrict delays, const ALsizei todo)
+static void CalcModulationDelays(ALreverbState *State, ALint *delays, const ALsizei todo)
 {
     ALfloat sinus, range;
     ALsizei index, i;
@@ -1471,7 +1471,7 @@ static void CalcModulationDelays(ALreverbState *State, ALint *restrict delays, c
  * Where D is a diagonal matrix (of x), and S is a triangular matrix (of y)
  * whose combination of signs are being iterated.
  */
-static inline void VectorPartialScatter(ALfloat *restrict vec, const ALfloat xCoeff, const ALfloat yCoeff)
+static inline void VectorPartialScatter(ALfloat *vec, const ALfloat xCoeff, const ALfloat yCoeff)
 {
     const ALfloat f[4] = { vec[0], vec[1], vec[2], vec[3] };
 
@@ -1492,7 +1492,7 @@ static inline void VectorPartialScatter(ALfloat *restrict vec, const ALfloat xCo
  * line processing and non-transitional processing.
  */
 #define DECL_TEMPLATE(T)                                                      \
-static void VectorAllpass_##T(ALfloat *restrict vec, const ALsizei offset,    \
+static void VectorAllpass_##T(ALfloat *vec, const ALsizei offset,    \
                               const ALfloat feedCoeff, const ALfloat xCoeff,  \
                               const ALfloat yCoeff, const ALfloat mu,         \
                               VecAllpass *Vap)                                \
@@ -1553,7 +1553,7 @@ static inline void VectorReverse(ALfloat vec[4])
 #define DECL_TEMPLATE(T)                                                      \
 static ALvoid EarlyReflection_##T(ALreverbState *State, const ALsizei todo,   \
                                   ALfloat fade,                               \
-                                  ALfloat (*restrict out)[MAX_UPDATE_SAMPLES])\
+                                  ALfloat (*out)[MAX_UPDATE_SAMPLES])\
 {                                                                             \
     ALsizei offset = State->Offset;                                           \
     const ALfloat apFeedCoeff = State->ApFeedCoeff;                           \
@@ -1637,7 +1637,7 @@ static inline ALfloat LateT60Filter(const ALsizei index, const ALfloat in, ALrev
 #define DECL_TEMPLATE(T)                                                      \
 static ALvoid LateReverb_##T(ALreverbState *State, const ALsizei todo,        \
                              ALfloat fade,                                    \
-                             ALfloat (*restrict out)[MAX_UPDATE_SAMPLES])     \
+                             ALfloat (*out)[MAX_UPDATE_SAMPLES])     \
 {                                                                             \
     const ALfloat apFeedCoeff = State->ApFeedCoeff;                           \
     const ALfloat mixX = State->MixX;                                         \
@@ -1690,16 +1690,16 @@ DECL_TEMPLATE(Faded)
 #undef DECL_TEMPLATE
 
 typedef ALfloat (*ProcMethodType)(ALreverbState *State, const ALsizei todo, ALfloat fade,
-    const ALfloat (*restrict input)[MAX_UPDATE_SAMPLES],
-    ALfloat (*restrict early)[MAX_UPDATE_SAMPLES], ALfloat (*restrict late)[MAX_UPDATE_SAMPLES]);
+    const ALfloat (*input)[MAX_UPDATE_SAMPLES],
+    ALfloat (*early)[MAX_UPDATE_SAMPLES], ALfloat (*late)[MAX_UPDATE_SAMPLES]);
 
 /* Perform the non-EAX reverb pass on a given input sample, resulting in
  * four-channel output.
  */
 static ALfloat VerbPass(ALreverbState *State, const ALsizei todo, ALfloat fade,
-                        const ALfloat (*restrict input)[MAX_UPDATE_SAMPLES],
-                        ALfloat (*restrict early)[MAX_UPDATE_SAMPLES],
-                        ALfloat (*restrict late)[MAX_UPDATE_SAMPLES])
+                        const ALfloat (*input)[MAX_UPDATE_SAMPLES],
+                        ALfloat (*early)[MAX_UPDATE_SAMPLES],
+                        ALfloat (*late)[MAX_UPDATE_SAMPLES])
 {
     ALsizei i, c;
 
@@ -1743,9 +1743,9 @@ static ALfloat VerbPass(ALreverbState *State, const ALsizei todo, ALfloat fade,
  * channel output.
  */
 static ALfloat EAXVerbPass(ALreverbState *State, const ALsizei todo, ALfloat fade,
-                           const ALfloat (*restrict input)[MAX_UPDATE_SAMPLES],
-                           ALfloat (*restrict early)[MAX_UPDATE_SAMPLES],
-                           ALfloat (*restrict late)[MAX_UPDATE_SAMPLES])
+                           const ALfloat (*input)[MAX_UPDATE_SAMPLES],
+                           ALfloat (*early)[MAX_UPDATE_SAMPLES],
+                           ALfloat (*late)[MAX_UPDATE_SAMPLES])
 {
     ALsizei i, c;
 
@@ -1786,12 +1786,12 @@ static ALfloat EAXVerbPass(ALreverbState *State, const ALsizei todo, ALfloat fad
     return fade;
 }
 
-static ALvoid ALreverbState_process(ALreverbState *State, ALsizei SamplesToDo, const ALfloat (*restrict SamplesIn)[BUFFERSIZE], ALfloat (*restrict SamplesOut)[BUFFERSIZE], ALsizei NumChannels)
+static ALvoid ALreverbState_process(ALreverbState *State, ALsizei SamplesToDo, const ALfloat (*SamplesIn)[BUFFERSIZE], ALfloat (*SamplesOut)[BUFFERSIZE], ALsizei NumChannels)
 {
     ProcMethodType ReverbProc = State->IsEax ? EAXVerbPass : VerbPass;
-    ALfloat (*restrict afmt)[MAX_UPDATE_SAMPLES] = State->AFormatSamples;
-    ALfloat (*restrict early)[MAX_UPDATE_SAMPLES] = State->EarlySamples;
-    ALfloat (*restrict late)[MAX_UPDATE_SAMPLES] = State->ReverbSamples;
+    ALfloat (*afmt)[MAX_UPDATE_SAMPLES] = State->AFormatSamples;
+    ALfloat (*early)[MAX_UPDATE_SAMPLES] = State->EarlySamples;
+    ALfloat (*late)[MAX_UPDATE_SAMPLES] = State->ReverbSamples;
     ALsizei fadeCount = State->FadeCount;
     ALfloat fade = (ALfloat)fadeCount / FADE_SAMPLES;
     ALsizei base, c;

@@ -474,7 +474,7 @@ struct Compressor *CompressorInit(const ALfloat PreGainDb, const ALfloat PostGai
 ALuint GetCompressorSampleRate(const struct Compressor *Comp);
 
 void ApplyCompression(struct Compressor *Comp, const ALsizei NumChans, const ALsizei SamplesToDo,
-                      ALfloat (*restrict OutBuffer)[BUFFERSIZE]);
+                      ALfloat (*OutBuffer)[BUFFERSIZE]);
 
 #ifdef __cplusplus
 }

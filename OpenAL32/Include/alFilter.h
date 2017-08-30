@@ -77,7 +77,7 @@ inline void ALfilterState_clear(ALfilterState *filter)
 
 void ALfilterState_setParams(ALfilterState *filter, ALfilterType type, ALfloat gain, ALfloat freq_mult, ALfloat rcpQ);
 
-inline void ALfilterState_copyParams(ALfilterState *restrict dst, const ALfilterState *restrict src)
+inline void ALfilterState_copyParams(ALfilterState *dst, const ALfilterState *src)
 {
     dst->b0 = src->b0;
     dst->b1 = src->b1;
@@ -86,9 +86,9 @@ inline void ALfilterState_copyParams(ALfilterState *restrict dst, const ALfilter
     dst->a2 = src->a2;
 }
 
-void ALfilterState_processC(ALfilterState *filter, ALfloat *restrict dst, const ALfloat *restrict src, ALsizei numsamples);
+void ALfilterState_processC(ALfilterState *filter, ALfloat *dst, const ALfloat *src, ALsizei numsamples);
 
-inline void ALfilterState_processPassthru(ALfilterState *filter, const ALfloat *restrict src, ALsizei numsamples)
+inline void ALfilterState_processPassthru(ALfilterState *filter, const ALfloat *src, ALsizei numsamples)
 {
     if(numsamples >= 2)
     {

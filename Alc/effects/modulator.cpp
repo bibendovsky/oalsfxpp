@@ -38,7 +38,7 @@ typedef struct ALmodulatorState {
 static ALvoid ALmodulatorState_Destruct(ALmodulatorState *state);
 static ALboolean ALmodulatorState_deviceUpdate(ALmodulatorState *state, ALCdevice *device);
 static ALvoid ALmodulatorState_update(ALmodulatorState *state, const ALCdevice *Device, const ALeffectslot *Slot, const ALeffectProps *props);
-static ALvoid ALmodulatorState_process(ALmodulatorState *state, ALsizei SamplesToDo, const ALfloat (*restrict SamplesIn)[BUFFERSIZE], ALfloat (*restrict SamplesOut)[BUFFERSIZE], ALsizei NumChannels);
+static ALvoid ALmodulatorState_process(ALmodulatorState *state, ALsizei SamplesToDo, const ALfloat (*SamplesIn)[BUFFERSIZE], ALfloat (*SamplesOut)[BUFFERSIZE], ALsizei NumChannels);
 DECLARE_DEFAULT_ALLOCATORS(ALmodulatorState)
 
 DEFINE_ALEFFECTSTATE_VTABLE(ALmodulatorState);
@@ -64,7 +64,7 @@ static inline ALfloat Square(ALsizei index)
 }
 
 #define DECL_TEMPLATE(func)                                                   \
-static void Modulate##func(ALfloat *restrict dst, const ALfloat *restrict src,\
+static void Modulate##func(ALfloat *dst, const ALfloat *src,\
                            ALsizei index, const ALsizei step, ALsizei todo)   \
 {                                                                             \
     ALsizei i;                                                                \
@@ -143,7 +143,7 @@ static ALvoid ALmodulatorState_update(ALmodulatorState *state, const ALCdevice *
                                1.0F, state->Gain[i]);
 }
 
-static ALvoid ALmodulatorState_process(ALmodulatorState *state, ALsizei SamplesToDo, const ALfloat (*restrict SamplesIn)[BUFFERSIZE], ALfloat (*restrict SamplesOut)[BUFFERSIZE], ALsizei NumChannels)
+static ALvoid ALmodulatorState_process(ALmodulatorState *state, ALsizei SamplesToDo, const ALfloat (*SamplesIn)[BUFFERSIZE], ALfloat (*SamplesOut)[BUFFERSIZE], ALsizei NumChannels)
 {
     const ALsizei step = state->step;
     ALsizei index = state->index;

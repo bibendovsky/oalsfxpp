@@ -354,18 +354,18 @@ static void UpdateContextSources(ALCcontext *ctx, const struct ALeffectslotArray
 }
 
 
-static void ApplyDistanceComp(ALfloatBUFFERSIZE *restrict Samples, DistanceComp *distcomp,
-                              ALfloat *restrict Values, ALsizei SamplesToDo, ALsizei numchans)
+static void ApplyDistanceComp(ALfloatBUFFERSIZE *Samples, DistanceComp *distcomp,
+                              ALfloat *Values, ALsizei SamplesToDo, ALsizei numchans)
 {
     ALsizei i, c;
 
     Values = ASSUME_ALIGNED(Values, 16);
     for(c = 0;c < numchans;c++)
     {
-        ALfloat *restrict inout = ASSUME_ALIGNED(Samples[c], 16);
+        ALfloat *inout = ASSUME_ALIGNED(Samples[c], 16);
         const ALfloat gain = distcomp[c].gain;
         const ALsizei base = distcomp[c].length;
-        ALfloat *restrict distbuf = ASSUME_ALIGNED(distcomp[c].buffer, 16);
+        ALfloat *distbuf = ASSUME_ALIGNED(distcomp[c].buffer, 16);
 
         if(base == 0)
         {
@@ -429,8 +429,8 @@ static void Write##A(const ALfloatBUFFERSIZE *InBuffer, ALvoid *OutBuffer,    \
     ALsizei i, j;                                                             \
     for(j = 0;j < numchans;j++)                                               \
     {                                                                         \
-        const ALfloat *restrict in = ASSUME_ALIGNED(InBuffer[j], 16);         \
-        T *restrict out = (T*)OutBuffer + Offset*numchans + j;                \
+        const ALfloat *in = ASSUME_ALIGNED(InBuffer[j], 16);         \
+        T *out = (T*)OutBuffer + Offset*numchans + j;                \
                                                                               \
         for(i = 0;i < SamplesToDo;i++)                                        \
             out[i*numchans] = Conv_##T(in[i]);                                \
