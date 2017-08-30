@@ -336,49 +336,6 @@ static void UpdateContextSources(ALCcontext *ctx, const struct ALeffectslotArray
 }
 
 
-static void ApplyDistanceComp(ALfloatBUFFERSIZE *Samples, DistanceComp *distcomp,
-                              ALfloat *Values, ALsizei SamplesToDo, ALsizei numchans)
-{
-    ALsizei i, c;
-
-    Values = ASSUME_ALIGNED(Values, 16);
-    for(c = 0;c < numchans;c++)
-    {
-        ALfloat *inout = ASSUME_ALIGNED(Samples[c], 16);
-        const ALfloat gain = distcomp[c].gain;
-        const ALsizei base = distcomp[c].length;
-        ALfloat *distbuf = ASSUME_ALIGNED(distcomp[c].buffer, 16);
-
-        if(base == 0)
-        {
-            if(gain < 1.0f)
-            {
-                for(i = 0;i < SamplesToDo;i++)
-                    inout[i] *= gain;
-            }
-            continue;
-        }
-
-        if(SamplesToDo >= base)
-        {
-            for(i = 0;i < base;i++)
-                Values[i] = distbuf[i];
-            for(;i < SamplesToDo;i++)
-                Values[i] = inout[i-base];
-            memcpy(distbuf, &inout[SamplesToDo-base], base*sizeof(ALfloat));
-        }
-        else
-        {
-            for(i = 0;i < SamplesToDo;i++)
-                Values[i] = distbuf[i];
-            memmove(distbuf, distbuf+SamplesToDo, (base-SamplesToDo)*sizeof(ALfloat));
-            memcpy(distbuf+base-SamplesToDo, inout, SamplesToDo*sizeof(ALfloat));
-        }
-        for(i = 0;i < SamplesToDo;i++)
-            inout[i] = Values[i]*gain;
-    }
-}
-
 static inline ALfloat Conv_ALfloat(ALfloat val)
 { return val; }
 static inline ALint Conv_ALint(ALfloat val)

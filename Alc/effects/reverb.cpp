@@ -19,6 +19,7 @@
  */
 
 
+#include <cstdint>
 #include "config.h"
 #include "alu.h"
 #include "mixer_defs.h"
@@ -1015,7 +1016,7 @@ static ALvoid UpdateModulator(const ALfloat modTime, const ALfloat modDepth,
      * range to keep the sinus consistent.
      */
     range = maxi(fastf2i(modTime*frequency), 1);
-    State->Mod.Index = (ALuint)(State->Mod.Index * (ALuint64)range /
+    State->Mod.Index = (ALuint)(State->Mod.Index * (uint64_t)range /
                                 State->Mod.Range);
     State->Mod.Range = range;
 

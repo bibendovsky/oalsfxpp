@@ -18,9 +18,6 @@
 #include "almalloc.h"
 
 
-typedef ALint64SOFT ALint64;
-typedef ALuint64SOFT ALuint64;
-
 
 /* Calculates the size of a struct with N elements of a flexible array member.
  * GCC and Clang allow offsetof(Type, fam[N]) for this, but MSVC seems to have
@@ -149,24 +146,6 @@ inline size_t RoundUp(size_t value, size_t r)
     return value - (value%r);
 }
 
-/* Scales the given value using 64-bit integer math, rounding the result. */
-inline ALuint64 ScaleRound(ALuint64 val, ALuint64 new_scale, ALuint64 old_scale)
-{
-    return (val*new_scale + old_scale/2) / old_scale;
-}
-
-/* Scales the given value using 64-bit integer math, flooring the result. */
-inline ALuint64 ScaleFloor(ALuint64 val, ALuint64 new_scale, ALuint64 old_scale)
-{
-    return val * new_scale / old_scale;
-}
-
-/* Scales the given value using 64-bit integer math, ceiling the result. */
-inline ALuint64 ScaleCeil(ALuint64 val, ALuint64 new_scale, ALuint64 old_scale)
-{
-    return (val*new_scale + old_scale-1) / old_scale;
-}
-
 /* Fast float-to-int conversion. Assumes the FPU is already in round-to-zero
  * mode. */
 inline ALint fastf2i(ALfloat f)
@@ -174,12 +153,6 @@ inline ALint fastf2i(ALfloat f)
     return lrintf(f);
 }
 
-
-enum DevProbe {
-    ALL_DEVICE_PROBE
-};
-
-struct ALCbackend;
 
 enum Channel {
     FrontLeft = 0,
@@ -250,34 +223,12 @@ enum DevFmtChannels {
 #define MAX_OUTPUT_CHANNELS  (16)
 
 
-extern const struct EffectList {
-    const char *name;
-    int type;
-    const char *ename;
-    ALenum val;
-} EffectList[];
-
-
 /* The maximum number of Ambisonics coefficients. For a given order (o), the
  * size needed will be (o+1)**2, thus zero-order has 1, first-order has 4,
  * second-order has 9, third-order has 16, and fourth-order has 25.
  */
 #define MAX_AMBI_ORDER  3
 #define MAX_AMBI_COEFFS ((MAX_AMBI_ORDER+1) * (MAX_AMBI_ORDER+1))
-
-/* A bitmask of ambisonic channels with height information. If none of these
- * channels are used/needed, there's no height (e.g. with most surround sound
- * speaker setups). This only specifies up to 4th order, which is the highest
- * order a 32-bit mask value can specify (a 64-bit mask could handle up to 7th
- * order). This is ACN ordering, with bit 0 being ACN 0, etc.
- */
-#define AMBI_PERIPHONIC_MASK (0xfe7ce4)
-
-/* The maximum number of Ambisonic coefficients for 2D (non-periphonic)
- * representation. This is 2 per each order above zero-order, plus 1 for zero-
- * order. Or simply, o*2 + 1.
- */
-#define MAX_AMBI2D_COEFFS (MAX_AMBI_ORDER*2 + 1)
 
 
 typedef ALfloat ChannelConfig[MAX_AMBI_COEFFS];
@@ -293,15 +244,6 @@ typedef union AmbiConfig {
     BFChannelConfig map[MAX_OUTPUT_CHANNELS];
 } AmbiConfig;
 
-
-/* Maximum delay in samples for speaker distance compensation. */
-#define MAX_DELAY_LENGTH 1024
-
-typedef struct DistanceComp {
-    ALfloat gain;
-    ALsizei length; /* Valid range is [0...MAX_DELAY_LENGTH). */
-    ALfloat *buffer;
-} DistanceComp;
 
 /* Size for temporary storage of buffer data, in ALfloats. Larger values need
  * more memory, while smaller values may need more iterations. The value needs
@@ -417,35 +359,7 @@ inline ALint GetChannelIndex(const enum Channel names[MAX_OUTPUT_CHANNELS], enum
  * Shouldn't be used directly.
  */
 typedef ALfloat ALfloatBUFFERSIZE[BUFFERSIZE];
-typedef ALfloat ALfloat2[2];
 
-
-/* The compressor requires the following information for proper
- * initialization:
- *
- *   PreGainDb      - Gain applied before detection (in dB).
- *   PostGainDb     - Gain applied after compression (in dB).
- *   SummedLink     - Whether to use summed (true) or maxed (false) linking.
- *   RmsSensing     - Whether to use RMS (true) or Peak (false) sensing.
- *   AttackTimeMin  - Minimum attack time (in seconds).
- *   AttackTimeMax  - Maximum attack time.  Automates when min != max.
- *   ReleaseTimeMin - Minimum release time (in seconds).
- *   ReleaseTimeMax - Maximum release time.  Automates when min != max.
- *   Ratio          - Compression ratio (x:1).  Set to 0 for true limiter.
- *   ThresholdDb    - Triggering threshold (in dB).
- *   KneeDb         - Knee width (below threshold; in dB).
- *   SampleRate     - Sample rate to process.
- */
-struct Compressor *CompressorInit(const ALfloat PreGainDb, const ALfloat PostGainDb,
-    const ALboolean SummedLink, const ALboolean RmsSensing, const ALfloat AttackTimeMin,
-    const ALfloat AttackTimeMax, const ALfloat ReleaseTimeMin, const ALfloat ReleaseTimeMax,
-    const ALfloat Ratio, const ALfloat ThresholdDb, const ALfloat KneeDb,
-    const ALuint SampleRate);
-
-ALuint GetCompressorSampleRate(const struct Compressor *Comp);
-
-void ApplyCompression(struct Compressor *Comp, const ALsizei NumChans, const ALsizei SamplesToDo,
-                      ALfloat (*OutBuffer)[BUFFERSIZE]);
 
 #ifdef __cplusplus
 }
