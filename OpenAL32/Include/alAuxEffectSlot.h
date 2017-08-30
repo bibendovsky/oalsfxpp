@@ -1,7 +1,7 @@
 #ifndef _AL_AUXEFFECTSLOT_H_
 #define _AL_AUXEFFECTSLOT_H_
 
-#include "alMain.h"
+
 #include "alEffect.h"
 
 #include "align.h"

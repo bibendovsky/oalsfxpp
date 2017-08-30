@@ -1,3 +1,4 @@
+#include <float.h>
 #include "config.h"
 #include "alu.h"
 

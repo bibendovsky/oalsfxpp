@@ -1,17 +1,10 @@
 #ifndef _ALU_H_
 #define _ALU_H_
 
-#include <limits.h>
-#include <math.h>
-
 #include "alMain.h"
 #include "alBuffer.h"
 #include "alFilter.h"
 #include "alAuxEffectSlot.h"
-
-#include "align.h"
-#include "math_defs.h"
-#include "bool.h"
 
 
 #ifdef __cplusplus

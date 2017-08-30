@@ -1,19 +1,14 @@
 #ifndef AL_MAIN_H
 #define AL_MAIN_H
 
-#include <string.h>
-#include <stdio.h>
-#include <stddef.h>
-#include <stdarg.h>
-#include <assert.h>
-#include <math.h>
-#include <limits.h>
+#include <cstring>
+#include <cassert>
+#include <cmath>
 
 #include "AL/al.h"
 #include "AL/alc.h"
 #include "AL/alext.h"
 
-#include "align.h"
 #include "almalloc.h"
 
 

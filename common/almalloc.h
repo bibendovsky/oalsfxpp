@@ -1,7 +1,7 @@
 #ifndef AL_MALLOC_H
 #define AL_MALLOC_H
 
-#include <stddef.h>
+#include <cstddef>
 
 #ifdef __cplusplus
 extern "C" {
