@@ -4,7 +4,6 @@
 
 #include "alEffect.h"
 
-#include "align.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -120,7 +119,7 @@ typedef struct ALeffectslot {
      * ambisonics signal and make a B-Format pan (ComputeFirstOrderGains) for
      * first-order device output (FOAOut).
      */
-    alignas(16) ALfloat wet_buffer[MAX_EFFECT_CHANNELS][BUFFERSIZE];
+    ALfloat wet_buffer[MAX_EFFECT_CHANNELS][BUFFERSIZE];
 } ALeffectslot;
 
 ALenum InitEffectSlot(ALeffectslot *slot);

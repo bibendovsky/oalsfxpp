@@ -17,7 +17,7 @@ struct ALeffectslot;
 
 
 typedef union aluMatrixf {
-    alignas(16) ALfloat m[4][4];
+    ALfloat m[4][4];
 } aluMatrixf;
 extern const aluMatrixf IdentityMatrixf;
 

@@ -157,9 +157,9 @@ typedef struct ALreverbState {
     ALsizei Offset;
 
     /* Temporary storage used when processing. */
-    alignas(16) ALfloat AFormatSamples[4][MAX_UPDATE_SAMPLES];
-    alignas(16) ALfloat ReverbSamples[4][MAX_UPDATE_SAMPLES];
-    alignas(16) ALfloat EarlySamples[4][MAX_UPDATE_SAMPLES];
+    ALfloat AFormatSamples[4][MAX_UPDATE_SAMPLES];
+    ALfloat ReverbSamples[4][MAX_UPDATE_SAMPLES];
+    ALfloat EarlySamples[4][MAX_UPDATE_SAMPLES];
 } ALreverbState;
 
 static ALvoid ALreverbState_Destruct(ALreverbState *State);

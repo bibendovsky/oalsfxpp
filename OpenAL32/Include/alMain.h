@@ -260,9 +260,9 @@ struct ALCdevice_struct
     ALsizei num_aux_sends;
 
     /* Temp storage used for each source when mixing. */
-    alignas(16) ALfloat source_data[BUFFERSIZE];
-    alignas(16) ALfloat resampled_data[BUFFERSIZE];
-    alignas(16) ALfloat filtered_data[BUFFERSIZE];
+    ALfloat source_data[BUFFERSIZE];
+    ALfloat resampled_data[BUFFERSIZE];
+    ALfloat filtered_data[BUFFERSIZE];
 
     /* The "dry" path corresponds to the main output. */
     struct Dry {
