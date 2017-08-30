@@ -131,7 +131,6 @@
     <ClCompile Include="Alc\effects\modulator.cpp" />
     <ClCompile Include="Alc\effects\null.cpp" />
     <ClCompile Include="Alc\effects\reverb.cpp" />
-    <ClCompile Include="Alc\mastering.cpp" />
     <ClCompile Include="Alc\mixer.cpp" />
     <ClCompile Include="Alc\mixer_c.cpp" />
     <ClCompile Include="Alc\panning.cpp" />
