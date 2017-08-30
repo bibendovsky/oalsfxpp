@@ -174,7 +174,7 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
     size = (device->dry.num_channels + device->foa_out.num_channels +
             device->real_out.num_channels)*sizeof(device->dry.buffer[0]);
 
-    device->dry.buffer = al_calloc(16, size);
+    device->dry.buffer = static_cast<ALfloat (*)[BUFFERSIZE]>(al_calloc(16, size));
     if(!device->dry.buffer)
     {
         return ALC_INVALID_DEVICE;
@@ -238,7 +238,7 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
                     source->send[s].slot = NULL;
                 }
                 al_free(source->send);
-                source->send = sends;
+                source->send = static_cast<ALsource::SourceSend*>(sends);
                 for(s = old_sends;s < device->num_aux_sends;s++)
                 {
                     source->send[s].slot = NULL;
@@ -339,7 +339,7 @@ static ALvoid InitContext(ALCcontext *Context)
 {
     struct ALeffectslotArray *auxslots;
 
-    auxslots = al_calloc(DEF_ALIGN, FAM_SIZE(struct ALeffectslotArray, slot, 1));
+    auxslots = static_cast<ALeffectslotArray*>(al_calloc(DEF_ALIGN, FAM_SIZE(struct ALeffectslotArray, slot, 1)));
     auxslots->count = 1;
     auxslots->slot[0] = Context->device->effect_slot;
 
@@ -489,7 +489,7 @@ void AllocateVoices(ALCcontext *context, ALsizei num_voices, ALsizei old_sends)
     sizeof_props = RoundUp(FAM_SIZE(struct ALvoiceProps, send, num_sends), 16);
     size = sizeof_voice + sizeof_props;
 
-    voice = al_calloc(16, RoundUp(size*1, 16));
+    voice = static_cast<ALvoice*>(al_calloc(16, RoundUp(size*1, 16)));
     /* The voice and property objects are stored interleaved since they're
      * paired together.
      */
@@ -533,9 +533,9 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
     }
 
     if(DefaultEffect.type != AL_EFFECT_NULL)
-        ALContext = al_calloc(16, sizeof(ALCcontext)+sizeof(ALeffectslot));
+        ALContext = static_cast<ALCcontext*>(al_calloc(16, sizeof(ALCcontext)+sizeof(ALeffectslot)));
     else
-        ALContext = al_calloc(16, sizeof(ALCcontext));
+        ALContext = static_cast<ALCcontext*>(al_calloc(16, sizeof(ALCcontext)));
     if(!ALContext)
     {
         ALCdevice_DecRef(device);
@@ -639,7 +639,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
         return NULL;
     }
 
-    device = al_calloc(16, sizeof(ALCdevice));
+    device = static_cast<ALCdevice*>(al_calloc(16, sizeof(ALCdevice)));
     if(!device)
     {
         return NULL;
@@ -666,14 +666,14 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
 
     if(device->auxiliary_effect_slot_max == 0) device->auxiliary_effect_slot_max = 64;
 
-    device->source = al_calloc(16, sizeof(ALsource));
+    device->source = static_cast<ALsource*>(al_calloc(16, sizeof(ALsource)));
     InitSourceParams(device->source, device->num_aux_sends);
 
-    device->effect_slot = al_calloc(16, sizeof(ALeffectslot));
+    device->effect_slot = static_cast<ALeffectslot*>(al_calloc(16, sizeof(ALeffectslot)));
     InitEffectSlot(device->effect_slot);
     aluInitEffectPanning(device->effect_slot);
 
-    device->effect = al_calloc(16, sizeof(ALeffect));
+    device->effect = static_cast<ALeffect*>(al_calloc(16, sizeof(ALeffect)));
     InitEffect(device->effect);
 
     DeviceList = device;

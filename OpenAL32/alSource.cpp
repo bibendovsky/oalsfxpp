@@ -268,7 +268,7 @@ void InitSourceParams(ALsource *Source, ALsizei num_sends)
     Source->direct.hf_reference = LOWPASSFREQREF;
     Source->direct.gain_lf = 1.0f;
     Source->direct.lf_reference = HIGHPASSFREQREF;
-    Source->send = al_calloc(16, num_sends*sizeof(Source->send[0]));
+    Source->send = static_cast<ALsource::SourceSend*>(al_calloc(16, num_sends*sizeof(Source->send[0])));
     for(i = 0;i < num_sends;i++)
     {
         Source->send[i].slot = NULL;

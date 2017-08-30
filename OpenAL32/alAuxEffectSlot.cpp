@@ -228,7 +228,7 @@ void UpdateEffectSlotProps(ALeffectslot *slot)
     /* Get an unused property container, or allocate a new one as needed. */
     props = slot->free_list;
     if(!props)
-        props = al_calloc(16, sizeof(*props));
+        props = static_cast<ALeffectslotProps*>(al_calloc(16, sizeof(*props)));
     else
     {
         struct ALeffectslotProps *next;

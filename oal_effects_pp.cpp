@@ -109,7 +109,7 @@ int main()
 
     if (is_succeed)
     {
-        src_buffer = malloc(data_size);
+        src_buffer = static_cast<char*>(malloc(data_size));
 
         if (src_buffer)
         {
@@ -135,7 +135,7 @@ int main()
 
     buffer_f32_samples = ((total_sample_count + (sample_count - 1)) / sample_count) * sample_count;
 
-    src_buffer_f32 = malloc(sizeof(float) * buffer_f32_samples);
+    src_buffer_f32 = static_cast<float*>(malloc(sizeof(float) * buffer_f32_samples));
 
     for (i = 0; i < total_sample_count; ++i)
     {
@@ -248,7 +248,7 @@ int main()
 
     if (is_succeed)
     {
-        dst_buffer = malloc(sizeof(float) * sample_count * channel_count);
+        dst_buffer = static_cast<float*>(malloc(sizeof(float) * sample_count * channel_count));
 
         if (!dst_buffer)
         {

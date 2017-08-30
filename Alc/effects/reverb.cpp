@@ -543,7 +543,7 @@ static ALboolean AllocLines(const ALuint frequency, ALreverbState *State)
     {
         ALfloat *newBuffer;
 
-        newBuffer = al_calloc(16, sizeof(ALfloat[4]) * totalSamples);
+        newBuffer = static_cast<ALfloat*>(al_calloc(16, sizeof(ALfloat[4]) * totalSamples));
         if(!newBuffer) return AL_FALSE;
 
         al_free(State->SampleBuffer);

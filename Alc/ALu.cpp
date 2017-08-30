@@ -238,8 +238,8 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
         ALfloat gainLF = maxf(DryGainLF, 0.001f);
 
         voice->direct.filter_type = AF_None;
-        if(gainHF != 1.0f) voice->direct.filter_type |= AF_LowPass;
-        if(gainLF != 1.0f) voice->direct.filter_type |= AF_HighPass;
+        if(gainHF != 1.0f) voice->direct.filter_type = static_cast<ActiveFilters>(voice->direct.filter_type | AF_LowPass);
+        if(gainLF != 1.0f) voice->direct.filter_type = static_cast<ActiveFilters>(voice->direct.filter_type | AF_HighPass);
         ALfilterState_setParams(
             &voice->direct.params[0].low_pass, ALfilterType_HighShelf,
             gainHF, hfScale, calc_rcpQ_from_slope(gainHF, 1.0f)
@@ -264,8 +264,8 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
         ALfloat gainLF = maxf(WetGainLF[i], 0.001f);
 
         voice->send[i].filter_type = AF_None;
-        if(gainHF != 1.0f) voice->send[i].filter_type |= AF_LowPass;
-        if(gainLF != 1.0f) voice->send[i].filter_type |= AF_HighPass;
+        if(gainHF != 1.0f) voice->send[i].filter_type = static_cast<ActiveFilters>(voice->send[i].filter_type | AF_LowPass);
+        if(gainLF != 1.0f) voice->send[i].filter_type = static_cast<ActiveFilters>(voice->send[i].filter_type | AF_HighPass);
         ALfilterState_setParams(
             &voice->send[i].params[0].low_pass, ALfilterType_HighShelf,
             gainHF, hfScale, calc_rcpQ_from_slope(gainHF, 1.0f)

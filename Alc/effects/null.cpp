@@ -128,5 +128,3 @@ void ALnull_getParamf(const ALeffect* UNUSED(effect), ALCcontext *context, ALenu
 void ALnull_getParamfv(const ALeffect* UNUSED(effect), ALCcontext *context, ALenum param, ALfloat* UNUSED(vals))
 {
 }
-
-DEFINE_ALEFFECT_VTABLE(ALnull);

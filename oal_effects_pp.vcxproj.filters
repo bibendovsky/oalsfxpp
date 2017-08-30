@@ -15,70 +15,70 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Alc\effects\chorus.c">
+    <ClCompile Include="OpenAL32\alAuxEffectSlot.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Alc\effects\compressor.c">
+    <ClCompile Include="Alc\ALc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Alc\effects\dedicated.c">
+    <ClCompile Include="OpenAL32\alEffect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Alc\effects\distortion.c">
+    <ClCompile Include="OpenAL32\alFilter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Alc\effects\echo.c">
+    <ClCompile Include="common\almalloc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Alc\effects\equalizer.c">
+    <ClCompile Include="OpenAL32\alSource.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Alc\effects\flanger.c">
+    <ClCompile Include="Alc\ALu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Alc\effects\modulator.c">
+    <ClCompile Include="Alc\effects\chorus.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Alc\effects\null.c">
+    <ClCompile Include="Alc\effects\compressor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Alc\effects\reverb.c">
+    <ClCompile Include="Alc\effects\dedicated.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Alc\ALc.c">
+    <ClCompile Include="Alc\effects\distortion.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Alc\ALu.c">
+    <ClCompile Include="Alc\effects\echo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Alc\mastering.c">
+    <ClCompile Include="Alc\effects\equalizer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Alc\mixer.c">
+    <ClCompile Include="Alc\effects\flanger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Alc\mixer_c.c">
+    <ClCompile Include="Alc\mastering.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Alc\panning.c">
+    <ClCompile Include="Alc\mixer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="common\almalloc.c">
+    <ClCompile Include="Alc\mixer_c.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OpenAL32\alAuxEffectSlot.c">
+    <ClCompile Include="Alc\effects\modulator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OpenAL32\alEffect.c">
+    <ClCompile Include="Alc\effects\null.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OpenAL32\alFilter.c">
+    <ClCompile Include="Alc\panning.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OpenAL32\alSource.c">
+    <ClCompile Include="Alc\effects\reverb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="oal_effects_pp.c">
+    <ClCompile Include="oal_effects_pp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

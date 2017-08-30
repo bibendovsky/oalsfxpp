@@ -119,28 +119,28 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Alc\ALc.c" />
-    <ClCompile Include="Alc\ALu.c" />
-    <ClCompile Include="Alc\effects\chorus.c" />
-    <ClCompile Include="Alc\effects\compressor.c" />
-    <ClCompile Include="Alc\effects\dedicated.c" />
-    <ClCompile Include="Alc\effects\distortion.c" />
-    <ClCompile Include="Alc\effects\echo.c" />
-    <ClCompile Include="Alc\effects\equalizer.c" />
-    <ClCompile Include="Alc\effects\flanger.c" />
-    <ClCompile Include="Alc\effects\modulator.c" />
-    <ClCompile Include="Alc\effects\null.c" />
-    <ClCompile Include="Alc\effects\reverb.c" />
-    <ClCompile Include="Alc\mastering.c" />
-    <ClCompile Include="Alc\mixer.c" />
-    <ClCompile Include="Alc\mixer_c.c" />
-    <ClCompile Include="Alc\panning.c" />
-    <ClCompile Include="common\almalloc.c" />
-    <ClCompile Include="oal_effects_pp.c" />
-    <ClCompile Include="OpenAL32\alAuxEffectSlot.c" />
-    <ClCompile Include="OpenAL32\alEffect.c" />
-    <ClCompile Include="OpenAL32\alFilter.c" />
-    <ClCompile Include="OpenAL32\alSource.c" />
+    <ClCompile Include="Alc\ALc.cpp" />
+    <ClCompile Include="Alc\ALu.cpp" />
+    <ClCompile Include="Alc\effects\chorus.cpp" />
+    <ClCompile Include="Alc\effects\compressor.cpp" />
+    <ClCompile Include="Alc\effects\dedicated.cpp" />
+    <ClCompile Include="Alc\effects\distortion.cpp" />
+    <ClCompile Include="Alc\effects\echo.cpp" />
+    <ClCompile Include="Alc\effects\equalizer.cpp" />
+    <ClCompile Include="Alc\effects\flanger.cpp" />
+    <ClCompile Include="Alc\effects\modulator.cpp" />
+    <ClCompile Include="Alc\effects\null.cpp" />
+    <ClCompile Include="Alc\effects\reverb.cpp" />
+    <ClCompile Include="Alc\mastering.cpp" />
+    <ClCompile Include="Alc\mixer.cpp" />
+    <ClCompile Include="Alc\mixer_c.cpp" />
+    <ClCompile Include="Alc\panning.cpp" />
+    <ClCompile Include="common\almalloc.cpp" />
+    <ClCompile Include="oal_effects_pp.cpp" />
+    <ClCompile Include="OpenAL32\alAuxEffectSlot.cpp" />
+    <ClCompile Include="OpenAL32\alEffect.cpp" />
+    <ClCompile Include="OpenAL32\alFilter.cpp" />
+    <ClCompile Include="OpenAL32\alSource.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Alc\mixer_defs.h" />

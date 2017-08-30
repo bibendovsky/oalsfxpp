@@ -178,7 +178,7 @@ Compressor *CompressorInit(const ALfloat PreGainDb, const ALfloat PostGainDb,
     size = sizeof(*Comp);
     if(RmsSensing)
         size += sizeof(Comp->RmsWindow[0]) * RMS_WINDOW_SIZE;
-    Comp = al_calloc(16, size);
+    Comp = static_cast<Compressor*>(al_calloc(16, size));
 
     Comp->PreGain = powf(10.0f, PreGainDb / 20.0f);
     Comp->PostGain = powf(10.0f, PostGainDb / 20.0f);

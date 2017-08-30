@@ -90,7 +90,7 @@ static ALboolean ALechoState_deviceUpdate(ALechoState *state, ALCdevice *Device)
         if(!temp) return AL_FALSE;
 
         al_free(state->SampleBuffer);
-        state->SampleBuffer = temp;
+        state->SampleBuffer = static_cast<ALfloat*>(temp);
         state->BufferLength = maxlen;
     }
     for(i = 0;i < state->BufferLength;i++)
