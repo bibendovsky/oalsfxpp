@@ -74,9 +74,6 @@ extern inline ALuint64 maxu64(ALuint64 a, ALuint64 b);
 extern inline ALuint64 clampu64(ALuint64 val, ALuint64 min, ALuint64 max);
 
 extern inline ALfloat lerp(ALfloat val1, ALfloat val2, ALfloat mu);
-extern inline ALfloat resample_fir4(ALfloat val0, ALfloat val1, ALfloat val2, ALfloat val3, ALsizei frac);
-
-extern inline void aluVectorSet(aluVector *restrict vector, ALfloat x, ALfloat y, ALfloat z, ALfloat w);
 
 extern inline void aluMatrixfSetRow(aluMatrixf *matrix, ALuint row,
                                     ALfloat m0, ALfloat m1, ALfloat m2, ALfloat m3);
@@ -97,51 +94,6 @@ const aluMatrixf IdentityMatrixf = {{
 void DeinitVoice(ALvoice *voice)
 {
 }
-
-static inline void aluCrossproduct(const ALfloat *inVector1, const ALfloat *inVector2, ALfloat *outVector)
-{
-    outVector[0] = inVector1[1]*inVector2[2] - inVector1[2]*inVector2[1];
-    outVector[1] = inVector1[2]*inVector2[0] - inVector1[0]*inVector2[2];
-    outVector[2] = inVector1[0]*inVector2[1] - inVector1[1]*inVector2[0];
-}
-
-static inline ALfloat aluDotproduct(const aluVector *vec1, const aluVector *vec2)
-{
-    return vec1->v[0]*vec2->v[0] + vec1->v[1]*vec2->v[1] + vec1->v[2]*vec2->v[2];
-}
-
-static ALfloat aluNormalize(ALfloat *vec)
-{
-    ALfloat length = sqrtf(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
-    if(length > 0.0f)
-    {
-        ALfloat inv_length = 1.0f/length;
-        vec[0] *= inv_length;
-        vec[1] *= inv_length;
-        vec[2] *= inv_length;
-    }
-    return length;
-}
-
-static void aluMatrixfFloat3(ALfloat *vec, ALfloat w, const aluMatrixf *mtx)
-{
-    ALfloat v[4] = { vec[0], vec[1], vec[2], w };
-
-    vec[0] = v[0]*mtx->m[0][0] + v[1]*mtx->m[1][0] + v[2]*mtx->m[2][0] + v[3]*mtx->m[3][0];
-    vec[1] = v[0]*mtx->m[0][1] + v[1]*mtx->m[1][1] + v[2]*mtx->m[2][1] + v[3]*mtx->m[3][1];
-    vec[2] = v[0]*mtx->m[0][2] + v[1]*mtx->m[1][2] + v[2]*mtx->m[2][2] + v[3]*mtx->m[3][2];
-}
-
-static aluVector aluMatrixfVector(const aluMatrixf *mtx, const aluVector *vec)
-{
-    aluVector v;
-    v.v[0] = vec->v[0]*mtx->m[0][0] + vec->v[1]*mtx->m[1][0] + vec->v[2]*mtx->m[2][0] + vec->v[3]*mtx->m[3][0];
-    v.v[1] = vec->v[0]*mtx->m[0][1] + vec->v[1]*mtx->m[1][1] + vec->v[2]*mtx->m[2][1] + vec->v[3]*mtx->m[3][1];
-    v.v[2] = vec->v[0]*mtx->m[0][2] + vec->v[1]*mtx->m[1][2] + vec->v[2]*mtx->m[2][2] + vec->v[3]*mtx->m[3][2];
-    v.v[3] = vec->v[0]*mtx->m[0][3] + vec->v[1]*mtx->m[1][3] + vec->v[2]*mtx->m[2][3] + vec->v[3]*mtx->m[3][3];
-    return v;
-}
-
 
 static ALboolean CalcEffectSlotParams(ALeffectslot *slot, ALCdevice *device)
 {

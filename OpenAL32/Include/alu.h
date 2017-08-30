@@ -65,31 +65,6 @@ typedef struct BsincState {
     } coeffs[BSINC_PHASE_COUNT];
 } BsincState;
 
-typedef union InterpState {
-    BsincState bsinc;
-} InterpState;
-
-ALboolean BsincPrepare(const ALuint increment, BsincState *state);
-
-typedef const ALfloat* (*ResamplerFunc)(const InterpState *state,
-    const ALfloat *restrict src, ALsizei frac, ALint increment,
-    ALfloat *restrict dst, ALsizei dstlen
-);
-
-
-typedef union aluVector {
-    alignas(16) ALfloat v[4];
-} aluVector;
-
-inline void aluVectorSet(aluVector *vector, ALfloat x, ALfloat y, ALfloat z, ALfloat w)
-{
-    vector->v[0] = x;
-    vector->v[1] = y;
-    vector->v[2] = z;
-    vector->v[3] = w;
-}
-
-
 typedef union aluMatrixf {
     alignas(16) ALfloat m[4][4];
 } aluMatrixf;
@@ -273,9 +248,6 @@ inline ALuint64 clampu64(ALuint64 val, ALuint64 min, ALuint64 max)
 { return minu64(max, maxu64(min, val)); }
 
 
-extern alignas(16) const ALfloat bsincTab[18840];
-
-
 inline ALfloat lerp(ALfloat val1, ALfloat val2, ALfloat mu)
 {
     return val1 + (val2-val1)*mu;
@@ -316,16 +288,6 @@ inline void CalcAngleCoeffs(ALfloat azimuth, ALfloat elevation, ALfloat spread, 
     };
     CalcDirectionCoeffs(dir, spread, coeffs);
 }
-
-/**
- * CalcAnglePairwiseCoeffs
- *
- * Calculates ambisonic coefficients based on azimuth and elevation. The
- * azimuth and elevation parameters are in radians, going right and up
- * respectively. This pairwise variant warps the result such that +30 azimuth
- * is full right, and -30 azimuth is full left.
- */
-void CalcAnglePairwiseCoeffs(ALfloat azimuth, ALfloat elevation, ALfloat spread, ALfloat coeffs[MAX_AMBI_COEFFS]);
 
 /**
  * ComputeAmbientGains
