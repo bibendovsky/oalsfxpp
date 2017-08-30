@@ -143,7 +143,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Alc\mixer_defs.h" />
-    <ClInclude Include="common\align.h" />
     <ClInclude Include="common\almalloc.h" />
     <ClInclude Include="common\bool.h" />
     <ClInclude Include="common\math_defs.h" />
