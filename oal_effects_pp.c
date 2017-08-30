@@ -226,7 +226,7 @@ int main()
 
     if (is_succeed)
     {
-        oal_device->source->Send[0].Slot = oal_device->effect_slot;
+        oal_device->source->send[0].slot = oal_device->effect_slot;
         UpdateSourceProps(oal_device->source, oal_context->voice, 1);
     }
 

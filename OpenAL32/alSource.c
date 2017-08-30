@@ -274,20 +274,20 @@ void InitSourceParams(ALsource *Source, ALsizei num_sends)
 {
     ALsizei i;
 
-    Source->Direct.Gain = 1.0f;
-    Source->Direct.GainHF = 1.0f;
-    Source->Direct.HFReference = LOWPASSFREQREF;
-    Source->Direct.GainLF = 1.0f;
-    Source->Direct.LFReference = HIGHPASSFREQREF;
-    Source->Send = al_calloc(16, num_sends*sizeof(Source->Send[0]));
+    Source->direct.gain = 1.0f;
+    Source->direct.gain_hf = 1.0f;
+    Source->direct.hf_reference = LOWPASSFREQREF;
+    Source->direct.gain_lf = 1.0f;
+    Source->direct.lf_reference = HIGHPASSFREQREF;
+    Source->send = al_calloc(16, num_sends*sizeof(Source->send[0]));
     for(i = 0;i < num_sends;i++)
     {
-        Source->Send[i].Slot = NULL;
-        Source->Send[i].Gain = 1.0f;
-        Source->Send[i].GainHF = 1.0f;
-        Source->Send[i].HFReference = LOWPASSFREQREF;
-        Source->Send[i].GainLF = 1.0f;
-        Source->Send[i].LFReference = HIGHPASSFREQREF;
+        Source->send[i].slot = NULL;
+        Source->send[i].gain = 1.0f;
+        Source->send[i].gain_hf = 1.0f;
+        Source->send[i].hf_reference = LOWPASSFREQREF;
+        Source->send[i].gain_lf = 1.0f;
+        Source->send[i].lf_reference = HIGHPASSFREQREF;
     }
 
     Source->state = AL_INITIAL;
@@ -297,16 +297,16 @@ void DeinitSource(ALsource *source, ALsizei num_sends)
 {
     ALsizei i;
 
-    if(source->Send)
+    if(source->send)
     {
         for(i = 0;i < num_sends;i++)
         {
-            if(source->Send[i].Slot)
-                source->Send[i].Slot->ref -= 1;
-            source->Send[i].Slot = NULL;
+            if(source->send[i].slot)
+                source->send[i].slot->ref -= 1;
+            source->send[i].slot = NULL;
         }
-        al_free(source->Send);
-        source->Send = NULL;
+        al_free(source->send);
+        source->send = NULL;
     }
 }
 
@@ -319,20 +319,20 @@ void UpdateSourceProps(ALsource *source, ALvoice *voice, ALsizei num_sends)
     props = voice->Props;
 
     /* Copy in current property values. */
-    props->Direct.Gain = source->Direct.Gain;
-    props->Direct.GainHF = source->Direct.GainHF;
-    props->Direct.HFReference = source->Direct.HFReference;
-    props->Direct.GainLF = source->Direct.GainLF;
-    props->Direct.LFReference = source->Direct.LFReference;
+    props->Direct.Gain = source->direct.gain;
+    props->Direct.GainHF = source->direct.gain_hf;
+    props->Direct.HFReference = source->direct.hf_reference;
+    props->Direct.GainLF = source->direct.gain_lf;
+    props->Direct.LFReference = source->direct.lf_reference;
 
     for(i = 0;i < num_sends;i++)
     {
-        props->Send[i].Slot = source->Send[i].Slot;
-        props->Send[i].Gain = source->Send[i].Gain;
-        props->Send[i].GainHF = source->Send[i].GainHF;
-        props->Send[i].HFReference = source->Send[i].HFReference;
-        props->Send[i].GainLF = source->Send[i].GainLF;
-        props->Send[i].LFReference = source->Send[i].LFReference;
+        props->Send[i].Slot = source->send[i].slot;
+        props->Send[i].Gain = source->send[i].gain;
+        props->Send[i].GainHF = source->send[i].gain_hf;
+        props->Send[i].HFReference = source->send[i].hf_reference;
+        props->Send[i].GainLF = source->send[i].gain_lf;
+        props->Send[i].LFReference = source->send[i].lf_reference;
     }
 }
 

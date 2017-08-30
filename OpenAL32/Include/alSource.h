@@ -18,21 +18,21 @@ struct ALsource;
 
 typedef struct ALsource {
     /** Direct filter and auxiliary send info. */
-    struct {
-        ALfloat Gain;
-        ALfloat GainHF;
-        ALfloat HFReference;
-        ALfloat GainLF;
-        ALfloat LFReference;
-    } Direct;
-    struct {
-        struct ALeffectslot *Slot;
-        ALfloat Gain;
-        ALfloat GainHF;
-        ALfloat HFReference;
-        ALfloat GainLF;
-        ALfloat LFReference;
-    } *Send;
+    struct Direct {
+        ALfloat gain;
+        ALfloat gain_hf;
+        ALfloat hf_reference;
+        ALfloat gain_lf;
+        ALfloat lf_reference;
+    } direct;
+    struct Send {
+        struct ALeffectslot *slot;
+        ALfloat gain;
+        ALfloat gain_hf;
+        ALfloat hf_reference;
+        ALfloat gain_lf;
+        ALfloat lf_reference;
+    } *send;
 
     /** Source state (initial, playing, paused, or stopped) */
     ALenum state;

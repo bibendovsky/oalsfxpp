@@ -243,28 +243,28 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
 
             if(old_sends != device->num_aux_sends)
             {
-                ALvoid *sends = al_calloc(16, device->num_aux_sends*sizeof(source->Send[0]));
+                ALvoid *sends = al_calloc(16, device->num_aux_sends*sizeof(source->send[0]));
                 ALsizei s;
 
-                memcpy(sends, source->Send,
-                    mini(device->num_aux_sends, old_sends)*sizeof(source->Send[0])
+                memcpy(sends, source->send,
+                    mini(device->num_aux_sends, old_sends)*sizeof(source->send[0])
                 );
                 for(s = device->num_aux_sends;s < old_sends;s++)
                 {
-                    if(source->Send[s].Slot)
-                        source->Send[s].Slot->ref -= 1;
-                    source->Send[s].Slot = NULL;
+                    if(source->send[s].slot)
+                        source->send[s].slot->ref -= 1;
+                    source->send[s].slot = NULL;
                 }
-                al_free(source->Send);
-                source->Send = sends;
+                al_free(source->send);
+                source->send = sends;
                 for(s = old_sends;s < device->num_aux_sends;s++)
                 {
-                    source->Send[s].Slot = NULL;
-                    source->Send[s].Gain = 1.0f;
-                    source->Send[s].GainHF = 1.0f;
-                    source->Send[s].HFReference = LOWPASSFREQREF;
-                    source->Send[s].GainLF = 1.0f;
-                    source->Send[s].LFReference = HIGHPASSFREQREF;
+                    source->send[s].slot = NULL;
+                    source->send[s].gain = 1.0f;
+                    source->send[s].gain_hf = 1.0f;
+                    source->send[s].hf_reference = LOWPASSFREQREF;
+                    source->send[s].gain_lf = 1.0f;
+                    source->send[s].lf_reference = HIGHPASSFREQREF;
                 }
             }
         }
