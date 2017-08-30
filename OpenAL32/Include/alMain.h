@@ -108,10 +108,6 @@ static void T##_Delete(void *ptr) { al_free(ptr); }
         T##_Construct(_res EXTRACT_NEW_ARGS
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Compressor;
 
 
@@ -354,9 +350,5 @@ inline ALint GetChannelIndex(const enum Channel names[MAX_OUTPUT_CHANNELS], enum
  */
 typedef ALfloat ALfloatBUFFERSIZE[BUFFERSIZE];
 
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

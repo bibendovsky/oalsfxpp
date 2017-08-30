@@ -6,10 +6,6 @@
 #define MAX_SENDS      1
 #define DEFAULT_SENDS  1
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 
 struct ALsource;
 
@@ -39,9 +35,5 @@ typedef struct ALsource {
 
 void UpdateAllSourceProps(ALCcontext *context);
 
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

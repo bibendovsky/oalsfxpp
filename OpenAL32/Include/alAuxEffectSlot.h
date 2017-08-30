@@ -5,10 +5,6 @@
 #include "alEffect.h"
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ALeffectStateVtable;
 struct ALeffectslot;
 
@@ -142,9 +138,5 @@ ALeffectStateFactory *ALdedicatedStateFactory_getFactory(void);
 
 ALenum InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *effect);
 
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

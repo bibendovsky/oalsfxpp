@@ -3,9 +3,6 @@
 
 #include "alMain.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* User formats */
 enum UserFmtType {
@@ -34,9 +31,5 @@ enum FmtChannels {
 
 #define MAX_INPUT_CHANNELS  (8)
 
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

@@ -3,9 +3,6 @@
 
 #include "alMain.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 struct ALeffect;
 
@@ -113,9 +110,5 @@ typedef struct ALeffect {
 
 ALenum InitEffect(ALeffect *effect);
 
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

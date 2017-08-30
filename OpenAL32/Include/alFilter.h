@@ -5,9 +5,6 @@
 
 #include "math_defs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #define LOWPASSFREQREF  (5000.0f)
 #define HIGHPASSFREQREF  (250.0f)
@@ -106,9 +103,5 @@ inline void ALfilterState_processPassthru(ALfilterState *filter, const ALfloat *
     }
 }
 
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

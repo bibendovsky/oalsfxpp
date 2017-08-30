@@ -7,10 +7,6 @@
 #include "alAuxEffectSlot.h"
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ALsource;
 struct ALvoice;
 struct ALeffectslot;
@@ -263,9 +259,5 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const 
 /* Caller must lock the device. */
 void aluHandleDisconnect(ALCdevice *device);
 
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif
