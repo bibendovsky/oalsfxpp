@@ -89,7 +89,7 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
     ALsizei send;
 
     /* Get source info */
-    NumChannels = voice->NumChannels;
+    NumChannels = voice->num_channels;
 
     for (chan = 0; chan < NumChannels; ++chan)
     {
@@ -103,53 +103,53 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
         /* Now resample, then filter and mix to the appropriate outputs. */
         memcpy(Device->resampled_data, Device->source_data, SamplesToDo*sizeof(ALfloat));
 
-        parms = &voice->Direct.Params[chan];
+        parms = &voice->direct.params[chan];
 
         samples = DoFilters(
-            &parms->LowPass,
-            &parms->HighPass,
+            &parms->low_pass,
+            &parms->high_pass,
             Device->filtered_data,
             Device->resampled_data,
             SamplesToDo,
-            voice->Direct.FilterType);
+            voice->direct.filter_type);
 
-        memcpy(parms->Gains.Current, parms->Gains.Target, sizeof(parms->Gains.Current));
+        memcpy(parms->gains.current, parms->gains.target, sizeof(parms->gains.current));
 
         MixSamples(
             samples,
-            voice->Direct.Channels,
-            voice->Direct.buffer,
-            parms->Gains.Current,
-            parms->Gains.Target,
+            voice->direct.channels,
+            voice->direct.buffer,
+            parms->gains.current,
+            parms->gains.target,
             0,
             0,
             SamplesToDo);
 
         for (send = 0; send < Device->num_aux_sends; ++send)
         {
-            SendParams *parms = &voice->Send[send].Params[chan];
+            SendParams *parms = &voice->send[send].params[chan];
 
-            if (!voice->Send[send].buffer)
+            if (!voice->send[send].buffer)
             {
                 continue;
             }
 
             samples = DoFilters(
-                &parms->LowPass,
-                &parms->HighPass,
+                &parms->low_pass,
+                &parms->high_pass,
                 Device->filtered_data,
                 Device->resampled_data,
                 SamplesToDo,
-                voice->Send[send].FilterType);
+                voice->send[send].filter_type);
 
-            memcpy(parms->Gains.Current, parms->Gains.Target, sizeof(parms->Gains.Current));
+            memcpy(parms->gains.current, parms->gains.target, sizeof(parms->gains.current));
 
             MixSamples(
                 samples,
-                voice->Send[send].Channels,
-                voice->Send[send].buffer,
-                parms->Gains.Current,
-                parms->Gains.Target,
+                voice->send[send].channels,
+                voice->send[send].buffer,
+                parms->gains.current,
+                parms->gains.target,
                 0,
                 0,
                 SamplesToDo);

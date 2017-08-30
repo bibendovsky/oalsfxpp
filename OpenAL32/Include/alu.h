@@ -57,11 +57,11 @@ typedef struct BsincState {
     ALfloat sf; /* Scale interpolation factor. */
     ALuint m;   /* Coefficient count. */
     ALint l;    /* Left coefficient offset. */
-    struct {
+    struct Coeffs {
         const ALfloat *filter;   /* Filter coefficients. */
-        const ALfloat *scDelta;  /* Scale deltas. */
-        const ALfloat *phDelta;  /* Phase deltas. */
-        const ALfloat *spDelta;  /* Scale-phase deltas. */
+        const ALfloat *sc_delta;  /* Scale deltas. */
+        const ALfloat *ph_delta;  /* Phase deltas. */
+        const ALfloat *sp_delta;  /* Scale-phase deltas. */
     } coeffs[BSINC_PHASE_COUNT];
 } BsincState;
 
@@ -125,82 +125,82 @@ enum ActiveFilters {
 
 
 typedef struct DirectParams {
-    ALfilterState LowPass;
-    ALfilterState HighPass;
+    ALfilterState low_pass;
+    ALfilterState high_pass;
 
-    struct {
-        ALfloat Current[MAX_OUTPUT_CHANNELS];
-        ALfloat Target[MAX_OUTPUT_CHANNELS];
-    } Gains;
+    struct DirectParamsGains {
+        ALfloat current[MAX_OUTPUT_CHANNELS];
+        ALfloat target[MAX_OUTPUT_CHANNELS];
+    } gains;
 } DirectParams;
 
 typedef struct SendParams {
-    ALfilterState LowPass;
-    ALfilterState HighPass;
+    ALfilterState low_pass;
+    ALfilterState high_pass;
 
-    struct {
-        ALfloat Current[MAX_OUTPUT_CHANNELS];
-        ALfloat Target[MAX_OUTPUT_CHANNELS];
-    } Gains;
+    struct SendParamsGains {
+        ALfloat current[MAX_OUTPUT_CHANNELS];
+        ALfloat target[MAX_OUTPUT_CHANNELS];
+    } gains;
 } SendParams;
 
 
 struct ALvoiceProps {
     struct ALvoiceProps* next;
 
-    ALfloat StereoPan[2];
+    ALfloat stereo_pan[2];
 
-    ALfloat Radius;
+    ALfloat radius;
 
     /** Direct filter and auxiliary send info. */
-    struct {
-        ALfloat Gain;
-        ALfloat GainHF;
-        ALfloat HFReference;
-        ALfloat GainLF;
-        ALfloat LFReference;
-    } Direct;
-    struct {
-        struct ALeffectslot *Slot;
-        ALfloat Gain;
-        ALfloat GainHF;
-        ALfloat HFReference;
-        ALfloat GainLF;
-        ALfloat LFReference;
-    } Send[];
+    struct Direct {
+        ALfloat gain;
+        ALfloat gain_hf;
+        ALfloat hf_reference;
+        ALfloat gain_lf;
+        ALfloat lf_reference;
+    } direct;
+    struct Send {
+        struct ALeffectslot *slot;
+        ALfloat gain;
+        ALfloat gain_hf;
+        ALfloat hf_reference;
+        ALfloat gain_lf;
+        ALfloat lf_reference;
+    } send[];
 };
 
 /* If not 'fading', gain targets are used directly without fading. */
 #define VOICE_IS_FADING (1<<0)
 
 typedef struct ALvoice {
-    struct ALvoiceProps *Props;
+    struct ALvoiceProps *props;
 
-    struct ALsource* Source;
-    bool Playing;
+    struct ALsource* source;
+    bool playing;
 
     /**
      * Number of channels and bytes-per-sample for the attached source's
      * buffer(s).
      */
-    ALsizei NumChannels;
+    ALsizei num_channels;
 
-    struct {
-        enum ActiveFilters FilterType;
-        DirectParams Params[MAX_INPUT_CHANNELS];
-
-        ALfloat (*buffer)[BUFFERSIZE];
-        ALsizei Channels;
-        ALsizei ChannelsPerOrder[MAX_AMBI_ORDER+1];
-    } Direct;
-
-    struct {
-        enum ActiveFilters FilterType;
-        SendParams Params[MAX_INPUT_CHANNELS];
+    struct VoiceDirect {
+        enum ActiveFilters filter_type;
+        DirectParams params[MAX_INPUT_CHANNELS];
 
         ALfloat (*buffer)[BUFFERSIZE];
-        ALsizei Channels;
-    } Send[];
+        ALsizei channels;
+        ALsizei channels_per_order[MAX_AMBI_ORDER+1];
+    } direct;
+
+    struct VoiceSend {
+        enum ActiveFilters filter_type;
+        SendParams params[MAX_INPUT_CHANNELS];
+
+        ALfloat (*buffer)[BUFFERSIZE];
+        ALsizei channels;
+    } send[];
 } ALvoice;
 
 void DeinitVoice(ALvoice *voice);

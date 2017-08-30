@@ -194,7 +194,7 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
             case AL_PAUSED:
                 assert(voice != NULL);
                 /* A source that's paused simply resumes. */
-                voice->Playing = true;
+                voice->playing = true;
                 source->state = AL_PLAYING;
                 goto finish_play;
 
@@ -207,24 +207,24 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
          */
         for(j = 0;j < context->voice_count;j++)
         {
-            if(context->voice->Source == NULL)
+            if(context->voice->source == NULL)
             {
                 voice = context->voice;
                 break;
             }
         }
-        voice->Playing = false;
+        voice->playing = false;
 
         UpdateSourceProps(source, voice, device->num_aux_sends);
 
-        voice->NumChannels = device->dry.num_channels;
+        voice->num_channels = device->dry.num_channels;
 
-        memset(voice->Direct.Params, 0, sizeof(voice->Direct.Params[0])*voice->NumChannels);
+        memset(voice->direct.params, 0, sizeof(voice->direct.params[0])*voice->num_channels);
         for(s = 0;s < device->num_aux_sends;s++)
-            memset(voice->Send[s].Params, 0, sizeof(voice->Send[s].Params[0])*voice->NumChannels);
+            memset(voice->send[s].params, 0, sizeof(voice->send[s].params[0])*voice->num_channels);
 
-        voice->Source = source;
-        voice->Playing = true;
+        voice->source = source;
+        voice->playing = true;
         source->state = AL_PLAYING;
     finish_play:
         ;
@@ -259,8 +259,8 @@ AL_API ALvoid AL_APIENTRY alSourceStopv(ALsizei n, const ALuint *sources)
         source = context->device->source;
         if((voice=GetSourceVoice(source, context)) != NULL)
         {
-            voice->Source = NULL;
-            voice->Playing = false;
+            voice->source = NULL;
+            voice->playing = false;
         }
         if(source->state != AL_INITIAL)
             source->state = AL_STOPPED;
@@ -316,23 +316,23 @@ void UpdateSourceProps(ALsource *source, ALvoice *voice, ALsizei num_sends)
     ALsizei i;
 
     /* Get an unused property container, or allocate a new one as needed. */
-    props = voice->Props;
+    props = voice->props;
 
     /* Copy in current property values. */
-    props->Direct.Gain = source->direct.gain;
-    props->Direct.GainHF = source->direct.gain_hf;
-    props->Direct.HFReference = source->direct.hf_reference;
-    props->Direct.GainLF = source->direct.gain_lf;
-    props->Direct.LFReference = source->direct.lf_reference;
+    props->direct.gain = source->direct.gain;
+    props->direct.gain_hf = source->direct.gain_hf;
+    props->direct.hf_reference = source->direct.hf_reference;
+    props->direct.gain_lf = source->direct.gain_lf;
+    props->direct.lf_reference = source->direct.lf_reference;
 
     for(i = 0;i < num_sends;i++)
     {
-        props->Send[i].Slot = source->send[i].slot;
-        props->Send[i].Gain = source->send[i].gain;
-        props->Send[i].GainHF = source->send[i].gain_hf;
-        props->Send[i].HFReference = source->send[i].hf_reference;
-        props->Send[i].GainLF = source->send[i].gain_lf;
-        props->Send[i].LFReference = source->send[i].lf_reference;
+        props->send[i].slot = source->send[i].slot;
+        props->send[i].gain = source->send[i].gain;
+        props->send[i].gain_hf = source->send[i].gain_hf;
+        props->send[i].hf_reference = source->send[i].hf_reference;
+        props->send[i].gain_lf = source->send[i].gain_lf;
+        props->send[i].lf_reference = source->send[i].lf_reference;
     }
 }
 
@@ -344,7 +344,7 @@ void UpdateAllSourceProps(ALCcontext *context)
     for(pos = 0;pos < context->voice_count;pos++)
     {
         ALvoice *voice = context->voice;
-        ALsource *source = voice->Source;
+        ALsource *source = voice->source;
         if(source)
             UpdateSourceProps(source, voice, num_sends);
     }

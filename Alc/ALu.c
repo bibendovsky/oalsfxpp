@@ -236,8 +236,8 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
 
     case FmtStereo:
         /* Convert counter-clockwise to clockwise. */
-        StereoMap[0].angle = -props->StereoPan[0];
-        StereoMap[1].angle = -props->StereoPan[1];
+        StereoMap[0].angle = -props->stereo_pan[0];
+        StereoMap[1].angle = -props->stereo_pan[1];
 
         chans = StereoMap;
         num_channels = 2;
@@ -258,24 +258,24 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
             if(chans[c].channel == LFE)
             {
                 for(j = 0;j < MAX_OUTPUT_CHANNELS;j++)
-                    voice->Direct.Params[c].Gains.Target[j] = 0.0f;
+                    voice->direct.params[c].gains.target[j] = 0.0f;
                 if(Device->dry.buffer == Device->real_out.buffer)
                 {
                     int idx = GetChannelIdxByName(Device->real_out, chans[c].channel);
-                    if(idx != -1) voice->Direct.Params[c].Gains.Target[idx] = DryGain;
+                    if(idx != -1) voice->direct.params[c].gains.target[idx] = DryGain;
                 }
 
                 for(i = 0;i < NumSends;i++)
                 {
                     for(j = 0;j < MAX_EFFECT_CHANNELS;j++)
-                        voice->Send[i].Params[c].Gains.Target[j] = 0.0f;
+                        voice->send[i].params[c].gains.target[j] = 0.0f;
                 }
                 continue;
             }
 
             CalcAngleCoeffs(chans[c].angle, chans[c].elevation, Spread, coeffs);
             ComputePanningGains(Device->dry,
-                coeffs, DryGain, voice->Direct.Params[c].Gains.Target
+                coeffs, DryGain, voice->direct.params[c].gains.target
             );
 
             for(i = 0;i < NumSends;i++)
@@ -283,64 +283,64 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
                 const ALeffectslot *Slot = SendSlots[i];
                 if(Slot)
                     ComputePanningGainsBF(Slot->chan_map, Slot->num_channels,
-                        coeffs, WetGain[i], voice->Send[i].Params[c].Gains.Target
+                        coeffs, WetGain[i], voice->send[i].params[c].gains.target
                     );
                 else
                     for(j = 0;j < MAX_EFFECT_CHANNELS;j++)
-                        voice->Send[i].Params[c].Gains.Target[j] = 0.0f;
+                        voice->send[i].params[c].gains.target[j] = 0.0f;
             }
         }
     }
 
     {
-        ALfloat hfScale = props->Direct.HFReference / Frequency;
-        ALfloat lfScale = props->Direct.LFReference / Frequency;
+        ALfloat hfScale = props->direct.hf_reference / Frequency;
+        ALfloat lfScale = props->direct.lf_reference / Frequency;
         ALfloat gainHF = maxf(DryGainHF, 0.001f); /* Limit -60dB */
         ALfloat gainLF = maxf(DryGainLF, 0.001f);
 
-        voice->Direct.FilterType = AF_None;
-        if(gainHF != 1.0f) voice->Direct.FilterType |= AF_LowPass;
-        if(gainLF != 1.0f) voice->Direct.FilterType |= AF_HighPass;
+        voice->direct.filter_type = AF_None;
+        if(gainHF != 1.0f) voice->direct.filter_type |= AF_LowPass;
+        if(gainLF != 1.0f) voice->direct.filter_type |= AF_HighPass;
         ALfilterState_setParams(
-            &voice->Direct.Params[0].LowPass, ALfilterType_HighShelf,
+            &voice->direct.params[0].low_pass, ALfilterType_HighShelf,
             gainHF, hfScale, calc_rcpQ_from_slope(gainHF, 1.0f)
         );
         ALfilterState_setParams(
-            &voice->Direct.Params[0].HighPass, ALfilterType_LowShelf,
+            &voice->direct.params[0].high_pass, ALfilterType_LowShelf,
             gainLF, lfScale, calc_rcpQ_from_slope(gainLF, 1.0f)
         );
         for(c = 1;c < num_channels;c++)
         {
-            ALfilterState_copyParams(&voice->Direct.Params[c].LowPass,
-                                     &voice->Direct.Params[0].LowPass);
-            ALfilterState_copyParams(&voice->Direct.Params[c].HighPass,
-                                     &voice->Direct.Params[0].HighPass);
+            ALfilterState_copyParams(&voice->direct.params[c].low_pass,
+                                     &voice->direct.params[0].low_pass);
+            ALfilterState_copyParams(&voice->direct.params[c].high_pass,
+                                     &voice->direct.params[0].high_pass);
         }
     }
     for(i = 0;i < NumSends;i++)
     {
-        ALfloat hfScale = props->Send[i].HFReference / Frequency;
-        ALfloat lfScale = props->Send[i].LFReference / Frequency;
+        ALfloat hfScale = props->send[i].hf_reference / Frequency;
+        ALfloat lfScale = props->send[i].lf_reference / Frequency;
         ALfloat gainHF = maxf(WetGainHF[i], 0.001f);
         ALfloat gainLF = maxf(WetGainLF[i], 0.001f);
 
-        voice->Send[i].FilterType = AF_None;
-        if(gainHF != 1.0f) voice->Send[i].FilterType |= AF_LowPass;
-        if(gainLF != 1.0f) voice->Send[i].FilterType |= AF_HighPass;
+        voice->send[i].filter_type = AF_None;
+        if(gainHF != 1.0f) voice->send[i].filter_type |= AF_LowPass;
+        if(gainLF != 1.0f) voice->send[i].filter_type |= AF_HighPass;
         ALfilterState_setParams(
-            &voice->Send[i].Params[0].LowPass, ALfilterType_HighShelf,
+            &voice->send[i].params[0].low_pass, ALfilterType_HighShelf,
             gainHF, hfScale, calc_rcpQ_from_slope(gainHF, 1.0f)
         );
         ALfilterState_setParams(
-            &voice->Send[i].Params[0].HighPass, ALfilterType_LowShelf,
+            &voice->send[i].params[0].high_pass, ALfilterType_LowShelf,
             gainLF, lfScale, calc_rcpQ_from_slope(gainLF, 1.0f)
         );
         for(c = 1;c < num_channels;c++)
         {
-            ALfilterState_copyParams(&voice->Send[i].Params[c].LowPass,
-                                     &voice->Send[i].Params[0].LowPass);
-            ALfilterState_copyParams(&voice->Send[i].Params[c].HighPass,
-                                     &voice->Send[i].Params[0].HighPass);
+            ALfilterState_copyParams(&voice->send[i].params[c].low_pass,
+                                     &voice->send[i].params[0].low_pass);
+            ALfilterState_copyParams(&voice->send[i].params[c].high_pass,
+                                     &voice->send[i].params[0].high_pass);
         }
     }
 }
@@ -356,37 +356,37 @@ static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *p
     ALeffectslot *SendSlots[MAX_SENDS];
     ALsizei i;
 
-    voice->Direct.buffer = Device->dry.buffer;
-    voice->Direct.Channels = Device->dry.num_channels;
+    voice->direct.buffer = Device->dry.buffer;
+    voice->direct.channels = Device->dry.num_channels;
     for(i = 0;i < Device->num_aux_sends;i++)
     {
-        SendSlots[i] = props->Send[i].Slot;
+        SendSlots[i] = props->send[i].slot;
         if(!SendSlots[i] || SendSlots[i]->params.effect_type == AL_EFFECT_NULL)
         {
             SendSlots[i] = NULL;
-            voice->Send[i].buffer = NULL;
-            voice->Send[i].Channels = 0;
+            voice->send[i].buffer = NULL;
+            voice->send[i].channels = 0;
         }
         else
         {
-            voice->Send[i].buffer = SendSlots[i]->wet_buffer;
-            voice->Send[i].Channels = SendSlots[i]->num_channels;
+            voice->send[i].buffer = SendSlots[i]->wet_buffer;
+            voice->send[i].channels = SendSlots[i]->num_channels;
         }
     }
 
     /* Calculate gains */
     DryGain  = 1.0F;
-    DryGain *= props->Direct.Gain;
+    DryGain *= props->direct.gain;
     DryGain  = minf(DryGain, GAIN_MIX_MAX);
-    DryGainHF = props->Direct.GainHF;
-    DryGainLF = props->Direct.GainLF;
+    DryGainHF = props->direct.gain_hf;
+    DryGainLF = props->direct.gain_lf;
     for(i = 0;i < Device->num_aux_sends;i++)
     {
         WetGain[i]  = 1.0F;
-        WetGain[i] *= props->Send[i].Gain;
+        WetGain[i] *= props->send[i].gain;
         WetGain[i]  = minf(WetGain[i], GAIN_MIX_MAX);
-        WetGainHF[i] = props->Send[i].GainHF;
-        WetGainLF[i] = props->Send[i].GainLF;
+        WetGainHF[i] = props->send[i].gain_hf;
+        WetGainLF[i] = props->send[i].gain_lf;
     }
 
     CalcPanningAndFilters(voice, 0.0f, dir, 0.0f, DryGain, DryGainHF, DryGainLF, WetGain,
@@ -395,7 +395,7 @@ static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *p
 
 static void CalcSourceParams(ALvoice *voice, ALCcontext *context, ALboolean force)
 {
-    CalcNonAttnSourceParams(voice, voice->Props, context);
+    CalcNonAttnSourceParams(voice, voice->props, context);
 }
 
 
@@ -410,7 +410,7 @@ static void UpdateContextSources(ALCcontext *ctx, const struct ALeffectslotArray
         force |= CalcEffectSlotParams(slots->slot[i], ctx->device);
 
     voice = ctx->voice;
-    source = voice->Source;
+    source = voice->source;
     if(source) CalcSourceParams(voice, ctx, force);
 }
 
@@ -543,13 +543,13 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const 
             for(i = 0;i < ctx->voice_count;i++)
             {
                 ALvoice *voice = ctx->voice;
-                ALsource *source = voice->Source;
-                if(source && voice->Playing)
+                ALsource *source = voice->source;
+                if(source && voice->playing)
                 {
                     if(!MixSource(voice, source, device, SamplesToDo))
                     {
-                        voice->Source = NULL;
-                        voice->Playing = false;
+                        voice->source = NULL;
+                        voice->playing = false;
                     }
                 }
             }
@@ -589,9 +589,9 @@ void aluHandleDisconnect(ALCdevice *device)
             ALvoice *voice = ctx->voice;
             ALsource *source;
 
-            source = voice->Source;
-            voice->Source = NULL;
-            voice->Playing = false;
+            source = voice->source;
+            voice->source = NULL;
+            voice->playing = false;
 
             if(source)
             {

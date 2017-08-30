@@ -272,7 +272,7 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
         {
             ALvoice *voice = context->voice;
 
-            if(voice->Source == NULL)
+            if(voice->source == NULL)
                 continue;
         }
 
@@ -502,8 +502,8 @@ void AllocateVoices(ALCcontext *context, ALsizei num_voices, ALsizei old_sends)
      * property set (including the dynamically-sized Send[] array) in one
      * chunk.
      */
-    sizeof_voice = RoundUp(FAM_SIZE(ALvoice, Send, num_sends), 16);
-    sizeof_props = RoundUp(FAM_SIZE(struct ALvoiceProps, Send, num_sends), 16);
+    sizeof_voice = RoundUp(FAM_SIZE(ALvoice, send, num_sends), 16);
+    sizeof_props = RoundUp(FAM_SIZE(struct ALvoiceProps, send, num_sends), 16);
     size = sizeof_voice + sizeof_props;
 
     voice = al_calloc(16, RoundUp(size*1, 16));
@@ -513,7 +513,7 @@ void AllocateVoices(ALCcontext *context, ALsizei num_voices, ALsizei old_sends)
     props = (struct ALvoiceProps*)((char*)voice + sizeof_voice);
 
     /* Finish setting the voices' property set pointers and references. */
-    voice->Props = props;
+    voice->props = props;
 
     al_free(context->voice);
     context->voice = voice;

@@ -18,14 +18,14 @@ struct ALsource;
 
 typedef struct ALsource {
     /** Direct filter and auxiliary send info. */
-    struct Direct {
+    struct SourceDirect {
         ALfloat gain;
         ALfloat gain_hf;
         ALfloat hf_reference;
         ALfloat gain_lf;
         ALfloat lf_reference;
     } direct;
-    struct Send {
+    struct SourceSend {
         struct ALeffectslot *slot;
         ALfloat gain;
         ALfloat gain_hf;
