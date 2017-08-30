@@ -19,19 +19,8 @@
  */
 
 #include "config.h"
-
-#include <stdlib.h>
-#include <limits.h>
-#include <math.h>
-#include <float.h>
-
 #include "AL/al.h"
-#include "AL/alc.h"
-#include "alMain.h"
 #include "alSource.h"
-#include "alBuffer.h"
-#include "alAuxEffectSlot.h"
-#include "almalloc.h"
 
 
 void InitSourceParams(ALsource *Source, ALsizei num_sends);

@@ -20,16 +20,8 @@
 
 #include "config.h"
 
-#include <stdlib.h>
-#include <math.h>
-
-#include "AL/al.h"
-#include "AL/alc.h"
-#include "alMain.h"
 #include "alAuxEffectSlot.h"
 #include "alSource.h"
-
-#include "almalloc.h"
 
 
 static inline ALeffectStateFactory *getFactoryByType(ALenum type)

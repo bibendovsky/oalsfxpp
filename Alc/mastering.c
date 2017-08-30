@@ -1,9 +1,6 @@
 #include "config.h"
-
-#include <math.h>
-
 #include "alu.h"
-#include "almalloc.h"
+
 
 #define RMS_WINDOW_SIZE (1<<7)
 #define RMS_WINDOW_MASK (RMS_WINDOW_SIZE-1)

@@ -1,12 +1,8 @@
-
 #include "config.h"
-
 #include "almalloc.h"
-
-#include <stdlib.h>
 #include <string.h>
 #include <malloc.h>
-#include <windows.h>
+
 
 void *al_malloc(size_t alignment, size_t size)
 {

@@ -18,23 +18,10 @@
  * Or go to http://www.gnu.org/copyleft/lgpl.html
  */
 
+
 #include "config.h"
-
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <assert.h>
-
-#include "alMain.h"
 #include "alSource.h"
-#include "alBuffer.h"
-#include "alAuxEffectSlot.h"
 #include "alu.h"
-#include "bformatdec.h"
-#include "static_assert.h"
-
-#include "mixer_defs.h"
 
 
 struct ChanMap {

@@ -18,12 +18,8 @@
  * Or go to http://www.gnu.org/copyleft/lgpl.html
  */
 
+
 #include "config.h"
-
-#include <stdlib.h>
-
-#include "alMain.h"
-#include "alu.h"
 #include "alFilter.h"
 
 

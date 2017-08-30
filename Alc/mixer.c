@@ -19,21 +19,7 @@
  */
 
 #include "config.h"
-
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <assert.h>
-
-#include "alMain.h"
-#include "AL/al.h"
-#include "AL/alc.h"
 #include "alSource.h"
-#include "alBuffer.h"
-#include "alAuxEffectSlot.h"
-#include "alu.h"
-
 #include "mixer_defs.h"
 
 

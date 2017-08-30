@@ -19,17 +19,7 @@
  */
 
 #include "config.h"
-
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <assert.h>
-
-#include "alMain.h"
-#include "alAuxEffectSlot.h"
 #include "alu.h"
-#include "bool.h"
 
 
 extern inline void CalcAngleCoeffs(ALfloat azimuth, ALfloat elevation, ALfloat spread, ALfloat coeffs[MAX_AMBI_COEFFS]);

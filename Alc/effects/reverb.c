@@ -18,18 +18,11 @@
  * Or go to http://www.gnu.org/copyleft/lgpl.html
  */
 
+
 #include "config.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-
-#include "alMain.h"
 #include "alu.h"
-#include "alAuxEffectSlot.h"
-#include "alEffect.h"
-#include "alFilter.h"
 #include "mixer_defs.h"
+
 
 /* This is the maximum number of samples processed for each inner loop
  * iteration. */

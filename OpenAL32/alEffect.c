@@ -18,15 +18,8 @@
  * Or go to http://www.gnu.org/copyleft/lgpl.html
  */
 
+
 #include "config.h"
-
-#include <stdlib.h>
-#include <math.h>
-#include <float.h>
-
-#include "AL/al.h"
-#include "AL/alc.h"
-#include "alMain.h"
 #include "alEffect.h"
 
 

@@ -18,26 +18,9 @@
  * Or go to http://www.gnu.org/copyleft/lgpl.html
  */
 
+
 #include "config.h"
-
-#include "version.h"
-
-#include <math.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <memory.h>
-#include <ctype.h>
-#include <signal.h>
-
-#include "alMain.h"
 #include "alSource.h"
-#include "alSource.h"
-#include "alBuffer.h"
-#include "alAuxEffectSlot.h"
-#include "bformatdec.h"
-#include "alu.h"
-
-#include "almalloc.h"
 
 
 void InitSourceParams(ALsource *Source, ALsizei num_sends);
