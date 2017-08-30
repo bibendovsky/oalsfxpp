@@ -16,7 +16,6 @@
 #include "static_assert.h"
 #include "align.h"
 #include "vector.h"
-#include "alstring.h"
 #include "almalloc.h"
 
 

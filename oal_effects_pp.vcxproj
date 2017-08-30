@@ -131,7 +131,6 @@
     <ClCompile Include="Alc\effects\modulator.c" />
     <ClCompile Include="Alc\effects\null.c" />
     <ClCompile Include="Alc\effects\reverb.c" />
-    <ClCompile Include="Alc\helpers.c" />
     <ClCompile Include="Alc\mastering.c" />
     <ClCompile Include="Alc\mixer.c" />
     <ClCompile Include="Alc\mixer_c.c" />
@@ -144,7 +143,6 @@
     <ClCompile Include="OpenAL32\alSource.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Alc\alstring.h" />
     <ClInclude Include="Alc\mixer_defs.h" />
     <ClInclude Include="Alc\vector.h" />
     <ClInclude Include="common\align.h" />

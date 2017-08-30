@@ -37,7 +37,6 @@
 #include "bformatdec.h"
 #include "alu.h"
 
-#include "alstring.h"
 #include "almalloc.h"
 
 
