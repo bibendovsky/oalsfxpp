@@ -86,9 +86,6 @@
     <ClInclude Include="Alc\mixer_defs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Alc\vector.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="common\align.h">
       <Filter>Header Files</Filter>
     </ClInclude>
