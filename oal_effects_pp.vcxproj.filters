@@ -95,9 +95,6 @@
     <ClInclude Include="common\math_defs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="common\static_assert.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\AL\al.h">
       <Filter>Header Files</Filter>
     </ClInclude>

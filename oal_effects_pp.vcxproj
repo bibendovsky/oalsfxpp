@@ -147,7 +147,6 @@
     <ClInclude Include="common\almalloc.h" />
     <ClInclude Include="common\bool.h" />
     <ClInclude Include="common\math_defs.h" />
-    <ClInclude Include="common\static_assert.h" />
     <ClInclude Include="include\AL\al.h" />
     <ClInclude Include="include\AL\alc.h" />
     <ClInclude Include="include\AL\alext.h" />

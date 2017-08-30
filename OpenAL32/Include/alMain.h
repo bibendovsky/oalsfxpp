@@ -13,7 +13,6 @@
 #include "AL/alc.h"
 #include "AL/alext.h"
 
-#include "static_assert.h"
 #include "align.h"
 #include "almalloc.h"
 
