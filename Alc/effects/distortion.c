@@ -78,14 +78,14 @@ static ALvoid ALdistortionState_update(ALdistortionState *state, const ALCdevice
     ALfloat edge;
 
     /* Store distorted signal attenuation settings. */
-    state->attenuation = props->Distortion.Gain;
+    state->attenuation = props->distortion.gain;
 
     /* Store waveshaper edge settings. */
-    edge = sinf(props->Distortion.Edge * (F_PI_2));
+    edge = sinf(props->distortion.edge * (F_PI_2));
     edge = minf(edge, 0.99f);
     state->edge_coeff = 2.0f * edge / (1.0f-edge);
 
-    cutoff = props->Distortion.LowpassCutoff;
+    cutoff = props->distortion.lowpass_cutoff;
     /* Bandwidth value is constant in octaves. */
     bandwidth = (cutoff / 2.0f) / (cutoff * 0.67f);
     /* Multiply sampling frequency by the amount of oversampling done during
@@ -95,9 +95,9 @@ static ALvoid ALdistortionState_update(ALdistortionState *state, const ALCdevice
         cutoff / (frequency*4.0f), calc_rcpQ_from_bandwidth(cutoff / (frequency*4.0f), bandwidth)
     );
 
-    cutoff = props->Distortion.EQCenter;
+    cutoff = props->distortion.eq_center;
     /* Convert bandwidth in Hz to octaves. */
-    bandwidth = props->Distortion.EQBandwidth / (cutoff * 0.67f);
+    bandwidth = props->distortion.eq_bandwidth / (cutoff * 0.67f);
     ALfilterState_setParams(&state->bandpass, ALfilterType_BandPass, 1.0f,
         cutoff / (frequency*4.0f), calc_rcpQ_from_bandwidth(cutoff / (frequency*4.0f), bandwidth)
     );

@@ -79,7 +79,7 @@ static ALvoid ALcompressorState_update(ALcompressorState *state, const ALCdevice
 {
     ALuint i;
 
-    state->Enabled = props->Compressor.OnOff;
+    state->Enabled = props->compressor.on_off;
 
     STATIC_CAST(ALeffectState,state)->out_buffer = device->FOAOut.Buffer;
     STATIC_CAST(ALeffectState,state)->out_channels = device->FOAOut.NumChannels;

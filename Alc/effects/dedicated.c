@@ -72,7 +72,7 @@ static ALvoid ALdedicatedState_update(ALdedicatedState *state, const ALCdevice *
     for(i = 0;i < MAX_OUTPUT_CHANNELS;i++)
         state->gains[i] = 0.0f;
 
-    Gain = props->Dedicated.Gain;
+    Gain = props->dedicated.gain;
     if(Slot->params.effect_type == AL_EFFECT_DEDICATED_LOW_FREQUENCY_EFFECT)
     {
         int idx;

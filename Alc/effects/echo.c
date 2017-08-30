@@ -111,11 +111,11 @@ static ALvoid ALechoState_update(ALechoState *state, const ALCdevice *Device, co
     ALfloat coeffs[MAX_AMBI_COEFFS];
     ALfloat gain, lrpan, spread;
 
-    state->Tap[0].delay = fastf2i(props->Echo.Delay * frequency) + 1;
-    state->Tap[1].delay = fastf2i(props->Echo.LRDelay * frequency);
+    state->Tap[0].delay = fastf2i(props->echo.delay * frequency) + 1;
+    state->Tap[1].delay = fastf2i(props->echo.lr_delay * frequency);
     state->Tap[1].delay += state->Tap[0].delay;
 
-    spread = props->Echo.Spread;
+    spread = props->echo.spread;
     if(spread < 0.0f) lrpan = -1.0f;
     else lrpan = 1.0f;
     /* Convert echo spread (where 0 = omni, +/-1 = directional) to coverage
@@ -123,9 +123,9 @@ static ALvoid ALechoState_update(ALechoState *state, const ALCdevice *Device, co
      */
     spread = asinf(1.0f - fabsf(spread))*4.0f;
 
-    state->FeedGain = props->Echo.Feedback;
+    state->FeedGain = props->echo.feedback;
 
-    gain = maxf(1.0f - props->Echo.Damping, 0.0625f); /* Limit -24dB */
+    gain = maxf(1.0f - props->echo.damping, 0.0625f); /* Limit -24dB */
     ALfilterState_setParams(&state->Filter, ALfilterType_HighShelf,
                             gain, LOWPASSFREQREF/frequency,
                             calc_rcpQ_from_slope(gain, 1.0f));

@@ -131,14 +131,14 @@ ALenum InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *e
         else
         {
             EffectSlot->effect.type = effect->type;
-            EffectSlot->effect.props = effect->Props;
+            EffectSlot->effect.props = effect->props;
         }
 
         ALeffectState_DecRef(EffectSlot->effect.state);
         EffectSlot->effect.state = State;
     }
     else if(effect)
-        EffectSlot->effect.props = effect->Props;
+        EffectSlot->effect.props = effect->props;
 
     /* Remove state references from old effect slot property updates. */
     props = EffectSlot->free_list;

@@ -121,7 +121,7 @@ static ALvoid ALchorusState_update(ALchorusState *state, const ALCdevice *Device
     ALfloat rate;
     ALint phase;
 
-    switch(props->Chorus.Waveform)
+    switch(props->chorus.waveform)
     {
         case AL_CHORUS_WAVEFORM_TRIANGLE:
             state->waveform = CWF_Triangle;
@@ -130,10 +130,10 @@ static ALvoid ALchorusState_update(ALchorusState *state, const ALCdevice *Device
             state->waveform = CWF_Sinusoid;
             break;
     }
-    state->feedback = props->Chorus.Feedback;
-    state->delay = fastf2i(props->Chorus.Delay * frequency);
+    state->feedback = props->chorus.feedback;
+    state->delay = fastf2i(props->chorus.delay * frequency);
     /* The LFO depth is scaled to be relative to the sample delay. */
-    state->depth = props->Chorus.Depth * state->delay;
+    state->depth = props->chorus.depth * state->delay;
 
     /* Gains for left and right sides */
     CalcAngleCoeffs(-F_PI_2, 0.0f, 0.0f, coeffs);
@@ -141,8 +141,8 @@ static ALvoid ALchorusState_update(ALchorusState *state, const ALCdevice *Device
     CalcAngleCoeffs( F_PI_2, 0.0f, 0.0f, coeffs);
     ComputePanningGains(Device->Dry, coeffs, 1.0F, state->Gain[1]);
 
-    phase = props->Chorus.Phase;
-    rate = props->Chorus.Rate;
+    phase = props->chorus.phase;
+    rate = props->chorus.rate;
     if(!(rate > 0.0f))
     {
         state->lfo_scale = 0.0f;

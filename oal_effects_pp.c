@@ -186,35 +186,35 @@ int main()
     {
 #if 1
         EFXEAXREVERBPROPERTIES props = EFX_REVERB_PRESET_BATHROOM;
-        ALeffectProps* oal_props = &oal_device->effect->Props;
+        ALeffectProps* oal_props = &oal_device->effect->props;
 
-        oal_props->Reverb.Density = props.flDensity;
-        oal_props->Reverb.Diffusion = props.flDiffusion;
-        oal_props->Reverb.Gain = props.flGain;
-        oal_props->Reverb.GainHF = props.flGainHF;
-        oal_props->Reverb.GainLF = props.flGainLF;
-        oal_props->Reverb.DecayTime = props.flDecayTime;
-        oal_props->Reverb.DecayHFRatio = props.flDecayHFRatio;
-        oal_props->Reverb.DecayLFRatio = props.flDecayLFRatio;
-        oal_props->Reverb.ReflectionsGain = props.flReflectionsGain;
-        oal_props->Reverb.ReflectionsDelay = props.flReflectionsDelay;
-        oal_props->Reverb.ReflectionsPan[0] = props.flReflectionsPan[0];
-        oal_props->Reverb.ReflectionsPan[1] = props.flReflectionsPan[1];
-        oal_props->Reverb.ReflectionsPan[2] = props.flReflectionsPan[2];
-        oal_props->Reverb.LateReverbGain = props.flLateReverbGain;
-        oal_props->Reverb.LateReverbDelay = props.flLateReverbDelay;
-        oal_props->Reverb.LateReverbPan[0] = props.flLateReverbPan[0];
-        oal_props->Reverb.LateReverbPan[1] = props.flLateReverbPan[1];
-        oal_props->Reverb.LateReverbPan[2] = props.flLateReverbPan[2];
-        oal_props->Reverb.EchoTime = props.flEchoTime;
-        oal_props->Reverb.EchoDepth = props.flEchoDepth;
-        oal_props->Reverb.ModulationTime = props.flModulationTime;
-        oal_props->Reverb.ModulationDepth = props.flModulationDepth;
-        oal_props->Reverb.AirAbsorptionGainHF = props.flAirAbsorptionGainHF;
-        oal_props->Reverb.HFReference = props.flHFReference;
-        oal_props->Reverb.LFReference = props.flLFReference;
-        oal_props->Reverb.RoomRolloffFactor = props.flRoomRolloffFactor;
-        oal_props->Reverb.DecayHFLimit = props.iDecayHFLimit;
+        oal_props->reverb.density = props.flDensity;
+        oal_props->reverb.diffusion = props.flDiffusion;
+        oal_props->reverb.gain = props.flGain;
+        oal_props->reverb.gain_hf = props.flGainHF;
+        oal_props->reverb.gain_lf = props.flGainLF;
+        oal_props->reverb.decay_time = props.flDecayTime;
+        oal_props->reverb.decay_hf_ratio = props.flDecayHFRatio;
+        oal_props->reverb.decay_lf_ratio = props.flDecayLFRatio;
+        oal_props->reverb.reflections_gain = props.flReflectionsGain;
+        oal_props->reverb.reflections_delay = props.flReflectionsDelay;
+        oal_props->reverb.reflections_pan[0] = props.flReflectionsPan[0];
+        oal_props->reverb.reflections_pan[1] = props.flReflectionsPan[1];
+        oal_props->reverb.reflections_pan[2] = props.flReflectionsPan[2];
+        oal_props->reverb.late_reverb_gain = props.flLateReverbGain;
+        oal_props->reverb.late_reverb_delay = props.flLateReverbDelay;
+        oal_props->reverb.late_reverb_pan[0] = props.flLateReverbPan[0];
+        oal_props->reverb.late_reverb_pan[1] = props.flLateReverbPan[1];
+        oal_props->reverb.late_reverb_pan[2] = props.flLateReverbPan[2];
+        oal_props->reverb.echo_time = props.flEchoTime;
+        oal_props->reverb.echo_depth = props.flEchoDepth;
+        oal_props->reverb.modulation_time = props.flModulationTime;
+        oal_props->reverb.modulation_depth = props.flModulationDepth;
+        oal_props->reverb.air_absorption_gain_hf = props.flAirAbsorptionGainHF;
+        oal_props->reverb.hf_reference = props.flHFReference;
+        oal_props->reverb.lf_reference = props.flLFReference;
+        oal_props->reverb.room_rolloff_factor = props.flRoomRolloffFactor;
+        oal_props->reverb.decay_hf_limit = props.iDecayHFLimit;
 #endif
     }
 

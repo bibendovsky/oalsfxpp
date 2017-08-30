@@ -1287,15 +1287,15 @@ static ALvoid ALreverbState_update(ALreverbState *State, const ALCdevice *Device
         State->IsEax = AL_FALSE;
 
     /* Calculate the master filters */
-    hfScale = props->Reverb.HFReference / frequency;
+    hfScale = props->reverb.hf_reference / frequency;
     /* Restrict the filter gains from going below -60dB to keep the filter from
      * killing most of the signal.
      */
-    gainhf = maxf(props->Reverb.GainHF, 0.001f);
+    gainhf = maxf(props->reverb.gain_hf, 0.001f);
     ALfilterState_setParams(&State->Filter[0].Lp, ALfilterType_HighShelf,
                             gainhf, hfScale, calc_rcpQ_from_slope(gainhf, 1.0f));
-    lfScale = props->Reverb.LFReference / frequency;
-    gainlf = maxf(props->Reverb.GainLF, 0.001f);
+    lfScale = props->reverb.lf_reference / frequency;
+    gainlf = maxf(props->reverb.gain_lf, 0.001f);
     ALfilterState_setParams(&State->Filter[0].Hp, ALfilterType_LowShelf,
                             gainlf, lfScale, calc_rcpQ_from_slope(gainlf, 1.0f));
     for(i = 1;i < 4;i++)
@@ -1305,51 +1305,51 @@ static ALvoid ALreverbState_update(ALreverbState *State, const ALCdevice *Device
     }
 
     /* Update the main effect delay and associated taps. */
-    UpdateDelayLine(props->Reverb.ReflectionsDelay, props->Reverb.LateReverbDelay,
-                    props->Reverb.Density, props->Reverb.DecayTime, frequency,
+    UpdateDelayLine(props->reverb.reflections_delay, props->reverb.late_reverb_delay,
+                    props->reverb.density, props->reverb.decay_time, frequency,
                     State);
 
     /* Calculate the all-pass feed-back/forward coefficient. */
-    State->ApFeedCoeff = sqrtf(0.5f) * powf(props->Reverb.Diffusion, 2.0f);
+    State->ApFeedCoeff = sqrtf(0.5f) * powf(props->reverb.diffusion, 2.0f);
 
     /* Update the early lines. */
-    UpdateEarlyLines(props->Reverb.Density, props->Reverb.DecayTime,
+    UpdateEarlyLines(props->reverb.density, props->reverb.decay_time,
                      frequency, State);
 
     /* Get the mixing matrix coefficients. */
-    CalcMatrixCoeffs(props->Reverb.Diffusion, &State->MixX, &State->MixY);
+    CalcMatrixCoeffs(props->reverb.diffusion, &State->MixX, &State->MixY);
 
     /* If the HF limit parameter is flagged, calculate an appropriate limit
      * based on the air absorption parameter.
      */
-    hfRatio = props->Reverb.DecayHFRatio;
-    if(props->Reverb.DecayHFLimit && props->Reverb.AirAbsorptionGainHF < 1.0f)
-        hfRatio = CalcLimitedHfRatio(hfRatio, props->Reverb.AirAbsorptionGainHF,
-                                     props->Reverb.DecayTime);
+    hfRatio = props->reverb.decay_hf_ratio;
+    if(props->reverb.decay_hf_limit && props->reverb.air_absorption_gain_hf < 1.0f)
+        hfRatio = CalcLimitedHfRatio(hfRatio, props->reverb.air_absorption_gain_hf,
+                                     props->reverb.decay_time);
 
     /* Calculate the LF/HF decay times. */
-    lfDecayTime = clampf(props->Reverb.DecayTime * props->Reverb.DecayLFRatio,
+    lfDecayTime = clampf(props->reverb.decay_time * props->reverb.decay_lf_ratio,
                          AL_EAXREVERB_MIN_DECAY_TIME, AL_EAXREVERB_MAX_DECAY_TIME);
-    hfDecayTime = clampf(props->Reverb.DecayTime * hfRatio,
+    hfDecayTime = clampf(props->reverb.decay_time * hfRatio,
                          AL_EAXREVERB_MIN_DECAY_TIME, AL_EAXREVERB_MAX_DECAY_TIME);
 
     /* Update the modulator line. */
-    UpdateModulator(props->Reverb.ModulationTime, props->Reverb.ModulationDepth,
+    UpdateModulator(props->reverb.modulation_time, props->reverb.modulation_depth,
                     frequency, State);
 
     /* Update the late lines. */
-    UpdateLateLines(props->Reverb.Density, props->Reverb.Diffusion,
-                    lfDecayTime, props->Reverb.DecayTime, hfDecayTime,
+    UpdateLateLines(props->reverb.density, props->reverb.diffusion,
+                    lfDecayTime, props->reverb.decay_time, hfDecayTime,
                     F_TAU * lfScale, F_TAU * hfScale,
-                    props->Reverb.EchoTime, props->Reverb.EchoDepth,
+                    props->reverb.echo_time, props->reverb.echo_depth,
                     frequency, State);
 
     /* Update early and late 3D panning. */
-    gain = props->Reverb.Gain;
-    Update3DPanning(Device, props->Reverb.ReflectionsPan,
-                    props->Reverb.LateReverbPan, gain,
-                    props->Reverb.ReflectionsGain,
-                    props->Reverb.LateReverbGain, State);
+    gain = props->reverb.gain;
+    Update3DPanning(Device, props->reverb.reflections_pan,
+                    props->reverb.late_reverb_pan, gain,
+                    props->reverb.reflections_gain,
+                    props->reverb.late_reverb_gain, State);
 
     /* Determine if delay-line cross-fading is required. */
     for(i = 0;i < 4;i++)

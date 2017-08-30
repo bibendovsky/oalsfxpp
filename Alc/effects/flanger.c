@@ -121,7 +121,7 @@ static ALvoid ALflangerState_update(ALflangerState *state, const ALCdevice *Devi
     ALfloat rate;
     ALint phase;
 
-    switch(props->Flanger.Waveform)
+    switch(props->flanger.waveform)
     {
         case AL_FLANGER_WAVEFORM_TRIANGLE:
             state->waveform = FWF_Triangle;
@@ -130,10 +130,10 @@ static ALvoid ALflangerState_update(ALflangerState *state, const ALCdevice *Devi
             state->waveform = FWF_Sinusoid;
             break;
     }
-    state->feedback = props->Flanger.Feedback;
-    state->delay = fastf2i(props->Flanger.Delay * frequency);
+    state->feedback = props->flanger.feedback;
+    state->delay = fastf2i(props->flanger.delay * frequency);
     /* The LFO depth is scaled to be relative to the sample delay. */
-    state->depth = props->Flanger.Depth * state->delay;
+    state->depth = props->flanger.depth * state->delay;
 
     /* Gains for left and right sides */
     CalcAngleCoeffs(-F_PI_2, 0.0f, 0.0f, coeffs);
@@ -141,8 +141,8 @@ static ALvoid ALflangerState_update(ALflangerState *state, const ALCdevice *Devi
     CalcAngleCoeffs( F_PI_2, 0.0f, 0.0f, coeffs);
     ComputePanningGains(Device->Dry, coeffs, 1.0F, state->Gain[1]);
 
-    phase = props->Flanger.Phase;
-    rate = props->Flanger.Rate;
+    phase = props->flanger.phase;
+    rate = props->flanger.rate;
     if(!(rate > 0.0f))
     {
         state->lfo_scale = 0.0f;
