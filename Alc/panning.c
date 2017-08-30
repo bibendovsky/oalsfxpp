@@ -487,13 +487,13 @@ void aluInitEffectPanning(ALeffectslot *slot)
 {
     ALsizei i;
 
-    memset(slot->ChanMap, 0, sizeof(slot->ChanMap));
-    slot->NumChannels = 0;
+    memset(slot->chan_map, 0, sizeof(slot->chan_map));
+    slot->num_channels = 0;
 
     for(i = 0;i < MAX_EFFECT_CHANNELS;i++)
     {
-        slot->ChanMap[i].Scale = 1.0f;
-        slot->ChanMap[i].Index = i;
+        slot->chan_map[i].Scale = 1.0f;
+        slot->chan_map[i].Index = i;
     }
-    slot->NumChannels = i;
+    slot->num_channels = i;
 }

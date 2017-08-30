@@ -14,24 +14,24 @@ struct ALeffectStateVtable;
 struct ALeffectslot;
 
 typedef struct ALeffectState {
-    unsigned int Ref;
+    unsigned int ref;
     const struct ALeffectStateVtable *vtbl;
 
-    ALfloat (*OutBuffer)[BUFFERSIZE];
-    ALsizei OutChannels;
+    ALfloat (*out_buffer)[BUFFERSIZE];
+    ALsizei out_channels;
 } ALeffectState;
 
 void ALeffectState_Construct(ALeffectState *state);
 void ALeffectState_Destruct(ALeffectState *state);
 
 struct ALeffectStateVtable {
-    void (*const Destruct)(ALeffectState *state);
+    void (*const destruct)(ALeffectState *state);
 
-    ALboolean (*const deviceUpdate)(ALeffectState *state, ALCdevice *device);
+    ALboolean (*const device_update)(ALeffectState *state, ALCdevice *device);
     void (*const update)(ALeffectState *state, const ALCdevice *device, const struct ALeffectslot *slot, const union ALeffectProps *props);
     void (*const process)(ALeffectState *state, ALsizei samplesToDo, const ALfloat (*restrict samplesIn)[BUFFERSIZE], ALfloat (*restrict samplesOut)[BUFFERSIZE], ALsizei numChannels);
 
-    void (*const Delete)(void *ptr);
+    void (*const delete1)(void *ptr);
 };
 
 #define DEFINE_ALEFFECTSTATE_VTABLE(T)                                        \
@@ -81,35 +81,35 @@ struct ALeffectslotArray {
 
 
 struct ALeffectslotProps {
-    ALenum Type;
-    ALeffectProps Props;
+    ALenum type;
+    ALeffectProps props;
 
-    ALeffectState *State;
+    ALeffectState *state;
 
     struct ALeffectslotProps* next;
 };
 
 
 typedef struct ALeffectslot {
-    struct {
-        ALenum Type;
-        ALeffectProps Props;
+    struct Effect {
+        ALenum type;
+        ALeffectProps props;
 
-        ALeffectState *State;
-    } Effect;
+        ALeffectState *state;
+    } effect;
 
     unsigned int ref;
 
-    struct ALeffectslotProps* Update;
-    struct ALeffectslotProps* FreeList;
+    struct ALeffectslotProps* update;
+    struct ALeffectslotProps* free_list;
 
-    struct {
-        ALenum EffectType;
-        ALeffectState *EffectState;
-    } Params;
+    struct Params {
+        ALenum effect_type;
+        ALeffectState *effect_state;
+    } params;
 
-    ALsizei NumChannels;
-    BFChannelConfig ChanMap[MAX_EFFECT_CHANNELS];
+    ALsizei num_channels;
+    BFChannelConfig chan_map[MAX_EFFECT_CHANNELS];
     /* Wet buffer configuration is ACN channel order with N3D scaling:
      * * Channel 0 is the unattenuated mono signal.
      * * Channel 1 is OpenAL -X
@@ -120,7 +120,7 @@ typedef struct ALeffectslot {
      * ambisonics signal and make a B-Format pan (ComputeFirstOrderGains) for
      * first-order device output (FOAOut).
      */
-    alignas(16) ALfloat WetBuffer[MAX_EFFECT_CHANNELS][BUFFERSIZE];
+    alignas(16) ALfloat wet_buffer[MAX_EFFECT_CHANNELS][BUFFERSIZE];
 } ALeffectslot;
 
 ALenum InitEffectSlot(ALeffectslot *slot);

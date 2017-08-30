@@ -73,25 +73,25 @@ static ALvoid ALdedicatedState_update(ALdedicatedState *state, const ALCdevice *
         state->gains[i] = 0.0f;
 
     Gain = props->Dedicated.Gain;
-    if(Slot->Params.EffectType == AL_EFFECT_DEDICATED_LOW_FREQUENCY_EFFECT)
+    if(Slot->params.effect_type == AL_EFFECT_DEDICATED_LOW_FREQUENCY_EFFECT)
     {
         int idx;
         if((idx=GetChannelIdxByName(device->RealOut, LFE)) != -1)
         {
-            STATIC_CAST(ALeffectState,state)->OutBuffer = device->RealOut.Buffer;
-            STATIC_CAST(ALeffectState,state)->OutChannels = device->RealOut.NumChannels;
+            STATIC_CAST(ALeffectState,state)->out_buffer = device->RealOut.Buffer;
+            STATIC_CAST(ALeffectState,state)->out_channels = device->RealOut.NumChannels;
             state->gains[idx] = Gain;
         }
     }
-    else if(Slot->Params.EffectType == AL_EFFECT_DEDICATED_DIALOGUE)
+    else if(Slot->params.effect_type == AL_EFFECT_DEDICATED_DIALOGUE)
     {
         int idx;
         /* Dialog goes to the front-center speaker if it exists, otherwise it
          * plays from the front-center location. */
         if((idx=GetChannelIdxByName(device->RealOut, FrontCenter)) != -1)
         {
-            STATIC_CAST(ALeffectState,state)->OutBuffer = device->RealOut.Buffer;
-            STATIC_CAST(ALeffectState,state)->OutChannels = device->RealOut.NumChannels;
+            STATIC_CAST(ALeffectState,state)->out_buffer = device->RealOut.Buffer;
+            STATIC_CAST(ALeffectState,state)->out_channels = device->RealOut.NumChannels;
             state->gains[idx] = Gain;
         }
         else
@@ -99,8 +99,8 @@ static ALvoid ALdedicatedState_update(ALdedicatedState *state, const ALCdevice *
             ALfloat coeffs[MAX_AMBI_COEFFS];
             CalcAngleCoeffs(0.0f, 0.0f, 0.0f, coeffs);
 
-            STATIC_CAST(ALeffectState,state)->OutBuffer = device->Dry.Buffer;
-            STATIC_CAST(ALeffectState,state)->OutChannels = device->Dry.NumChannels;
+            STATIC_CAST(ALeffectState,state)->out_buffer = device->Dry.Buffer;
+            STATIC_CAST(ALeffectState,state)->out_channels = device->Dry.NumChannels;
             ComputePanningGains(device->Dry, coeffs, Gain, state->gains);
         }
     }

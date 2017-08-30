@@ -1243,8 +1243,8 @@ static ALvoid Update3DPanning(const ALCdevice *Device, const ALfloat *Reflection
     aluMatrixf transform, rot;
     ALsizei i;
 
-    STATIC_CAST(ALeffectState,State)->OutBuffer = Device->FOAOut.Buffer;
-    STATIC_CAST(ALeffectState,State)->OutChannels = Device->FOAOut.NumChannels;
+    STATIC_CAST(ALeffectState,State)->out_buffer = Device->FOAOut.Buffer;
+    STATIC_CAST(ALeffectState,State)->out_channels = Device->FOAOut.NumChannels;
 
     /* Note: _res is transposed. */
 #define MATRIX_MULT(_res, _m1, _m2) do {                                                   \
@@ -1281,9 +1281,9 @@ static ALvoid ALreverbState_update(ALreverbState *State, const ALCdevice *Device
     ALfloat gain, gainlf, gainhf;
     ALsizei i;
 
-    if(Slot->Params.EffectType == AL_EFFECT_EAXREVERB)
+    if(Slot->params.effect_type == AL_EFFECT_EAXREVERB)
         State->IsEax = AL_TRUE;
-    else if(Slot->Params.EffectType == AL_EFFECT_REVERB)
+    else if(Slot->params.effect_type == AL_EFFECT_REVERB)
         State->IsEax = AL_FALSE;
 
     /* Calculate the master filters */

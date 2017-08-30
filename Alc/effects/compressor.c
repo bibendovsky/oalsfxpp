@@ -81,8 +81,8 @@ static ALvoid ALcompressorState_update(ALcompressorState *state, const ALCdevice
 
     state->Enabled = props->Compressor.OnOff;
 
-    STATIC_CAST(ALeffectState,state)->OutBuffer = device->FOAOut.Buffer;
-    STATIC_CAST(ALeffectState,state)->OutChannels = device->FOAOut.NumChannels;
+    STATIC_CAST(ALeffectState,state)->out_buffer = device->FOAOut.Buffer;
+    STATIC_CAST(ALeffectState,state)->out_channels = device->FOAOut.NumChannels;
     for(i = 0;i < 4;i++)
         ComputeFirstOrderGains(device->FOAOut, IdentityMatrixf.m[i],
                                1.0F, state->Gain[i]);

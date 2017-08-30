@@ -104,8 +104,8 @@ static void T##_Delete(void *ptr) { al_free(ptr); }
 #define DELETE_OBJ(obj) do {                                                  \
     if((obj) != NULL)                                                         \
     {                                                                         \
-        V0((obj),Destruct)();                                                 \
-        V0((obj),Delete)();                                                   \
+        V0((obj),destruct)();                                                 \
+        V0((obj),delete1)();                                                  \
     }                                                                         \
 } while(0)
 

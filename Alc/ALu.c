@@ -148,22 +148,22 @@ static ALboolean CalcEffectSlotParams(ALeffectslot *slot, ALCdevice *device)
     struct ALeffectslotProps *props;
     ALeffectState *state;
 
-    props = slot->Update;
-    slot->Update = NULL;
+    props = slot->update;
+    slot->update = NULL;
     if(!props) return AL_FALSE;
 
-    slot->Params.EffectType = props->Type;
+    slot->params.effect_type = props->type;
 
     /* Swap effect states. No need to play with the ref counts since they keep
      * the same number of refs.
      */
-    state = props->State;
-    props->State = slot->Params.EffectState;
-    slot->Params.EffectState = state;
+    state = props->state;
+    props->state = slot->params.effect_state;
+    slot->params.effect_state = state;
 
-    V(state,update)(device, slot, &props->Props);
+    V(state,update)(device, slot, &props->props);
 
-    props->next = slot->FreeList;
+    props->next = slot->free_list;
     return AL_TRUE;
 }
 
@@ -282,7 +282,7 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
             {
                 const ALeffectslot *Slot = SendSlots[i];
                 if(Slot)
-                    ComputePanningGainsBF(Slot->ChanMap, Slot->NumChannels,
+                    ComputePanningGainsBF(Slot->chan_map, Slot->num_channels,
                         coeffs, WetGain[i], voice->Send[i].Params[c].Gains.Target
                     );
                 else
@@ -361,7 +361,7 @@ static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *p
     for(i = 0;i < Device->NumAuxSends;i++)
     {
         SendSlots[i] = props->Send[i].Slot;
-        if(!SendSlots[i] || SendSlots[i]->Params.EffectType == AL_EFFECT_NULL)
+        if(!SendSlots[i] || SendSlots[i]->params.effect_type == AL_EFFECT_NULL)
         {
             SendSlots[i] = NULL;
             voice->Send[i].Buffer = NULL;
@@ -369,8 +369,8 @@ static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *p
         }
         else
         {
-            voice->Send[i].Buffer = SendSlots[i]->WetBuffer;
-            voice->Send[i].Channels = SendSlots[i]->NumChannels;
+            voice->Send[i].Buffer = SendSlots[i]->wet_buffer;
+            voice->Send[i].Channels = SendSlots[i]->num_channels;
         }
     }
 
@@ -535,8 +535,8 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const 
             for(i = 0;i < auxslots->count;i++)
             {
                 ALeffectslot *slot = auxslots->slot[i];
-                for(c = 0;c < slot->NumChannels;c++)
-                    memset(slot->WetBuffer[c], 0, SamplesToDo*sizeof(ALfloat));
+                for(c = 0;c < slot->num_channels;c++)
+                    memset(slot->wet_buffer[c], 0, SamplesToDo*sizeof(ALfloat));
             }
 
             /* source processing */
@@ -558,9 +558,9 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const 
             for(i = 0;i < auxslots->count;i++)
             {
                 const ALeffectslot *slot = auxslots->slot[i];
-                ALeffectState *state = slot->Params.EffectState;
-                V(state,process)(SamplesToDo, slot->WetBuffer, state->OutBuffer,
-                                 state->OutChannels);
+                ALeffectState *state = slot->params.effect_state;
+                V(state,process)(SamplesToDo, slot->wet_buffer, state->out_buffer,
+                                 state->out_channels);
             }
         }
 

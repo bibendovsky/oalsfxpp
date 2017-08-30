@@ -103,7 +103,7 @@ ALenum InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *e
     struct ALeffectslotProps *props;
     ALeffectState *State;
 
-    if(newtype != EffectSlot->Effect.Type)
+    if(newtype != EffectSlot->effect.type)
     {
         ALeffectStateFactory *factory;
 
@@ -115,9 +115,9 @@ ALenum InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *e
         State = V0(factory,create)();
         if(!State) return AL_OUT_OF_MEMORY;
 
-        State->OutBuffer = Device->Dry.Buffer;
-        State->OutChannels = Device->Dry.NumChannels;
-        if(V(State,deviceUpdate)(Device) == AL_FALSE)
+        State->out_buffer = Device->Dry.Buffer;
+        State->out_channels = Device->Dry.NumChannels;
+        if(V(State,device_update)(Device) == AL_FALSE)
         {
             ALeffectState_DecRef(State);
             return AL_OUT_OF_MEMORY;
@@ -125,28 +125,28 @@ ALenum InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *e
 
         if(!effect)
         {
-            EffectSlot->Effect.Type = AL_EFFECT_NULL;
-            memset(&EffectSlot->Effect.Props, 0, sizeof(EffectSlot->Effect.Props));
+            EffectSlot->effect.type = AL_EFFECT_NULL;
+            memset(&EffectSlot->effect.props, 0, sizeof(EffectSlot->effect.props));
         }
         else
         {
-            EffectSlot->Effect.Type = effect->type;
-            EffectSlot->Effect.Props = effect->Props;
+            EffectSlot->effect.type = effect->type;
+            EffectSlot->effect.props = effect->Props;
         }
 
-        ALeffectState_DecRef(EffectSlot->Effect.State);
-        EffectSlot->Effect.State = State;
+        ALeffectState_DecRef(EffectSlot->effect.state);
+        EffectSlot->effect.state = State;
     }
     else if(effect)
-        EffectSlot->Effect.Props = effect->Props;
+        EffectSlot->effect.props = effect->Props;
 
     /* Remove state references from old effect slot property updates. */
-    props = EffectSlot->FreeList;
+    props = EffectSlot->free_list;
     while(props)
     {
-        if(props->State)
-            ALeffectState_DecRef(props->State);
-        props->State = NULL;
+        if(props->state)
+            ALeffectState_DecRef(props->state);
+        props->state = NULL;
         props = props->next;
     }
 
@@ -157,23 +157,23 @@ ALenum InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *e
 static void ALeffectState_IncRef(ALeffectState *state)
 {
     unsigned int ref;
-    ref = ++state->Ref;
+    ref = ++state->ref;
 }
 
 static void ALeffectState_DecRef(ALeffectState *state)
 {
     unsigned int ref;
-    ref = --state->Ref;
+    ref = --state->ref;
     if(ref == 0) DELETE_OBJ(state);
 }
 
 
 void ALeffectState_Construct(ALeffectState *state)
 {
-    state->Ref = 1;
+    state->ref = 1;
 
-    state->OutBuffer = NULL;
-    state->OutChannels = 0;
+    state->out_buffer = NULL;
+    state->out_channels = 0;
 }
 
 void ALeffectState_Destruct(ALeffectState *UNUSED(state))
@@ -184,19 +184,19 @@ ALenum InitEffectSlot(ALeffectslot *slot)
 {
     ALeffectStateFactory *factory;
 
-    slot->Effect.Type = AL_EFFECT_NULL;
+    slot->effect.type = AL_EFFECT_NULL;
 
     factory = getFactoryByType(AL_EFFECT_NULL);
-    if(!(slot->Effect.State=V0(factory,create)()))
+    if(!(slot->effect.state=V0(factory,create)()))
         return AL_OUT_OF_MEMORY;
 
     slot->ref = 0;
 
-    slot->Update = NULL;
-    slot->FreeList = NULL;
+    slot->update = NULL;
+    slot->free_list = NULL;
 
-    ALeffectState_IncRef(slot->Effect.State);
-    slot->Params.EffectState = slot->Effect.State;
+    ALeffectState_IncRef(slot->effect.state);
+    slot->params.effect_state = slot->effect.state;
 
     return AL_NO_ERROR;
 }
@@ -206,25 +206,25 @@ void DeinitEffectSlot(ALeffectslot *slot)
     struct ALeffectslotProps *props;
     size_t count = 0;
 
-    props = slot->Update;
+    props = slot->update;
     if(props)
     {
-        if(props->State) ALeffectState_DecRef(props->State);
+        if(props->state) ALeffectState_DecRef(props->state);
         al_free(props);
     }
-    props = slot->FreeList;
+    props = slot->free_list;
     while(props)
     {
         struct ALeffectslotProps *next = props->next;
-        if(props->State) ALeffectState_DecRef(props->State);
+        if(props->state) ALeffectState_DecRef(props->state);
         al_free(props);
         props = next;
         ++count;
     }
 
-    ALeffectState_DecRef(slot->Effect.State);
-    if(slot->Params.EffectState)
-        ALeffectState_DecRef(slot->Params.EffectState);
+    ALeffectState_DecRef(slot->effect.state);
+    if(slot->params.effect_state)
+        ALeffectState_DecRef(slot->params.effect_state);
 }
 
 void UpdateEffectSlotProps(ALeffectslot *slot)
@@ -234,7 +234,7 @@ void UpdateEffectSlotProps(ALeffectslot *slot)
     ALeffectState *oldstate;
 
     /* Get an unused property container, or allocate a new one as needed. */
-    props = slot->FreeList;
+    props = slot->free_list;
     if(!props)
         props = al_calloc(16, sizeof(*props));
     else
@@ -242,30 +242,30 @@ void UpdateEffectSlotProps(ALeffectslot *slot)
         struct ALeffectslotProps *next;
         do {
             next = props->next;
-        } while((slot->FreeList == props ? (slot->FreeList = next, true) : (props = slot->FreeList, false)) == 0);
+        } while((slot->free_list == props ? (slot->free_list = next, true) : (props = slot->free_list, false)) == 0);
     }
 
     /* Copy in current property values. */
-    props->Type = slot->Effect.Type;
-    props->Props = slot->Effect.Props;
+    props->type = slot->effect.type;
+    props->props = slot->effect.props;
     /* Swap out any stale effect state object there may be in the container, to
      * delete it.
      */
-    ALeffectState_IncRef(slot->Effect.State);
-    oldstate = props->State;
-    props->State = slot->Effect.State;
+    ALeffectState_IncRef(slot->effect.state);
+    oldstate = props->state;
+    props->state = slot->effect.state;
 
     /* Set the new container for updating internal parameters. */
     temp_props = props;
-    props = slot->Update;
-    slot->Update = temp_props;
+    props = slot->update;
+    slot->update = temp_props;
 
     if(props)
     {
         /* If there was an unused update container, put it back in the
          * freelist.
          */
-        props->next = slot->FreeList;
+        props->next = slot->free_list;
     }
 
     if(oldstate)
