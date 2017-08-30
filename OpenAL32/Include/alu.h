@@ -14,56 +14,14 @@
 #include "bool.h"
 
 
-#define MAX_PITCH  (255)
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct ALsource;
-struct ALbufferlistitem;
 struct ALvoice;
 struct ALeffectslot;
 
-
-enum SpatializeMode {
-    SpatializeOff = AL_FALSE,
-    SpatializeOn = AL_TRUE,
-    SpatializeAuto = AL_AUTO_SOFT
-};
-
-enum Resampler {
-    PointResampler,
-    LinearResampler,
-    FIR4Resampler,
-    BSincResampler,
-
-    ResamplerMax = BSincResampler
-};
-extern enum Resampler ResamplerDefault;
-
-/* The number of distinct scale and phase intervals within the filter table. */
-#define BSINC_SCALE_BITS  4
-#define BSINC_SCALE_COUNT (1<<BSINC_SCALE_BITS)
-#define BSINC_PHASE_BITS  4
-#define BSINC_PHASE_COUNT (1<<BSINC_PHASE_BITS)
-
-/* Interpolator state.  Kind of a misnomer since the interpolator itself is
- * stateless.  This just keeps it from having to recompute scale-related
- * mappings for every sample.
- */
-typedef struct BsincState {
-    ALfloat sf; /* Scale interpolation factor. */
-    ALuint m;   /* Coefficient count. */
-    ALint l;    /* Left coefficient offset. */
-    struct Coeffs {
-        const ALfloat *filter;   /* Filter coefficients. */
-        const ALfloat *sc_delta;  /* Scale deltas. */
-        const ALfloat *ph_delta;  /* Phase deltas. */
-        const ALfloat *sp_delta;  /* Scale-phase deltas. */
-    } coeffs[BSINC_PHASE_COUNT];
-} BsincState;
 
 typedef union aluMatrixf {
     alignas(16) ALfloat m[4][4];
@@ -145,9 +103,6 @@ struct ALvoiceProps {
     } send[];
 };
 
-/* If not 'fading', gain targets are used directly without fading. */
-#define VOICE_IS_FADING (1<<0)
-
 typedef struct ALvoice {
     struct ALvoiceProps *props;
 
@@ -195,14 +150,9 @@ typedef void (*RowMixerFunc)(ALfloat *OutBuffer, const ALfloat *gains,
 #define GAIN_SILENCE_THRESHOLD  (0.00001f) /* -100dB */
 
 #define SPEEDOFSOUNDMETRESPERSEC  (343.3f)
-#define AIRABSORBGAINHF           (0.99426f) /* -0.05dB */
 
 /* Target gain for the reverb decay feedback reaching the decay time. */
 #define REVERB_DECAY_GAIN  (0.001f) /* -60 dB */
-
-#define FRACTIONBITS (12)
-#define FRACTIONONE  (1<<FRACTIONBITS)
-#define FRACTIONMASK (FRACTIONONE-1)
 
 
 inline ALfloat minf(ALfloat a, ALfloat b)
@@ -211,13 +161,6 @@ inline ALfloat maxf(ALfloat a, ALfloat b)
 { return ((a > b) ? a : b); }
 inline ALfloat clampf(ALfloat val, ALfloat min, ALfloat max)
 { return minf(max, maxf(min, val)); }
-
-inline ALdouble mind(ALdouble a, ALdouble b)
-{ return ((a > b) ? b : a); }
-inline ALdouble maxd(ALdouble a, ALdouble b)
-{ return ((a > b) ? a : b); }
-inline ALdouble clampd(ALdouble val, ALdouble min, ALdouble max)
-{ return mind(max, maxd(min, val)); }
 
 inline ALuint minu(ALuint a, ALuint b)
 { return ((a > b) ? b : a); }
@@ -232,20 +175,6 @@ inline ALint maxi(ALint a, ALint b)
 { return ((a > b) ? a : b); }
 inline ALint clampi(ALint val, ALint min, ALint max)
 { return mini(max, maxi(min, val)); }
-
-inline ALint64 mini64(ALint64 a, ALint64 b)
-{ return ((a > b) ? b : a); }
-inline ALint64 maxi64(ALint64 a, ALint64 b)
-{ return ((a > b) ? a : b); }
-inline ALint64 clampi64(ALint64 val, ALint64 min, ALint64 max)
-{ return mini64(max, maxi64(min, val)); }
-
-inline ALuint64 minu64(ALuint64 a, ALuint64 b)
-{ return ((a > b) ? b : a); }
-inline ALuint64 maxu64(ALuint64 a, ALuint64 b)
-{ return ((a > b) ? a : b); }
-inline ALuint64 clampu64(ALuint64 val, ALuint64 min, ALuint64 max)
-{ return minu64(max, maxu64(min, val)); }
 
 
 inline ALfloat lerp(ALfloat val1, ALfloat val2, ALfloat mu)
@@ -341,8 +270,6 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const 
 /* Caller must lock the device. */
 void aluHandleDisconnect(ALCdevice *device);
 
-extern ALfloat ConeScale;
-extern ALfloat ZScale;
 
 #ifdef __cplusplus
 }

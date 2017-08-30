@@ -23,10 +23,6 @@
 #include "mixer_defs.h"
 
 
-static_assert((INT_MAX>>FRACTIONBITS)/MAX_PITCH > BUFFERSIZE,
-              "MAX_PITCH and/or BUFFERSIZE are too large for FRACTIONBITS!");
-
-
 static MixerFunc MixSamples = Mix_C;
 
 
