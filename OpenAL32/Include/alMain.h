@@ -21,9 +21,6 @@
 typedef ALint64SOFT ALint64;
 typedef ALuint64SOFT ALuint64;
 
-#ifndef UNUSED
-#define UNUSED(x) x
-#endif
 
 #define DECL_FORMAT(x, y, z)
 

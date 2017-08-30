@@ -59,7 +59,7 @@ static ALvoid ALdistortionState_Destruct(ALdistortionState *state)
     ALeffectState_Destruct(STATIC_CAST(ALeffectState,state));
 }
 
-static ALboolean ALdistortionState_deviceUpdate(ALdistortionState *UNUSED(state), ALCdevice *UNUSED(device))
+static ALboolean ALdistortionState_deviceUpdate(ALdistortionState *state, ALCdevice *device)
 {
     return AL_TRUE;
 }
@@ -176,7 +176,7 @@ typedef struct ALdistortionStateFactory {
     DERIVE_FROM_TYPE(ALeffectStateFactory);
 } ALdistortionStateFactory;
 
-static ALeffectState *ALdistortionStateFactory_create(ALdistortionStateFactory *UNUSED(factory))
+static ALeffectState *ALdistortionStateFactory_create(ALdistortionStateFactory *factory)
 {
     ALdistortionState *state;
 

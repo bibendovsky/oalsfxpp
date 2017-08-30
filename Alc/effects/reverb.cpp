@@ -1853,7 +1853,7 @@ typedef struct ALreverbStateFactory {
     DERIVE_FROM_TYPE(ALeffectStateFactory);
 } ALreverbStateFactory;
 
-static ALeffectState *ALreverbStateFactory_create(ALreverbStateFactory* UNUSED(factory))
+static ALeffectState *ALreverbStateFactory_create(ALreverbStateFactory* factory)
 {
     ALreverbState *state;
 

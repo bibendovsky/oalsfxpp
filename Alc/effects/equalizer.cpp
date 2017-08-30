@@ -110,7 +110,7 @@ static ALvoid ALequalizerState_Destruct(ALequalizerState *state)
     ALeffectState_Destruct(STATIC_CAST(ALeffectState,state));
 }
 
-static ALboolean ALequalizerState_deviceUpdate(ALequalizerState *UNUSED(state), ALCdevice *UNUSED(device))
+static ALboolean ALequalizerState_deviceUpdate(ALequalizerState *state, ALCdevice *device)
 {
     return AL_TRUE;
 }
@@ -210,7 +210,7 @@ typedef struct ALequalizerStateFactory {
     DERIVE_FROM_TYPE(ALeffectStateFactory);
 } ALequalizerStateFactory;
 
-ALeffectState *ALequalizerStateFactory_create(ALequalizerStateFactory *UNUSED(factory))
+ALeffectState *ALequalizerStateFactory_create(ALequalizerStateFactory *factory)
 {
     ALequalizerState *state;
 

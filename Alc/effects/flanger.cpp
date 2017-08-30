@@ -264,7 +264,7 @@ typedef struct ALflangerStateFactory {
     DERIVE_FROM_TYPE(ALeffectStateFactory);
 } ALflangerStateFactory;
 
-ALeffectState *ALflangerStateFactory_create(ALflangerStateFactory *UNUSED(factory))
+ALeffectState *ALflangerStateFactory_create(ALflangerStateFactory *factory)
 {
     ALflangerState *state;
 

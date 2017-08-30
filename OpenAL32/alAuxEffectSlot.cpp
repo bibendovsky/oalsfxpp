@@ -168,7 +168,7 @@ void ALeffectState_Construct(ALeffectState *state)
     state->out_channels = 0;
 }
 
-void ALeffectState_Destruct(ALeffectState *UNUSED(state))
+void ALeffectState_Destruct(ALeffectState *state)
 {
 }
 

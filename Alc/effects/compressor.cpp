@@ -178,7 +178,7 @@ typedef struct ALcompressorStateFactory {
     DERIVE_FROM_TYPE(ALeffectStateFactory);
 } ALcompressorStateFactory;
 
-static ALeffectState *ALcompressorStateFactory_create(ALcompressorStateFactory *UNUSED(factory))
+static ALeffectState *ALcompressorStateFactory_create(ALcompressorStateFactory *factory)
 {
     ALcompressorState *state;
 

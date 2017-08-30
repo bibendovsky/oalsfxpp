@@ -102,7 +102,7 @@ static ALvoid ALmodulatorState_Destruct(ALmodulatorState *state)
     ALeffectState_Destruct(STATIC_CAST(ALeffectState,state));
 }
 
-static ALboolean ALmodulatorState_deviceUpdate(ALmodulatorState *UNUSED(state), ALCdevice *UNUSED(device))
+static ALboolean ALmodulatorState_deviceUpdate(ALmodulatorState *state, ALCdevice *device)
 {
     return AL_TRUE;
 }
@@ -186,7 +186,7 @@ typedef struct ALmodulatorStateFactory {
     DERIVE_FROM_TYPE(ALeffectStateFactory);
 } ALmodulatorStateFactory;
 
-static ALeffectState *ALmodulatorStateFactory_create(ALmodulatorStateFactory *UNUSED(factory))
+static ALeffectState *ALmodulatorStateFactory_create(ALmodulatorStateFactory *factory)
 {
     ALmodulatorState *state;
 

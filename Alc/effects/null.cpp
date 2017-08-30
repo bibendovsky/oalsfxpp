@@ -41,7 +41,7 @@ static ALvoid ALnullState_Destruct(ALnullState *state)
  * initialization and any time the device parameters (eg. playback frequency,
  * format) have been changed.
  */
-static ALboolean ALnullState_deviceUpdate(ALnullState* UNUSED(state), ALCdevice* UNUSED(device))
+static ALboolean ALnullState_deviceUpdate(ALnullState* state, ALCdevice* device)
 {
     return AL_TRUE;
 }
@@ -49,7 +49,7 @@ static ALboolean ALnullState_deviceUpdate(ALnullState* UNUSED(state), ALCdevice*
 /* This updates the effect state. This is called any time the effect is
  * (re)loaded into a slot.
  */
-static ALvoid ALnullState_update(ALnullState* UNUSED(state), const ALCdevice* UNUSED(device), const ALeffectslot* UNUSED(slot), const ALeffectProps* UNUSED(props))
+static ALvoid ALnullState_update(ALnullState* state, const ALCdevice* device, const ALeffectslot* slot, const ALeffectProps* props)
 {
 }
 
@@ -57,7 +57,7 @@ static ALvoid ALnullState_update(ALnullState* UNUSED(state), const ALCdevice* UN
  * input to the output buffer. The result should be added to the output buffer,
  * not replace it.
  */
-static ALvoid ALnullState_process(ALnullState* UNUSED(state), ALsizei UNUSED(samplesToDo), const ALfloatBUFFERSIZE*UNUSED(samplesIn), ALfloatBUFFERSIZE*UNUSED(samplesOut), ALsizei UNUSED(NumChannels))
+static ALvoid ALnullState_process(ALnullState* state, ALsizei samplesToDo, const ALfloatBUFFERSIZE*samplesIn, ALfloatBUFFERSIZE*samplesOut, ALsizei NumChannels)
 {
 }
 
@@ -83,7 +83,7 @@ typedef struct ALnullStateFactory {
 } ALnullStateFactory;
 
 /* Creates ALeffectState objects of the appropriate type. */
-ALeffectState *ALnullStateFactory_create(ALnullStateFactory *UNUSED(factory))
+ALeffectState *ALnullStateFactory_create(ALnullStateFactory *factory)
 {
     ALnullState *state;
 
@@ -103,28 +103,28 @@ ALeffectStateFactory *ALnullStateFactory_getFactory(void)
 }
 
 
-void ALnull_setParami(ALeffect* UNUSED(effect), ALCcontext *context, ALenum param, ALint UNUSED(val))
+void ALnull_setParami(ALeffect* effect, ALCcontext *context, ALenum param, ALint val)
 {
 }
-void ALnull_setParamiv(ALeffect* UNUSED(effect), ALCcontext *context, ALenum param, const ALint* UNUSED(vals))
+void ALnull_setParamiv(ALeffect* effect, ALCcontext *context, ALenum param, const ALint* vals)
 {
 }
-void ALnull_setParamf(ALeffect* UNUSED(effect), ALCcontext *context, ALenum param, ALfloat UNUSED(val))
+void ALnull_setParamf(ALeffect* effect, ALCcontext *context, ALenum param, ALfloat val)
 {
 }
-void ALnull_setParamfv(ALeffect* UNUSED(effect), ALCcontext *context, ALenum param, const ALfloat* UNUSED(vals))
+void ALnull_setParamfv(ALeffect* effect, ALCcontext *context, ALenum param, const ALfloat* vals)
 {
 }
 
-void ALnull_getParami(const ALeffect* UNUSED(effect), ALCcontext *context, ALenum param, ALint* UNUSED(val))
+void ALnull_getParami(const ALeffect* effect, ALCcontext *context, ALenum param, ALint* val)
 {
 }
-void ALnull_getParamiv(const ALeffect* UNUSED(effect), ALCcontext *context, ALenum param, ALint* UNUSED(vals))
+void ALnull_getParamiv(const ALeffect* effect, ALCcontext *context, ALenum param, ALint* vals)
 {
 }
-void ALnull_getParamf(const ALeffect* UNUSED(effect), ALCcontext *context, ALenum param, ALfloat* UNUSED(val))
+void ALnull_getParamf(const ALeffect* effect, ALCcontext *context, ALenum param, ALfloat* val)
 {
 }
-void ALnull_getParamfv(const ALeffect* UNUSED(effect), ALCcontext *context, ALenum param, ALfloat* UNUSED(vals))
+void ALnull_getParamfv(const ALeffect* effect, ALCcontext *context, ALenum param, ALfloat* vals)
 {
 }

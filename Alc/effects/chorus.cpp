@@ -266,7 +266,7 @@ typedef struct ALchorusStateFactory {
     DERIVE_FROM_TYPE(ALeffectStateFactory);
 } ALchorusStateFactory;
 
-static ALeffectState *ALchorusStateFactory_create(ALchorusStateFactory *UNUSED(factory))
+static ALeffectState *ALchorusStateFactory_create(ALchorusStateFactory *factory)
 {
     ALchorusState *state;
 

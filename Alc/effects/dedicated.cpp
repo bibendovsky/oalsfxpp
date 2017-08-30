@@ -55,7 +55,7 @@ static ALvoid ALdedicatedState_Destruct(ALdedicatedState *state)
     ALeffectState_Destruct(STATIC_CAST(ALeffectState,state));
 }
 
-static ALboolean ALdedicatedState_deviceUpdate(ALdedicatedState *UNUSED(state), ALCdevice *UNUSED(device))
+static ALboolean ALdedicatedState_deviceUpdate(ALdedicatedState *state, ALCdevice *device)
 {
     return AL_TRUE;
 }
@@ -124,7 +124,7 @@ typedef struct ALdedicatedStateFactory {
     DERIVE_FROM_TYPE(ALeffectStateFactory);
 } ALdedicatedStateFactory;
 
-ALeffectState *ALdedicatedStateFactory_create(ALdedicatedStateFactory *UNUSED(factory))
+ALeffectState *ALdedicatedStateFactory_create(ALdedicatedStateFactory *factory)
 {
     ALdedicatedState *state;
 

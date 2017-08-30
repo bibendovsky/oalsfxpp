@@ -206,7 +206,7 @@ typedef struct ALechoStateFactory {
     DERIVE_FROM_TYPE(ALeffectStateFactory);
 } ALechoStateFactory;
 
-ALeffectState *ALechoStateFactory_create(ALechoStateFactory *UNUSED(factory))
+ALeffectState *ALechoStateFactory_create(ALechoStateFactory *factory)
 {
     ALechoState *state;
 
