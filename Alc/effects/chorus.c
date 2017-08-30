@@ -90,7 +90,7 @@ static ALboolean ALchorusState_deviceUpdate(ALchorusState *state, ALCdevice *Dev
     ALsizei maxlen;
     ALsizei it;
 
-    maxlen = fastf2i(AL_CHORUS_MAX_DELAY * 2.0f * Device->Frequency) + 1;
+    maxlen = fastf2i(AL_CHORUS_MAX_DELAY * 2.0f * Device->frequency) + 1;
     maxlen = NextPowerOf2(maxlen);
 
     if(maxlen != state->BufferLength)
@@ -116,7 +116,7 @@ static ALboolean ALchorusState_deviceUpdate(ALchorusState *state, ALCdevice *Dev
 
 static ALvoid ALchorusState_update(ALchorusState *state, const ALCdevice *Device, const ALeffectslot *Slot, const ALeffectProps *props)
 {
-    ALfloat frequency = (ALfloat)Device->Frequency;
+    ALfloat frequency = (ALfloat)Device->frequency;
     ALfloat coeffs[MAX_AMBI_COEFFS];
     ALfloat rate;
     ALint phase;
@@ -137,9 +137,9 @@ static ALvoid ALchorusState_update(ALchorusState *state, const ALCdevice *Device
 
     /* Gains for left and right sides */
     CalcAngleCoeffs(-F_PI_2, 0.0f, 0.0f, coeffs);
-    ComputePanningGains(Device->Dry, coeffs, 1.0F, state->Gain[0]);
+    ComputePanningGains(Device->dry, coeffs, 1.0F, state->Gain[0]);
     CalcAngleCoeffs( F_PI_2, 0.0f, 0.0f, coeffs);
-    ComputePanningGains(Device->Dry, coeffs, 1.0F, state->Gain[1]);
+    ComputePanningGains(Device->dry, coeffs, 1.0F, state->Gain[1]);
 
     phase = props->chorus.phase;
     rate = props->chorus.rate;

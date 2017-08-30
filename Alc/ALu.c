@@ -217,15 +217,15 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
         { FrontRight, DEG2RAD( 30.0f), DEG2RAD(0.0f) }
     };
     bool DirectChannels = AL_FALSE;
-    const ALsizei NumSends = Device->NumAuxSends;
-    const ALuint Frequency = Device->Frequency;
+    const ALsizei NumSends = Device->num_aux_sends;
+    const ALuint Frequency = Device->frequency;
     const struct ChanMap *chans = NULL;
     ALsizei num_channels = 0;
     bool isbformat = false;
     ALfloat downmix_gain = 1.0f;
     ALsizei c, i, j;
 
-    switch(Device->FmtChans)
+    switch(Device->fmt_chans)
     {
     case FmtMono:
         chans = MonoMap;
@@ -259,9 +259,9 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
             {
                 for(j = 0;j < MAX_OUTPUT_CHANNELS;j++)
                     voice->Direct.Params[c].Gains.Target[j] = 0.0f;
-                if(Device->Dry.Buffer == Device->RealOut.Buffer)
+                if(Device->dry.buffer == Device->real_out.buffer)
                 {
-                    int idx = GetChannelIdxByName(Device->RealOut, chans[c].channel);
+                    int idx = GetChannelIdxByName(Device->real_out, chans[c].channel);
                     if(idx != -1) voice->Direct.Params[c].Gains.Target[idx] = DryGain;
                 }
 
@@ -274,7 +274,7 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
             }
 
             CalcAngleCoeffs(chans[c].angle, chans[c].elevation, Spread, coeffs);
-            ComputePanningGains(Device->Dry,
+            ComputePanningGains(Device->dry,
                 coeffs, DryGain, voice->Direct.Params[c].Gains.Target
             );
 
@@ -348,7 +348,7 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
 static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *props, const ALCcontext *ALContext)
 {
     static const ALfloat dir[3] = { 0.0f, 0.0f, -1.0f };
-    const ALCdevice *Device = ALContext->Device;
+    const ALCdevice *Device = ALContext->device;
     ALfloat DryGain, DryGainHF, DryGainLF;
     ALfloat WetGain[MAX_SENDS];
     ALfloat WetGainHF[MAX_SENDS];
@@ -356,20 +356,20 @@ static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *p
     ALeffectslot *SendSlots[MAX_SENDS];
     ALsizei i;
 
-    voice->Direct.Buffer = Device->Dry.Buffer;
-    voice->Direct.Channels = Device->Dry.NumChannels;
-    for(i = 0;i < Device->NumAuxSends;i++)
+    voice->Direct.buffer = Device->dry.buffer;
+    voice->Direct.Channels = Device->dry.num_channels;
+    for(i = 0;i < Device->num_aux_sends;i++)
     {
         SendSlots[i] = props->Send[i].Slot;
         if(!SendSlots[i] || SendSlots[i]->params.effect_type == AL_EFFECT_NULL)
         {
             SendSlots[i] = NULL;
-            voice->Send[i].Buffer = NULL;
+            voice->Send[i].buffer = NULL;
             voice->Send[i].Channels = 0;
         }
         else
         {
-            voice->Send[i].Buffer = SendSlots[i]->wet_buffer;
+            voice->Send[i].buffer = SendSlots[i]->wet_buffer;
             voice->Send[i].Channels = SendSlots[i]->num_channels;
         }
     }
@@ -380,7 +380,7 @@ static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *p
     DryGain  = minf(DryGain, GAIN_MIX_MAX);
     DryGainHF = props->Direct.GainHF;
     DryGainLF = props->Direct.GainLF;
-    for(i = 0;i < Device->NumAuxSends;i++)
+    for(i = 0;i < Device->num_aux_sends;i++)
     {
         WetGain[i]  = 1.0F;
         WetGain[i] *= props->Send[i].Gain;
@@ -407,7 +407,7 @@ static void UpdateContextSources(ALCcontext *ctx, const struct ALeffectslotArray
 
     ALboolean force = AL_TRUE;
     for(i = 0;i < slots->count;i++)
-        force |= CalcEffectSlotParams(slots->slot[i], ctx->Device);
+        force |= CalcEffectSlotParams(slots->slot[i], ctx->device);
 
     voice = ctx->voice;
     source = voice->Source;
@@ -424,9 +424,9 @@ static void ApplyDistanceComp(ALfloatBUFFERSIZE *restrict Samples, DistanceComp 
     for(c = 0;c < numchans;c++)
     {
         ALfloat *restrict inout = ASSUME_ALIGNED(Samples[c], 16);
-        const ALfloat gain = distcomp[c].Gain;
-        const ALsizei base = distcomp[c].Length;
-        ALfloat *restrict distbuf = ASSUME_ALIGNED(distcomp[c].Buffer, 16);
+        const ALfloat gain = distcomp[c].gain;
+        const ALsizei base = distcomp[c].length;
+        ALfloat *restrict distbuf = ASSUME_ALIGNED(distcomp[c].buffer, 16);
 
         if(base == 0)
         {
@@ -510,26 +510,26 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const 
     ALCcontext *ctx;
     ALsizei i, c;
 
-    device->source_data = src_samples;
+    device->source_samples = src_samples;
 
     for(SamplesDone = 0;SamplesDone < NumSamples;)
     {
         SamplesToDo = mini(NumSamples-SamplesDone, BUFFERSIZE);
-        for(c = 0;c < device->Dry.NumChannels;c++)
-            memset(device->Dry.Buffer[c], 0, SamplesToDo*sizeof(ALfloat));
-        if(device->Dry.Buffer != device->FOAOut.Buffer)
-            for(c = 0;c < device->FOAOut.NumChannels;c++)
-                memset(device->FOAOut.Buffer[c], 0, SamplesToDo*sizeof(ALfloat));
-        if(device->Dry.Buffer != device->RealOut.Buffer)
-            for(c = 0;c < device->RealOut.NumChannels;c++)
-                memset(device->RealOut.Buffer[c], 0, SamplesToDo*sizeof(ALfloat));
+        for(c = 0;c < device->dry.num_channels;c++)
+            memset(device->dry.buffer[c], 0, SamplesToDo*sizeof(ALfloat));
+        if(device->dry.buffer != device->foa_out.buffer)
+            for(c = 0;c < device->foa_out.num_channels;c++)
+                memset(device->foa_out.buffer[c], 0, SamplesToDo*sizeof(ALfloat));
+        if(device->dry.buffer != device->real_out.buffer)
+            for(c = 0;c < device->real_out.num_channels;c++)
+                memset(device->real_out.buffer[c], 0, SamplesToDo*sizeof(ALfloat));
 
         ctx = device->context;
         if(ctx)
         {
             const struct ALeffectslotArray *auxslots;
 
-            auxslots = ctx->ActiveAuxSlots;
+            auxslots = ctx->active_aux_slots;
             UpdateContextSources(ctx, auxslots);
 
             for(i = 0;i < auxslots->count;i++)
@@ -540,7 +540,7 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const 
             }
 
             /* source processing */
-            for(i = 0;i < ctx->VoiceCount;i++)
+            for(i = 0;i < ctx->voice_count;i++)
             {
                 ALvoice *voice = ctx->voice;
                 ALsource *source = voice->Source;
@@ -566,8 +566,8 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const 
 
         if(OutBuffer)
         {
-            ALfloat (*Buffer)[BUFFERSIZE] = device->RealOut.Buffer;
-            ALsizei Channels = device->RealOut.NumChannels;
+            ALfloat (*Buffer)[BUFFERSIZE] = device->real_out.buffer;
+            ALsizei Channels = device->real_out.num_channels;
             WriteF32(Buffer, OutBuffer, SamplesDone, SamplesToDo, Channels);
         }
 
@@ -584,7 +584,7 @@ void aluHandleDisconnect(ALCdevice *device)
     if(ctx)
     {
         ALsizei i;
-        for(i = 0;i < ctx->VoiceCount;i++)
+        for(i = 0;i < ctx->voice_count;i++)
         {
             ALvoice *voice = ctx->voice;
             ALsource *source;
@@ -601,6 +601,6 @@ void aluHandleDisconnect(ALCdevice *device)
                 }
             }
         }
-        ctx->VoiceCount = 0;
+        ctx->voice_count = 0;
     }
 }

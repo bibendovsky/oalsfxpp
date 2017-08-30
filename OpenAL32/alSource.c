@@ -174,14 +174,14 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
     if(!(n == 1))
         goto done;
 
-    device = context->Device;
+    device = context->device;
 
     for(i = 0;i < n;i++)
     {
         bool start_fading = false;
         ALsizei s;
 
-        source = context->Device->source;
+        source = context->device->source;
 
         voice = GetSourceVoice(source, context);
         switch(GetSourceState(source, voice))
@@ -205,7 +205,7 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
         /* Make sure this source isn't already active, and if not, look for an
          * unused voice to put it in.
          */
-        for(j = 0;j < context->VoiceCount;j++)
+        for(j = 0;j < context->voice_count;j++)
         {
             if(context->voice->Source == NULL)
             {
@@ -215,12 +215,12 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
         }
         voice->Playing = false;
 
-        UpdateSourceProps(source, voice, device->NumAuxSends);
+        UpdateSourceProps(source, voice, device->num_aux_sends);
 
-        voice->NumChannels = device->Dry.NumChannels;
+        voice->NumChannels = device->dry.num_channels;
 
         memset(voice->Direct.Params, 0, sizeof(voice->Direct.Params[0])*voice->NumChannels);
-        for(s = 0;s < device->NumAuxSends;s++)
+        for(s = 0;s < device->num_aux_sends;s++)
             memset(voice->Send[s].Params, 0, sizeof(voice->Send[s].Params[0])*voice->NumChannels);
 
         voice->Source = source;
@@ -253,10 +253,10 @@ AL_API ALvoid AL_APIENTRY alSourceStopv(ALsizei n, const ALuint *sources)
     if(!(n == 1))
         goto done;
 
-    device = context->Device;
+    device = context->device;
     for(i = 0;i < n;i++)
     {
-        source = context->Device->source;
+        source = context->device->source;
         if((voice=GetSourceVoice(source, context)) != NULL)
         {
             voice->Source = NULL;
@@ -338,10 +338,10 @@ void UpdateSourceProps(ALsource *source, ALvoice *voice, ALsizei num_sends)
 
 void UpdateAllSourceProps(ALCcontext *context)
 {
-    ALsizei num_sends = context->Device->NumAuxSends;
+    ALsizei num_sends = context->device->num_aux_sends;
     ALsizei pos;
 
-    for(pos = 0;pos < context->VoiceCount;pos++)
+    for(pos = 0;pos < context->voice_count;pos++)
     {
         ALvoice *voice = context->voice;
         ALsource *source = voice->Source;

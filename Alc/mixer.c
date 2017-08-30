@@ -98,18 +98,18 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
 
         /* Load what's left to play from the source buffer, and
             * clear the rest of the temp buffer */
-        memcpy(Device->SourceData, Device->source_data, NumChannels * 4 * SamplesToDo);
+        memcpy(Device->source_data, Device->source_samples, NumChannels * 4 * SamplesToDo);
 
         /* Now resample, then filter and mix to the appropriate outputs. */
-        memcpy(Device->ResampledData, Device->SourceData, SamplesToDo*sizeof(ALfloat));
+        memcpy(Device->resampled_data, Device->source_data, SamplesToDo*sizeof(ALfloat));
 
         parms = &voice->Direct.Params[chan];
 
         samples = DoFilters(
             &parms->LowPass,
             &parms->HighPass,
-            Device->FilteredData,
-            Device->ResampledData,
+            Device->filtered_data,
+            Device->resampled_data,
             SamplesToDo,
             voice->Direct.FilterType);
 
@@ -118,18 +118,18 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
         MixSamples(
             samples,
             voice->Direct.Channels,
-            voice->Direct.Buffer,
+            voice->Direct.buffer,
             parms->Gains.Current,
             parms->Gains.Target,
             0,
             0,
             SamplesToDo);
 
-        for (send = 0; send < Device->NumAuxSends; ++send)
+        for (send = 0; send < Device->num_aux_sends; ++send)
         {
             SendParams *parms = &voice->Send[send].Params[chan];
 
-            if (!voice->Send[send].Buffer)
+            if (!voice->Send[send].buffer)
             {
                 continue;
             }
@@ -137,8 +137,8 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
             samples = DoFilters(
                 &parms->LowPass,
                 &parms->HighPass,
-                Device->FilteredData,
-                Device->ResampledData,
+                Device->filtered_data,
+                Device->resampled_data,
                 SamplesToDo,
                 voice->Send[send].FilterType);
 
@@ -147,7 +147,7 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
             MixSamples(
                 samples,
                 voice->Send[send].Channels,
-                voice->Send[send].Buffer,
+                voice->Send[send].buffer,
                 parms->Gains.Current,
                 parms->Gains.Target,
                 0,

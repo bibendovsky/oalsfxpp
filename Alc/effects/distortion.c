@@ -72,7 +72,7 @@ static ALboolean ALdistortionState_deviceUpdate(ALdistortionState *UNUSED(state)
 
 static ALvoid ALdistortionState_update(ALdistortionState *state, const ALCdevice *Device, const ALeffectslot *Slot, const ALeffectProps *props)
 {
-    ALfloat frequency = (ALfloat)Device->Frequency;
+    ALfloat frequency = (ALfloat)Device->frequency;
     ALfloat bandwidth;
     ALfloat cutoff;
     ALfloat edge;
@@ -102,7 +102,7 @@ static ALvoid ALdistortionState_update(ALdistortionState *state, const ALCdevice
         cutoff / (frequency*4.0f), calc_rcpQ_from_bandwidth(cutoff / (frequency*4.0f), bandwidth)
     );
 
-    ComputeAmbientGains(Device->Dry, 1.0F, state->Gain);
+    ComputeAmbientGains(Device->dry, 1.0F, state->Gain);
 }
 
 static ALvoid ALdistortionState_process(ALdistortionState *state, ALsizei SamplesToDo, const ALfloat (*restrict SamplesIn)[BUFFERSIZE], ALfloat (*restrict SamplesOut)[BUFFERSIZE], ALsizei NumChannels)

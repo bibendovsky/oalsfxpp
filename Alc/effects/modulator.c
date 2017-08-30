@@ -127,11 +127,11 @@ static ALvoid ALmodulatorState_update(ALmodulatorState *state, const ALCdevice *
         state->Process = ModulateSquare;
 
     state->step = fastf2i(props->modulator.frequency*WAVEFORM_FRACONE /
-                          Device->Frequency);
+                          Device->frequency);
     if(state->step == 0) state->step = 1;
 
     /* Custom filter coeffs, which match the old version instead of a low-shelf. */
-    cw = cosf(F_TAU * props->modulator.high_pass_cutoff / Device->Frequency);
+    cw = cosf(F_TAU * props->modulator.high_pass_cutoff / Device->frequency);
     a = (2.0f-cw) - sqrtf(powf(2.0f-cw, 2.0f) - 1.0f);
 
     for(i = 0;i < MAX_EFFECT_CHANNELS;i++)
@@ -143,10 +143,10 @@ static ALvoid ALmodulatorState_update(ALmodulatorState *state, const ALCdevice *
         state->Filter[i].a2 = 0.0f;
     }
 
-    STATIC_CAST(ALeffectState,state)->out_buffer = Device->FOAOut.Buffer;
-    STATIC_CAST(ALeffectState,state)->out_channels = Device->FOAOut.NumChannels;
+    STATIC_CAST(ALeffectState,state)->out_buffer = Device->foa_out.buffer;
+    STATIC_CAST(ALeffectState,state)->out_channels = Device->foa_out.num_channels;
     for(i = 0;i < MAX_EFFECT_CHANNELS;i++)
-        ComputeFirstOrderGains(Device->FOAOut, IdentityMatrixf.m[i],
+        ComputeFirstOrderGains(Device->foa_out, IdentityMatrixf.m[i],
                                1.0F, state->Gain[i]);
 }
 

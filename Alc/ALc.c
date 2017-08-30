@@ -107,57 +107,57 @@ void SetDefaultWFXChannelOrder(ALCdevice *device)
     ALsizei i;
 
     for(i = 0;i < MAX_OUTPUT_CHANNELS;i++)
-        device->RealOut.ChannelName[i] = InvalidChannel;
+        device->real_out.channel_name[i] = InvalidChannel;
 
-    switch(device->FmtChans)
+    switch(device->fmt_chans)
     {
     case DevFmtMono:
-        device->RealOut.ChannelName[0] = FrontCenter;
+        device->real_out.channel_name[0] = FrontCenter;
         break;
     case DevFmtStereo:
-        device->RealOut.ChannelName[0] = FrontLeft;
-        device->RealOut.ChannelName[1] = FrontRight;
+        device->real_out.channel_name[0] = FrontLeft;
+        device->real_out.channel_name[1] = FrontRight;
         break;
     case DevFmtQuad:
-        device->RealOut.ChannelName[0] = FrontLeft;
-        device->RealOut.ChannelName[1] = FrontRight;
-        device->RealOut.ChannelName[2] = BackLeft;
-        device->RealOut.ChannelName[3] = BackRight;
+        device->real_out.channel_name[0] = FrontLeft;
+        device->real_out.channel_name[1] = FrontRight;
+        device->real_out.channel_name[2] = BackLeft;
+        device->real_out.channel_name[3] = BackRight;
         break;
     case DevFmtX51:
-        device->RealOut.ChannelName[0] = FrontLeft;
-        device->RealOut.ChannelName[1] = FrontRight;
-        device->RealOut.ChannelName[2] = FrontCenter;
-        device->RealOut.ChannelName[3] = LFE;
-        device->RealOut.ChannelName[4] = SideLeft;
-        device->RealOut.ChannelName[5] = SideRight;
+        device->real_out.channel_name[0] = FrontLeft;
+        device->real_out.channel_name[1] = FrontRight;
+        device->real_out.channel_name[2] = FrontCenter;
+        device->real_out.channel_name[3] = LFE;
+        device->real_out.channel_name[4] = SideLeft;
+        device->real_out.channel_name[5] = SideRight;
         break;
     case DevFmtX51Rear:
-        device->RealOut.ChannelName[0] = FrontLeft;
-        device->RealOut.ChannelName[1] = FrontRight;
-        device->RealOut.ChannelName[2] = FrontCenter;
-        device->RealOut.ChannelName[3] = LFE;
-        device->RealOut.ChannelName[4] = BackLeft;
-        device->RealOut.ChannelName[5] = BackRight;
+        device->real_out.channel_name[0] = FrontLeft;
+        device->real_out.channel_name[1] = FrontRight;
+        device->real_out.channel_name[2] = FrontCenter;
+        device->real_out.channel_name[3] = LFE;
+        device->real_out.channel_name[4] = BackLeft;
+        device->real_out.channel_name[5] = BackRight;
         break;
     case DevFmtX61:
-        device->RealOut.ChannelName[0] = FrontLeft;
-        device->RealOut.ChannelName[1] = FrontRight;
-        device->RealOut.ChannelName[2] = FrontCenter;
-        device->RealOut.ChannelName[3] = LFE;
-        device->RealOut.ChannelName[4] = BackCenter;
-        device->RealOut.ChannelName[5] = SideLeft;
-        device->RealOut.ChannelName[6] = SideRight;
+        device->real_out.channel_name[0] = FrontLeft;
+        device->real_out.channel_name[1] = FrontRight;
+        device->real_out.channel_name[2] = FrontCenter;
+        device->real_out.channel_name[3] = LFE;
+        device->real_out.channel_name[4] = BackCenter;
+        device->real_out.channel_name[5] = SideLeft;
+        device->real_out.channel_name[6] = SideRight;
         break;
     case DevFmtX71:
-        device->RealOut.ChannelName[0] = FrontLeft;
-        device->RealOut.ChannelName[1] = FrontRight;
-        device->RealOut.ChannelName[2] = FrontCenter;
-        device->RealOut.ChannelName[3] = LFE;
-        device->RealOut.ChannelName[4] = BackLeft;
-        device->RealOut.ChannelName[5] = BackRight;
-        device->RealOut.ChannelName[6] = SideLeft;
-        device->RealOut.ChannelName[7] = SideRight;
+        device->real_out.channel_name[0] = FrontLeft;
+        device->real_out.channel_name[1] = FrontRight;
+        device->real_out.channel_name[2] = FrontCenter;
+        device->real_out.channel_name[3] = LFE;
+        device->real_out.channel_name[4] = BackLeft;
+        device->real_out.channel_name[5] = BackRight;
+        device->real_out.channel_name[6] = SideLeft;
+        device->real_out.channel_name[7] = SideRight;
         break;
     }
 }
@@ -172,50 +172,50 @@ extern inline ALint GetChannelIndex(const enum Channel names[MAX_OUTPUT_CHANNELS
  */
 static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
 {
-    const ALsizei old_sends = device->NumAuxSends;
-    ALsizei new_sends = device->NumAuxSends;
+    const ALsizei old_sends = device->num_aux_sends;
+    ALsizei new_sends = device->num_aux_sends;
     ALboolean update_failed;
     ALCcontext *context;
     size_t size;
 
-    al_free(device->Dry.Buffer);
-    device->Dry.Buffer = NULL;
-    device->Dry.NumChannels = 0;
-    device->FOAOut.Buffer = NULL;
-    device->FOAOut.NumChannels = 0;
-    device->RealOut.Buffer = NULL;
-    device->RealOut.NumChannels = 0;
+    al_free(device->dry.buffer);
+    device->dry.buffer = NULL;
+    device->dry.num_channels = 0;
+    device->foa_out.buffer = NULL;
+    device->foa_out.num_channels = 0;
+    device->real_out.buffer = NULL;
+    device->real_out.num_channels = 0;
 
     aluInitRenderer(device);
 
     /* Allocate extra channels for any post-filter output. */
-    size = (device->Dry.NumChannels + device->FOAOut.NumChannels +
-            device->RealOut.NumChannels)*sizeof(device->Dry.Buffer[0]);
+    size = (device->dry.num_channels + device->foa_out.num_channels +
+            device->real_out.num_channels)*sizeof(device->dry.buffer[0]);
 
-    device->Dry.Buffer = al_calloc(16, size);
-    if(!device->Dry.Buffer)
+    device->dry.buffer = al_calloc(16, size);
+    if(!device->dry.buffer)
     {
         return ALC_INVALID_DEVICE;
     }
 
-    if(device->RealOut.NumChannels != 0)
-        device->RealOut.Buffer = device->Dry.Buffer + device->Dry.NumChannels +
-                                 device->FOAOut.NumChannels;
+    if(device->real_out.num_channels != 0)
+        device->real_out.buffer = device->dry.buffer + device->dry.num_channels +
+                                 device->foa_out.num_channels;
     else
     {
-        device->RealOut.Buffer = device->Dry.Buffer;
-        device->RealOut.NumChannels = device->Dry.NumChannels;
+        device->real_out.buffer = device->dry.buffer;
+        device->real_out.num_channels = device->dry.num_channels;
     }
 
-    if(device->FOAOut.NumChannels != 0)
-        device->FOAOut.Buffer = device->Dry.Buffer + device->Dry.NumChannels;
+    if(device->foa_out.num_channels != 0)
+        device->foa_out.buffer = device->dry.buffer + device->dry.num_channels;
     else
     {
-        device->FOAOut.Buffer = device->Dry.Buffer;
-        device->FOAOut.NumChannels = device->Dry.NumChannels;
+        device->foa_out.buffer = device->dry.buffer;
+        device->foa_out.num_channels = device->dry.num_channels;
     }
 
-    device->NumAuxSends = new_sends;
+    device->num_aux_sends = new_sends;
 
     /* Need to delay returning failure until replacement Send arrays have been
      * allocated with the appropriate size.
@@ -230,8 +230,8 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
             ALeffectslot *slot = device->effect_slot;
             ALeffectState *state = slot->effect.state;
 
-            state->out_buffer = device->Dry.Buffer;
-            state->out_channels = device->Dry.NumChannels;
+            state->out_buffer = device->dry.buffer;
+            state->out_channels = device->dry.num_channels;
             if(V(state,device_update)(device) == AL_FALSE)
                 update_failed = AL_TRUE;
             else
@@ -241,15 +241,15 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
         {
             ALsource *source = device->source;
 
-            if(old_sends != device->NumAuxSends)
+            if(old_sends != device->num_aux_sends)
             {
-                ALvoid *sends = al_calloc(16, device->NumAuxSends*sizeof(source->Send[0]));
+                ALvoid *sends = al_calloc(16, device->num_aux_sends*sizeof(source->Send[0]));
                 ALsizei s;
 
                 memcpy(sends, source->Send,
-                    mini(device->NumAuxSends, old_sends)*sizeof(source->Send[0])
+                    mini(device->num_aux_sends, old_sends)*sizeof(source->Send[0])
                 );
-                for(s = device->NumAuxSends;s < old_sends;s++)
+                for(s = device->num_aux_sends;s < old_sends;s++)
                 {
                     if(source->Send[s].Slot)
                         source->Send[s].Slot->ref -= 1;
@@ -257,7 +257,7 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
                 }
                 al_free(source->Send);
                 source->Send = sends;
-                for(s = old_sends;s < device->NumAuxSends;s++)
+                for(s = old_sends;s < device->num_aux_sends;s++)
                 {
                     source->Send[s].Slot = NULL;
                     source->Send[s].Gain = 1.0f;
@@ -269,7 +269,7 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
             }
         }
         AllocateVoices(context, 1, old_sends);
-        for(pos = 0;pos < context->VoiceCount;pos++)
+        for(pos = 0;pos < context->voice_count;pos++)
         {
             ALvoice *voice = context->voice;
 
@@ -297,16 +297,16 @@ static ALCvoid FreeDevice(ALCdevice *device)
     DeinitEffectSlot(device->effect_slot);
     al_free(device->effect_slot);
 
-    DeinitSource(device->source, device->NumAuxSends);
+    DeinitSource(device->source, device->num_aux_sends);
     al_free(device->source);
 
-    al_free(device->Dry.Buffer);
-    device->Dry.Buffer = NULL;
-    device->Dry.NumChannels = 0;
-    device->FOAOut.Buffer = NULL;
-    device->FOAOut.NumChannels = 0;
-    device->RealOut.Buffer = NULL;
-    device->RealOut.NumChannels = 0;
+    al_free(device->dry.buffer);
+    device->dry.buffer = NULL;
+    device->dry.num_channels = 0;
+    device->foa_out.buffer = NULL;
+    device->foa_out.num_channels = 0;
+    device->real_out.buffer = NULL;
+    device->real_out.num_channels = 0;
 
     al_free(device);
 }
@@ -359,9 +359,9 @@ static ALvoid InitContext(ALCcontext *Context)
 
     auxslots = al_calloc(DEF_ALIGN, FAM_SIZE(struct ALeffectslotArray, slot, 1));
     auxslots->count = 1;
-    auxslots->slot[0] = Context->Device->effect_slot;
+    auxslots->slot[0] = Context->device->effect_slot;
 
-    Context->ActiveAuxSlots = auxslots;
+    Context->active_aux_slots = auxslots;
 }
 
 
@@ -376,20 +376,20 @@ static void FreeContext(ALCcontext *context)
     size_t count;
     ALsizei i;
 
-    auxslots = context->ActiveAuxSlots;
-    context->ActiveAuxSlots = NULL;
+    auxslots = context->active_aux_slots;
+    context->active_aux_slots = NULL;
     al_free(auxslots);
 
-    for(i = 0;i < context->VoiceCount;i++)
+    for(i = 0;i < context->voice_count;i++)
         DeinitVoice(context->voice);
     al_free(context->voice);
     context->voice = NULL;
-    context->VoiceCount = 0;
+    context->voice_count = 0;
 
     count = 0;
 
-    ALCdevice_DecRef(context->Device);
-    context->Device = NULL;
+    ALCdevice_DecRef(context->device);
+    context->device = NULL;
 
     //Invalidate context
     memset(context, 0, sizeof(ALCcontext));
@@ -485,8 +485,8 @@ ALCcontext *GetContextRef(void)
 
 void AllocateVoices(ALCcontext *context, ALsizei num_voices, ALsizei old_sends)
 {
-    ALCdevice *device = context->Device;
-    ALsizei num_sends = device->NumAuxSends;
+    ALCdevice *device = context->device;
+    ALsizei num_sends = device->num_aux_sends;
     struct ALvoiceProps *props;
     size_t sizeof_props;
     size_t sizeof_voice;
@@ -518,7 +518,7 @@ void AllocateVoices(ALCcontext *context, ALsizei num_voices, ALsizei old_sends)
 
     al_free(context->voice);
     context->voice = voice;
-    context->VoiceCount = 1;
+    context->voice_count = 1;
 }
 
 
@@ -563,9 +563,9 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
     ALContext->ref = 1;
 
     ALContext->voice = NULL;
-    ALContext->VoiceCount = 0;
-    ALContext->ActiveAuxSlots = NULL;
-    ALContext->Device = device;
+    ALContext->voice_count = 0;
+    ALContext->active_aux_slots = NULL;
+    ALContext->device = device;
 
     if((err=UpdateDeviceParams(device, attrList)) != ALC_NO_ERROR)
     {
@@ -579,9 +579,9 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
         ALCdevice_DecRef(device);
         return NULL;
     }
-    AllocateVoices(ALContext, 1, device->NumAuxSends);
+    AllocateVoices(ALContext, 1, device->num_aux_sends);
 
-    ALCdevice_IncRef(ALContext->Device);
+    ALCdevice_IncRef(ALContext->device);
     InitContext(ALContext);
 
     device->context = ALContext;
@@ -604,7 +604,7 @@ ALC_API ALCvoid ALC_APIENTRY alcDestroyContext(ALCcontext *context)
         return;
     }
 
-    Device = context->Device;
+    Device = context->device;
     if(Device)
     {
         ReleaseContext(context, Device);
@@ -665,27 +665,27 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
 
     device->ref = 1;
 
-    device->Dry.Buffer = NULL;
-    device->Dry.NumChannels = 0;
-    device->FOAOut.Buffer = NULL;
-    device->FOAOut.NumChannels = 0;
-    device->RealOut.Buffer = NULL;
-    device->RealOut.NumChannels = 0;
+    device->dry.buffer = NULL;
+    device->dry.num_channels = 0;
+    device->foa_out.buffer = NULL;
+    device->foa_out.num_channels = 0;
+    device->real_out.buffer = NULL;
+    device->real_out.num_channels = 0;
 
     device->context = NULL;
 
-    device->AuxiliaryEffectSlotMax = 64;
-    device->NumAuxSends = DEFAULT_SENDS;
+    device->auxiliary_effect_slot_max = 64;
+    device->num_aux_sends = DEFAULT_SENDS;
 
     //Set output format
-    device->FmtChans = DevFmtChannelsDefault;
-    device->Frequency = DEFAULT_OUTPUT_RATE;
-    device->UpdateSize = clampu(1024, 64, 8192);
+    device->fmt_chans = DevFmtChannelsDefault;
+    device->frequency = DEFAULT_OUTPUT_RATE;
+    device->update_size = clampu(1024, 64, 8192);
 
-    if(device->AuxiliaryEffectSlotMax == 0) device->AuxiliaryEffectSlotMax = 64;
+    if(device->auxiliary_effect_slot_max == 0) device->auxiliary_effect_slot_max = 64;
 
     device->source = al_calloc(16, sizeof(ALsource));
-    InitSourceParams(device->source, device->NumAuxSends);
+    InitSourceParams(device->source, device->num_aux_sends);
 
     device->effect_slot = al_calloc(16, sizeof(ALeffectslot));
     InitEffectSlot(device->effect_slot);

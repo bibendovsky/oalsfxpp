@@ -574,7 +574,7 @@ static ALboolean AllocLines(const ALuint frequency, ALreverbState *State)
 
 static ALboolean ALreverbState_deviceUpdate(ALreverbState *State, ALCdevice *Device)
 {
-    ALuint frequency = Device->Frequency, i;
+    ALuint frequency = Device->frequency, i;
     ALfloat multiplier;
 
     /* Allocate the delay lines. */
@@ -1243,8 +1243,8 @@ static ALvoid Update3DPanning(const ALCdevice *Device, const ALfloat *Reflection
     aluMatrixf transform, rot;
     ALsizei i;
 
-    STATIC_CAST(ALeffectState,State)->out_buffer = Device->FOAOut.Buffer;
-    STATIC_CAST(ALeffectState,State)->out_channels = Device->FOAOut.NumChannels;
+    STATIC_CAST(ALeffectState,State)->out_buffer = Device->foa_out.buffer;
+    STATIC_CAST(ALeffectState,State)->out_channels = Device->foa_out.num_channels;
 
     /* Note: _res is transposed. */
 #define MATRIX_MULT(_res, _m1, _m2) do {                                                   \
@@ -1263,19 +1263,19 @@ static ALvoid Update3DPanning(const ALCdevice *Device, const ALfloat *Reflection
     MATRIX_MULT(transform, rot, A2B);
     memset(&State->Early.PanGain, 0, sizeof(State->Early.PanGain));
     for(i = 0;i < MAX_EFFECT_CHANNELS;i++)
-        ComputeFirstOrderGains(Device->FOAOut, transform.m[i], gain*earlyGain, State->Early.PanGain[i]);
+        ComputeFirstOrderGains(Device->foa_out, transform.m[i], gain*earlyGain, State->Early.PanGain[i]);
 
     rot = GetTransformFromVector(LateReverbPan);
     MATRIX_MULT(transform, rot, A2B);
     memset(&State->Late.PanGain, 0, sizeof(State->Late.PanGain));
     for(i = 0;i < MAX_EFFECT_CHANNELS;i++)
-        ComputeFirstOrderGains(Device->FOAOut, transform.m[i], gain*lateGain, State->Late.PanGain[i]);
+        ComputeFirstOrderGains(Device->foa_out, transform.m[i], gain*lateGain, State->Late.PanGain[i]);
 #undef MATRIX_MULT
 }
 
 static ALvoid ALreverbState_update(ALreverbState *State, const ALCdevice *Device, const ALeffectslot *Slot, const ALeffectProps *props)
 {
-    ALuint frequency = Device->Frequency;
+    ALuint frequency = Device->frequency;
     ALfloat lfScale, hfScale, hfRatio;
     ALfloat lfDecayTime, hfDecayTime;
     ALfloat gain, gainlf, gainhf;

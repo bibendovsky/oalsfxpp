@@ -66,8 +66,8 @@ static ALvoid ALcompressorState_Destruct(ALcompressorState *state)
 
 static ALboolean ALcompressorState_deviceUpdate(ALcompressorState *state, ALCdevice *device)
 {
-    const ALfloat attackTime = device->Frequency * 0.2f; /* 200ms Attack */
-    const ALfloat releaseTime = device->Frequency * 0.4f; /* 400ms Release */
+    const ALfloat attackTime = device->frequency * 0.2f; /* 200ms Attack */
+    const ALfloat releaseTime = device->frequency * 0.4f; /* 400ms Release */
 
     state->AttackRate = 1.0f / attackTime;
     state->ReleaseRate = 1.0f / releaseTime;
@@ -81,10 +81,10 @@ static ALvoid ALcompressorState_update(ALcompressorState *state, const ALCdevice
 
     state->Enabled = props->compressor.on_off;
 
-    STATIC_CAST(ALeffectState,state)->out_buffer = device->FOAOut.Buffer;
-    STATIC_CAST(ALeffectState,state)->out_channels = device->FOAOut.NumChannels;
+    STATIC_CAST(ALeffectState,state)->out_buffer = device->foa_out.buffer;
+    STATIC_CAST(ALeffectState,state)->out_channels = device->foa_out.num_channels;
     for(i = 0;i < 4;i++)
-        ComputeFirstOrderGains(device->FOAOut, IdentityMatrixf.m[i],
+        ComputeFirstOrderGains(device->foa_out, IdentityMatrixf.m[i],
                                1.0F, state->Gain[i]);
 }
 

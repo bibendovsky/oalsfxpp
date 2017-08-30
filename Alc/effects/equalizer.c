@@ -123,14 +123,14 @@ static ALboolean ALequalizerState_deviceUpdate(ALequalizerState *UNUSED(state), 
 
 static ALvoid ALequalizerState_update(ALequalizerState *state, const ALCdevice *device, const ALeffectslot *slot, const ALeffectProps *props)
 {
-    ALfloat frequency = (ALfloat)device->Frequency;
+    ALfloat frequency = (ALfloat)device->frequency;
     ALfloat gain, freq_mult;
     ALuint i;
 
-    STATIC_CAST(ALeffectState,state)->out_buffer = device->FOAOut.Buffer;
-    STATIC_CAST(ALeffectState,state)->out_channels = device->FOAOut.NumChannels;
+    STATIC_CAST(ALeffectState,state)->out_buffer = device->foa_out.buffer;
+    STATIC_CAST(ALeffectState,state)->out_channels = device->foa_out.num_channels;
     for(i = 0;i < MAX_EFFECT_CHANNELS;i++)
-        ComputeFirstOrderGains(device->FOAOut, IdentityMatrixf.m[i],
+        ComputeFirstOrderGains(device->foa_out, IdentityMatrixf.m[i],
                                1.0F, state->Gain[i]);
 
     /* Calculate coefficients for the each type of filter. Note that the shelf

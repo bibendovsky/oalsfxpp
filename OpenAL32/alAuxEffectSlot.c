@@ -115,8 +115,8 @@ ALenum InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *e
         State = V0(factory,create)();
         if(!State) return AL_OUT_OF_MEMORY;
 
-        State->out_buffer = Device->Dry.Buffer;
-        State->out_channels = Device->Dry.NumChannels;
+        State->out_buffer = Device->dry.buffer;
+        State->out_channels = Device->dry.num_channels;
         if(V(State,device_update)(Device) == AL_FALSE)
         {
             ALeffectState_DecRef(State);
@@ -277,7 +277,7 @@ void UpdateAllEffectSlotProps(ALCcontext *context)
     struct ALeffectslotArray *auxslots;
     ALsizei i;
 
-    auxslots = context->ActiveAuxSlots;
+    auxslots = context->active_aux_slots;
     for(i = 0;i < auxslots->count;i++)
     {
         ALeffectslot *slot = auxslots->slot[i];

@@ -86,8 +86,8 @@ static ALboolean ALechoState_deviceUpdate(ALechoState *state, ALCdevice *Device)
 
     // Use the next power of 2 for the buffer length, so the tap offsets can be
     // wrapped using a mask instead of a modulo
-    maxlen  = fastf2i(AL_ECHO_MAX_DELAY * Device->Frequency) + 1;
-    maxlen += fastf2i(AL_ECHO_MAX_LRDELAY * Device->Frequency) + 1;
+    maxlen  = fastf2i(AL_ECHO_MAX_DELAY * Device->frequency) + 1;
+    maxlen += fastf2i(AL_ECHO_MAX_LRDELAY * Device->frequency) + 1;
     maxlen  = NextPowerOf2(maxlen);
 
     if(maxlen != state->BufferLength)
@@ -107,7 +107,7 @@ static ALboolean ALechoState_deviceUpdate(ALechoState *state, ALCdevice *Device)
 
 static ALvoid ALechoState_update(ALechoState *state, const ALCdevice *Device, const ALeffectslot *Slot, const ALeffectProps *props)
 {
-    ALuint frequency = Device->Frequency;
+    ALuint frequency = Device->frequency;
     ALfloat coeffs[MAX_AMBI_COEFFS];
     ALfloat gain, lrpan, spread;
 
@@ -134,11 +134,11 @@ static ALvoid ALechoState_update(ALechoState *state, const ALCdevice *Device, co
 
     /* First tap panning */
     CalcAngleCoeffs(-F_PI_2*lrpan, 0.0f, spread, coeffs);
-    ComputePanningGains(Device->Dry, coeffs, gain, state->Gain[0]);
+    ComputePanningGains(Device->dry, coeffs, gain, state->Gain[0]);
 
     /* Second tap panning */
     CalcAngleCoeffs( F_PI_2*lrpan, 0.0f, spread, coeffs);
-    ComputePanningGains(Device->Dry, coeffs, gain, state->Gain[1]);
+    ComputePanningGains(Device->dry, coeffs, gain, state->Gain[1]);
 }
 
 static ALvoid ALechoState_process(ALechoState *state, ALsizei SamplesToDo, const ALfloat (*restrict SamplesIn)[BUFFERSIZE], ALfloat (*restrict SamplesOut)[BUFFERSIZE], ALsizei NumChannels)

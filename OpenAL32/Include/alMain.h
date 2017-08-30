@@ -293,15 +293,15 @@ extern const struct EffectList {
 
 typedef ALfloat ChannelConfig[MAX_AMBI_COEFFS];
 typedef struct BFChannelConfig {
-    ALfloat Scale;
-    ALsizei Index;
+    ALfloat scale;
+    ALsizei index;
 } BFChannelConfig;
 
 typedef union AmbiConfig {
     /* Ambisonic coefficients for mixing to the dry buffer. */
-    ChannelConfig Coeffs[MAX_OUTPUT_CHANNELS];
+    ChannelConfig coeffs[MAX_OUTPUT_CHANNELS];
     /* Coefficient channel mapping for mixing to the dry buffer. */
-    BFChannelConfig Map[MAX_OUTPUT_CHANNELS];
+    BFChannelConfig map[MAX_OUTPUT_CHANNELS];
 } AmbiConfig;
 
 
@@ -309,9 +309,9 @@ typedef union AmbiConfig {
 #define MAX_DELAY_LENGTH 1024
 
 typedef struct DistanceComp {
-    ALfloat Gain;
-    ALsizei Length; /* Valid range is [0...MAX_DELAY_LENGTH). */
-    ALfloat *Buffer;
+    ALfloat gain;
+    ALsizei length; /* Valid range is [0...MAX_DELAY_LENGTH). */
+    ALfloat *buffer;
 } DistanceComp;
 
 /* Size for temporary storage of buffer data, in ALfloats. Larger values need
@@ -325,58 +325,58 @@ struct ALCdevice_struct
 {
     unsigned int ref;
 
-    ALuint Frequency;
-    ALuint UpdateSize;
-    enum DevFmtChannels FmtChans;
+    ALuint frequency;
+    ALuint update_size;
+    enum DevFmtChannels fmt_chans;
 
     // Maximum number of slots that can be created
-    ALuint AuxiliaryEffectSlotMax;
+    ALuint auxiliary_effect_slot_max;
 
-    ALsizei NumAuxSends;
+    ALsizei num_aux_sends;
 
     /* Temp storage used for each source when mixing. */
-    alignas(16) ALfloat SourceData[BUFFERSIZE];
-    alignas(16) ALfloat ResampledData[BUFFERSIZE];
-    alignas(16) ALfloat FilteredData[BUFFERSIZE];
+    alignas(16) ALfloat source_data[BUFFERSIZE];
+    alignas(16) ALfloat resampled_data[BUFFERSIZE];
+    alignas(16) ALfloat filtered_data[BUFFERSIZE];
 
     /* The "dry" path corresponds to the main output. */
-    struct {
-        AmbiConfig Ambi;
+    struct Dry {
+        AmbiConfig ambi;
         /* Number of coefficients in each Ambi.Coeffs to mix together (4 for
          * first-order, 9 for second-order, etc). If the count is 0, Ambi.Map
          * is used instead to map each output to a coefficient index.
          */
-        ALsizei CoeffCount;
+        ALsizei coeff_count;
 
-        ALfloat (*Buffer)[BUFFERSIZE];
-        ALsizei NumChannels;
-        ALsizei NumChannelsPerOrder[MAX_AMBI_ORDER+1];
-    } Dry;
+        ALfloat (*buffer)[BUFFERSIZE];
+        ALsizei num_channels;
+        ALsizei num_channels_per_order[MAX_AMBI_ORDER+1];
+    } dry;
 
     /* First-order ambisonics output, to be upsampled to the dry buffer if different. */
-    struct {
-        AmbiConfig Ambi;
+    struct FOAOut {
+        AmbiConfig ambi;
         /* Will only be 4 or 0. */
-        ALsizei CoeffCount;
+        ALsizei coeff_count;
 
-        ALfloat (*Buffer)[BUFFERSIZE];
-        ALsizei NumChannels;
-    } FOAOut;
+        ALfloat (*buffer)[BUFFERSIZE];
+        ALsizei num_channels;
+    } foa_out;
 
     /* "Real" output, which will be written to the device buffer. May alias the
      * dry buffer.
      */
-    struct {
-        enum Channel ChannelName[MAX_OUTPUT_CHANNELS];
+    struct RealOut {
+        enum Channel channel_name[MAX_OUTPUT_CHANNELS];
 
-        ALfloat (*Buffer)[BUFFERSIZE];
-        ALsizei NumChannels;
-    } RealOut;
+        ALfloat (*buffer)[BUFFERSIZE];
+        ALsizei num_channels;
+    } real_out;
 
     ALCcontext* context;
 
     struct ALsource* source;
-    const ALfloat* source_data;
+    const ALfloat* source_samples;
     struct ALeffectslot* effect_slot;
     struct ALeffect* effect;
 };
@@ -406,11 +406,11 @@ struct ALCcontext_struct {
     unsigned int ref;
 
     struct ALvoice *voice;
-    ALsizei VoiceCount;
+    ALsizei voice_count;
 
-    struct ALeffectslotArray* ActiveAuxSlots;
+    struct ALeffectslotArray* active_aux_slots;
 
-    ALCdevice  *Device;
+    ALCdevice  *device;
 };
 
 ALCcontext *GetContextRef(void);
@@ -440,7 +440,7 @@ inline ALint GetChannelIndex(const enum Channel names[MAX_OUTPUT_CHANNELS], enum
     }
     return -1;
 }
-#define GetChannelIdxByName(x, c) GetChannelIndex((x).ChannelName, (c))
+#define GetChannelIdxByName(x, c) GetChannelIndex((x).channel_name, (c))
 
 
 

@@ -206,8 +206,8 @@ void ComputeAmbientGainsBF(const BFChannelConfig *chanmap, ALsizei numchans, ALf
 
     for(i = 0;i < numchans;i++)
     {
-        if(chanmap[i].Index == 0)
-            gain += chanmap[i].Scale;
+        if(chanmap[i].index == 0)
+            gain += chanmap[i].scale;
     }
     gains[0] = gain * 1.414213562f * ingain;
     for(i = 1;i < MAX_OUTPUT_CHANNELS;i++)
@@ -234,7 +234,7 @@ void ComputePanningGainsBF(const BFChannelConfig *chanmap, ALsizei numchans, con
     ALsizei i;
 
     for(i = 0;i < numchans;i++)
-        gains[i] = chanmap[i].Scale * coeffs[chanmap[i].Index] * ingain;
+        gains[i] = chanmap[i].scale * coeffs[chanmap[i].index] * ingain;
     for(;i < MAX_OUTPUT_CHANNELS;i++)
         gains[i] = 0.0f;
 }
@@ -259,7 +259,7 @@ void ComputeFirstOrderGainsBF(const BFChannelConfig *chanmap, ALsizei numchans, 
     ALsizei i;
 
     for(i = 0;i < numchans;i++)
-        gains[i] = chanmap[i].Scale * mtx[chanmap[i].Index] * ingain;
+        gains[i] = chanmap[i].scale * mtx[chanmap[i].index] * ingain;
     for(;i < MAX_OUTPUT_CHANNELS;i++)
         gains[i] = 0.0f;
 }
@@ -393,7 +393,7 @@ static void InitPanning(ALCdevice *device)
     ALsizei count = 0;
     ALsizei i, j;
 
-    switch(device->FmtChans)
+    switch(device->fmt_chans)
     {
         case DevFmtMono:
             count = COUNTOF(MonoCfg);
@@ -441,39 +441,39 @@ static void InitPanning(ALCdevice *device)
     {
         ALfloat w_scale, xyz_scale;
 
-        SetChannelMap(device->RealOut.ChannelName, device->Dry.Ambi.Coeffs,
-                      chanmap, count, &device->Dry.NumChannels);
-        device->Dry.CoeffCount = coeffcount;
+        SetChannelMap(device->real_out.channel_name, device->dry.ambi.coeffs,
+                      chanmap, count, &device->dry.num_channels);
+        device->dry.coeff_count = coeffcount;
 
         w_scale = 1.0f;
         xyz_scale = 1.0f;
 
-        memset(&device->FOAOut.Ambi, 0, sizeof(device->FOAOut.Ambi));
-        for(i = 0;i < device->Dry.NumChannels;i++)
+        memset(&device->foa_out.ambi, 0, sizeof(device->foa_out.ambi));
+        for(i = 0;i < device->dry.num_channels;i++)
         {
-            device->FOAOut.Ambi.Coeffs[i][0] = device->Dry.Ambi.Coeffs[i][0] * w_scale;
+            device->foa_out.ambi.coeffs[i][0] = device->dry.ambi.coeffs[i][0] * w_scale;
             for(j = 1;j < 4;j++)
-                device->FOAOut.Ambi.Coeffs[i][j] = device->Dry.Ambi.Coeffs[i][j] * xyz_scale;
+                device->foa_out.ambi.coeffs[i][j] = device->dry.ambi.coeffs[i][j] * xyz_scale;
         }
-        device->FOAOut.CoeffCount = 4;
-        device->FOAOut.NumChannels = 0;
+        device->foa_out.coeff_count = 4;
+        device->foa_out.num_channels = 0;
     }
-    device->RealOut.NumChannels = 0;
+    device->real_out.num_channels = 0;
 }
 
 void aluInitRenderer(ALCdevice *device)
 {
     size_t i;
 
-    memset(&device->Dry.Ambi, 0, sizeof(device->Dry.Ambi));
-    device->Dry.CoeffCount = 0;
-    device->Dry.NumChannels = 0;
+    memset(&device->dry.ambi, 0, sizeof(device->dry.ambi));
+    device->dry.coeff_count = 0;
+    device->dry.num_channels = 0;
     for(i = 0;i < MAX_AMBI_ORDER+1;i++)
-        device->Dry.NumChannelsPerOrder[i] = 0;
+        device->dry.num_channels_per_order[i] = 0;
 
     SetDefaultWFXChannelOrder(device);
 
-    if(device->FmtChans != DevFmtStereo)
+    if(device->fmt_chans != DevFmtStereo)
     {
         InitPanning(device);
         return;
@@ -492,8 +492,8 @@ void aluInitEffectPanning(ALeffectslot *slot)
 
     for(i = 0;i < MAX_EFFECT_CHANNELS;i++)
     {
-        slot->chan_map[i].Scale = 1.0f;
-        slot->chan_map[i].Index = i;
+        slot->chan_map[i].scale = 1.0f;
+        slot->chan_map[i].index = i;
     }
     slot->num_channels = i;
 }
