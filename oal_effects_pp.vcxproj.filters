@@ -86,9 +86,6 @@
     <ClInclude Include="common\almalloc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="common\bool.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="common\math_defs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
