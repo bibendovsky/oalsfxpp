@@ -57,10 +57,10 @@ protected:
         const union ALeffectProps *props) final;
 
     void do_process(
-        ALsizei samplesToDo,
-        const ALfloat(*samplesIn)[BUFFERSIZE],
-        ALfloat(*samplesOut)[BUFFERSIZE],
-        ALsizei numChannels) final;
+        ALsizei sample_count,
+        const ALfloat(*src_samples)[BUFFERSIZE],
+        ALfloat(*dst_samples)[BUFFERSIZE],
+        ALsizei channel_count) final;
 }; // DedicatedEffect
 
 
@@ -85,7 +85,7 @@ ALboolean DedicatedEffect::do_update_device(
 
 void DedicatedEffect::do_update(
     const ALCdevice* device,
-    const struct ALeffectslot* Slot,
+    const struct ALeffectslot* slot,
     const union ALeffectProps *props)
 {
     ALfloat Gain;
@@ -95,7 +95,7 @@ void DedicatedEffect::do_update(
         gains[i] = 0.0f;
 
     Gain = props->dedicated.gain;
-    if (Slot->params.effect_type == AL_EFFECT_DEDICATED_LOW_FREQUENCY_EFFECT)
+    if (slot->params.effect_type == AL_EFFECT_DEDICATED_LOW_FREQUENCY_EFFECT)
     {
         int idx;
         if ((idx = GetChannelIdxByName(device->real_out, LFE)) != -1)
@@ -105,7 +105,7 @@ void DedicatedEffect::do_update(
             gains[idx] = Gain;
         }
     }
-    else if (Slot->params.effect_type == AL_EFFECT_DEDICATED_DIALOGUE)
+    else if (slot->params.effect_type == AL_EFFECT_DEDICATED_DIALOGUE)
     {
         int idx;
         /* Dialog goes to the front-center speaker if it exists, otherwise it
@@ -129,23 +129,23 @@ void DedicatedEffect::do_update(
 }
 
 void DedicatedEffect::do_process(
-    ALsizei SamplesToDo,
-    const ALfloat(*SamplesIn)[BUFFERSIZE],
-    ALfloat(*SamplesOut)[BUFFERSIZE],
-    ALsizei NumChannels)
+    ALsizei sample_count,
+    const ALfloat(*src_samples)[BUFFERSIZE],
+    ALfloat(*dst_samples)[BUFFERSIZE],
+    ALsizei channel_count)
 {
     ALsizei i, c;
 
-    SamplesIn = ASSUME_ALIGNED(SamplesIn, 16);
-    SamplesOut = ASSUME_ALIGNED(SamplesOut, 16);
-    for (c = 0; c < NumChannels; c++)
+    src_samples = ASSUME_ALIGNED(src_samples, 16);
+    dst_samples = ASSUME_ALIGNED(dst_samples, 16);
+    for (c = 0; c < channel_count; c++)
     {
         const ALfloat gain = gains[c];
         if (!(fabsf(gain) > GAIN_SILENCE_THRESHOLD))
             continue;
 
-        for (i = 0; i < SamplesToDo; i++)
-            SamplesOut[c][i] += SamplesIn[0][i] * gain;
+        for (i = 0; i < sample_count; i++)
+            dst_samples[c][i] += src_samples[0][i] * gain;
     }
 }
 
