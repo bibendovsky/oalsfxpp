@@ -5,65 +5,7 @@
 #include "alEffect.h"
 
 
-struct ALeffectStateVtable;
 struct ALeffectslot;
-
-typedef struct ALeffectState {
-    unsigned int ref;
-    const struct ALeffectStateVtable *vtbl;
-
-    ALfloat (*out_buffer)[BUFFERSIZE];
-    ALsizei out_channels;
-} ALeffectState;
-
-void ALeffectState_Construct(ALeffectState *state);
-void ALeffectState_Destruct(ALeffectState *state);
-
-struct ALeffectStateVtable {
-    void (*const destruct)(ALeffectState *state);
-
-    ALboolean (*const device_update)(ALeffectState *state, ALCdevice *device);
-    void (*const update)(ALeffectState *state, const ALCdevice *device, const struct ALeffectslot *slot, const union ALeffectProps *props);
-    void (*const process)(ALeffectState *state, ALsizei samplesToDo, const ALfloat (*samplesIn)[BUFFERSIZE], ALfloat (*samplesOut)[BUFFERSIZE], ALsizei numChannels);
-
-    void (*const delete1)(void *ptr);
-};
-
-#define DEFINE_ALEFFECTSTATE_VTABLE(T)                                        \
-DECLARE_THUNK(T, ALeffectState, void, Destruct)                               \
-DECLARE_THUNK1(T, ALeffectState, ALboolean, deviceUpdate, ALCdevice*)         \
-DECLARE_THUNK3(T, ALeffectState, void, update, const ALCdevice*, const ALeffectslot*, const ALeffectProps*) \
-DECLARE_THUNK4(T, ALeffectState, void, process, ALsizei, const ALfloatBUFFERSIZE*restrict, ALfloatBUFFERSIZE*restrict, ALsizei) \
-static void T##_ALeffectState_Delete(void *ptr)                               \
-{ return T##_Delete(STATIC_UPCAST(T, ALeffectState, (ALeffectState*)ptr)); }  \
-                                                                              \
-static const struct ALeffectStateVtable T##_ALeffectState_vtable = {          \
-    T##_ALeffectState_Destruct,                                               \
-                                                                              \
-    T##_ALeffectState_deviceUpdate,                                           \
-    T##_ALeffectState_update,                                                 \
-    T##_ALeffectState_process,                                                \
-                                                                              \
-    T##_ALeffectState_Delete,                                                 \
-}
-
-
-struct ALeffectStateFactoryVtable;
-
-typedef struct ALeffectStateFactory {
-    const struct ALeffectStateFactoryVtable *vtbl;
-} ALeffectStateFactory;
-
-struct ALeffectStateFactoryVtable {
-    ALeffectState *(*const create)(ALeffectStateFactory *factory);
-};
-
-#define DEFINE_ALEFFECTSTATEFACTORY_VTABLE(T)                                 \
-DECLARE_THUNK(T, ALeffectStateFactory, ALeffectState*, create)                \
-                                                                              \
-static const struct ALeffectStateFactoryVtable T##_ALeffectStateFactory_vtable = { \
-    T##_ALeffectStateFactory_create,                                          \
-}
 
 
 #define MAX_EFFECT_CHANNELS (4)

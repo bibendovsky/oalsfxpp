@@ -82,10 +82,6 @@ static IEffect* createByType(
     }
 }
 
-static void ALeffectState_IncRef(ALeffectState *state);
-static void ALeffectState_DecRef(ALeffectState *state);
-
-
 ALenum InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *effect)
 {
     ALenum newtype = (effect ? effect->type : AL_EFFECT_NULL);
@@ -132,32 +128,6 @@ ALenum InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *e
     return AL_NO_ERROR;
 }
 
-
-static void ALeffectState_IncRef(ALeffectState *state)
-{
-    unsigned int ref;
-    ref = ++state->ref;
-}
-
-static void ALeffectState_DecRef(ALeffectState *state)
-{
-    unsigned int ref;
-    ref = --state->ref;
-    if(ref == 0) DELETE_OBJ(state);
-}
-
-
-void ALeffectState_Construct(ALeffectState *state)
-{
-    state->ref = 1;
-
-    state->out_buffer = NULL;
-    state->out_channels = 0;
-}
-
-void ALeffectState_Destruct(ALeffectState *state)
-{
-}
 
 ALenum InitEffectSlot(ALeffectslot *slot)
 {
