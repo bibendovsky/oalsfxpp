@@ -27,14 +27,20 @@ class EchoEffect :
     public IEffect
 {
 public:
+    struct Tap
+    {
+        ALsizei delay;
+    };
+
+
     EchoEffect()
         :
         IEffect{},
         sample_buffer{},
         buffer_length{},
-        Tap{},
+        tap{},
         offset{},
-        gain{},
+        gains{},
         feed_gain{},
         filter{}
     {
@@ -50,14 +56,12 @@ public:
 
     // The echo is two tap. The delay is the number of samples from before the
     // current offset
-    struct {
-        ALsizei delay;
-    } Tap[2];
+    Tap tap[2];
 
     ALsizei offset;
 
     // The panning gains for the two taps
-    ALfloat gain[2][MAX_OUTPUT_CHANNELS];
+    ALfloat gains[2][MAX_OUTPUT_CHANNELS];
 
     ALfloat feed_gain;
 
@@ -90,8 +94,8 @@ void EchoEffect::do_construct()
     buffer_length = 0;
     sample_buffer = NULL;
 
-    Tap[0].delay = 0;
-    Tap[1].delay = 0;
+    tap[0].delay = 0;
+    tap[1].delay = 0;
     offset = 0;
 
     ALfilterState_clear(&filter);
@@ -138,9 +142,9 @@ void EchoEffect::do_update(
     ALfloat coeffs[MAX_AMBI_COEFFS];
     ALfloat effect_gain, lrpan, spread;
 
-    Tap[0].delay = fastf2i(props->echo.delay * frequency) + 1;
-    Tap[1].delay = fastf2i(props->echo.lr_delay * frequency);
-    Tap[1].delay += Tap[0].delay;
+    tap[0].delay = fastf2i(props->echo.delay * frequency) + 1;
+    tap[1].delay = fastf2i(props->echo.lr_delay * frequency);
+    tap[1].delay += tap[0].delay;
 
     spread = props->echo.spread;
     if (spread < 0.0f) lrpan = -1.0f;
@@ -161,11 +165,11 @@ void EchoEffect::do_update(
 
     /* First tap panning */
     CalcAngleCoeffs(-F_PI_2*lrpan, 0.0f, spread, coeffs);
-    ComputePanningGains(device->dry, coeffs, effect_gain, gain[0]);
+    ComputePanningGains(device->dry, coeffs, effect_gain, gains[0]);
 
     /* Second tap panning */
     CalcAngleCoeffs(F_PI_2*lrpan, 0.0f, spread, coeffs);
-    ComputePanningGains(device->dry, coeffs, effect_gain, gain[1]);
+    ComputePanningGains(device->dry, coeffs, effect_gain, gains[1]);
 }
 
 void EchoEffect::do_process(
@@ -175,8 +179,8 @@ void EchoEffect::do_process(
     ALsizei channel_count)
 {
     const ALsizei mask = buffer_length - 1;
-    const ALsizei tap1 = Tap[0].delay;
-    const ALsizei tap2 = Tap[1].delay;
+    const ALsizei tap1 = tap[0].delay;
+    const ALsizei tap2 = tap[1].delay;
     ALfloat x[2], y[2], in, out;
     ALsizei base, k;
     ALsizei i;
@@ -212,14 +216,14 @@ void EchoEffect::do_process(
 
         for (k = 0; k < channel_count; k++)
         {
-            ALfloat channel_gain = gain[0][k];
+            ALfloat channel_gain = gains[0][k];
             if (fabsf(channel_gain) > GAIN_SILENCE_THRESHOLD)
             {
                 for (i = 0; i < td; i++)
                     dst_samples[k][i + base] += temps[i][0] * channel_gain;
             }
 
-            channel_gain = gain[1][k];
+            channel_gain = gains[1][k];
             if (fabsf(channel_gain) > GAIN_SILENCE_THRESHOLD)
             {
                 for (i = 0; i < td; i++)
