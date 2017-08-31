@@ -30,11 +30,11 @@ public:
     CompressorEffect()
         :
         IEffect{},
-        Gain{},
-        Enabled{},
-        AttackRate{},
-        ReleaseRate{},
-        GainCtrl{}
+        gain{},
+        is_enabled{},
+        attack_rate{},
+        release_rate{},
+        gain_control{}
     {
     }
 
@@ -44,13 +44,13 @@ public:
 
 
     // Effect gains for each channel
-    ALfloat Gain[MAX_EFFECT_CHANNELS][MAX_OUTPUT_CHANNELS];
+    ALfloat gain[MAX_EFFECT_CHANNELS][MAX_OUTPUT_CHANNELS];
 
     // Effect parameters
-    ALboolean Enabled;
-    ALfloat AttackRate;
-    ALfloat ReleaseRate;
-    ALfloat GainCtrl;
+    ALboolean is_enabled;
+    ALfloat attack_rate;
+    ALfloat release_rate;
+    ALfloat gain_control;
 
 
 protected:
@@ -67,19 +67,19 @@ protected:
         const union ALeffectProps *props) final;
 
     void do_process(
-        ALsizei samplesToDo,
-        const ALfloat(*samplesIn)[BUFFERSIZE],
-        ALfloat(*samplesOut)[BUFFERSIZE],
-        ALsizei numChannels) final;
+        ALsizei sample_count,
+        const ALfloat(*src_samples)[BUFFERSIZE],
+        ALfloat(*dst_samples)[BUFFERSIZE],
+        ALsizei channel_count) final;
 }; // CompressorEffect
 
 
 void CompressorEffect::do_construct()
 {
-    Enabled = AL_TRUE;
-    AttackRate = 0.0f;
-    ReleaseRate = 0.0f;
-    GainCtrl = 1.0f;
+    is_enabled = AL_TRUE;
+    attack_rate = 0.0f;
+    release_rate = 0.0f;
+    gain_control = 1.0f;
 }
 
 void CompressorEffect::do_destruct()
@@ -92,8 +92,8 @@ ALboolean CompressorEffect::do_update_device(
     const ALfloat attackTime = device->frequency * 0.2f; /* 200ms Attack */
     const ALfloat releaseTime = device->frequency * 0.4f; /* 400ms Release */
 
-    AttackRate = 1.0f / attackTime;
-    ReleaseRate = 1.0f / releaseTime;
+    attack_rate = 1.0f / attackTime;
+    release_rate = 1.0f / releaseTime;
 
     return AL_TRUE;
 }
@@ -105,40 +105,40 @@ void CompressorEffect::do_update(
 {
     ALuint i;
 
-    Enabled = props->compressor.on_off;
+    is_enabled = props->compressor.on_off;
 
     out_buffer = device->foa_out.buffer;
     out_channels = device->foa_out.num_channels;
 
     for (i = 0; i < 4; i++)
         ComputeFirstOrderGains(device->foa_out, IdentityMatrixf.m[i],
-            1.0F, Gain[i]);
+            1.0F, gain[i]);
 }
 
 void CompressorEffect::do_process(
-    ALsizei SamplesToDo,
-    const ALfloat(*SamplesIn)[BUFFERSIZE],
-    ALfloat(*SamplesOut)[BUFFERSIZE],
-    ALsizei NumChannels)
+    ALsizei sample_count,
+    const ALfloat(*src_samples)[BUFFERSIZE],
+    ALfloat(*dst_samples)[BUFFERSIZE],
+    ALsizei channel_count)
 {
     ALsizei i, j, k;
     ALsizei base;
 
-    for (base = 0; base < SamplesToDo;)
+    for (base = 0; base < sample_count;)
     {
         ALfloat temps[64][4];
-        ALsizei td = mini(64, SamplesToDo - base);
+        ALsizei td = mini(64, sample_count - base);
 
         /* Load samples into the temp buffer first. */
         for (j = 0; j < 4; j++)
         {
             for (i = 0; i < td; i++)
-                temps[i][j] = SamplesIn[j][i + base];
+                temps[i][j] = src_samples[j][i + base];
         }
 
-        if (Enabled)
+        if (is_enabled)
         {
-            ALfloat gain = GainCtrl;
+            ALfloat gain = gain_control;
             ALfloat output, amplitude;
 
             for (i = 0; i < td; i++)
@@ -151,9 +151,9 @@ void CompressorEffect::do_process(
                     maxf(amplitude + fabsf(temps[i][2]),
                         amplitude + fabsf(temps[i][3])));
                 if (amplitude > gain)
-                    gain = minf(gain + AttackRate, amplitude);
+                    gain = minf(gain + attack_rate, amplitude);
                 else if (amplitude < gain)
-                    gain = maxf(gain - ReleaseRate, amplitude);
+                    gain = maxf(gain - release_rate, amplitude);
 
                 /* Apply the inverse of the gain control to normalize/compress
                 * the volume. */
@@ -162,11 +162,11 @@ void CompressorEffect::do_process(
                     temps[i][j] *= output;
             }
 
-            GainCtrl = gain;
+            gain_control = gain;
         }
         else
         {
-            ALfloat gain = GainCtrl;
+            ALfloat gain = gain_control;
             ALfloat output, amplitude;
 
             for (i = 0; i < td; i++)
@@ -177,29 +177,29 @@ void CompressorEffect::do_process(
                 */
                 amplitude = 1.0f;
                 if (amplitude > gain)
-                    gain = minf(gain + AttackRate, amplitude);
+                    gain = minf(gain + attack_rate, amplitude);
                 else if (amplitude < gain)
-                    gain = maxf(gain - ReleaseRate, amplitude);
+                    gain = maxf(gain - release_rate, amplitude);
 
                 output = 1.0f / clampf(gain, 0.5f, 2.0f);
                 for (j = 0; j < 4; j++)
                     temps[i][j] *= output;
             }
 
-            GainCtrl = gain;
+            gain_control = gain;
         }
 
         /* Now mix to the output. */
         for (j = 0; j < 4; j++)
         {
-            for (k = 0; k < NumChannels; k++)
+            for (k = 0; k < channel_count; k++)
             {
-                ALfloat gain = Gain[j][k];
-                if (!(fabsf(gain) > GAIN_SILENCE_THRESHOLD))
+                ALfloat channel_gain = gain[j][k];
+                if (!(fabsf(channel_gain) > GAIN_SILENCE_THRESHOLD))
                     continue;
 
                 for (i = 0; i < td; i++)
-                    SamplesOut[k][base + i] += gain * temps[i][j];
+                    dst_samples[k][base + i] += channel_gain * temps[i][j];
             }
         }
 
