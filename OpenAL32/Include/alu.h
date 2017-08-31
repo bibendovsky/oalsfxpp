@@ -227,12 +227,23 @@ void ComputeAmbientGainsBF(const BFChannelConfig *chanmap, ALsizei numchans, ALf
  * Computes panning gains using the given channel decoder coefficients and the
  * pre-calculated direction or angle coefficients.
  */
-#define ComputePanningGains(b, c, g, o) do {                                  \
-    if((b).coeff_count > 0)                                                    \
-        ComputePanningGainsMC((b).ambi.coeffs, (b).num_channels, (b).coeff_count, c, g, o);\
-    else                                                                      \
-        ComputePanningGainsBF((b).ambi.map, (b).num_channels, c, g, o);        \
-} while (0)
+template<typename T>
+void ComputePanningGains(
+    const T& b,
+    const ALfloat* const c,
+    const ALfloat g,
+    ALfloat* o)
+{
+    if (b.coeff_count > 0)
+    {
+        ComputePanningGainsMC(b.ambi.coeffs, b.num_channels, b.coeff_count, c, g, o);
+    }
+    else
+    {
+        ComputePanningGainsBF(b.ambi.map, b.num_channels, c, g, o);
+    }
+}
+
 void ComputePanningGainsMC(const ChannelConfig *chancoeffs, ALsizei numchans, ALsizei numcoeffs, const ALfloat coeffs[MAX_AMBI_COEFFS], ALfloat ingain, ALfloat gains[MAX_OUTPUT_CHANNELS]);
 void ComputePanningGainsBF(const BFChannelConfig *chanmap, ALsizei numchans, const ALfloat coeffs[MAX_AMBI_COEFFS], ALfloat ingain, ALfloat gains[MAX_OUTPUT_CHANNELS]);
 
@@ -243,12 +254,23 @@ void ComputePanningGainsBF(const BFChannelConfig *chanmap, ALsizei numchans, con
  * a 1x4 'slice' of a transform matrix for the input channel, used to scale and
  * orient the sound samples.
  */
-#define ComputeFirstOrderGains(b, m, g, o) do {                               \
-    if((b).coeff_count > 0)                                                    \
-        ComputeFirstOrderGainsMC((b).ambi.coeffs, (b).num_channels, m, g, o);  \
-    else                                                                      \
-        ComputeFirstOrderGainsBF((b).ambi.map, (b).num_channels, m, g, o);     \
-} while (0)
+template<typename T>
+void ComputeFirstOrderGains(
+    const T& b,
+    const ALfloat* const m,
+    const ALfloat g,
+    ALfloat* o)
+{
+    if (b.coeff_count > 0)
+    {
+        ComputeFirstOrderGainsMC(b.ambi.coeffs, b.num_channels, m, g, o);
+    }
+    else
+    {
+        ComputeFirstOrderGainsBF(b.ambi.map, b.num_channels, m, g, o);
+    }
+}
+
 void ComputeFirstOrderGainsMC(const ChannelConfig *chancoeffs, ALsizei numchans, const ALfloat mtx[4], ALfloat ingain, ALfloat gains[MAX_OUTPUT_CHANNELS]);
 void ComputeFirstOrderGainsBF(const BFChannelConfig *chanmap, ALsizei numchans, const ALfloat mtx[4], ALfloat ingain, ALfloat gains[MAX_OUTPUT_CHANNELS]);
 
