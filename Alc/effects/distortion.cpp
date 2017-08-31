@@ -67,10 +67,10 @@ protected:
         const union ALeffectProps *props) final;
 
     void do_process(
-        ALsizei samplesToDo,
-        const ALfloat(*samplesIn)[BUFFERSIZE],
-        ALfloat(*samplesOut)[BUFFERSIZE],
-        ALsizei numChannels) final;
+        ALsizei sample_count,
+        const ALfloat(*src_samples)[BUFFERSIZE],
+        ALfloat(*dst_samples)[BUFFERSIZE],
+        ALsizei channel_count) final;
 }; // DistortionEffect
 
 
@@ -92,11 +92,11 @@ ALboolean DistortionEffect::do_update_device(
 }
 
 void DistortionEffect::do_update(
-    const ALCdevice* Device,
+    const ALCdevice* device,
     const struct ALeffectslot* slot,
     const union ALeffectProps *props)
 {
-    ALfloat frequency = (ALfloat)Device->frequency;
+    const auto frequency = static_cast<ALfloat>(device->frequency);
     ALfloat bandwidth;
     ALfloat cutoff;
     ALfloat edge;
@@ -126,23 +126,23 @@ void DistortionEffect::do_update(
         cutoff / (frequency*4.0f), calc_rcpQ_from_bandwidth(cutoff / (frequency*4.0f), bandwidth)
     );
 
-    ComputeAmbientGains(Device->dry, 1.0F, Gain);
+    ComputeAmbientGains(device->dry, 1.0F, Gain);
 }
 
 void DistortionEffect::do_process(
-    ALsizei SamplesToDo,
-    const ALfloat(*SamplesIn)[BUFFERSIZE],
-    ALfloat(*SamplesOut)[BUFFERSIZE],
-    ALsizei NumChannels)
+    ALsizei sample_count,
+    const ALfloat(*src_samples)[BUFFERSIZE],
+    ALfloat(*dst_samples)[BUFFERSIZE],
+    ALsizei channel_count)
 {
     const ALfloat fc = edge_coeff;
     ALsizei it, kt;
     ALsizei base;
 
-    for (base = 0; base < SamplesToDo;)
+    for (base = 0; base < sample_count;)
     {
         float buffer[2][64 * 4];
-        ALsizei td = mini(64, SamplesToDo - base);
+        ALsizei td = mini(64, sample_count - base);
 
         /* Perform 4x oversampling to avoid aliasing. Oversampling greatly
         * improves distortion quality and allows to implement lowpass and
@@ -156,7 +156,7 @@ void DistortionEffect::do_process(
             /* Multiply the sample by the amount of oversampling to maintain
             * the signal's power.
             */
-            buffer[0][it * 4 + 0] = SamplesIn[0][it + base] * 4.0f;
+            buffer[0][it * 4 + 0] = src_samples[0][it + base] * 4.0f;
             buffer[0][it * 4 + 1] = 0.0f;
             buffer[0][it * 4 + 2] = 0.0f;
             buffer[0][it * 4 + 3] = 0.0f;
@@ -188,7 +188,7 @@ void DistortionEffect::do_process(
         /* Third step, do bandpass filtering of distorted signal. */
         ALfilterState_process(&bandpass, buffer[1], buffer[0], td * 4);
 
-        for (kt = 0; kt < NumChannels; kt++)
+        for (kt = 0; kt < channel_count; kt++)
         {
             /* Fourth step, final, do attenuation and perform decimation,
             * store only one sample out of 4.
@@ -198,7 +198,7 @@ void DistortionEffect::do_process(
                 continue;
 
             for (it = 0; it < td; it++)
-                SamplesOut[kt][base + it] += gain * buffer[1][it * 4];
+                dst_samples[kt][base + it] += gain * buffer[1][it * 4];
         }
 
         base += td;
