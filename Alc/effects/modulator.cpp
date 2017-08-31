@@ -42,7 +42,7 @@ public:
     }
 
 
-    void (*process)(ALfloat*, const ALfloat*, ALsizei, const ALsizei, ALsizei);
+    void (*process)(ALfloat*, const ALfloat* const, ALsizei, const ALsizei, const ALsizei);
 
     ALsizei index;
     ALsizei step;
@@ -78,39 +78,70 @@ protected:
 #define WAVEFORM_FRACONE   (1<<WAVEFORM_FRACBITS)
 #define WAVEFORM_FRACMASK  (WAVEFORM_FRACONE-1)
 
-static inline ALfloat Sin(ALsizei index)
+
+static inline ALfloat Sin(const ALsizei index)
 {
     return sinf(index*(F_TAU/WAVEFORM_FRACONE) - F_PI)*0.5f + 0.5f;
 }
 
-static inline ALfloat Saw(ALsizei index)
+static inline ALfloat Saw(const ALsizei index)
 {
     return (ALfloat)index / WAVEFORM_FRACONE;
 }
 
-static inline ALfloat Square(ALsizei index)
+static inline ALfloat Square(const ALsizei index)
 {
     return (ALfloat)((index >> (WAVEFORM_FRACBITS - 1)) & 1);
 }
 
-#define DECL_TEMPLATE(func)                                                   \
-static void Modulate##func(ALfloat *dst, const ALfloat *src,\
-                           ALsizei index, const ALsizei step, ALsizei todo)   \
-{                                                                             \
-    ALsizei i;                                                                \
-    for(i = 0;i < todo;i++)                                                   \
-    {                                                                         \
-        index += step;                                                        \
-        index &= WAVEFORM_FRACMASK;                                           \
-        dst[i] = src[i] * func(index);                                        \
-    }                                                                         \
+
+using ModulateFunc = ALfloat (*)(const ALsizei index);
+
+static void Modulate(
+    const ModulateFunc func,
+    ALfloat* const dst,
+    const ALfloat* const src,
+    ALsizei index,
+    const ALsizei step,
+    const ALsizei todo)
+{
+    for (ALsizei i = 0; i < todo; ++i)
+    {
+        index += step;
+        index &= WAVEFORM_FRACMASK;
+        dst[i] = src[i] * func(index);
+    }
 }
 
-DECL_TEMPLATE(Sin)
-DECL_TEMPLATE(Saw)
-DECL_TEMPLATE(Square)
+static void ModulateSin(
+    ALfloat* const dst,
+    const ALfloat* const src,
+    ALsizei index,
+    const ALsizei step,
+    const ALsizei todo)
+{
+    Modulate(Sin, dst, src, index, step, todo);
+}
 
-#undef DECL_TEMPLATE
+static void ModulateSaw(
+    ALfloat* const dst,
+    const ALfloat* const src,
+    ALsizei index,
+    const ALsizei step,
+    const ALsizei todo)
+{
+    Modulate(Saw, dst, src, index, step, todo);
+}
+
+static void ModulateSquare(
+    ALfloat* const dst,
+    const ALfloat* const src,
+    ALsizei index,
+    const ALsizei step,
+    const ALsizei todo)
+{
+    Modulate(Square, dst, src, index, step, todo);
+}
 
 
 void ModulatorEffect::do_construct()
