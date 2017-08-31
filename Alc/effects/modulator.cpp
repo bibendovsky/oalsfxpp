@@ -32,8 +32,8 @@ public:
         process{},
         index{},
         step{},
-        Gain{},
-        Filter{}
+        gains{},
+        filters{}
     {
     }
 
@@ -47,9 +47,9 @@ public:
     ALsizei index;
     ALsizei step;
 
-    ALfloat Gain[MAX_EFFECT_CHANNELS][MAX_OUTPUT_CHANNELS];
+    ALfloat gains[MAX_EFFECT_CHANNELS][MAX_OUTPUT_CHANNELS];
 
-    ALfilterState Filter[MAX_EFFECT_CHANNELS];
+    ALfilterState filters[MAX_EFFECT_CHANNELS];
 
 
 protected:
@@ -66,10 +66,10 @@ protected:
         const union ALeffectProps *props) final;
 
     void do_process(
-        ALsizei samplesToDo,
-        const ALfloat(*samplesIn)[BUFFERSIZE],
-        ALfloat(*samplesOut)[BUFFERSIZE],
-        ALsizei numChannels) final;
+        ALsizei sample_count,
+        const ALfloat(*src_samples)[BUFFERSIZE],
+        ALfloat(*dst_samples)[BUFFERSIZE],
+        ALsizei channel_count) final;
 }; // ModulatorEffect
 
 
@@ -120,7 +120,7 @@ void ModulatorEffect::do_construct()
 
     for (int i = 0; i < MAX_EFFECT_CHANNELS; ++i)
     {
-        ALfilterState_clear(&Filter[i]);
+        ALfilterState_clear(&filters[i]);
     }
 }
 
@@ -136,7 +136,7 @@ ALboolean ModulatorEffect::do_update_device(
 }
 
 void ModulatorEffect::do_update(
-    const ALCdevice* Device,
+    const ALCdevice* device,
     const struct ALeffectslot* slot,
     const union ALeffectProps *props)
 {
@@ -151,56 +151,56 @@ void ModulatorEffect::do_update(
         process = ModulateSquare;
 
     step = fastf2i(props->modulator.frequency*WAVEFORM_FRACONE /
-        Device->frequency);
+        device->frequency);
     if (step == 0) step = 1;
 
     /* Custom filter coeffs, which match the old version instead of a low-shelf. */
-    cw = cosf(F_TAU * props->modulator.high_pass_cutoff / Device->frequency);
+    cw = cosf(F_TAU * props->modulator.high_pass_cutoff / device->frequency);
     a = (2.0f - cw) - sqrtf(powf(2.0f - cw, 2.0f) - 1.0f);
 
     for (i = 0; i < MAX_EFFECT_CHANNELS; i++)
     {
-        Filter[i].b0 = a;
-        Filter[i].b1 = -a;
-        Filter[i].b2 = 0.0f;
-        Filter[i].a1 = -a;
-        Filter[i].a2 = 0.0f;
+        filters[i].b0 = a;
+        filters[i].b1 = -a;
+        filters[i].b2 = 0.0f;
+        filters[i].a1 = -a;
+        filters[i].a2 = 0.0f;
     }
 
-    out_buffer = Device->foa_out.buffer;
-    out_channels = Device->foa_out.num_channels;
+    out_buffer = device->foa_out.buffer;
+    out_channels = device->foa_out.num_channels;
     for (i = 0; i < MAX_EFFECT_CHANNELS; i++)
-        ComputeFirstOrderGains(Device->foa_out, IdentityMatrixf.m[i],
-            1.0F, Gain[i]);
+        ComputeFirstOrderGains(device->foa_out, IdentityMatrixf.m[i],
+            1.0F, gains[i]);
 }
 
 void ModulatorEffect::do_process(
-    ALsizei SamplesToDo,
-    const ALfloat(*SamplesIn)[BUFFERSIZE],
-    ALfloat(*SamplesOut)[BUFFERSIZE],
-    ALsizei NumChannels)
+    ALsizei sample_count,
+    const ALfloat(*src_samples)[BUFFERSIZE],
+    ALfloat(*dst_samples)[BUFFERSIZE],
+    ALsizei channel_count)
 {
     ALsizei base;
 
-    for (base = 0; base < SamplesToDo;)
+    for (base = 0; base < sample_count;)
     {
         ALfloat temps[2][128];
-        ALsizei td = mini(128, SamplesToDo - base);
+        ALsizei td = mini(128, sample_count - base);
         ALsizei i, j, k;
 
         for (j = 0; j < MAX_EFFECT_CHANNELS; j++)
         {
-            ALfilterState_process(&Filter[j], temps[0], &SamplesIn[j][base], td);
+            ALfilterState_process(&filters[j], temps[0], &src_samples[j][base], td);
             process(temps[1], temps[0], index, step, td);
 
-            for (k = 0; k < NumChannels; k++)
+            for (k = 0; k < channel_count; k++)
             {
-                ALfloat gain = Gain[j][k];
+                ALfloat gain = gains[j][k];
                 if (!(fabsf(gain) > GAIN_SILENCE_THRESHOLD))
                     continue;
 
                 for (i = 0; i < td; i++)
-                    SamplesOut[k][base + i] += gain * temps[1][i];
+                    dst_samples[k][base + i] += gain * temps[1][i];
             }
         }
 
