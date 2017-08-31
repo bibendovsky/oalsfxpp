@@ -30,7 +30,7 @@ public:
     DistortionEffect()
         :
         IEffect{},
-        Gain{},
+        gains{},
         lowpass{},
         bandpass{},
         attenuation{},
@@ -44,7 +44,7 @@ public:
 
 
     // Effect gains for each channel
-    ALfloat Gain[MAX_OUTPUT_CHANNELS];
+    ALfloat gains[MAX_OUTPUT_CHANNELS];
 
     // Effect parameters
     ALfilterState lowpass;
@@ -126,7 +126,7 @@ void DistortionEffect::do_update(
         cutoff / (frequency*4.0f), calc_rcpQ_from_bandwidth(cutoff / (frequency*4.0f), bandwidth)
     );
 
-    ComputeAmbientGains(device->dry, 1.0F, Gain);
+    ComputeAmbientGains(device->dry, 1.0F, gains);
 }
 
 void DistortionEffect::do_process(
@@ -193,7 +193,7 @@ void DistortionEffect::do_process(
             /* Fourth step, final, do attenuation and perform decimation,
             * store only one sample out of 4.
             */
-            ALfloat gain = Gain[kt] * attenuation;
+            ALfloat gain = gains[kt] * attenuation;
             if (!(fabsf(gain) > GAIN_SILENCE_THRESHOLD))
                 continue;
 
