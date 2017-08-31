@@ -31,10 +31,10 @@ protected:
         const union ALeffectProps *props) final;
 
     void do_process(
-        ALsizei samplesToDo,
-        const ALfloat(*samplesIn)[BUFFERSIZE],
-        ALfloat(*samplesOut)[BUFFERSIZE],
-        ALsizei numChannels) final;
+        ALsizei sample_count,
+        const ALfloat(*src_samples)[BUFFERSIZE],
+        ALfloat(*dst_samples)[BUFFERSIZE],
+        ALsizei channel_count) final;
 }; // NullEffect
 
 
@@ -64,15 +64,15 @@ void NullEffect::do_update(
 }
 
 void NullEffect::do_process(
-    ALsizei samplesToDo,
-    const ALfloat(*samplesIn)[BUFFERSIZE],
-    ALfloat(*samplesOut)[BUFFERSIZE],
-    ALsizei numChannels)
+    ALsizei sample_count,
+    const ALfloat(*src_samples)[BUFFERSIZE],
+    ALfloat(*dst_samples)[BUFFERSIZE],
+    ALsizei channel_count)
 {
-    static_cast<void>(samplesToDo);
-    static_cast<void>(samplesIn);
-    static_cast<void>(samplesOut);
-    static_cast<void>(numChannels);
+    static_cast<void>(sample_count);
+    static_cast<void>(src_samples);
+    static_cast<void>(dst_samples);
+    static_cast<void>(channel_count);
 }
 
 IEffect* create_null_effect()
