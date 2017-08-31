@@ -1824,7 +1824,7 @@ void ReverbEffect::do_update(
     for (i = 0; i < 4; i++)
     {
         if ((EarlyDelayTap[i][1] != EarlyDelayTap[i][0]) ||
-            (Early.VecAp.Offset[i][1] != Early.VecAp.Offset[i][0]) ||
+            (Early.VecAp.offset[i][1] != Early.VecAp.Offset[i][0]) ||
             (Early.Offset[i][1] != Early.Offset[i][0]) ||
             (LateDelayTap[i][1] != LateDelayTap[i][0]) ||
             (Late.VecAp.Offset[i][1] != Late.VecAp.Offset[i][0]) ||
