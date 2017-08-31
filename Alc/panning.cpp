@@ -25,74 +25,6 @@
 extern inline void CalcAngleCoeffs(ALfloat azimuth, ALfloat elevation, ALfloat spread, ALfloat coeffs[MAX_AMBI_COEFFS]);
 
 
-static const ALsizei FuMa2ACN[MAX_AMBI_COEFFS] = {
-    0,  /* W */
-    3,  /* X */
-    1,  /* Y */
-    2,  /* Z */
-    6,  /* R */
-    7,  /* S */
-    5,  /* T */
-    8,  /* U */
-    4,  /* V */
-    12, /* K */
-    13, /* L */
-    11, /* M */
-    14, /* N */
-    10, /* O */
-    15, /* P */
-    9,  /* Q */
-};
-static const ALsizei ACN2ACN[MAX_AMBI_COEFFS] = {
-    0,  1,  2,  3,  4,  5,  6,  7,
-    8,  9, 10, 11, 12, 13, 14, 15
-};
-
-/* NOTE: These are scale factors as applied to Ambisonics content. Decoder
- * coefficients should be divided by these values to get proper N3D scalings.
- */
-static const ALfloat UnitScale[MAX_AMBI_COEFFS] = {
-    1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f
-};
-static const ALfloat SN3D2N3DScale[MAX_AMBI_COEFFS] = {
-    1.000000000f, /* ACN  0 (W), sqrt(1) */
-    1.732050808f, /* ACN  1 (Y), sqrt(3) */
-    1.732050808f, /* ACN  2 (Z), sqrt(3) */
-    1.732050808f, /* ACN  3 (X), sqrt(3) */
-    2.236067978f, /* ACN  4 (V), sqrt(5) */
-    2.236067978f, /* ACN  5 (T), sqrt(5) */
-    2.236067978f, /* ACN  6 (R), sqrt(5) */
-    2.236067978f, /* ACN  7 (S), sqrt(5) */
-    2.236067978f, /* ACN  8 (U), sqrt(5) */
-    2.645751311f, /* ACN  9 (Q), sqrt(7) */
-    2.645751311f, /* ACN 10 (O), sqrt(7) */
-    2.645751311f, /* ACN 11 (M), sqrt(7) */
-    2.645751311f, /* ACN 12 (K), sqrt(7) */
-    2.645751311f, /* ACN 13 (L), sqrt(7) */
-    2.645751311f, /* ACN 14 (N), sqrt(7) */
-    2.645751311f, /* ACN 15 (P), sqrt(7) */
-};
-static const ALfloat FuMa2N3DScale[MAX_AMBI_COEFFS] = {
-    1.414213562f, /* ACN  0 (W), sqrt(2) */
-    1.732050808f, /* ACN  1 (Y), sqrt(3) */
-    1.732050808f, /* ACN  2 (Z), sqrt(3) */
-    1.732050808f, /* ACN  3 (X), sqrt(3) */
-    1.936491673f, /* ACN  4 (V), sqrt(15)/2 */
-    1.936491673f, /* ACN  5 (T), sqrt(15)/2 */
-    2.236067978f, /* ACN  6 (R), sqrt(5) */
-    1.936491673f, /* ACN  7 (S), sqrt(15)/2 */
-    1.936491673f, /* ACN  8 (U), sqrt(15)/2 */
-    2.091650066f, /* ACN  9 (Q), sqrt(35/8) */
-    1.972026594f, /* ACN 10 (O), sqrt(35)/3 */
-    2.231093404f, /* ACN 11 (M), sqrt(224/45) */
-    2.645751311f, /* ACN 12 (K), sqrt(7) */
-    2.231093404f, /* ACN 13 (L), sqrt(224/45) */
-    1.972026594f, /* ACN 14 (N), sqrt(35)/3 */
-    2.091650066f, /* ACN 15 (P), sqrt(35/8) */
-};
-
-
 void CalcDirectionCoeffs(const ALfloat dir[3], ALfloat spread, ALfloat coeffs[MAX_AMBI_COEFFS])
 {
     /* Convert from OpenAL coords to Ambisonics. */
@@ -255,52 +187,6 @@ void ComputeFirstOrderGainsBF(const BFChannelConfig *chanmap, ALsizei numchans, 
 }
 
 
-static inline const char *GetLabelFromChannel(enum Channel channel)
-{
-    switch(channel)
-    {
-        case FrontLeft: return "front-left";
-        case FrontRight: return "front-right";
-        case FrontCenter: return "front-center";
-        case LFE: return "lfe";
-        case BackLeft: return "back-left";
-        case BackRight: return "back-right";
-        case BackCenter: return "back-center";
-        case SideLeft: return "side-left";
-        case SideRight: return "side-right";
-
-        case UpperFrontLeft: return "upper-front-left";
-        case UpperFrontRight: return "upper-front-right";
-        case UpperBackLeft: return "upper-back-left";
-        case UpperBackRight: return "upper-back-right";
-        case LowerFrontLeft: return "lower-front-left";
-        case LowerFrontRight: return "lower-front-right";
-        case LowerBackLeft: return "lower-back-left";
-        case LowerBackRight: return "lower-back-right";
-
-        case Aux0: return "aux-0";
-        case Aux1: return "aux-1";
-        case Aux2: return "aux-2";
-        case Aux3: return "aux-3";
-        case Aux4: return "aux-4";
-        case Aux5: return "aux-5";
-        case Aux6: return "aux-6";
-        case Aux7: return "aux-7";
-        case Aux8: return "aux-8";
-        case Aux9: return "aux-9";
-        case Aux10: return "aux-10";
-        case Aux11: return "aux-11";
-        case Aux12: return "aux-12";
-        case Aux13: return "aux-13";
-        case Aux14: return "aux-14";
-        case Aux15: return "aux-15";
-
-        case InvalidChannel: break;
-    }
-    return "(unknown)";
-}
-
-
 typedef struct ChannelMap {
     enum Channel ChanName;
     ChannelConfig Config;
@@ -371,10 +257,6 @@ static const ChannelMap MonoCfg[1] = {
     { SideRight,   { 2.04124145e-1f, -2.17760495e-1f, 0.0f,  0.00000000e+0f,  0.00000000e+0f, 0.0f, 0.0f, 0.0f, -1.49071198e-1f,  3.73460789e-2f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,  0.00000000e+0f } },
     { BackRight,   { 2.04124145e-1f, -1.08880247e-1f, 0.0f, -1.88586120e-1f,  1.29099444e-1f, 0.0f, 0.0f, 0.0f,  7.45355993e-2f, -3.73460789e-2f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,  0.00000000e+0f } },
 };
-
-static void InitNearFieldCtrl(ALCdevice *device, ALfloat ctrl_dist, ALsizei order, bool periphonic)
-{
-}
 
 static void InitPanning(ALCdevice *device)
 {
