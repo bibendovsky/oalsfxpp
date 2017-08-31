@@ -135,16 +135,6 @@ static inline bool SourceShouldUpdate(ALsource *source, ALCcontext *context)
     return IsPlayingOrPaused(source);
 }
 
-#define DO_UPDATEPROPS() do {                                                 \
-    ALvoice *voice;                                                           \
-    if(SourceShouldUpdate(Source, Context) &&                                 \
-       (voice=GetSourceVoice(Source, Context)) != NULL)                       \
-        UpdateSourceProps(Source, voice, device->NumAuxSends);                \
-} while(0)
-
-#undef CHECKVAL
-
-
 AL_API ALvoid AL_APIENTRY alSourcePlay(ALuint source)
 {
     alSourcePlayv(1, &source);
