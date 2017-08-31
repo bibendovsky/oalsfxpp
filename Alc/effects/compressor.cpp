@@ -30,7 +30,7 @@ public:
     CompressorEffect()
         :
         IEffect{},
-        gain{},
+        gains{},
         is_enabled{},
         attack_rate{},
         release_rate{},
@@ -44,7 +44,7 @@ public:
 
 
     // Effect gains for each channel
-    ALfloat gain[MAX_EFFECT_CHANNELS][MAX_OUTPUT_CHANNELS];
+    ALfloat gains[MAX_EFFECT_CHANNELS][MAX_OUTPUT_CHANNELS];
 
     // Effect parameters
     ALboolean is_enabled;
@@ -112,7 +112,7 @@ void CompressorEffect::do_update(
 
     for (i = 0; i < 4; i++)
         ComputeFirstOrderGains(device->foa_out, IdentityMatrixf.m[i],
-            1.0F, gain[i]);
+            1.0F, gains[i]);
 }
 
 void CompressorEffect::do_process(
@@ -194,7 +194,7 @@ void CompressorEffect::do_process(
         {
             for (k = 0; k < channel_count; k++)
             {
-                ALfloat channel_gain = gain[j][k];
+                ALfloat channel_gain = gains[j][k];
                 if (!(fabsf(channel_gain) > GAIN_SILENCE_THRESHOLD))
                     continue;
 
