@@ -212,12 +212,22 @@ inline void CalcAngleCoeffs(ALfloat azimuth, ALfloat elevation, ALfloat spread, 
  *
  * Computes channel gains for ambient, omni-directional sounds.
  */
-#define ComputeAmbientGains(b, g, o) do {                                     \
-    if((b).coeff_count > 0)                                                    \
-        ComputeAmbientGainsMC((b).ambi.coeffs, (b).num_channels, g, o);        \
-    else                                                                      \
-        ComputeAmbientGainsBF((b).ambi.map, (b).num_channels, g, o);           \
-} while (0)
+template<typename T>
+void ComputeAmbientGains(
+    const T& b,
+    const ALfloat g,
+    ALfloat* const o)
+{
+    if(b.coeff_count > 0)
+    {
+        ComputeAmbientGainsMC(b.ambi.coeffs, b.num_channels, g, o);
+    }
+    else
+    {
+        ComputeAmbientGainsBF(b.ambi.map, b.num_channels, g, o);
+    }
+}
+
 void ComputeAmbientGainsMC(const ChannelConfig *chancoeffs, ALsizei numchans, ALfloat ingain, ALfloat gains[MAX_OUTPUT_CHANNELS]);
 void ComputeAmbientGainsBF(const BFChannelConfig *chanmap, ALsizei numchans, ALfloat ingain, ALfloat gains[MAX_OUTPUT_CHANNELS]);
 
@@ -232,7 +242,7 @@ void ComputePanningGains(
     const T& b,
     const ALfloat* const c,
     const ALfloat g,
-    ALfloat* o)
+    ALfloat* const o)
 {
     if (b.coeff_count > 0)
     {
@@ -259,7 +269,7 @@ void ComputeFirstOrderGains(
     const T& b,
     const ALfloat* const m,
     const ALfloat g,
-    ALfloat* o)
+    ALfloat* const o)
 {
     if (b.coeff_count > 0)
     {
