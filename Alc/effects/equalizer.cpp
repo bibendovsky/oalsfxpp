@@ -76,9 +76,9 @@ public:
     EqualizerEffect()
         :
         IEffect{},
-        Gain{},
+        gains{},
         filter{},
-        SampleBuffer{}
+        sample_buffer{}
     {
     }
 
@@ -88,12 +88,12 @@ public:
 
 
     // Effect gains for each channel
-    ALfloat Gain[MAX_EFFECT_CHANNELS][MAX_OUTPUT_CHANNELS];
+    ALfloat gains[MAX_EFFECT_CHANNELS][MAX_OUTPUT_CHANNELS];
 
     // Effect parameters
     ALfilterState filter[4][MAX_EFFECT_CHANNELS];
 
-    ALfloat SampleBuffer[4][MAX_EFFECT_CHANNELS][MAX_UPDATE_SAMPLES];
+    ALfloat sample_buffer[4][MAX_EFFECT_CHANNELS][MAX_UPDATE_SAMPLES];
 
 
 protected:
@@ -110,10 +110,10 @@ protected:
         const union ALeffectProps *props) final;
 
     void do_process(
-        ALsizei samplesToDo,
-        const ALfloat(*samplesIn)[BUFFERSIZE],
-        ALfloat(*samplesOut)[BUFFERSIZE],
-        ALsizei numChannels) final;
+        ALsizei sample_count,
+        const ALfloat(*src_samples)[BUFFERSIZE],
+        ALfloat(*dst_samples)[BUFFERSIZE],
+        ALsizei channel_count) final;
 }; // EqualizerEffect
 
 
@@ -154,7 +154,7 @@ void EqualizerEffect::do_update(
     out_channels = device->foa_out.num_channels;
     for (i = 0; i < MAX_EFFECT_CHANNELS; i++)
         ComputeFirstOrderGains(device->foa_out, IdentityMatrixf.m[i],
-            1.0F, Gain[i]);
+            1.0F, gains[i]);
 
     /* Calculate coefficients for the each type of filter. Note that the shelf
     * filters' gain is for the reference frequency, which is the centerpoint
@@ -199,38 +199,38 @@ void EqualizerEffect::do_update(
 }
 
 void EqualizerEffect::do_process(
-    ALsizei SamplesToDo,
-    const ALfloat(*SamplesIn)[BUFFERSIZE],
-    ALfloat(*SamplesOut)[BUFFERSIZE],
-    ALsizei NumChannels)
+    ALsizei sample_count,
+    const ALfloat(*src_samples)[BUFFERSIZE],
+    ALfloat(*dst_samples)[BUFFERSIZE],
+    ALsizei channel_count)
 {
-    ALfloat(*Samples)[MAX_EFFECT_CHANNELS][MAX_UPDATE_SAMPLES] = SampleBuffer;
+    const auto samples = sample_buffer;
     ALsizei it, kt, ft;
     ALsizei base;
 
-    for (base = 0; base < SamplesToDo;)
+    for (base = 0; base < sample_count;)
     {
-        ALsizei td = mini(MAX_UPDATE_SAMPLES, SamplesToDo - base);
+        ALsizei td = mini(MAX_UPDATE_SAMPLES, sample_count - base);
 
         for (ft = 0; ft < MAX_EFFECT_CHANNELS; ft++)
-            ALfilterState_process(&filter[0][ft], Samples[0][ft], &SamplesIn[ft][base], td);
+            ALfilterState_process(&filter[0][ft], samples[0][ft], &src_samples[ft][base], td);
         for (ft = 0; ft < MAX_EFFECT_CHANNELS; ft++)
-            ALfilterState_process(&filter[1][ft], Samples[1][ft], Samples[0][ft], td);
+            ALfilterState_process(&filter[1][ft], samples[1][ft], samples[0][ft], td);
         for (ft = 0; ft < MAX_EFFECT_CHANNELS; ft++)
-            ALfilterState_process(&filter[2][ft], Samples[2][ft], Samples[1][ft], td);
+            ALfilterState_process(&filter[2][ft], samples[2][ft], samples[1][ft], td);
         for (ft = 0; ft < MAX_EFFECT_CHANNELS; ft++)
-            ALfilterState_process(&filter[3][ft], Samples[3][ft], Samples[2][ft], td);
+            ALfilterState_process(&filter[3][ft], samples[3][ft], samples[2][ft], td);
 
         for (ft = 0; ft < MAX_EFFECT_CHANNELS; ft++)
         {
-            for (kt = 0; kt < NumChannels; kt++)
+            for (kt = 0; kt < channel_count; kt++)
             {
-                ALfloat gain = Gain[ft][kt];
+                ALfloat gain = gains[ft][kt];
                 if (!(fabsf(gain) > GAIN_SILENCE_THRESHOLD))
                     continue;
 
                 for (it = 0; it < td; it++)
-                    SamplesOut[kt][base + it] += gain * Samples[3][ft][it];
+                    dst_samples[kt][base + it] += gain * samples[3][ft][it];
             }
         }
 
