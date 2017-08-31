@@ -335,51 +335,19 @@ static void UpdateContextSources(ALCcontext *ctx, const struct ALeffectslotArray
     if(source) CalcSourceParams(voice, ctx, force);
 }
 
-
-static inline ALfloat Conv_ALfloat(ALfloat val)
-{ return val; }
-static inline ALint Conv_ALint(ALfloat val)
+static void WriteF32(const ALfloatBUFFERSIZE *InBuffer, ALvoid *OutBuffer,
+                     ALsizei Offset, ALsizei SamplesToDo, ALsizei numchans)
 {
-    /* Floats only have a 24-bit mantissa, so [-16777216, +16777216] is the max
-     * integer range normalized floats can be safely converted to (a bit of the
-     * exponent helps out, effectively giving 25 bits).
-     */
-    return fastf2i(clampf(val*16777216.0f, -16777216.0f, 16777215.0f))<<7;
+    ALsizei i, j;
+    for(j = 0;j < numchans;j++)
+    {
+        const ALfloat *in = ASSUME_ALIGNED(InBuffer[j], 16);
+        auto *out = (ALfloat*)OutBuffer + Offset*numchans + j;
+
+        for(i = 0;i < SamplesToDo;i++)
+            out[i*numchans] = in[i];
+    }
 }
-static inline ALshort Conv_ALshort(ALfloat val)
-{ return fastf2i(clampf(val*32768.0f, -32768.0f, 32767.0f)); }
-static inline ALbyte Conv_ALbyte(ALfloat val)
-{ return fastf2i(clampf(val*128.0f, -128.0f, 127.0f)); }
-
-/* Define unsigned output variations. */
-#define DECL_TEMPLATE(T, func, O)                             \
-static inline T Conv_##T(ALfloat val) { return func(val)+O; }
-
-DECL_TEMPLATE(ALubyte, Conv_ALbyte, 128)
-DECL_TEMPLATE(ALushort, Conv_ALshort, 32768)
-DECL_TEMPLATE(ALuint, Conv_ALint, 2147483648u)
-
-#undef DECL_TEMPLATE
-
-#define DECL_TEMPLATE(T, A)                                                   \
-static void Write##A(const ALfloatBUFFERSIZE *InBuffer, ALvoid *OutBuffer,    \
-                     ALsizei Offset, ALsizei SamplesToDo, ALsizei numchans)   \
-{                                                                             \
-    ALsizei i, j;                                                             \
-    for(j = 0;j < numchans;j++)                                               \
-    {                                                                         \
-        const ALfloat *in = ASSUME_ALIGNED(InBuffer[j], 16);         \
-        T *out = (T*)OutBuffer + Offset*numchans + j;                \
-                                                                              \
-        for(i = 0;i < SamplesToDo;i++)                                        \
-            out[i*numchans] = Conv_##T(in[i]);                                \
-    }                                                                         \
-}
-
-DECL_TEMPLATE(ALfloat, F32)
-
-#undef DECL_TEMPLATE
-
 
 void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const ALfloat* src_samples)
 {
@@ -452,7 +420,6 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const 
         SamplesDone += SamplesToDo;
     }
 }
-
 
 void aluHandleDisconnect(ALCdevice *device)
 {
