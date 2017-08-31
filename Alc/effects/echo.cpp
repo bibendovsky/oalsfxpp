@@ -78,10 +78,10 @@ protected:
         const union ALeffectProps *props) final;
 
     void do_process(
-        ALsizei samplesToDo,
-        const ALfloat(*samplesIn)[BUFFERSIZE],
-        ALfloat(*samplesOut)[BUFFERSIZE],
-        ALsizei numChannels) final;
+        ALsizei sample_count,
+        const ALfloat(*src_samples)[BUFFERSIZE],
+        ALfloat(*dst_samples)[BUFFERSIZE],
+        ALsizei channel_count) final;
 }; // EchoEffect
 
 
@@ -104,14 +104,14 @@ void EchoEffect::do_destruct()
 }
 
 ALboolean EchoEffect::do_update_device(
-    ALCdevice* Device)
+    ALCdevice* device)
 {
     ALsizei maxlen, i;
 
     // Use the next power of 2 for the buffer length, so the tap offsets can be
     // wrapped using a mask instead of a modulo
-    maxlen = fastf2i(AL_ECHO_MAX_DELAY * Device->frequency) + 1;
-    maxlen += fastf2i(AL_ECHO_MAX_LRDELAY * Device->frequency) + 1;
+    maxlen = fastf2i(AL_ECHO_MAX_DELAY * device->frequency) + 1;
+    maxlen += fastf2i(AL_ECHO_MAX_LRDELAY * device->frequency) + 1;
     maxlen = NextPowerOf2(maxlen);
 
     if (maxlen != BufferLength)
@@ -130,11 +130,11 @@ ALboolean EchoEffect::do_update_device(
 }
 
 void EchoEffect::do_update(
-    const ALCdevice* Device,
+    const ALCdevice* device,
     const struct ALeffectslot* slot,
     const union ALeffectProps *props)
 {
-    ALuint frequency = Device->frequency;
+    ALuint frequency = device->frequency;
     ALfloat coeffs[MAX_AMBI_COEFFS];
     ALfloat gain, lrpan, spread;
 
@@ -161,18 +161,18 @@ void EchoEffect::do_update(
 
     /* First tap panning */
     CalcAngleCoeffs(-F_PI_2*lrpan, 0.0f, spread, coeffs);
-    ComputePanningGains(Device->dry, coeffs, gain, Gain[0]);
+    ComputePanningGains(device->dry, coeffs, gain, Gain[0]);
 
     /* Second tap panning */
     CalcAngleCoeffs(F_PI_2*lrpan, 0.0f, spread, coeffs);
-    ComputePanningGains(Device->dry, coeffs, gain, Gain[1]);
+    ComputePanningGains(device->dry, coeffs, gain, Gain[1]);
 }
 
 void EchoEffect::do_process(
-    ALsizei SamplesToDo,
-    const ALfloat(*SamplesIn)[BUFFERSIZE],
-    ALfloat(*SamplesOut)[BUFFERSIZE],
-    ALsizei NumChannels)
+    ALsizei sample_count,
+    const ALfloat(*src_samples)[BUFFERSIZE],
+    ALfloat(*dst_samples)[BUFFERSIZE],
+    ALsizei channel_count)
 {
     const ALsizei mask = BufferLength - 1;
     const ALsizei tap1 = Tap[0].delay;
@@ -186,10 +186,10 @@ void EchoEffect::do_process(
     x[1] = Filter.x[1];
     y[0] = Filter.y[0];
     y[1] = Filter.y[1];
-    for (base = 0; base < SamplesToDo;)
+    for (base = 0; base < sample_count;)
     {
         ALfloat temps[128][2];
-        ALsizei td = mini(128, SamplesToDo - base);
+        ALsizei td = mini(128, sample_count - base);
 
         for (i = 0; i < td; i++)
         {
@@ -200,7 +200,7 @@ void EchoEffect::do_process(
 
             // Apply damping and feedback gain to the second tap, and mix in the
             // new sample
-            in = temps[i][1] + SamplesIn[0][i + base];
+            in = temps[i][1] + src_samples[0][i + base];
             out = in*Filter.b0 +
                 x[0] * Filter.b1 + x[1] * Filter.b2 -
                 y[0] * Filter.a1 - y[1] * Filter.a2;
@@ -211,20 +211,20 @@ void EchoEffect::do_process(
             offset++;
         }
 
-        for (k = 0; k < NumChannels; k++)
+        for (k = 0; k < channel_count; k++)
         {
             ALfloat gain = Gain[0][k];
             if (fabsf(gain) > GAIN_SILENCE_THRESHOLD)
             {
                 for (i = 0; i < td; i++)
-                    SamplesOut[k][i + base] += temps[i][0] * gain;
+                    dst_samples[k][i + base] += temps[i][0] * gain;
             }
 
             gain = Gain[1][k];
             if (fabsf(gain) > GAIN_SILENCE_THRESHOLD)
             {
                 for (i = 0; i < td; i++)
-                    SamplesOut[k][i + base] += temps[i][1] * gain;
+                    dst_samples[k][i + base] += temps[i][1] * gain;
             }
         }
 
