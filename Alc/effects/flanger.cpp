@@ -28,8 +28,31 @@ enum FlangerWaveForm {
     FWF_Sinusoid = AL_FLANGER_WAVEFORM_SINUSOID
 };
 
-typedef struct ALflangerState {
-    DERIVE_FROM_TYPE(ALeffectState);
+class FlangerEffect :
+    public IEffect
+{
+public:
+    FlangerEffect()
+        :
+        IEffect{},
+        SampleBuffer{},
+        BufferLength{},
+        offset{},
+        lfo_range{},
+        lfo_scale{},
+        lfo_disp{},
+        Gain{},
+        waveform{},
+        delay{},
+        depth{},
+        feedback{}
+    {
+    }
+
+    virtual ~FlangerEffect()
+    {
+    }
+
 
     ALfloat *SampleBuffer[2];
     ALsizei BufferLength;
@@ -38,132 +61,36 @@ typedef struct ALflangerState {
     ALfloat lfo_scale;
     ALint lfo_disp;
 
-    /* Gains for left and right sides */
+    // Gains for left and right sides
     ALfloat Gain[2][MAX_OUTPUT_CHANNELS];
 
-    /* effect parameters */
+    // effect parameters
     enum FlangerWaveForm waveform;
     ALint delay;
     ALfloat depth;
     ALfloat feedback;
-} ALflangerState;
-
-static ALvoid ALflangerState_Destruct(ALflangerState *state);
-static ALboolean ALflangerState_deviceUpdate(ALflangerState *state, ALCdevice *Device);
-static ALvoid ALflangerState_update(ALflangerState *state, const ALCdevice *Device, const ALeffectslot *Slot, const ALeffectProps *props);
-static ALvoid ALflangerState_process(ALflangerState *state, ALsizei SamplesToDo, const ALfloat (*SamplesIn)[BUFFERSIZE], ALfloat (*SamplesOut)[BUFFERSIZE], ALsizei NumChannels);
-DECLARE_DEFAULT_ALLOCATORS(ALflangerState)
-
-DEFINE_ALEFFECTSTATE_VTABLE(ALflangerState);
 
 
-static void ALflangerState_Construct(ALflangerState *state)
-{
-    ALeffectState_Construct(STATIC_CAST(ALeffectState, state));
-    SET_VTABLE2(ALflangerState, ALeffectState, state);
+protected:
+    void do_construct() final;
 
-    state->BufferLength = 0;
-    state->SampleBuffer[0] = NULL;
-    state->SampleBuffer[1] = NULL;
-    state->offset = 0;
-    state->lfo_range = 1;
-    state->waveform = FWF_Triangle;
-}
+    void do_destruct() final;
 
-static ALvoid ALflangerState_Destruct(ALflangerState *state)
-{
-    al_free(state->SampleBuffer[0]);
-    state->SampleBuffer[0] = NULL;
-    state->SampleBuffer[1] = NULL;
+    ALboolean do_update_device(
+        ALCdevice* device) final;
 
-    ALeffectState_Destruct(STATIC_CAST(ALeffectState,state));
-}
+    void do_update(
+        const ALCdevice* device,
+        const struct ALeffectslot* slot,
+        const union ALeffectProps *props) final;
 
-static ALboolean ALflangerState_deviceUpdate(ALflangerState *state, ALCdevice *Device)
-{
-    ALsizei maxlen;
-    ALsizei it;
+    void do_process(
+        ALsizei samplesToDo,
+        const ALfloat(*samplesIn)[BUFFERSIZE],
+        ALfloat(*samplesOut)[BUFFERSIZE],
+        ALsizei numChannels) final;
+}; // FlangerEffect
 
-    maxlen = fastf2i(AL_FLANGER_MAX_DELAY * 2.0f * Device->frequency) + 1;
-    maxlen = NextPowerOf2(maxlen);
-
-    if(maxlen != state->BufferLength)
-    {
-        void *temp = al_calloc(16, maxlen * sizeof(ALfloat) * 2);
-        if(!temp) return AL_FALSE;
-
-        al_free(state->SampleBuffer[0]);
-        state->SampleBuffer[0] = static_cast<ALfloat*>(temp);
-        state->SampleBuffer[1] = state->SampleBuffer[0] + maxlen;
-
-        state->BufferLength = maxlen;
-    }
-
-    for(it = 0;it < state->BufferLength;it++)
-    {
-        state->SampleBuffer[0][it] = 0.0f;
-        state->SampleBuffer[1][it] = 0.0f;
-    }
-
-    return AL_TRUE;
-}
-
-static ALvoid ALflangerState_update(ALflangerState *state, const ALCdevice *Device, const ALeffectslot *Slot, const ALeffectProps *props)
-{
-    ALfloat frequency = (ALfloat)Device->frequency;
-    ALfloat coeffs[MAX_AMBI_COEFFS];
-    ALfloat rate;
-    ALint phase;
-
-    switch(props->flanger.waveform)
-    {
-        case AL_FLANGER_WAVEFORM_TRIANGLE:
-            state->waveform = FWF_Triangle;
-            break;
-        case AL_FLANGER_WAVEFORM_SINUSOID:
-            state->waveform = FWF_Sinusoid;
-            break;
-    }
-    state->feedback = props->flanger.feedback;
-    state->delay = fastf2i(props->flanger.delay * frequency);
-    /* The LFO depth is scaled to be relative to the sample delay. */
-    state->depth = props->flanger.depth * state->delay;
-
-    /* Gains for left and right sides */
-    CalcAngleCoeffs(-F_PI_2, 0.0f, 0.0f, coeffs);
-    ComputePanningGains(Device->dry, coeffs, 1.0F, state->Gain[0]);
-    CalcAngleCoeffs( F_PI_2, 0.0f, 0.0f, coeffs);
-    ComputePanningGains(Device->dry, coeffs, 1.0F, state->Gain[1]);
-
-    phase = props->flanger.phase;
-    rate = props->flanger.rate;
-    if(!(rate > 0.0f))
-    {
-        state->lfo_scale = 0.0f;
-        state->lfo_range = 1;
-        state->lfo_disp = 0;
-    }
-    else
-    {
-        /* Calculate LFO coefficient */
-        state->lfo_range = fastf2i(frequency/rate + 0.5f);
-        switch(state->waveform)
-        {
-            case FWF_Triangle:
-                state->lfo_scale = 4.0f / state->lfo_range;
-                break;
-            case FWF_Sinusoid:
-                state->lfo_scale = F_TAU / state->lfo_range;
-                break;
-        }
-
-        /* Calculate lfo phase displacement */
-        if(phase >= 0)
-            state->lfo_disp = fastf2i(state->lfo_range * (phase/360.0f));
-        else
-            state->lfo_disp = fastf2i(state->lfo_range * ((360+phase)/360.0f));
-    }
-}
 
 static void GetTriangleDelays(ALint *delays, ALsizei offset, const ALsizei lfo_range,
                               const ALfloat lfo_scale, const ALfloat depth, const ALsizei delay,
@@ -189,96 +116,187 @@ static void GetSinusoidDelays(ALint *delays, ALsizei offset, const ALsizei lfo_r
     }
 }
 
-static ALvoid ALflangerState_process(ALflangerState *state, ALsizei SamplesToDo, const ALfloat (*SamplesIn)[BUFFERSIZE], ALfloat (*SamplesOut)[BUFFERSIZE], ALsizei NumChannels)
+
+void FlangerEffect::do_construct()
 {
-    ALfloat *leftbuf = state->SampleBuffer[0];
-    ALfloat *rightbuf = state->SampleBuffer[1];
-    const ALsizei bufmask = state->BufferLength-1;
-    const ALfloat feedback = state->feedback;
-    ALsizei offset = state->offset;
+    BufferLength = 0;
+    SampleBuffer[0] = nullptr;
+    SampleBuffer[1] = nullptr;
+    offset = 0;
+    lfo_range = 1;
+    waveform = FWF_Triangle;
+}
+
+void FlangerEffect::do_destruct()
+{
+    al_free(SampleBuffer[0]);
+    SampleBuffer[0] = NULL;
+    SampleBuffer[1] = NULL;
+}
+
+ALboolean FlangerEffect::do_update_device(
+    ALCdevice* Device)
+{
+    ALsizei maxlen;
+    ALsizei it;
+
+    maxlen = fastf2i(AL_FLANGER_MAX_DELAY * 2.0f * Device->frequency) + 1;
+    maxlen = NextPowerOf2(maxlen);
+
+    if (maxlen != BufferLength)
+    {
+        void *temp = al_calloc(16, maxlen * sizeof(ALfloat) * 2);
+        if (!temp) return AL_FALSE;
+
+        al_free(SampleBuffer[0]);
+        SampleBuffer[0] = static_cast<ALfloat*>(temp);
+        SampleBuffer[1] = SampleBuffer[0] + maxlen;
+
+        BufferLength = maxlen;
+    }
+
+    for (it = 0; it < BufferLength; it++)
+    {
+        SampleBuffer[0][it] = 0.0f;
+        SampleBuffer[1][it] = 0.0f;
+    }
+
+    return AL_TRUE;
+}
+
+void FlangerEffect::do_update(
+    const ALCdevice* Device,
+    const struct ALeffectslot* slot,
+    const union ALeffectProps *props)
+{
+    ALfloat frequency = (ALfloat)Device->frequency;
+    ALfloat coeffs[MAX_AMBI_COEFFS];
+    ALfloat rate;
+    ALint phase;
+
+    switch (props->flanger.waveform)
+    {
+    case AL_FLANGER_WAVEFORM_TRIANGLE:
+        waveform = FWF_Triangle;
+        break;
+    case AL_FLANGER_WAVEFORM_SINUSOID:
+        waveform = FWF_Sinusoid;
+        break;
+    }
+    feedback = props->flanger.feedback;
+    delay = fastf2i(props->flanger.delay * frequency);
+    /* The LFO depth is scaled to be relative to the sample delay. */
+    depth = props->flanger.depth * delay;
+
+    /* Gains for left and right sides */
+    CalcAngleCoeffs(-F_PI_2, 0.0f, 0.0f, coeffs);
+    ComputePanningGains(Device->dry, coeffs, 1.0F, Gain[0]);
+    CalcAngleCoeffs(F_PI_2, 0.0f, 0.0f, coeffs);
+    ComputePanningGains(Device->dry, coeffs, 1.0F, Gain[1]);
+
+    phase = props->flanger.phase;
+    rate = props->flanger.rate;
+    if (!(rate > 0.0f))
+    {
+        lfo_scale = 0.0f;
+        lfo_range = 1;
+        lfo_disp = 0;
+    }
+    else
+    {
+        /* Calculate LFO coefficient */
+        lfo_range = fastf2i(frequency / rate + 0.5f);
+        switch (waveform)
+        {
+        case FWF_Triangle:
+            lfo_scale = 4.0f / lfo_range;
+            break;
+        case FWF_Sinusoid:
+            lfo_scale = F_TAU / lfo_range;
+            break;
+        }
+
+        /* Calculate lfo phase displacement */
+        if (phase >= 0)
+            lfo_disp = fastf2i(lfo_range * (phase / 360.0f));
+        else
+            lfo_disp = fastf2i(lfo_range * ((360 + phase) / 360.0f));
+    }
+}
+
+void FlangerEffect::do_process(
+    ALsizei SamplesToDo,
+    const ALfloat(*SamplesIn)[BUFFERSIZE],
+    ALfloat(*SamplesOut)[BUFFERSIZE],
+    ALsizei NumChannels)
+{
+    ALfloat *leftbuf = SampleBuffer[0];
+    ALfloat *rightbuf = SampleBuffer[1];
+    const ALsizei bufmask = BufferLength - 1;
     ALsizei i, c;
     ALsizei base;
 
-    for(base = 0;base < SamplesToDo;)
+    for (base = 0; base < SamplesToDo;)
     {
-        const ALsizei todo = mini(128, SamplesToDo-base);
+        const ALsizei todo = mini(128, SamplesToDo - base);
         ALfloat temps[128][2];
         ALint moddelays[2][128];
 
-        switch(state->waveform)
+        switch (waveform)
         {
-            case FWF_Triangle:
-                GetTriangleDelays(moddelays[0], offset%state->lfo_range, state->lfo_range,
-                                  state->lfo_scale, state->depth, state->delay, todo);
-                GetTriangleDelays(moddelays[1], (offset+state->lfo_disp)%state->lfo_range,
-                                  state->lfo_range, state->lfo_scale, state->depth, state->delay,
-                                  todo);
-                break;
-            case FWF_Sinusoid:
-                GetSinusoidDelays(moddelays[0], offset%state->lfo_range, state->lfo_range,
-                                  state->lfo_scale, state->depth, state->delay, todo);
-                GetSinusoidDelays(moddelays[1], (offset+state->lfo_disp)%state->lfo_range,
-                                  state->lfo_range, state->lfo_scale, state->depth, state->delay,
-                                  todo);
-                break;
+        case FWF_Triangle:
+            GetTriangleDelays(moddelays[0], offset%lfo_range, lfo_range,
+                lfo_scale, depth, delay, todo);
+            GetTriangleDelays(moddelays[1], (offset + lfo_disp) % lfo_range,
+                lfo_range, lfo_scale, depth, delay,
+                todo);
+            break;
+        case FWF_Sinusoid:
+            GetSinusoidDelays(moddelays[0], offset%lfo_range, lfo_range,
+                lfo_scale, depth, delay, todo);
+            GetSinusoidDelays(moddelays[1], (offset + lfo_disp) % lfo_range,
+                lfo_range, lfo_scale, depth, delay,
+                todo);
+            break;
         }
 
-        for(i = 0;i < todo;i++)
+        for (i = 0; i < todo; i++)
         {
-            leftbuf[offset&bufmask] = SamplesIn[0][base+i];
-            temps[i][0] = leftbuf[(offset-moddelays[0][i])&bufmask] * feedback;
+            leftbuf[offset&bufmask] = SamplesIn[0][base + i];
+            temps[i][0] = leftbuf[(offset - moddelays[0][i])&bufmask] * feedback;
             leftbuf[offset&bufmask] += temps[i][0];
 
-            rightbuf[offset&bufmask] = SamplesIn[0][base+i];
-            temps[i][1] = rightbuf[(offset-moddelays[1][i])&bufmask] * feedback;
+            rightbuf[offset&bufmask] = SamplesIn[0][base + i];
+            temps[i][1] = rightbuf[(offset - moddelays[1][i])&bufmask] * feedback;
             rightbuf[offset&bufmask] += temps[i][1];
 
             offset++;
         }
 
-        for(c = 0;c < NumChannels;c++)
+        for (c = 0; c < NumChannels; c++)
         {
-            ALfloat gain = state->Gain[0][c];
-            if(fabsf(gain) > GAIN_SILENCE_THRESHOLD)
+            ALfloat gain = Gain[0][c];
+            if (fabsf(gain) > GAIN_SILENCE_THRESHOLD)
             {
-                for(i = 0;i < todo;i++)
-                    SamplesOut[c][i+base] += temps[i][0] * gain;
+                for (i = 0; i < todo; i++)
+                    SamplesOut[c][i + base] += temps[i][0] * gain;
             }
 
-            gain = state->Gain[1][c];
-            if(fabsf(gain) > GAIN_SILENCE_THRESHOLD)
+            gain = Gain[1][c];
+            if (fabsf(gain) > GAIN_SILENCE_THRESHOLD)
             {
-                for(i = 0;i < todo;i++)
-                    SamplesOut[c][i+base] += temps[i][1] * gain;
+                for (i = 0; i < todo; i++)
+                    SamplesOut[c][i + base] += temps[i][1] * gain;
             }
         }
 
         base += todo;
     }
 
-    state->offset = offset;
+    offset = offset;
 }
 
-
-typedef struct ALflangerStateFactory {
-    DERIVE_FROM_TYPE(ALeffectStateFactory);
-} ALflangerStateFactory;
-
-ALeffectState *ALflangerStateFactory_create(ALflangerStateFactory *factory)
+IEffect* create_flanger_effect()
 {
-    ALflangerState *state;
-
-    NEW_OBJ0(state, ALflangerState)();
-    if(!state) return NULL;
-
-    return STATIC_CAST(ALeffectState, state);
-}
-
-DEFINE_ALEFFECTSTATEFACTORY_VTABLE(ALflangerStateFactory);
-
-ALeffectStateFactory *ALflangerStateFactory_getFactory(void)
-{
-    static ALflangerStateFactory FlangerFactory = { { GET_VTABLE2(ALflangerStateFactory, ALeffectStateFactory) } };
-
-    return STATIC_CAST(ALeffectStateFactory, &FlangerFactory);
+    return create_effect<FlangerEffect>();
 }

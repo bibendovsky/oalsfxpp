@@ -67,7 +67,7 @@ void DeinitVoice(ALvoice *voice)
 static ALboolean CalcEffectSlotParams(ALeffectslot *slot, ALCdevice *device)
 {
     struct ALeffectslotProps *props;
-    ALeffectState *state;
+    IEffect *state;
 
     props = slot->update;
     slot->update = NULL;
@@ -82,7 +82,7 @@ static ALboolean CalcEffectSlotParams(ALeffectslot *slot, ALCdevice *device)
     props->state = slot->params.effect_state;
     slot->params.effect_state = state;
 
-    V(state,update)(device, slot, &props->props);
+    state->update(device, slot, &props->props);
 
     props->next = slot->free_list;
     return AL_TRUE;
@@ -436,8 +436,8 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const 
             for(i = 0;i < auxslots->count;i++)
             {
                 const ALeffectslot *slot = auxslots->slot[i];
-                ALeffectState *state = slot->params.effect_state;
-                V(state,process)(SamplesToDo, slot->wet_buffer, state->out_buffer,
+                IEffect *state = slot->params.effect_state;
+                state->process(SamplesToDo, slot->wet_buffer, state->out_buffer,
                                  state->out_channels);
             }
         }

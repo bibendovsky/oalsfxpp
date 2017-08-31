@@ -23,149 +23,183 @@
 #include "alu.h"
 
 
-typedef struct ALcompressorState {
-    DERIVE_FROM_TYPE(ALeffectState);
+class CompressorEffect :
+    public IEffect
+{
+public:
+    CompressorEffect()
+        :
+        IEffect{},
+        Gain{},
+        Enabled{},
+        AttackRate{},
+        ReleaseRate{},
+        GainCtrl{}
+    {
+    }
 
-    /* Effect gains for each channel */
+    virtual ~CompressorEffect()
+    {
+    }
+
+
+    // Effect gains for each channel
     ALfloat Gain[MAX_EFFECT_CHANNELS][MAX_OUTPUT_CHANNELS];
 
-    /* Effect parameters */
+    // Effect parameters
     ALboolean Enabled;
     ALfloat AttackRate;
     ALfloat ReleaseRate;
     ALfloat GainCtrl;
-} ALcompressorState;
-
-static ALvoid ALcompressorState_Destruct(ALcompressorState *state);
-static ALboolean ALcompressorState_deviceUpdate(ALcompressorState *state, ALCdevice *device);
-static ALvoid ALcompressorState_update(ALcompressorState *state, const ALCdevice *device, const ALeffectslot *slot, const ALeffectProps *props);
-static ALvoid ALcompressorState_process(ALcompressorState *state, ALsizei SamplesToDo, const ALfloat (*SamplesIn)[BUFFERSIZE], ALfloat (*SamplesOut)[BUFFERSIZE], ALsizei NumChannels);
-DECLARE_DEFAULT_ALLOCATORS(ALcompressorState)
-
-DEFINE_ALEFFECTSTATE_VTABLE(ALcompressorState);
 
 
-static void ALcompressorState_Construct(ALcompressorState *state)
+protected:
+    void do_construct() final;
+
+    void do_destruct() final;
+
+    ALboolean do_update_device(
+        ALCdevice* device) final;
+
+    void do_update(
+        const ALCdevice* device,
+        const struct ALeffectslot* slot,
+        const union ALeffectProps *props) final;
+
+    void do_process(
+        ALsizei samplesToDo,
+        const ALfloat(*samplesIn)[BUFFERSIZE],
+        ALfloat(*samplesOut)[BUFFERSIZE],
+        ALsizei numChannels) final;
+}; // CompressorEffect
+
+
+void CompressorEffect::do_construct()
 {
-    ALeffectState_Construct(STATIC_CAST(ALeffectState, state));
-    SET_VTABLE2(ALcompressorState, ALeffectState, state);
-
-    state->Enabled = AL_TRUE;
-    state->AttackRate = 0.0f;
-    state->ReleaseRate = 0.0f;
-    state->GainCtrl = 1.0f;
+    Enabled = AL_TRUE;
+    AttackRate = 0.0f;
+    ReleaseRate = 0.0f;
+    GainCtrl = 1.0f;
 }
 
-static ALvoid ALcompressorState_Destruct(ALcompressorState *state)
+void CompressorEffect::do_destruct()
 {
-    ALeffectState_Destruct(STATIC_CAST(ALeffectState,state));
 }
 
-static ALboolean ALcompressorState_deviceUpdate(ALcompressorState *state, ALCdevice *device)
+ALboolean CompressorEffect::do_update_device(
+    ALCdevice* device)
 {
     const ALfloat attackTime = device->frequency * 0.2f; /* 200ms Attack */
     const ALfloat releaseTime = device->frequency * 0.4f; /* 400ms Release */
 
-    state->AttackRate = 1.0f / attackTime;
-    state->ReleaseRate = 1.0f / releaseTime;
+    AttackRate = 1.0f / attackTime;
+    ReleaseRate = 1.0f / releaseTime;
 
     return AL_TRUE;
 }
 
-static ALvoid ALcompressorState_update(ALcompressorState *state, const ALCdevice *device, const ALeffectslot *slot, const ALeffectProps *props)
+void CompressorEffect::do_update(
+    const ALCdevice* device,
+    const struct ALeffectslot* slot,
+    const union ALeffectProps *props)
 {
     ALuint i;
 
-    state->Enabled = props->compressor.on_off;
+    Enabled = props->compressor.on_off;
 
-    STATIC_CAST(ALeffectState,state)->out_buffer = device->foa_out.buffer;
-    STATIC_CAST(ALeffectState,state)->out_channels = device->foa_out.num_channels;
-    for(i = 0;i < 4;i++)
+    out_buffer = device->foa_out.buffer;
+    out_channels = device->foa_out.num_channels;
+
+    for (i = 0; i < 4; i++)
         ComputeFirstOrderGains(device->foa_out, IdentityMatrixf.m[i],
-                               1.0F, state->Gain[i]);
+            1.0F, Gain[i]);
 }
 
-static ALvoid ALcompressorState_process(ALcompressorState *state, ALsizei SamplesToDo, const ALfloat (*SamplesIn)[BUFFERSIZE], ALfloat (*SamplesOut)[BUFFERSIZE], ALsizei NumChannels)
+void CompressorEffect::do_process(
+    ALsizei SamplesToDo,
+    const ALfloat(*SamplesIn)[BUFFERSIZE],
+    ALfloat(*SamplesOut)[BUFFERSIZE],
+    ALsizei NumChannels)
 {
     ALsizei i, j, k;
     ALsizei base;
 
-    for(base = 0;base < SamplesToDo;)
+    for (base = 0; base < SamplesToDo;)
     {
         ALfloat temps[64][4];
-        ALsizei td = mini(64, SamplesToDo-base);
+        ALsizei td = mini(64, SamplesToDo - base);
 
         /* Load samples into the temp buffer first. */
-        for(j = 0;j < 4;j++)
+        for (j = 0; j < 4; j++)
         {
-            for(i = 0;i < td;i++)
-                temps[i][j] = SamplesIn[j][i+base];
+            for (i = 0; i < td; i++)
+                temps[i][j] = SamplesIn[j][i + base];
         }
 
-        if(state->Enabled)
+        if (Enabled)
         {
-            ALfloat gain = state->GainCtrl;
+            ALfloat gain = GainCtrl;
             ALfloat output, amplitude;
 
-            for(i = 0;i < td;i++)
+            for (i = 0; i < td; i++)
             {
                 /* Roughly calculate the maximum amplitude from the 4-channel
-                 * signal, and attack or release the gain control to reach it.
-                 */
+                * signal, and attack or release the gain control to reach it.
+                */
                 amplitude = fabsf(temps[i][0]);
                 amplitude = maxf(amplitude + fabsf(temps[i][1]),
-                                 maxf(amplitude + fabsf(temps[i][2]),
-                                      amplitude + fabsf(temps[i][3])));
-                if(amplitude > gain)
-                    gain = minf(gain+state->AttackRate, amplitude);
-                else if(amplitude < gain)
-                    gain = maxf(gain-state->ReleaseRate, amplitude);
+                    maxf(amplitude + fabsf(temps[i][2]),
+                        amplitude + fabsf(temps[i][3])));
+                if (amplitude > gain)
+                    gain = minf(gain + AttackRate, amplitude);
+                else if (amplitude < gain)
+                    gain = maxf(gain - ReleaseRate, amplitude);
 
                 /* Apply the inverse of the gain control to normalize/compress
-                 * the volume. */
+                * the volume. */
                 output = 1.0f / clampf(gain, 0.5f, 2.0f);
-                for(j = 0;j < 4;j++)
+                for (j = 0; j < 4; j++)
                     temps[i][j] *= output;
             }
 
-            state->GainCtrl = gain;
+            GainCtrl = gain;
         }
         else
         {
-            ALfloat gain = state->GainCtrl;
+            ALfloat gain = GainCtrl;
             ALfloat output, amplitude;
 
-            for(i = 0;i < td;i++)
+            for (i = 0; i < td; i++)
             {
                 /* Same as above, except the amplitude is forced to 1. This
-                 * helps ensure smooth gain changes when the compressor is
-                 * turned on and off.
-                 */
+                * helps ensure smooth gain changes when the compressor is
+                * turned on and off.
+                */
                 amplitude = 1.0f;
-                if(amplitude > gain)
-                    gain = minf(gain+state->AttackRate, amplitude);
-                else if(amplitude < gain)
-                    gain = maxf(gain-state->ReleaseRate, amplitude);
+                if (amplitude > gain)
+                    gain = minf(gain + AttackRate, amplitude);
+                else if (amplitude < gain)
+                    gain = maxf(gain - ReleaseRate, amplitude);
 
                 output = 1.0f / clampf(gain, 0.5f, 2.0f);
-                for(j = 0;j < 4;j++)
+                for (j = 0; j < 4; j++)
                     temps[i][j] *= output;
             }
 
-            state->GainCtrl = gain;
+            GainCtrl = gain;
         }
 
         /* Now mix to the output. */
-        for(j = 0;j < 4;j++)
+        for (j = 0; j < 4; j++)
         {
-            for(k = 0;k < NumChannels;k++)
+            for (k = 0; k < NumChannels; k++)
             {
-                ALfloat gain = state->Gain[j][k];
-                if(!(fabsf(gain) > GAIN_SILENCE_THRESHOLD))
+                ALfloat gain = Gain[j][k];
+                if (!(fabsf(gain) > GAIN_SILENCE_THRESHOLD))
                     continue;
 
-                for(i = 0;i < td;i++)
-                    SamplesOut[k][base+i] += gain * temps[i][j];
+                for (i = 0; i < td; i++)
+                    SamplesOut[k][base + i] += gain * temps[i][j];
             }
         }
 
@@ -173,26 +207,7 @@ static ALvoid ALcompressorState_process(ALcompressorState *state, ALsizei Sample
     }
 }
 
-
-typedef struct ALcompressorStateFactory {
-    DERIVE_FROM_TYPE(ALeffectStateFactory);
-} ALcompressorStateFactory;
-
-static ALeffectState *ALcompressorStateFactory_create(ALcompressorStateFactory *factory)
+IEffect* create_compressor_effect()
 {
-    ALcompressorState *state;
-
-    NEW_OBJ0(state, ALcompressorState)();
-    if(!state) return NULL;
-
-    return STATIC_CAST(ALeffectState, state);
-}
-
-DEFINE_ALEFFECTSTATEFACTORY_VTABLE(ALcompressorStateFactory);
-
-ALeffectStateFactory *ALcompressorStateFactory_getFactory(void)
-{
-    static ALcompressorStateFactory CompressorFactory = { { GET_VTABLE2(ALcompressorStateFactory, ALeffectStateFactory) } };
-
-    return STATIC_CAST(ALeffectStateFactory, &CompressorFactory);
+    return create_effect<CompressorEffect>();
 }

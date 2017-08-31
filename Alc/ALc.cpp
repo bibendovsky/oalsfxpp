@@ -210,11 +210,11 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
 
         {
             ALeffectslot *slot = device->effect_slot;
-            ALeffectState *state = slot->effect.state;
+            IEffect *state = slot->effect.state;
 
             state->out_buffer = device->dry.buffer;
             state->out_channels = device->dry.num_channels;
-            if(V(state,device_update)(device) == AL_FALSE)
+            if(state->update_device(device) == AL_FALSE)
                 update_failed = AL_TRUE;
             else
                 UpdateEffectSlotProps(slot);

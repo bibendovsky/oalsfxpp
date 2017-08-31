@@ -23,8 +23,27 @@
 #include "alu.h"
 
 
-typedef struct ALechoState {
-    DERIVE_FROM_TYPE(ALeffectState);
+class EchoEffect :
+    public IEffect
+{
+public:
+    EchoEffect()
+        :
+        IEffect{},
+        SampleBuffer{},
+        BufferLength{},
+        Tap{},
+        Offset{},
+        Gain{},
+        FeedGain{},
+        Filter{}
+    {
+    }
+
+    virtual ~EchoEffect()
+    {
+    }
+
 
     ALfloat *SampleBuffer;
     ALsizei BufferLength;
@@ -34,193 +53,192 @@ typedef struct ALechoState {
     struct {
         ALsizei delay;
     } Tap[2];
+
     ALsizei Offset;
-    /* The panning gains for the two taps */
+
+    // The panning gains for the two taps
     ALfloat Gain[2][MAX_OUTPUT_CHANNELS];
 
     ALfloat FeedGain;
 
     ALfilterState Filter;
-} ALechoState;
-
-static ALvoid ALechoState_Destruct(ALechoState *state);
-static ALboolean ALechoState_deviceUpdate(ALechoState *state, ALCdevice *Device);
-static ALvoid ALechoState_update(ALechoState *state, const ALCdevice *Device, const ALeffectslot *Slot, const ALeffectProps *props);
-static ALvoid ALechoState_process(ALechoState *state, ALsizei SamplesToDo, const ALfloat (*SamplesIn)[BUFFERSIZE], ALfloat (*SamplesOut)[BUFFERSIZE], ALsizei NumChannels);
-DECLARE_DEFAULT_ALLOCATORS(ALechoState)
-
-DEFINE_ALEFFECTSTATE_VTABLE(ALechoState);
 
 
-static void ALechoState_Construct(ALechoState *state)
+protected:
+    void do_construct() final;
+
+    void do_destruct() final;
+
+    ALboolean do_update_device(
+        ALCdevice* device) final;
+
+    void do_update(
+        const ALCdevice* device,
+        const struct ALeffectslot* slot,
+        const union ALeffectProps *props) final;
+
+    void do_process(
+        ALsizei samplesToDo,
+        const ALfloat(*samplesIn)[BUFFERSIZE],
+        ALfloat(*samplesOut)[BUFFERSIZE],
+        ALsizei numChannels) final;
+}; // EchoEffect
+
+
+void EchoEffect::do_construct()
 {
-    ALeffectState_Construct(STATIC_CAST(ALeffectState, state));
-    SET_VTABLE2(ALechoState, ALeffectState, state);
+    BufferLength = 0;
+    SampleBuffer = NULL;
 
-    state->BufferLength = 0;
-    state->SampleBuffer = NULL;
+    Tap[0].delay = 0;
+    Tap[1].delay = 0;
+    Offset = 0;
 
-    state->Tap[0].delay = 0;
-    state->Tap[1].delay = 0;
-    state->Offset = 0;
-
-    ALfilterState_clear(&state->Filter);
+    ALfilterState_clear(&Filter);
 }
 
-static ALvoid ALechoState_Destruct(ALechoState *state)
+void EchoEffect::do_destruct()
 {
-    al_free(state->SampleBuffer);
-    state->SampleBuffer = NULL;
-    ALeffectState_Destruct(STATIC_CAST(ALeffectState,state));
+    al_free(SampleBuffer);
+    SampleBuffer = NULL;
 }
 
-static ALboolean ALechoState_deviceUpdate(ALechoState *state, ALCdevice *Device)
+ALboolean EchoEffect::do_update_device(
+    ALCdevice* Device)
 {
     ALsizei maxlen, i;
 
     // Use the next power of 2 for the buffer length, so the tap offsets can be
     // wrapped using a mask instead of a modulo
-    maxlen  = fastf2i(AL_ECHO_MAX_DELAY * Device->frequency) + 1;
+    maxlen = fastf2i(AL_ECHO_MAX_DELAY * Device->frequency) + 1;
     maxlen += fastf2i(AL_ECHO_MAX_LRDELAY * Device->frequency) + 1;
-    maxlen  = NextPowerOf2(maxlen);
+    maxlen = NextPowerOf2(maxlen);
 
-    if(maxlen != state->BufferLength)
+    if (maxlen != BufferLength)
     {
         void *temp = al_calloc(16, maxlen * sizeof(ALfloat));
-        if(!temp) return AL_FALSE;
+        if (!temp) return AL_FALSE;
 
-        al_free(state->SampleBuffer);
-        state->SampleBuffer = static_cast<ALfloat*>(temp);
-        state->BufferLength = maxlen;
+        al_free(SampleBuffer);
+        SampleBuffer = static_cast<ALfloat*>(temp);
+        BufferLength = maxlen;
     }
-    for(i = 0;i < state->BufferLength;i++)
-        state->SampleBuffer[i] = 0.0f;
+    for (i = 0; i < BufferLength; i++)
+        SampleBuffer[i] = 0.0f;
 
     return AL_TRUE;
 }
 
-static ALvoid ALechoState_update(ALechoState *state, const ALCdevice *Device, const ALeffectslot *Slot, const ALeffectProps *props)
+void EchoEffect::do_update(
+    const ALCdevice* Device,
+    const struct ALeffectslot* slot,
+    const union ALeffectProps *props)
 {
     ALuint frequency = Device->frequency;
     ALfloat coeffs[MAX_AMBI_COEFFS];
     ALfloat gain, lrpan, spread;
 
-    state->Tap[0].delay = fastf2i(props->echo.delay * frequency) + 1;
-    state->Tap[1].delay = fastf2i(props->echo.lr_delay * frequency);
-    state->Tap[1].delay += state->Tap[0].delay;
+    Tap[0].delay = fastf2i(props->echo.delay * frequency) + 1;
+    Tap[1].delay = fastf2i(props->echo.lr_delay * frequency);
+    Tap[1].delay += Tap[0].delay;
 
     spread = props->echo.spread;
-    if(spread < 0.0f) lrpan = -1.0f;
+    if (spread < 0.0f) lrpan = -1.0f;
     else lrpan = 1.0f;
     /* Convert echo spread (where 0 = omni, +/-1 = directional) to coverage
-     * spread (where 0 = point, tau = omni).
-     */
+    * spread (where 0 = point, tau = omni).
+    */
     spread = asinf(1.0f - fabsf(spread))*4.0f;
 
-    state->FeedGain = props->echo.feedback;
+    FeedGain = props->echo.feedback;
 
     gain = maxf(1.0f - props->echo.damping, 0.0625f); /* Limit -24dB */
-    ALfilterState_setParams(&state->Filter, ALfilterType_HighShelf,
-                            gain, LOWPASSFREQREF/frequency,
-                            calc_rcpQ_from_slope(gain, 1.0f));
+    ALfilterState_setParams(&Filter, ALfilterType_HighShelf,
+        gain, LOWPASSFREQREF / frequency,
+        calc_rcpQ_from_slope(gain, 1.0f));
 
     gain = 1.0F;
 
     /* First tap panning */
     CalcAngleCoeffs(-F_PI_2*lrpan, 0.0f, spread, coeffs);
-    ComputePanningGains(Device->dry, coeffs, gain, state->Gain[0]);
+    ComputePanningGains(Device->dry, coeffs, gain, Gain[0]);
 
     /* Second tap panning */
-    CalcAngleCoeffs( F_PI_2*lrpan, 0.0f, spread, coeffs);
-    ComputePanningGains(Device->dry, coeffs, gain, state->Gain[1]);
+    CalcAngleCoeffs(F_PI_2*lrpan, 0.0f, spread, coeffs);
+    ComputePanningGains(Device->dry, coeffs, gain, Gain[1]);
 }
 
-static ALvoid ALechoState_process(ALechoState *state, ALsizei SamplesToDo, const ALfloat (*SamplesIn)[BUFFERSIZE], ALfloat (*SamplesOut)[BUFFERSIZE], ALsizei NumChannels)
+void EchoEffect::do_process(
+    ALsizei SamplesToDo,
+    const ALfloat(*SamplesIn)[BUFFERSIZE],
+    ALfloat(*SamplesOut)[BUFFERSIZE],
+    ALsizei NumChannels)
 {
-    const ALsizei mask = state->BufferLength-1;
-    const ALsizei tap1 = state->Tap[0].delay;
-    const ALsizei tap2 = state->Tap[1].delay;
-    ALsizei offset = state->Offset;
+    const ALsizei mask = BufferLength - 1;
+    const ALsizei tap1 = Tap[0].delay;
+    const ALsizei tap2 = Tap[1].delay;
+    ALsizei offset = Offset;
     ALfloat x[2], y[2], in, out;
     ALsizei base, k;
     ALsizei i;
 
-    x[0] = state->Filter.x[0];
-    x[1] = state->Filter.x[1];
-    y[0] = state->Filter.y[0];
-    y[1] = state->Filter.y[1];
-    for(base = 0;base < SamplesToDo;)
+    x[0] = Filter.x[0];
+    x[1] = Filter.x[1];
+    y[0] = Filter.y[0];
+    y[1] = Filter.y[1];
+    for (base = 0; base < SamplesToDo;)
     {
         ALfloat temps[128][2];
-        ALsizei td = mini(128, SamplesToDo-base);
+        ALsizei td = mini(128, SamplesToDo - base);
 
-        for(i = 0;i < td;i++)
+        for (i = 0; i < td; i++)
         {
             /* First tap */
-            temps[i][0] = state->SampleBuffer[(offset-tap1) & mask];
+            temps[i][0] = SampleBuffer[(offset - tap1) & mask];
             /* Second tap */
-            temps[i][1] = state->SampleBuffer[(offset-tap2) & mask];
+            temps[i][1] = SampleBuffer[(offset - tap2) & mask];
 
             // Apply damping and feedback gain to the second tap, and mix in the
             // new sample
-            in = temps[i][1] + SamplesIn[0][i+base];
-            out = in*state->Filter.b0 +
-                  x[0]*state->Filter.b1 + x[1]*state->Filter.b2 -
-                  y[0]*state->Filter.a1 - y[1]*state->Filter.a2;
+            in = temps[i][1] + SamplesIn[0][i + base];
+            out = in*Filter.b0 +
+                x[0] * Filter.b1 + x[1] * Filter.b2 -
+                y[0] * Filter.a1 - y[1] * Filter.a2;
             x[1] = x[0]; x[0] = in;
             y[1] = y[0]; y[0] = out;
 
-            state->SampleBuffer[offset&mask] = out * state->FeedGain;
+            SampleBuffer[offset&mask] = out * FeedGain;
             offset++;
         }
 
-        for(k = 0;k < NumChannels;k++)
+        for (k = 0; k < NumChannels; k++)
         {
-            ALfloat gain = state->Gain[0][k];
-            if(fabsf(gain) > GAIN_SILENCE_THRESHOLD)
+            ALfloat gain = Gain[0][k];
+            if (fabsf(gain) > GAIN_SILENCE_THRESHOLD)
             {
-                for(i = 0;i < td;i++)
-                    SamplesOut[k][i+base] += temps[i][0] * gain;
+                for (i = 0; i < td; i++)
+                    SamplesOut[k][i + base] += temps[i][0] * gain;
             }
 
-            gain = state->Gain[1][k];
-            if(fabsf(gain) > GAIN_SILENCE_THRESHOLD)
+            gain = Gain[1][k];
+            if (fabsf(gain) > GAIN_SILENCE_THRESHOLD)
             {
-                for(i = 0;i < td;i++)
-                    SamplesOut[k][i+base] += temps[i][1] * gain;
+                for (i = 0; i < td; i++)
+                    SamplesOut[k][i + base] += temps[i][1] * gain;
             }
         }
 
         base += td;
     }
-    state->Filter.x[0] = x[0];
-    state->Filter.x[1] = x[1];
-    state->Filter.y[0] = y[0];
-    state->Filter.y[1] = y[1];
+    Filter.x[0] = x[0];
+    Filter.x[1] = x[1];
+    Filter.y[0] = y[0];
+    Filter.y[1] = y[1];
 
-    state->Offset = offset;
+    Offset = offset;
 }
 
-
-typedef struct ALechoStateFactory {
-    DERIVE_FROM_TYPE(ALeffectStateFactory);
-} ALechoStateFactory;
-
-ALeffectState *ALechoStateFactory_create(ALechoStateFactory *factory)
+IEffect* create_echo_effect()
 {
-    ALechoState *state;
-
-    NEW_OBJ0(state, ALechoState)();
-    if(!state) return NULL;
-
-    return STATIC_CAST(ALeffectState, state);
-}
-
-DEFINE_ALEFFECTSTATEFACTORY_VTABLE(ALechoStateFactory);
-
-ALeffectStateFactory *ALechoStateFactory_getFactory(void)
-{
-    static ALechoStateFactory EchoFactory = { { GET_VTABLE2(ALechoStateFactory, ALeffectStateFactory) } };
-
-    return STATIC_CAST(ALeffectStateFactory, &EchoFactory);
+    return create_effect<EchoEffect>();
 }

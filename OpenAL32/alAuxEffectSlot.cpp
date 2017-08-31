@@ -24,65 +24,62 @@
 #include "alSource.h"
 
 
-static inline ALeffectStateFactory *getFactoryByType(ALenum type)
-{
-    ALeffectStateFactory* (*get_factory)() = NULL;
+IEffect* create_chorus_effect();
+IEffect* create_compressor_effect();
+IEffect* create_dedicated_effect();
+IEffect* create_distortion_effect();
+IEffect* create_echo_effect();
+IEffect* create_equalizer_effect();
+IEffect* create_flanger_effect();
+IEffect* create_modulator_effect();
+IEffect* create_null_effect();
+IEffect* create_reverb_effect();
 
+
+static IEffect* createByType(
+    const ALenum type)
+{
     switch (type)
     {
     case AL_EFFECT_NULL:
-        get_factory = ALnullStateFactory_getFactory;
-        break;
+        return create_null_effect();
 
     case AL_EFFECT_EAXREVERB:
-        get_factory = ALreverbStateFactory_getFactory;
-        break;
+        return create_reverb_effect();
 
     case AL_EFFECT_REVERB:
-        get_factory = ALreverbStateFactory_getFactory;
-        break;
+        return create_reverb_effect();
 
     case AL_EFFECT_CHORUS:
-        get_factory = ALchorusStateFactory_getFactory;
-        break;
+        return create_chorus_effect();
 
     case AL_EFFECT_COMPRESSOR:
-        get_factory = ALcompressorStateFactory_getFactory;
-        break;
+        return create_compressor_effect();
 
     case AL_EFFECT_DISTORTION:
-        get_factory = ALdistortionStateFactory_getFactory;
-        break;
+        return create_distortion_effect();
 
     case AL_EFFECT_ECHO:
-        get_factory = ALechoStateFactory_getFactory;
-        break;
+        return create_echo_effect();
 
     case AL_EFFECT_EQUALIZER:
-        get_factory = ALequalizerStateFactory_getFactory;
-        break;
+        return create_equalizer_effect();
 
     case AL_EFFECT_FLANGER:
-        get_factory = ALflangerStateFactory_getFactory;
-        break;
+        return create_flanger_effect();
 
     case AL_EFFECT_RING_MODULATOR:
-        get_factory = ALmodulatorStateFactory_getFactory;
-        break;
+        return create_modulator_effect();
 
     case AL_EFFECT_DEDICATED_DIALOGUE:
-        get_factory = ALdedicatedStateFactory_getFactory;
-        break;
+        return create_dedicated_effect();
 
     case AL_EFFECT_DEDICATED_LOW_FREQUENCY_EFFECT:
-        get_factory = ALdedicatedStateFactory_getFactory;
-        break;
+        return create_dedicated_effect();
 
     default:
-        return NULL;
+        return nullptr;
     }
-
-    return get_factory();
 }
 
 static void ALeffectState_IncRef(ALeffectState *state);
@@ -93,25 +90,17 @@ ALenum InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *e
 {
     ALenum newtype = (effect ? effect->type : AL_EFFECT_NULL);
     struct ALeffectslotProps *props;
-    ALeffectState *State;
+    IEffect *State;
 
     if(newtype != EffectSlot->effect.type)
     {
-        ALeffectStateFactory *factory;
-
-        factory = getFactoryByType(newtype);
-        if(!factory)
-        {
-            return AL_INVALID_ENUM;
-        }
-        State = V0(factory,create)();
+        State = createByType(newtype);
         if(!State) return AL_OUT_OF_MEMORY;
 
         State->out_buffer = Device->dry.buffer;
         State->out_channels = Device->dry.num_channels;
-        if(V(State,device_update)(Device) == AL_FALSE)
+        if(State->update_device(Device) == AL_FALSE)
         {
-            ALeffectState_DecRef(State);
             return AL_OUT_OF_MEMORY;
         }
 
@@ -126,7 +115,7 @@ ALenum InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *e
             EffectSlot->effect.props = effect->props;
         }
 
-        ALeffectState_DecRef(EffectSlot->effect.state);
+        destroy_effect(EffectSlot->effect.state);
         EffectSlot->effect.state = State;
     }
     else if(effect)
@@ -136,8 +125,6 @@ ALenum InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *e
     props = EffectSlot->free_list;
     while(props)
     {
-        if(props->state)
-            ALeffectState_DecRef(props->state);
         props->state = NULL;
         props = props->next;
     }
@@ -174,12 +161,9 @@ void ALeffectState_Destruct(ALeffectState *state)
 
 ALenum InitEffectSlot(ALeffectslot *slot)
 {
-    ALeffectStateFactory *factory;
-
     slot->effect.type = AL_EFFECT_NULL;
 
-    factory = getFactoryByType(AL_EFFECT_NULL);
-    if(!(slot->effect.state=V0(factory,create)()))
+    if(!(slot->effect.state= createByType(AL_EFFECT_NULL)))
         return AL_OUT_OF_MEMORY;
 
     slot->ref = 0;
@@ -187,7 +171,6 @@ ALenum InitEffectSlot(ALeffectslot *slot)
     slot->update = NULL;
     slot->free_list = NULL;
 
-    ALeffectState_IncRef(slot->effect.state);
     slot->params.effect_state = slot->effect.state;
 
     return AL_NO_ERROR;
@@ -201,29 +184,25 @@ void DeinitEffectSlot(ALeffectslot *slot)
     props = slot->update;
     if(props)
     {
-        if(props->state) ALeffectState_DecRef(props->state);
         al_free(props);
     }
     props = slot->free_list;
     while(props)
     {
         struct ALeffectslotProps *next = props->next;
-        if(props->state) ALeffectState_DecRef(props->state);
         al_free(props);
         props = next;
         ++count;
     }
 
-    ALeffectState_DecRef(slot->effect.state);
-    if(slot->params.effect_state)
-        ALeffectState_DecRef(slot->params.effect_state);
+    destroy_effect(slot->effect.state);
 }
 
 void UpdateEffectSlotProps(ALeffectslot *slot)
 {
     struct ALeffectslotProps *props;
     struct ALeffectslotProps *temp_props;
-    ALeffectState *oldstate;
+    IEffect *oldstate;
 
     /* Get an unused property container, or allocate a new one as needed. */
     props = slot->free_list;
@@ -243,7 +222,6 @@ void UpdateEffectSlotProps(ALeffectslot *slot)
     /* Swap out any stale effect state object there may be in the container, to
      * delete it.
      */
-    ALeffectState_IncRef(slot->effect.state);
     oldstate = props->state;
     props->state = slot->effect.state;
 
@@ -259,9 +237,6 @@ void UpdateEffectSlotProps(ALeffectslot *slot)
          */
         props->next = slot->free_list;
     }
-
-    if(oldstate)
-        ALeffectState_DecRef(oldstate);
 }
 
 void UpdateAllEffectSlotProps(ALCcontext *context)

@@ -108,6 +108,65 @@ typedef struct ALeffect {
 } ALeffect;
 
 
+class IEffect
+{
+public:
+    IEffect(
+        const IEffect& that) = delete;
+
+    IEffect& operator=(
+        const IEffect& that) = delete;
+
+    virtual ~IEffect();
+
+
+    ALfloat (*out_buffer)[BUFFERSIZE];
+    ALsizei out_channels;
+
+
+    void construct();
+
+    void destruct();
+
+    ALboolean update_device(
+        ALCdevice* device);
+
+    void update(
+        const ALCdevice* device,
+        const struct ALeffectslot* slot,
+        const union ALeffectProps *props);
+
+    void process(
+        ALsizei samplesToDo,
+        const ALfloat(*samplesIn)[BUFFERSIZE],
+        ALfloat(*samplesOut)[BUFFERSIZE],
+        ALsizei numChannels);
+
+
+protected:
+    IEffect();
+
+
+    virtual void do_construct() = 0;
+
+    virtual void do_destruct() = 0;
+
+    virtual ALboolean do_update_device(
+        ALCdevice* device) = 0;
+
+    virtual void do_update(
+        const ALCdevice* device,
+        const struct ALeffectslot* slot,
+        const union ALeffectProps *props) = 0;
+
+    virtual void do_process(
+        ALsizei samplesToDo,
+        const ALfloat(*samplesIn)[BUFFERSIZE],
+        ALfloat(*samplesOut)[BUFFERSIZE],
+        ALsizei numChannels) = 0;
+}; // IEffect
+
+
 ALenum InitEffect(ALeffect *effect);
 
 

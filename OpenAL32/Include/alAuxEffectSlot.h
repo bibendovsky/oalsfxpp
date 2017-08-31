@@ -79,7 +79,7 @@ struct ALeffectslotProps {
     ALenum type;
     ALeffectProps props;
 
-    ALeffectState *state;
+    IEffect *state;
 
     struct ALeffectslotProps* next;
 };
@@ -90,7 +90,7 @@ typedef struct ALeffectslot {
         ALenum type;
         ALeffectProps props;
 
-        ALeffectState *state;
+        IEffect *state;
     } effect;
 
     unsigned int ref;
@@ -100,7 +100,7 @@ typedef struct ALeffectslot {
 
     struct Params {
         ALenum effect_type;
-        ALeffectState *effect_state;
+        IEffect *effect_state;
     } params;
 
     ALsizei num_channels;
@@ -124,19 +124,29 @@ void UpdateEffectSlotProps(ALeffectslot *slot);
 void UpdateAllEffectSlotProps(ALCcontext *context);
 
 
-ALeffectStateFactory *ALnullStateFactory_getFactory(void);
-ALeffectStateFactory *ALreverbStateFactory_getFactory(void);
-ALeffectStateFactory *ALchorusStateFactory_getFactory(void);
-ALeffectStateFactory *ALcompressorStateFactory_getFactory(void);
-ALeffectStateFactory *ALdistortionStateFactory_getFactory(void);
-ALeffectStateFactory *ALechoStateFactory_getFactory(void);
-ALeffectStateFactory *ALequalizerStateFactory_getFactory(void);
-ALeffectStateFactory *ALflangerStateFactory_getFactory(void);
-ALeffectStateFactory *ALmodulatorStateFactory_getFactory(void);
-ALeffectStateFactory *ALdedicatedStateFactory_getFactory(void);
-
-
 ALenum InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *effect);
+
+
+template<typename T>
+IEffect* create_effect()
+{
+    IEffect* result = new T{};
+    result->construct();
+    return result;
+}
+
+inline void destroy_effect(
+    IEffect*& effect)
+{
+    if (!effect)
+    {
+        return;
+    }
+
+    effect->destruct();
+    delete effect;
+    effect = nullptr;
+}
 
 
 #endif

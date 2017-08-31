@@ -23,6 +23,57 @@
 #include "alEffect.h"
 
 
+// ==========================================================================
+// IEffect
+
+IEffect::IEffect()
+    :
+    out_buffer{},
+    out_channels{}
+{
+}
+
+IEffect::~IEffect()
+{
+}
+
+void IEffect::construct()
+{
+    do_construct();
+}
+
+void IEffect::destruct()
+{
+    do_destruct();
+}
+
+ALboolean IEffect::update_device(
+    ALCdevice* device)
+{
+    return do_update_device(device);
+}
+
+void IEffect::update(
+    const ALCdevice* device,
+    const struct ALeffectslot* slot,
+    const union ALeffectProps *props)
+{
+    do_update(device, slot, props);
+}
+
+void IEffect::process(
+    ALsizei samplesToDo,
+    const ALfloat(*samplesIn)[BUFFERSIZE],
+    ALfloat(*samplesOut)[BUFFERSIZE],
+    ALsizei numChannels)
+{
+    do_process(samplesToDo, samplesIn, samplesOut, numChannels);
+}
+
+// IEffect
+// ==========================================================================
+
+
 void InitEffectParams(ALeffect *effect, ALenum type);
 
 

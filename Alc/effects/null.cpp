@@ -2,129 +2,80 @@
 #include "alAuxEffectSlot.h"
 
 
-typedef struct ALnullState {
-    DERIVE_FROM_TYPE(ALeffectState);
-} ALnullState;
-
-/* Forward-declare "virtual" functions to define the vtable with. */
-static ALvoid ALnullState_Destruct(ALnullState *state);
-static ALboolean ALnullState_deviceUpdate(ALnullState *state, ALCdevice *device);
-static ALvoid ALnullState_update(ALnullState *state, const ALCdevice *device, const ALeffectslot *slot, const ALeffectProps *props);
-static ALvoid ALnullState_process(ALnullState *state, ALsizei samplesToDo, const ALfloatBUFFERSIZE*samplesIn, ALfloatBUFFERSIZE*samplesOut, ALsizei NumChannels);
-static void *ALnullState_New(size_t size);
-static void ALnullState_Delete(void *ptr);
-
-/* Define the ALeffectState vtable for this type. */
-DEFINE_ALEFFECTSTATE_VTABLE(ALnullState);
-
-
-/* This constructs the effect state. It's called when the object is first
- * created. Make sure to call the parent Construct function first, and set the
- * vtable!
- */
-static void ALnullState_Construct(ALnullState *state)
+class NullEffect :
+    public IEffect
 {
-    ALeffectState_Construct(STATIC_CAST(ALeffectState, state));
-    SET_VTABLE2(ALnullState, ALeffectState, state);
+public:
+    NullEffect()
+        :
+        IEffect{}
+    {
+    }
+
+    virtual ~NullEffect()
+    {
+    }
+
+
+protected:
+    void do_construct() final;
+
+    void do_destruct() final;
+
+    ALboolean do_update_device(
+        ALCdevice* device) final;
+
+    void do_update(
+        const ALCdevice* device,
+        const struct ALeffectslot* slot,
+        const union ALeffectProps *props) final;
+
+    void do_process(
+        ALsizei samplesToDo,
+        const ALfloat(*samplesIn)[BUFFERSIZE],
+        ALfloat(*samplesOut)[BUFFERSIZE],
+        ALsizei numChannels) final;
+}; // NullEffect
+
+
+void NullEffect::do_construct()
+{
 }
 
-/* This destructs (not free!) the effect state. It's called only when the
- * effect slot is no longer used. Make sure to call the parent Destruct
- * function before returning!
- */
-static ALvoid ALnullState_Destruct(ALnullState *state)
+void NullEffect::do_destruct()
 {
-    ALeffectState_Destruct(STATIC_CAST(ALeffectState,state));
 }
 
-/* This updates the device-dependant effect state. This is called on
- * initialization and any time the device parameters (eg. playback frequency,
- * format) have been changed.
- */
-static ALboolean ALnullState_deviceUpdate(ALnullState* state, ALCdevice* device)
+ALboolean NullEffect::do_update_device(
+    ALCdevice* device)
 {
+    static_cast<void>(device);
     return AL_TRUE;
 }
 
-/* This updates the effect state. This is called any time the effect is
- * (re)loaded into a slot.
- */
-static ALvoid ALnullState_update(ALnullState* state, const ALCdevice* device, const ALeffectslot* slot, const ALeffectProps* props)
+void NullEffect::do_update(
+    const ALCdevice* device,
+    const struct ALeffectslot* slot,
+    const union ALeffectProps *props)
 {
+    static_cast<void>(device);
+    static_cast<void>(slot);
+    static_cast<void>(props);
 }
 
-/* This processes the effect state, for the given number of samples from the
- * input to the output buffer. The result should be added to the output buffer,
- * not replace it.
- */
-static ALvoid ALnullState_process(ALnullState* state, ALsizei samplesToDo, const ALfloatBUFFERSIZE*samplesIn, ALfloatBUFFERSIZE*samplesOut, ALsizei NumChannels)
+void NullEffect::do_process(
+    ALsizei samplesToDo,
+    const ALfloat(*samplesIn)[BUFFERSIZE],
+    ALfloat(*samplesOut)[BUFFERSIZE],
+    ALsizei numChannels)
 {
+    static_cast<void>(samplesToDo);
+    static_cast<void>(samplesIn);
+    static_cast<void>(samplesOut);
+    static_cast<void>(numChannels);
 }
 
-/* This allocates memory to store the object, before it gets constructed.
- * DECLARE_DEFAULT_ALLOCATORS can be used to declare a default method.
- */
-static void *ALnullState_New(size_t size)
+IEffect* create_null_effect()
 {
-    return al_malloc(16, size);
-}
-
-/* This frees the memory used by the object, after it has been destructed.
- * DECLARE_DEFAULT_ALLOCATORS can be used to declare a default method.
- */
-static void ALnullState_Delete(void *ptr)
-{
-    al_free(ptr);
-}
-
-
-typedef struct ALnullStateFactory {
-    DERIVE_FROM_TYPE(ALeffectStateFactory);
-} ALnullStateFactory;
-
-/* Creates ALeffectState objects of the appropriate type. */
-ALeffectState *ALnullStateFactory_create(ALnullStateFactory *factory)
-{
-    ALnullState *state;
-
-    NEW_OBJ0(state, ALnullState)();
-    if(!state) return NULL;
-
-    return STATIC_CAST(ALeffectState, state);
-}
-
-/* Define the ALeffectStateFactory vtable for this type. */
-DEFINE_ALEFFECTSTATEFACTORY_VTABLE(ALnullStateFactory);
-
-ALeffectStateFactory *ALnullStateFactory_getFactory(void)
-{
-    static ALnullStateFactory NullFactory = { { GET_VTABLE2(ALnullStateFactory, ALeffectStateFactory) } };
-    return STATIC_CAST(ALeffectStateFactory, &NullFactory);
-}
-
-
-void ALnull_setParami(ALeffect* effect, ALCcontext *context, ALenum param, ALint val)
-{
-}
-void ALnull_setParamiv(ALeffect* effect, ALCcontext *context, ALenum param, const ALint* vals)
-{
-}
-void ALnull_setParamf(ALeffect* effect, ALCcontext *context, ALenum param, ALfloat val)
-{
-}
-void ALnull_setParamfv(ALeffect* effect, ALCcontext *context, ALenum param, const ALfloat* vals)
-{
-}
-
-void ALnull_getParami(const ALeffect* effect, ALCcontext *context, ALenum param, ALint* val)
-{
-}
-void ALnull_getParamiv(const ALeffect* effect, ALCcontext *context, ALenum param, ALint* vals)
-{
-}
-void ALnull_getParamf(const ALeffect* effect, ALCcontext *context, ALenum param, ALfloat* val)
-{
-}
-void ALnull_getParamfv(const ALeffect* effect, ALCcontext *context, ALenum param, ALfloat* vals)
-{
+    return create_effect<NullEffect>();
 }

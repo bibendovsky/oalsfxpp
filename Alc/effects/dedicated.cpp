@@ -24,122 +24,132 @@
 #include "alu.h"
 
 
-typedef struct ALdedicatedState {
-    DERIVE_FROM_TYPE(ALeffectState);
+class DedicatedEffect :
+    public IEffect
+{
+public:
+    DedicatedEffect()
+        :
+        IEffect{},
+        gains{}
+    {
+    }
+
+    virtual ~DedicatedEffect()
+    {
+    }
+
 
     ALfloat gains[MAX_OUTPUT_CHANNELS];
-} ALdedicatedState;
-
-static ALvoid ALdedicatedState_Destruct(ALdedicatedState *state);
-static ALboolean ALdedicatedState_deviceUpdate(ALdedicatedState *state, ALCdevice *device);
-static ALvoid ALdedicatedState_update(ALdedicatedState *state, const ALCdevice *device, const ALeffectslot *Slot, const ALeffectProps *props);
-static ALvoid ALdedicatedState_process(ALdedicatedState *state, ALsizei SamplesToDo, const ALfloat (*SamplesIn)[BUFFERSIZE], ALfloat (*SamplesOut)[BUFFERSIZE], ALsizei NumChannels);
-DECLARE_DEFAULT_ALLOCATORS(ALdedicatedState)
-
-DEFINE_ALEFFECTSTATE_VTABLE(ALdedicatedState);
 
 
-static void ALdedicatedState_Construct(ALdedicatedState *state)
+protected:
+    void do_construct() final;
+
+    void do_destruct() final;
+
+    ALboolean do_update_device(
+        ALCdevice* device) final;
+
+    void do_update(
+        const ALCdevice* device,
+        const struct ALeffectslot* slot,
+        const union ALeffectProps *props) final;
+
+    void do_process(
+        ALsizei samplesToDo,
+        const ALfloat(*samplesIn)[BUFFERSIZE],
+        ALfloat(*samplesOut)[BUFFERSIZE],
+        ALsizei numChannels) final;
+}; // DedicatedEffect
+
+
+void DedicatedEffect::do_construct()
 {
-    ALsizei s;
-
-    ALeffectState_Construct(STATIC_CAST(ALeffectState, state));
-    SET_VTABLE2(ALdedicatedState, ALeffectState, state);
-
-    for(s = 0;s < MAX_OUTPUT_CHANNELS;s++)
-        state->gains[s] = 0.0f;
+    for (int i = 0; i < MAX_OUTPUT_CHANNELS; ++i)
+    {
+        gains[i] = 0.0f;
+    }
 }
 
-static ALvoid ALdedicatedState_Destruct(ALdedicatedState *state)
+void DedicatedEffect::do_destruct()
 {
-    ALeffectState_Destruct(STATIC_CAST(ALeffectState,state));
 }
 
-static ALboolean ALdedicatedState_deviceUpdate(ALdedicatedState *state, ALCdevice *device)
+ALboolean DedicatedEffect::do_update_device(
+    ALCdevice* device)
 {
+    static_cast<void>(device);
     return AL_TRUE;
 }
 
-static ALvoid ALdedicatedState_update(ALdedicatedState *state, const ALCdevice *device, const ALeffectslot *Slot, const ALeffectProps *props)
+void DedicatedEffect::do_update(
+    const ALCdevice* device,
+    const struct ALeffectslot* Slot,
+    const union ALeffectProps *props)
 {
     ALfloat Gain;
     ALuint i;
 
-    for(i = 0;i < MAX_OUTPUT_CHANNELS;i++)
-        state->gains[i] = 0.0f;
+    for (i = 0; i < MAX_OUTPUT_CHANNELS; i++)
+        gains[i] = 0.0f;
 
     Gain = props->dedicated.gain;
-    if(Slot->params.effect_type == AL_EFFECT_DEDICATED_LOW_FREQUENCY_EFFECT)
+    if (Slot->params.effect_type == AL_EFFECT_DEDICATED_LOW_FREQUENCY_EFFECT)
     {
         int idx;
-        if((idx=GetChannelIdxByName(device->real_out, LFE)) != -1)
+        if ((idx = GetChannelIdxByName(device->real_out, LFE)) != -1)
         {
-            STATIC_CAST(ALeffectState,state)->out_buffer = device->real_out.buffer;
-            STATIC_CAST(ALeffectState,state)->out_channels = device->real_out.num_channels;
-            state->gains[idx] = Gain;
+            out_buffer = device->real_out.buffer;
+            out_channels = device->real_out.num_channels;
+            gains[idx] = Gain;
         }
     }
-    else if(Slot->params.effect_type == AL_EFFECT_DEDICATED_DIALOGUE)
+    else if (Slot->params.effect_type == AL_EFFECT_DEDICATED_DIALOGUE)
     {
         int idx;
         /* Dialog goes to the front-center speaker if it exists, otherwise it
-         * plays from the front-center location. */
-        if((idx=GetChannelIdxByName(device->real_out, FrontCenter)) != -1)
+        * plays from the front-center location. */
+        if ((idx = GetChannelIdxByName(device->real_out, FrontCenter)) != -1)
         {
-            STATIC_CAST(ALeffectState,state)->out_buffer = device->real_out.buffer;
-            STATIC_CAST(ALeffectState,state)->out_channels = device->real_out.num_channels;
-            state->gains[idx] = Gain;
+            out_buffer = device->real_out.buffer;
+            out_channels = device->real_out.num_channels;
+            gains[idx] = Gain;
         }
         else
         {
             ALfloat coeffs[MAX_AMBI_COEFFS];
             CalcAngleCoeffs(0.0f, 0.0f, 0.0f, coeffs);
 
-            STATIC_CAST(ALeffectState,state)->out_buffer = device->dry.buffer;
-            STATIC_CAST(ALeffectState,state)->out_channels = device->dry.num_channels;
-            ComputePanningGains(device->dry, coeffs, Gain, state->gains);
+            out_buffer = device->dry.buffer;
+            out_channels = device->dry.num_channels;
+            ComputePanningGains(device->dry, coeffs, Gain, gains);
         }
     }
 }
 
-static ALvoid ALdedicatedState_process(ALdedicatedState *state, ALsizei SamplesToDo, const ALfloat (*SamplesIn)[BUFFERSIZE], ALfloat (*SamplesOut)[BUFFERSIZE], ALsizei NumChannels)
+void DedicatedEffect::do_process(
+    ALsizei SamplesToDo,
+    const ALfloat(*SamplesIn)[BUFFERSIZE],
+    ALfloat(*SamplesOut)[BUFFERSIZE],
+    ALsizei NumChannels)
 {
     ALsizei i, c;
 
     SamplesIn = ASSUME_ALIGNED(SamplesIn, 16);
     SamplesOut = ASSUME_ALIGNED(SamplesOut, 16);
-    for(c = 0;c < NumChannels;c++)
+    for (c = 0; c < NumChannels; c++)
     {
-        const ALfloat gain = state->gains[c];
-        if(!(fabsf(gain) > GAIN_SILENCE_THRESHOLD))
+        const ALfloat gain = gains[c];
+        if (!(fabsf(gain) > GAIN_SILENCE_THRESHOLD))
             continue;
 
-        for(i = 0;i < SamplesToDo;i++)
+        for (i = 0; i < SamplesToDo; i++)
             SamplesOut[c][i] += SamplesIn[0][i] * gain;
     }
 }
 
-
-typedef struct ALdedicatedStateFactory {
-    DERIVE_FROM_TYPE(ALeffectStateFactory);
-} ALdedicatedStateFactory;
-
-ALeffectState *ALdedicatedStateFactory_create(ALdedicatedStateFactory *factory)
+IEffect* create_dedicated_effect()
 {
-    ALdedicatedState *state;
-
-    NEW_OBJ0(state, ALdedicatedState)();
-    if(!state) return NULL;
-
-    return STATIC_CAST(ALeffectState, state);
-}
-
-DEFINE_ALEFFECTSTATEFACTORY_VTABLE(ALdedicatedStateFactory);
-
-
-ALeffectStateFactory *ALdedicatedStateFactory_getFactory(void)
-{
-    static ALdedicatedStateFactory DedicatedFactory = { { GET_VTABLE2(ALdedicatedStateFactory, ALeffectStateFactory) } };
-
-    return STATIC_CAST(ALeffectStateFactory, &DedicatedFactory);
+    return create_effect<DedicatedEffect>();
 }

@@ -68,136 +68,169 @@
 /* The maximum number of sample frames per update. */
 #define MAX_UPDATE_SAMPLES 256
 
-typedef struct ALequalizerState {
-    DERIVE_FROM_TYPE(ALeffectState);
 
-    /* Effect gains for each channel */
+class EqualizerEffect :
+    public IEffect
+{
+public:
+    EqualizerEffect()
+        :
+        IEffect{},
+        Gain{},
+        filter{},
+        SampleBuffer{}
+    {
+    }
+
+    virtual ~EqualizerEffect()
+    {
+    }
+
+
+    // Effect gains for each channel
     ALfloat Gain[MAX_EFFECT_CHANNELS][MAX_OUTPUT_CHANNELS];
 
-    /* Effect parameters */
+    // Effect parameters
     ALfilterState filter[4][MAX_EFFECT_CHANNELS];
 
     ALfloat SampleBuffer[4][MAX_EFFECT_CHANNELS][MAX_UPDATE_SAMPLES];
-} ALequalizerState;
-
-static ALvoid ALequalizerState_Destruct(ALequalizerState *state);
-static ALboolean ALequalizerState_deviceUpdate(ALequalizerState *state, ALCdevice *device);
-static ALvoid ALequalizerState_update(ALequalizerState *state, const ALCdevice *device, const ALeffectslot *slot, const ALeffectProps *props);
-static ALvoid ALequalizerState_process(ALequalizerState *state, ALsizei SamplesToDo, const ALfloat (*SamplesIn)[BUFFERSIZE], ALfloat (*SamplesOut)[BUFFERSIZE], ALsizei NumChannels);
-DECLARE_DEFAULT_ALLOCATORS(ALequalizerState)
-
-DEFINE_ALEFFECTSTATE_VTABLE(ALequalizerState);
 
 
-static void ALequalizerState_Construct(ALequalizerState *state)
+protected:
+    void do_construct() final;
+
+    void do_destruct() final;
+
+    ALboolean do_update_device(
+        ALCdevice* device) final;
+
+    void do_update(
+        const ALCdevice* device,
+        const struct ALeffectslot* slot,
+        const union ALeffectProps *props) final;
+
+    void do_process(
+        ALsizei samplesToDo,
+        const ALfloat(*samplesIn)[BUFFERSIZE],
+        ALfloat(*samplesOut)[BUFFERSIZE],
+        ALsizei numChannels) final;
+}; // EqualizerEffect
+
+
+void EqualizerEffect::do_construct()
 {
-    int it, ft;
-
-    ALeffectState_Construct(STATIC_CAST(ALeffectState, state));
-    SET_VTABLE2(ALequalizerState, ALeffectState, state);
-
-    /* Initialize sample history only on filter creation to avoid */
-    /* sound clicks if filter settings were changed in runtime.   */
-    for(it = 0; it < 4; it++)
+    // Initialize sample history only on filter creation to avoid
+    // sound clicks if filter settings were changed in runtime.
+    for (int it = 0; it < 4; ++it)
     {
-        for(ft = 0;ft < MAX_EFFECT_CHANNELS;ft++)
-            ALfilterState_clear(&state->filter[it][ft]);
+        for (int ft = 0; ft < MAX_EFFECT_CHANNELS; ++ft)
+        {
+            ALfilterState_clear(&filter[it][ft]);
+        }
     }
 }
 
-static ALvoid ALequalizerState_Destruct(ALequalizerState *state)
+void EqualizerEffect::do_destruct()
 {
-    ALeffectState_Destruct(STATIC_CAST(ALeffectState,state));
 }
 
-static ALboolean ALequalizerState_deviceUpdate(ALequalizerState *state, ALCdevice *device)
+ALboolean EqualizerEffect::do_update_device(
+    ALCdevice* device)
 {
+    static_cast<void>(device);
     return AL_TRUE;
 }
 
-static ALvoid ALequalizerState_update(ALequalizerState *state, const ALCdevice *device, const ALeffectslot *slot, const ALeffectProps *props)
+void EqualizerEffect::do_update(
+    const ALCdevice* device,
+    const struct ALeffectslot* slot,
+    const union ALeffectProps *props)
 {
     ALfloat frequency = (ALfloat)device->frequency;
     ALfloat gain, freq_mult;
     ALuint i;
 
-    STATIC_CAST(ALeffectState,state)->out_buffer = device->foa_out.buffer;
-    STATIC_CAST(ALeffectState,state)->out_channels = device->foa_out.num_channels;
-    for(i = 0;i < MAX_EFFECT_CHANNELS;i++)
+    out_buffer = device->foa_out.buffer;
+    out_channels = device->foa_out.num_channels;
+    for (i = 0; i < MAX_EFFECT_CHANNELS; i++)
         ComputeFirstOrderGains(device->foa_out, IdentityMatrixf.m[i],
-                               1.0F, state->Gain[i]);
+            1.0F, Gain[i]);
 
     /* Calculate coefficients for the each type of filter. Note that the shelf
-     * filters' gain is for the reference frequency, which is the centerpoint
-     * of the transition band.
-     */
+    * filters' gain is for the reference frequency, which is the centerpoint
+    * of the transition band.
+    */
     gain = maxf(sqrtf(props->equalizer.low_gain), 0.0625f); /* Limit -24dB */
-    freq_mult = props->equalizer.low_cutoff/frequency;
-    ALfilterState_setParams(&state->filter[0][0], ALfilterType_LowShelf,
+    freq_mult = props->equalizer.low_cutoff / frequency;
+    ALfilterState_setParams(&filter[0][0], ALfilterType_LowShelf,
         gain, freq_mult, calc_rcpQ_from_slope(gain, 0.75f)
     );
     /* Copy the filter coefficients for the other input channels. */
-    for(i = 1;i < MAX_EFFECT_CHANNELS;i++)
-        ALfilterState_copyParams(&state->filter[0][i], &state->filter[0][0]);
+    for (i = 1; i < MAX_EFFECT_CHANNELS; i++)
+        ALfilterState_copyParams(&filter[0][i], &filter[0][0]);
 
     gain = maxf(props->equalizer.mid1_gain, 0.0625f);
-    freq_mult = props->equalizer.mid1_center/frequency;
-    ALfilterState_setParams(&state->filter[1][0], ALfilterType_Peaking,
+    freq_mult = props->equalizer.mid1_center / frequency;
+    ALfilterState_setParams(&filter[1][0], ALfilterType_Peaking,
         gain, freq_mult, calc_rcpQ_from_bandwidth(
             freq_mult, props->equalizer.mid1_width
         )
     );
-    for(i = 1;i < MAX_EFFECT_CHANNELS;i++)
-        ALfilterState_copyParams(&state->filter[1][i], &state->filter[1][0]);
+    for (i = 1; i < MAX_EFFECT_CHANNELS; i++)
+        ALfilterState_copyParams(&filter[1][i], &filter[1][0]);
 
     gain = maxf(props->equalizer.mid2_gain, 0.0625f);
-    freq_mult = props->equalizer.mid2_center/frequency;
-    ALfilterState_setParams(&state->filter[2][0], ALfilterType_Peaking,
+    freq_mult = props->equalizer.mid2_center / frequency;
+    ALfilterState_setParams(&filter[2][0], ALfilterType_Peaking,
         gain, freq_mult, calc_rcpQ_from_bandwidth(
             freq_mult, props->equalizer.mid2_width
         )
     );
-    for(i = 1;i < MAX_EFFECT_CHANNELS;i++)
-        ALfilterState_copyParams(&state->filter[2][i], &state->filter[2][0]);
+    for (i = 1; i < MAX_EFFECT_CHANNELS; i++)
+        ALfilterState_copyParams(&filter[2][i], &filter[2][0]);
 
     gain = maxf(sqrtf(props->equalizer.high_gain), 0.0625f);
-    freq_mult = props->equalizer.high_cutoff/frequency;
-    ALfilterState_setParams(&state->filter[3][0], ALfilterType_HighShelf,
+    freq_mult = props->equalizer.high_cutoff / frequency;
+    ALfilterState_setParams(&filter[3][0], ALfilterType_HighShelf,
         gain, freq_mult, calc_rcpQ_from_slope(gain, 0.75f)
     );
-    for(i = 1;i < MAX_EFFECT_CHANNELS;i++)
-        ALfilterState_copyParams(&state->filter[3][i], &state->filter[3][0]);
+    for (i = 1; i < MAX_EFFECT_CHANNELS; i++)
+        ALfilterState_copyParams(&filter[3][i], &filter[3][0]);
 }
 
-static ALvoid ALequalizerState_process(ALequalizerState *state, ALsizei SamplesToDo, const ALfloat (*SamplesIn)[BUFFERSIZE], ALfloat (*SamplesOut)[BUFFERSIZE], ALsizei NumChannels)
+void EqualizerEffect::do_process(
+    ALsizei SamplesToDo,
+    const ALfloat(*SamplesIn)[BUFFERSIZE],
+    ALfloat(*SamplesOut)[BUFFERSIZE],
+    ALsizei NumChannels)
 {
-    ALfloat (*Samples)[MAX_EFFECT_CHANNELS][MAX_UPDATE_SAMPLES] = state->SampleBuffer;
+    ALfloat(*Samples)[MAX_EFFECT_CHANNELS][MAX_UPDATE_SAMPLES] = SampleBuffer;
     ALsizei it, kt, ft;
     ALsizei base;
 
-    for(base = 0;base < SamplesToDo;)
+    for (base = 0; base < SamplesToDo;)
     {
-        ALsizei td = mini(MAX_UPDATE_SAMPLES, SamplesToDo-base);
+        ALsizei td = mini(MAX_UPDATE_SAMPLES, SamplesToDo - base);
 
-        for(ft = 0;ft < MAX_EFFECT_CHANNELS;ft++)
-            ALfilterState_process(&state->filter[0][ft], Samples[0][ft], &SamplesIn[ft][base], td);
-        for(ft = 0;ft < MAX_EFFECT_CHANNELS;ft++)
-            ALfilterState_process(&state->filter[1][ft], Samples[1][ft], Samples[0][ft], td);
-        for(ft = 0;ft < MAX_EFFECT_CHANNELS;ft++)
-            ALfilterState_process(&state->filter[2][ft], Samples[2][ft], Samples[1][ft], td);
-        for(ft = 0;ft < MAX_EFFECT_CHANNELS;ft++)
-            ALfilterState_process(&state->filter[3][ft], Samples[3][ft], Samples[2][ft], td);
+        for (ft = 0; ft < MAX_EFFECT_CHANNELS; ft++)
+            ALfilterState_process(&filter[0][ft], Samples[0][ft], &SamplesIn[ft][base], td);
+        for (ft = 0; ft < MAX_EFFECT_CHANNELS; ft++)
+            ALfilterState_process(&filter[1][ft], Samples[1][ft], Samples[0][ft], td);
+        for (ft = 0; ft < MAX_EFFECT_CHANNELS; ft++)
+            ALfilterState_process(&filter[2][ft], Samples[2][ft], Samples[1][ft], td);
+        for (ft = 0; ft < MAX_EFFECT_CHANNELS; ft++)
+            ALfilterState_process(&filter[3][ft], Samples[3][ft], Samples[2][ft], td);
 
-        for(ft = 0;ft < MAX_EFFECT_CHANNELS;ft++)
+        for (ft = 0; ft < MAX_EFFECT_CHANNELS; ft++)
         {
-            for(kt = 0;kt < NumChannels;kt++)
+            for (kt = 0; kt < NumChannels; kt++)
             {
-                ALfloat gain = state->Gain[ft][kt];
-                if(!(fabsf(gain) > GAIN_SILENCE_THRESHOLD))
+                ALfloat gain = Gain[ft][kt];
+                if (!(fabsf(gain) > GAIN_SILENCE_THRESHOLD))
                     continue;
 
-                for(it = 0;it < td;it++)
-                    SamplesOut[kt][base+it] += gain * Samples[3][ft][it];
+                for (it = 0; it < td; it++)
+                    SamplesOut[kt][base + it] += gain * Samples[3][ft][it];
             }
         }
 
@@ -205,26 +238,7 @@ static ALvoid ALequalizerState_process(ALequalizerState *state, ALsizei SamplesT
     }
 }
 
-
-typedef struct ALequalizerStateFactory {
-    DERIVE_FROM_TYPE(ALeffectStateFactory);
-} ALequalizerStateFactory;
-
-ALeffectState *ALequalizerStateFactory_create(ALequalizerStateFactory *factory)
+IEffect* create_equalizer_effect()
 {
-    ALequalizerState *state;
-
-    NEW_OBJ0(state, ALequalizerState)();
-    if(!state) return NULL;
-
-    return STATIC_CAST(ALeffectState, state);
-}
-
-DEFINE_ALEFFECTSTATEFACTORY_VTABLE(ALequalizerStateFactory);
-
-ALeffectStateFactory *ALequalizerStateFactory_getFactory(void)
-{
-    static ALequalizerStateFactory EqualizerFactory = { { GET_VTABLE2(ALequalizerStateFactory, ALeffectStateFactory) } };
-
-    return STATIC_CAST(ALeffectStateFactory, &EqualizerFactory);
+    return create_effect<EqualizerEffect>();
 }
