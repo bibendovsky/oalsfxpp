@@ -294,8 +294,6 @@ void ChorusEffect::do_process(
 
         base += todo;
     }
-
-    offset = offset;
 }
 
 IEffect* create_chorus_effect()

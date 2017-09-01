@@ -134,17 +134,13 @@ void DedicatedEffect::do_process(
     ALfloat(*dst_samples)[BUFFERSIZE],
     ALsizei channel_count)
 {
-    ALsizei i, c;
-
-    src_samples = ASSUME_ALIGNED(src_samples, 16);
-    dst_samples = ASSUME_ALIGNED(dst_samples, 16);
-    for (c = 0; c < channel_count; c++)
+    for (int c = 0; c < channel_count; c++)
     {
         const ALfloat gain = gains[c];
         if (!(fabsf(gain) > GAIN_SILENCE_THRESHOLD))
             continue;
 
-        for (i = 0; i < sample_count; i++)
+        for (int i = 0; i < sample_count; i++)
             dst_samples[c][i] += src_samples[0][i] * gain;
     }
 }

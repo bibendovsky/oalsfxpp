@@ -242,7 +242,6 @@ void ModulatorEffect::do_process(
         }
         base += td;
     }
-    index = index;
 }
 
 IEffect* create_modulator_effect()

@@ -292,8 +292,6 @@ void FlangerEffect::do_process(
 
         base += todo;
     }
-
-    offset = offset;
 }
 
 IEffect* create_flanger_effect()
