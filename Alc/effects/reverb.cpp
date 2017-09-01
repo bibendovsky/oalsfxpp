@@ -20,6 +20,8 @@
 
 
 #include <cstdint>
+#include <algorithm>
+#include <vector>
 #include "config.h"
 #include "alu.h"
 #include "mixer_defs.h"
@@ -51,6 +53,8 @@ struct VecAllpass {
     DelayLineI delay;
     ALsizei offsets[4][2];
 };
+
+using ReverbSampleBuffer = std::vector<ALfloat>;
 
 
 class ReverbEffect :
@@ -93,7 +97,7 @@ public:
     // All delay lines are allocated as a single buffer to reduce memory
     // fragmentation and management code.
     //
-    ALfloat *sample_buffer;
+    ReverbSampleBuffer sample_buffer;
     ALuint total_samples;
 
     // Master effect filters
@@ -388,14 +392,14 @@ static const ALfloat MODULATION_FILTER_CONST = 100000.0f;
 /* Given the allocated sample buffer, this function updates each delay line
  * offset.
  */
-static inline ALvoid RealizeLineOffset(ALfloat *sampleBuffer, DelayLineI *Delay)
+static inline ALvoid RealizeLineOffset(
+    ReverbSampleBuffer& sampleBuffer,
+    DelayLineI* Delay)
 {
-    union {
-        ALfloat *f;
-        ALfloat (*f4)[4];
-    } u;
-    u.f = &sampleBuffer[(ptrdiff_t)Delay->lines * 4];
-    Delay->lines = u.f4;
+    auto ptr1 = &sampleBuffer[reinterpret_cast<intptr_t>(Delay->lines) * 4];
+    auto ptr2 = reinterpret_cast<ALfloat (*)[4]>(ptr1);
+
+    Delay->lines = ptr2;
 }
 
 /* Calculate the length of a delay line and store its mask and offset. */
@@ -477,13 +481,7 @@ static ALboolean AllocLines(const ALuint frequency, ReverbEffect *State)
 
     if(totalSamples != State->total_samples)
     {
-        ALfloat *newBuffer;
-
-        newBuffer = static_cast<ALfloat*>(al_calloc(16, sizeof(ALfloat[4]) * totalSamples));
-        if(!newBuffer) return AL_FALSE;
-
-        al_free(State->sample_buffer);
-        State->sample_buffer = newBuffer;
+        State->sample_buffer.resize(4 * totalSamples);
         State->total_samples = totalSamples;
     }
 
@@ -495,8 +493,7 @@ static ALboolean AllocLines(const ALuint frequency, ReverbEffect *State)
     RealizeLineOffset(State->sample_buffer, &State->late.delay);
 
     /* Clear the sample buffer. */
-    for(i = 0;i < State->total_samples;i++)
-        State->sample_buffer[i] = 0.0f;
+    std::fill(State->sample_buffer.begin(), State->sample_buffer.end(), 0.0F);
 
     return AL_TRUE;
 }
@@ -1723,7 +1720,7 @@ void ReverbEffect::do_construct()
     is_eax = AL_FALSE;
 
     total_samples = 0;
-    sample_buffer = nullptr;
+    sample_buffer = ReverbSampleBuffer{};
 
     for (int i = 0; i < 4; ++i)
     {
@@ -1819,8 +1816,7 @@ void ReverbEffect::do_construct()
 
 void ReverbEffect::do_destruct()
 {
-    al_free(sample_buffer);
-    sample_buffer = NULL;
+    sample_buffer = ReverbSampleBuffer{};
 }
 
 ALboolean ReverbEffect::do_update_device(
