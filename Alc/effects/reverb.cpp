@@ -1070,6 +1070,24 @@ static ALvoid UpdateLateLines(const ALfloat density, const ALfloat diffusion, co
     }
 }
 
+static void MATRIX_MULT(
+    aluMatrixf& _res,
+    const aluMatrixf& _m1,
+    const aluMatrixf& _m2)
+{
+    for(int col = 0;col < 4; ++col)
+    {
+        for(int row = 0;row < 4; ++row)
+        {
+            _res.m[row][col] =
+                _m1.m[row][0]*_m2.m[0][col] +
+                _m1.m[row][1]*_m2.m[1][col] +
+                _m1.m[row][2]*_m2.m[2][col] +
+                _m1.m[row][3]*_m2.m[3][col];
+        }
+    }
+}
+
 /* Creates a transform matrix given a reverb vector. This works by creating a
  * Z-focus transform, then a rotate transform around X, then Y, to place the
  * focal point in the direction of the vector, using the vector length as a
@@ -1122,23 +1140,32 @@ static aluMatrixf GetTransformFromVector(const ALfloat *vec)
         0.0f, -sinf(a), 0.0f, cosf(a)
     );
 
-#define MATRIX_MULT(_res, _m1, _m2) do {                                      \
-    int row, col;                                                             \
-    for(col = 0;col < 4;col++)                                                \
-    {                                                                         \
-        for(row = 0;row < 4;row++)                                            \
-            _res.m[row][col] = _m1.m[row][0]*_m2.m[0][col] + _m1.m[row][1]*_m2.m[1][col] + \
-                               _m1.m[row][2]*_m2.m[2][col] + _m1.m[row][3]*_m2.m[3][col];  \
-    }                                                                         \
-} while(0)
     /* Define a matrix that first focuses on Z, then rotates around X then Y to
      * focus the output in the direction of the vector.
      */
     MATRIX_MULT(tmp1, xrot, zfocus);
     MATRIX_MULT(tmp2, yrot, tmp1);
-#undef MATRIX_MULT
 
     return tmp2;
+}
+
+/* Note: _res is transposed. */
+static void MATRIX_MULT_T(
+    aluMatrixf& _res,
+    const aluMatrixf& _m1,
+    const aluMatrixf& _m2)
+{
+    for(int col = 0;col < 4; ++col)
+    {
+        for(int row = 0;row < 4; ++row)
+        {
+            _res.m[col][row] =
+                _m1.m[row][0]*_m2.m[0][col] +
+                _m1.m[row][1]*_m2.m[1][col] +
+                _m1.m[row][2]*_m2.m[2][col] +
+                _m1.m[row][3]*_m2.m[3][col];
+        }
+    }
 }
 
 /* Update the early and late 3D panning gains. */
@@ -1150,31 +1177,20 @@ static ALvoid Update3DPanning(const ALCdevice *Device, const ALfloat *Reflection
     State->out_buffer = Device->foa_out.buffer;
     State->out_channels = Device->foa_out.num_channels;
 
-    /* Note: _res is transposed. */
-#define MATRIX_MULT(_res, _m1, _m2) do {                                                   \
-    int row, col;                                                                          \
-    for(col = 0;col < 4;col++)                                                             \
-    {                                                                                      \
-        for(row = 0;row < 4;row++)                                                         \
-            _res.m[col][row] = _m1.m[row][0]*_m2.m[0][col] + _m1.m[row][1]*_m2.m[1][col] + \
-                               _m1.m[row][2]*_m2.m[2][col] + _m1.m[row][3]*_m2.m[3][col];  \
-    }                                                                                      \
-} while(0)
     /* Create a matrix that first converts A-Format to B-Format, then rotates
      * the B-Format soundfield according to the panning vector.
      */
     rot = GetTransformFromVector(ReflectionsPan);
-    MATRIX_MULT(transform, rot, A2B);
+    MATRIX_MULT_T(transform, rot, A2B);
     memset(&State->early.pan_gains, 0, sizeof(State->early.pan_gains));
     for(i = 0;i < MAX_EFFECT_CHANNELS;i++)
         ComputeFirstOrderGains(Device->foa_out, transform.m[i], gain*earlyGain, State->early.pan_gains[i]);
 
     rot = GetTransformFromVector(LateReverbPan);
-    MATRIX_MULT(transform, rot, A2B);
+    MATRIX_MULT_T(transform, rot, A2B);
     memset(&State->late.pan_gains, 0, sizeof(State->late.pan_gains));
     for(i = 0;i < MAX_EFFECT_CHANNELS;i++)
         ComputeFirstOrderGains(Device->foa_out, transform.m[i], gain*lateGain, State->late.pan_gains[i]);
-#undef MATRIX_MULT
 }
 
 
