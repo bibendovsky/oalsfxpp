@@ -19,8 +19,13 @@
  */
 
 
+#include <algorithm>
+#include <vector>
 #include "config.h"
 #include "alu.h"
+
+
+using SampleBuffer = std::vector<ALfloat>;
 
 
 class EchoEffect :
@@ -51,7 +56,7 @@ public:
     }
 
 
-    ALfloat *sample_buffer;
+    SampleBuffer sample_buffer;
     ALsizei buffer_length;
 
     // The echo is two tap. The delay is the number of samples from before the
@@ -92,7 +97,7 @@ protected:
 void EchoEffect::do_construct()
 {
     buffer_length = 0;
-    sample_buffer = NULL;
+    sample_buffer = SampleBuffer{};
 
     tap[0].delay = 0;
     tap[1].delay = 0;
@@ -103,14 +108,13 @@ void EchoEffect::do_construct()
 
 void EchoEffect::do_destruct()
 {
-    al_free(sample_buffer);
-    sample_buffer = NULL;
+    sample_buffer = SampleBuffer{};
 }
 
 ALboolean EchoEffect::do_update_device(
     ALCdevice* device)
 {
-    ALsizei maxlen, i;
+    ALsizei maxlen;
 
     // Use the next power of 2 for the buffer length, so the tap offsets can be
     // wrapped using a mask instead of a modulo
@@ -120,15 +124,11 @@ ALboolean EchoEffect::do_update_device(
 
     if (maxlen != buffer_length)
     {
-        void *temp = al_calloc(16, maxlen * sizeof(ALfloat));
-        if (!temp) return AL_FALSE;
-
-        al_free(sample_buffer);
-        sample_buffer = static_cast<ALfloat*>(temp);
+        sample_buffer.resize(maxlen);
         buffer_length = maxlen;
     }
-    for (i = 0; i < buffer_length; i++)
-        sample_buffer[i] = 0.0f;
+
+    std::fill(sample_buffer.begin(), sample_buffer.end(), 0.0F);
 
     return AL_TRUE;
 }
