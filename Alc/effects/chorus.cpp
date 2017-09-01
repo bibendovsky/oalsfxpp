@@ -19,6 +19,9 @@
  */
 
 
+#include <algorithm>
+#include <array>
+#include <vector>
 #include "config.h"
 #include "alFilter.h"
 #include "alu.h"
@@ -30,6 +33,10 @@ enum ChorusWaveForm {
 };
 
 
+using ChorusSampleBuffer = std::vector<ALfloat>;
+using ChorusSampleBuffers = std::array<ChorusSampleBuffer, 2>;
+
+
 class ChorusEffect :
     public IEffect
 {
@@ -37,7 +44,7 @@ public:
     ChorusEffect()
         :
         IEffect{},
-        sample_buffer{},
+        sample_buffers{},
         buffer_length{},
         offset{},
         lfo_range{},
@@ -56,7 +63,7 @@ public:
     }
 
 
-    ALfloat *sample_buffer[2];
+    ChorusSampleBuffers sample_buffers;
     ALsizei buffer_length;
     ALsizei offset;
     ALsizei lfo_range;
@@ -122,8 +129,12 @@ static void GetSinusoidDelays(ALint *delays, ALsizei offset, const ALsizei lfo_r
 void ChorusEffect::do_construct()
 {
     buffer_length = 0;
-    sample_buffer[0] = nullptr;
-    sample_buffer[1] = nullptr;
+
+    for (auto& buffer : sample_buffers)
+    {
+        buffer = ChorusSampleBuffer{};
+    }
+
     offset = 0;
     lfo_range = 1;
     waveform = CWF_Triangle;
@@ -131,16 +142,16 @@ void ChorusEffect::do_construct()
 
 void ChorusEffect::do_destruct()
 {
-    al_free(sample_buffer[0]);
-    sample_buffer[0] = nullptr;
-    sample_buffer[1] = nullptr;
+    for (auto& buffer : sample_buffers)
+    {
+        buffer = ChorusSampleBuffer{};
+    }
 }
 
 ALboolean ChorusEffect::do_update_device(
     ALCdevice* device)
 {
     ALsizei maxlen;
-    ALsizei it;
 
     maxlen = fastf2i(AL_CHORUS_MAX_DELAY * 2.0f * device->frequency) + 1;
     maxlen = NextPowerOf2(maxlen);
@@ -150,17 +161,15 @@ ALboolean ChorusEffect::do_update_device(
         void *temp = al_calloc(16, maxlen * sizeof(ALfloat) * 2);
         if (!temp) return AL_FALSE;
 
-        al_free(sample_buffer[0]);
-        sample_buffer[0] = static_cast<ALfloat*>(temp);
-        sample_buffer[1] = sample_buffer[0] + maxlen;
+        sample_buffers[0].resize(maxlen);
+        sample_buffers[1].resize(maxlen);
 
         buffer_length = maxlen;
     }
 
-    for (it = 0; it < buffer_length; it++)
+    for (auto& buffer : sample_buffers)
     {
-        sample_buffer[0][it] = 0.0f;
-        sample_buffer[1][it] = 0.0f;
+        std::fill(buffer.begin(), buffer.end(), 0.0F);
     }
 
     return AL_TRUE;
@@ -232,8 +241,8 @@ void ChorusEffect::do_process(
     ALfloat(*dst_samples)[BUFFERSIZE],
     ALsizei channel_count)
 {
-    ALfloat *leftbuf = sample_buffer[0];
-    ALfloat *rightbuf = sample_buffer[1];
+    auto& leftbuf = sample_buffers[0];
+    auto& rightbuf = sample_buffers[1];
     const ALsizei bufmask = buffer_length - 1;
     ALsizei i, c;
     ALsizei base;
