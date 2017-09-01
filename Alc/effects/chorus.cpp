@@ -158,9 +158,6 @@ ALboolean ChorusEffect::do_update_device(
 
     if (maxlen != buffer_length)
     {
-        void *temp = al_calloc(16, maxlen * sizeof(ALfloat) * 2);
-        if (!temp) return AL_FALSE;
-
         sample_buffers[0].resize(maxlen);
         sample_buffers[1].resize(maxlen);
 
