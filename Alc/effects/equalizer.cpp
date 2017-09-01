@@ -66,7 +66,7 @@
 
 
 /* The maximum number of sample frames per update. */
-#define MAX_UPDATE_SAMPLES 256
+constexpr auto MAX_UPDATE_SAMPLES = 256;
 
 
 class EqualizerEffect :

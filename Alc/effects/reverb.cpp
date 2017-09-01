@@ -27,14 +27,14 @@
 
 /* This is the maximum number of samples processed for each inner loop
  * iteration. */
-#define MAX_UPDATE_SAMPLES  256
+constexpr auto MAX_UPDATE_SAMPLES = 256;
 
 /* The number of samples used for cross-faded delay lines.  This can be used
  * to balance the compensation for abrupt line changes and attenuation due to
  * minimally lengthed recursive lines.  Try to keep this below the device
  * update size.
  */
-#define FADE_SAMPLES  128
+constexpr auto FADE_SAMPLES = 128;
 
 #define UNEXPECTED(x) (x)
 

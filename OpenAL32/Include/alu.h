@@ -134,14 +134,14 @@ typedef void (*RowMixerFunc)(ALfloat *OutBuffer, const ALfloat *gains,
                              ALsizei InPos, ALsizei BufferSize);
 
 
-#define GAIN_MIX_MAX  (16.0f) /* +24dB */
+constexpr auto GAIN_MIX_MAX = 16.0F; /* +24dB */
 
-#define GAIN_SILENCE_THRESHOLD  (0.00001f) /* -100dB */
+constexpr auto GAIN_SILENCE_THRESHOLD = 0.00001F; /* -100dB */
 
-#define SPEEDOFSOUNDMETRESPERSEC  (343.3f)
+constexpr auto SPEEDOFSOUNDMETRESPERSEC = 343.3F;
 
 /* Target gain for the reverb decay feedback reaching the decay time. */
-#define REVERB_DECAY_GAIN  (0.001f) /* -60 dB */
+constexpr auto REVERB_DECAY_GAIN = 0.001F; /* -60 dB */
 
 
 inline ALfloat minf(ALfloat a, ALfloat b)

@@ -25,7 +25,7 @@
 struct Compressor;
 
 
-#define DEFAULT_OUTPUT_RATE  (44100)
+constexpr auto DEFAULT_OUTPUT_RATE = 44100;
 
 
 /* Find the next power-of-2 for non-power-of-2 numbers. */
@@ -124,15 +124,15 @@ enum DevFmtChannels {
 
     DevFmtChannelsDefault = DevFmtMono
 };
-#define MAX_OUTPUT_CHANNELS  (16)
+constexpr auto MAX_OUTPUT_CHANNELS = 16;
 
 
 /* The maximum number of Ambisonics coefficients. For a given order (o), the
  * size needed will be (o+1)**2, thus zero-order has 1, first-order has 4,
  * second-order has 9, third-order has 16, and fourth-order has 25.
  */
-#define MAX_AMBI_ORDER  3
-#define MAX_AMBI_COEFFS ((MAX_AMBI_ORDER+1) * (MAX_AMBI_ORDER+1))
+constexpr auto MAX_AMBI_ORDER = 3;
+constexpr auto MAX_AMBI_COEFFS = (MAX_AMBI_ORDER+1) * (MAX_AMBI_ORDER+1);
 
 
 typedef ALfloat ChannelConfig[MAX_AMBI_COEFFS];
@@ -154,7 +154,7 @@ typedef union AmbiConfig {
  * to be a sensible size, however, as it constrains the max stepping value used
  * for mixing, as well as the maximum number of samples per mixing iteration.
  */
-#define BUFFERSIZE 2048
+constexpr auto BUFFERSIZE = 2048;
 
 struct ALCdevice_struct
 {

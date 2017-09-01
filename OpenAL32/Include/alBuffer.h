@@ -29,7 +29,7 @@ enum FmtChannels {
     FmtStereo = UserFmtStereo
 };
 
-#define MAX_INPUT_CHANNELS  (8)
+constexpr auto MAX_INPUT_CHANNELS = 8;
 
 
 #endif

@@ -74,9 +74,9 @@ protected:
 
 
 
-#define WAVEFORM_FRACBITS  24
-#define WAVEFORM_FRACONE   (1<<WAVEFORM_FRACBITS)
-#define WAVEFORM_FRACMASK  (WAVEFORM_FRACONE-1)
+constexpr auto WAVEFORM_FRACBITS = 24;
+constexpr auto WAVEFORM_FRACONE = 1<<WAVEFORM_FRACBITS;
+constexpr auto WAVEFORM_FRACMASK = WAVEFORM_FRACONE-1;
 
 
 static inline ALfloat Sin(const ALsizei index)

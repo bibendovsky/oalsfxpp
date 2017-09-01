@@ -8,7 +8,7 @@
 struct ALeffectslot;
 
 
-#define MAX_EFFECT_CHANNELS (4)
+constexpr auto MAX_EFFECT_CHANNELS = 4;
 
 
 struct ALeffectslotArray {

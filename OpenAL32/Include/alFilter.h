@@ -6,8 +6,8 @@
 #include "math_defs.h"
 
 
-#define LOWPASSFREQREF  (5000.0f)
-#define HIGHPASSFREQREF  (250.0f)
+constexpr auto LOWPASSFREQREF = 5000.0F;
+constexpr auto HIGHPASSFREQREF = 250.0F;
 
 
 /* Filters implementation is based on the "Cookbook formulae for audio

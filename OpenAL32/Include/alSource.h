@@ -3,8 +3,8 @@
 
 #include "alu.h"
 
-#define MAX_SENDS      1
-#define DEFAULT_SENDS  1
+constexpr auto MAX_SENDS = 1;
+constexpr auto DEFAULT_SENDS = 1;
 
 
 struct ALsource;
