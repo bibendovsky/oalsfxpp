@@ -221,7 +221,7 @@ void ModulatorEffect::do_process(
 
         for (j = 0; j < MAX_EFFECT_CHANNELS; j++)
         {
-            ALfilterState_process(&filters[j], temps[0], &src_samples[j][base], td);
+            ALfilterState_processC(&filters[j], temps[0], &src_samples[j][base], td);
             process(temps[1], temps[0], index, step, td);
 
             for (k = 0; k < channel_count; k++)

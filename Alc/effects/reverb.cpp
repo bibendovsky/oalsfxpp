@@ -1639,7 +1639,7 @@ static ALfloat VerbPass(ReverbEffect *State, const ALsizei todo, ALfloat fade,
         /* Low-pass filter the incoming samples (use the early buffer as temp
          * storage).
          */
-        ALfilterState_process(&State->filters[c].lp, &early[0][0], input[c], todo);
+        ALfilterState_processC(&State->filters[c].lp, &early[0][0], input[c], todo);
 
         /* Feed the initial delay line. */
         for(i = 0;i < todo;i++)
@@ -1685,8 +1685,8 @@ static ALfloat EAXVerbPass(ReverbEffect *State, const ALsizei todo, ALfloat fade
         /* Band-pass the incoming samples. Use the early output lines for temp
          * storage.
          */
-        ALfilterState_process(&State->filters[c].lp, early[0], input[c], todo);
-        ALfilterState_process(&State->filters[c].hp, early[1], early[0], todo);
+        ALfilterState_processC(&State->filters[c].lp, early[0], input[c], todo);
+        ALfilterState_processC(&State->filters[c].hp, early[1], early[0], todo);
 
         /* Feed the initial delay line. */
         for(i = 0;i < todo;i++)

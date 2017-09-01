@@ -167,7 +167,7 @@ void DistortionEffect::do_process(
         * (which is fortunately first step of distortion). So combine three
         * operations into the one.
         */
-        ALfilterState_process(&lowpass, buffer[1], buffer[0], td * 4);
+        ALfilterState_processC(&lowpass, buffer[1], buffer[0], td * 4);
 
         /* Second step, do distortion using waveshaper function to emulate
         * signal processing during tube overdriving. Three steps of
@@ -186,7 +186,7 @@ void DistortionEffect::do_process(
         }
 
         /* Third step, do bandpass filtering of distorted signal. */
-        ALfilterState_process(&bandpass, buffer[1], buffer[0], td * 4);
+        ALfilterState_processC(&bandpass, buffer[1], buffer[0], td * 4);
 
         for (kt = 0; kt < channel_count; kt++)
         {

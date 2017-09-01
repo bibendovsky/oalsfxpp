@@ -39,12 +39,12 @@ static const ALfloat *DoFilters(ALfilterState *lpfilter, ALfilterState *hpfilter
             break;
 
         case AF_LowPass:
-            ALfilterState_process(lpfilter, dst, src, numsamples);
+            ALfilterState_processC(lpfilter, dst, src, numsamples);
             ALfilterState_processPassthru(hpfilter, dst, numsamples);
             return dst;
         case AF_HighPass:
             ALfilterState_processPassthru(lpfilter, src, numsamples);
-            ALfilterState_process(hpfilter, dst, src, numsamples);
+            ALfilterState_processC(hpfilter, dst, src, numsamples);
             return dst;
 
         case AF_BandPass:
@@ -53,8 +53,8 @@ static const ALfloat *DoFilters(ALfilterState *lpfilter, ALfilterState *hpfilter
                 ALfloat temp[256];
                 ALsizei todo = mini(256, numsamples-i);
 
-                ALfilterState_process(lpfilter, temp, src+i, todo);
-                ALfilterState_process(hpfilter, dst+i, temp, todo);
+                ALfilterState_processC(lpfilter, temp, src+i, todo);
+                ALfilterState_processC(hpfilter, dst+i, temp, todo);
                 i += todo;
             }
             return dst;

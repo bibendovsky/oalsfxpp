@@ -213,13 +213,13 @@ void EqualizerEffect::do_process(
         ALsizei td = mini(MAX_UPDATE_SAMPLES, sample_count - base);
 
         for (ft = 0; ft < MAX_EFFECT_CHANNELS; ft++)
-            ALfilterState_process(&filter[0][ft], samples[0][ft], &src_samples[ft][base], td);
+            ALfilterState_processC(&filter[0][ft], samples[0][ft], &src_samples[ft][base], td);
         for (ft = 0; ft < MAX_EFFECT_CHANNELS; ft++)
-            ALfilterState_process(&filter[1][ft], samples[1][ft], samples[0][ft], td);
+            ALfilterState_processC(&filter[1][ft], samples[1][ft], samples[0][ft], td);
         for (ft = 0; ft < MAX_EFFECT_CHANNELS; ft++)
-            ALfilterState_process(&filter[2][ft], samples[2][ft], samples[1][ft], td);
+            ALfilterState_processC(&filter[2][ft], samples[2][ft], samples[1][ft], td);
         for (ft = 0; ft < MAX_EFFECT_CHANNELS; ft++)
-            ALfilterState_process(&filter[3][ft], samples[3][ft], samples[2][ft], td);
+            ALfilterState_processC(&filter[3][ft], samples[3][ft], samples[2][ft], td);
 
         for (ft = 0; ft < MAX_EFFECT_CHANNELS; ft++)
         {
