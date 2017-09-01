@@ -900,9 +900,9 @@ static void CalcT60DampingCoeffs(const ALfloat length, const ALfloat lfDecayTime
         }
         else
         {
-            hfcoeffs[3] = 1.0f;
-            hfcoeffs[4] = 0.0f;
-            hfcoeffs[5] = 0.0f;
+            hfcoeffs[0] = 1.0f;
+            hfcoeffs[1] = 0.0f;
+            hfcoeffs[2] = 0.0f;
             *midcoeff = mfGain;
         }
     }
