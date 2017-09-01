@@ -1197,21 +1197,49 @@ static ALvoid Update3DPanning(const ALCdevice *Device, const ALfloat *Reflection
  **************************************/
 
 /* Basic delay line input/output routines. */
-static inline ALfloat DelayLineOut(const DelayLineI *Delay, const ALsizei offset, const ALsizei c)
+static inline ALfloat DelayLineOut(const DelayLineI *delay, const ALsizei offset, const ALsizei c)
 {
-    return Delay->lines[offset&Delay->mask][c];
+    return delay->lines[offset&delay->mask][c];
 }
 
 /* Cross-faded delay line output routine.  Instead of interpolating the
  * offsets, this interpolates (cross-fades) the outputs at each offset.
  */
-static inline ALfloat FadedDelayLineOut(const DelayLineI *Delay, const ALsizei off0,
+static inline ALfloat FadedDelayLineOut(const DelayLineI *delay, const ALsizei off0,
                                         const ALsizei off1, const ALsizei c, const ALfloat mu)
 {
-    return lerp(Delay->lines[off0&Delay->mask][c], Delay->lines[off1&Delay->mask][c], mu);
+    return lerp(delay->lines[off0&delay->mask][c], delay->lines[off1&delay->mask][c], mu);
 }
-#define DELAY_OUT_Faded(d, o0, o1, c, mu) FadedDelayLineOut(d, o0, o1, c, mu)
-#define DELAY_OUT_Unfaded(d, o0, o1, c, mu) DelayLineOut(d, o0, c)
+
+static ALfloat DELAY_OUT_Faded(
+    const DelayLineI* Delay,
+    const ALsizei off0,
+    const ALsizei off1,
+    const ALsizei c,
+    const ALfloat mu)
+{
+    return FadedDelayLineOut(Delay, off0, off1, c, mu);
+}
+
+static ALfloat DELAY_OUT_Unfaded(
+    const DelayLineI* Delay,
+    const ALsizei off0,
+    const ALsizei off1,
+    const ALsizei c,
+    const ALfloat mu)
+{
+    static_cast<void>(off1);
+    static_cast<void>(mu);
+
+    return DelayLineOut(Delay, off0, c);
+}
+
+using DelayOutFunc = ALfloat (*)(
+    const DelayLineI* Delay,
+    const ALsizei off0,
+    const ALsizei off1,
+    const ALsizei c,
+    const ALfloat mu);
 
 static inline ALvoid DelayLineIn(DelayLineI *Delay, const ALsizei offset, const ALsizei c, const ALfloat in)
 {
@@ -1322,34 +1350,60 @@ static inline void VectorPartialScatter(ALfloat *vec, const ALfloat xCoeff, cons
  * Two static specializations are used for transitional (cross-faded) delay
  * line processing and non-transitional processing.
  */
-#define DECL_TEMPLATE(T)                                                      \
-static void VectorAllpass_##T(ALfloat *vec, const ALsizei offset,    \
-                              const ALfloat feedCoeff, const ALfloat xCoeff,  \
-                              const ALfloat yCoeff, const ALfloat mu,         \
-                              VecAllpass *Vap)                                \
-{                                                                             \
-    ALfloat input;                                                            \
-    ALfloat f[4];                                                             \
-    ALsizei i;                                                                \
-                                                                              \
-    (void)mu; /* Ignore for Unfaded. */                                       \
-                                                                              \
-    for(i = 0;i < 4;i++)                                                      \
-    {                                                                         \
-        input = vec[i];                                                       \
-        vec[i] = DELAY_OUT_##T(&Vap->delay, offset-Vap->offsets[i][0],         \
-                               offset-Vap->offsets[i][1], i, mu) -             \
-                 feedCoeff*input;                                             \
-        f[i] = input + feedCoeff*vec[i];                                      \
-    }                                                                         \
-                                                                              \
-    VectorPartialScatter(f, xCoeff, yCoeff);                                  \
-                                                                              \
-    DelayLineIn4(&Vap->delay, offset, f);                                     \
+static void VectorAllpassT(
+    DelayOutFunc delay_out_func,
+    ALfloat *vec,
+    const ALsizei offset,
+    const ALfloat feedCoeff,
+    const ALfloat xCoeff,
+    const ALfloat yCoeff,
+    const ALfloat mu,
+    VecAllpass *Vap)
+{
+    ALfloat f[4];
+
+    for(int i = 0;i < 4;i++)
+    {
+        auto input = vec[i];
+
+        vec[i] = delay_out_func(
+            &Vap->delay,
+            offset-Vap->offsets[i][0],
+            offset-Vap->offsets[i][1],
+            i,
+            mu) - feedCoeff*input;
+
+        f[i] = input + (feedCoeff * vec[i]);
+    }
+
+    VectorPartialScatter(f, xCoeff, yCoeff);
+
+    DelayLineIn4(&Vap->delay, offset, f);
 }
-DECL_TEMPLATE(Unfaded)
-DECL_TEMPLATE(Faded)
-#undef DECL_TEMPLATE
+
+static void VectorAllpass_Unfaded(
+    ALfloat *vec,
+    const ALsizei offset,
+    const ALfloat feedCoeff,
+    const ALfloat xCoeff,
+    const ALfloat yCoeff,
+    const ALfloat mu,
+    VecAllpass *Vap)
+{
+    VectorAllpassT(DELAY_OUT_Unfaded, vec, offset, feedCoeff, xCoeff, yCoeff, mu, Vap);
+}
+
+static void VectorAllpass_Faded(
+    ALfloat *vec,
+    const ALsizei offset,
+    const ALfloat feedCoeff,
+    const ALfloat xCoeff,
+    const ALfloat yCoeff,
+    const ALfloat mu,
+    VecAllpass *Vap)
+{
+    VectorAllpassT(DELAY_OUT_Faded, vec, offset, feedCoeff, xCoeff, yCoeff, mu, Vap);
+}
 
 /* A helper to reverse vector components. */
 static inline void VectorReverse(ALfloat vec[4])
@@ -1361,6 +1415,16 @@ static inline void VectorReverse(ALfloat vec[4])
     vec[2] = f[1];
     vec[3] = f[0];
 }
+
+
+using VectorAllpassFunc = void (*)(
+    ALfloat *vec,
+    const ALsizei offset,
+    const ALfloat feedCoeff,
+    const ALfloat xCoeff,
+    const ALfloat yCoeff,
+    const ALfloat mu,
+    VecAllpass *Vap);
 
 /* This generates early reflections.
  *
@@ -1381,53 +1445,76 @@ static inline void VectorReverse(ALfloat vec[4])
  * Two static specializations are used for transitional (cross-faded) delay
  * line processing and non-transitional processing.
  */
-#define DECL_TEMPLATE(T)                                                      \
-static ALvoid EarlyReflection_##T(ReverbEffect *State, const ALsizei todo,   \
-                                  ALfloat fade,                               \
-                                  ALfloat (*out)[MAX_UPDATE_SAMPLES])\
-{                                                                             \
-    ALsizei offset = State->offset;                                           \
-    const ALfloat apFeedCoeff = State->ap_feed_coeff;                           \
-    const ALfloat mixX = State->mix_x;                                         \
-    const ALfloat mixY = State->mix_y;                                         \
-    ALfloat f[4];                                                             \
-    ALsizei i, j;                                                             \
-                                                                              \
-    for(i = 0;i < todo;i++)                                                   \
-    {                                                                         \
-        for(j = 0;j < 4;j++)                                                  \
-            f[j] = DELAY_OUT_##T(&State->delay,                               \
-                offset-State->early_delay_taps[j][0],                            \
-                offset-State->early_delay_taps[j][1], j, fade                    \
-            ) * State->early_delay_coeffs[j];                                    \
-                                                                              \
-        VectorAllpass_##T(f, offset, apFeedCoeff, mixX, mixY, fade,           \
-                          &State->early.vec_ap);                               \
-                                                                              \
-        DelayLineIn4Rev(&State->early.delay, offset, f);                      \
-                                                                              \
-        for(j = 0;j < 4;j++)                                                  \
-            f[j] += DELAY_OUT_##T(&State->early.delay,                        \
-                offset-State->early.offsets[j][0],                             \
-                offset-State->early.offsets[j][1], j, fade                     \
-            ) * State->early.coeffs[j];                                        \
-                                                                              \
-        for(j = 0;j < 4;j++)                                                  \
-            out[j][i] = f[j];                                                 \
-                                                                              \
-        VectorReverse(f);                                                     \
-                                                                              \
-        VectorPartialScatter(f, mixX, mixY);                                  \
-                                                                              \
-        DelayLineIn4(&State->delay, offset-State->late_feed_tap, f);            \
-                                                                              \
-        offset++;                                                             \
-        fade += FadeStep;                                                     \
-    }                                                                         \
+static ALvoid EarlyReflectionT(
+    VectorAllpassFunc vector_allpass_func,
+    DelayOutFunc delay_out_func,
+    ReverbEffect* State,
+    const ALsizei todo,
+    ALfloat fade,
+    ALfloat (*out)[MAX_UPDATE_SAMPLES])
+{
+    ALsizei offset = State->offset;
+    const ALfloat apFeedCoeff = State->ap_feed_coeff;
+    const ALfloat mixX = State->mix_x;
+    const ALfloat mixY = State->mix_y;
+    ALfloat f[4];
+
+    for (int i = 0; i < todo; ++i)
+    {
+        for (int j = 0; j < 4; ++j)
+        {
+            f[j] = delay_out_func(
+                &State->delay,
+                offset - State->early_delay_taps[j][0],
+                offset - State->early_delay_taps[j][1],
+                j, fade) * State->early_delay_coeffs[j];
+        }
+
+        vector_allpass_func(f, offset, apFeedCoeff, mixX, mixY, fade, &State->early.vec_ap);
+
+        DelayLineIn4Rev(&State->early.delay, offset, f);
+
+        for (int j = 0; j < 4; j++)
+        {
+            f[j] += delay_out_func(&State->early.delay,
+                offset - State->early.offsets[j][0],
+                offset - State->early.offsets[j][1], j, fade
+            ) * State->early.coeffs[j];
+        }
+
+        for (int j = 0; j < 4; j++)
+        {
+            out[j][i] = f[j];
+        }
+
+        VectorReverse(f);
+
+        VectorPartialScatter(f, mixX, mixY);
+
+        DelayLineIn4(&State->delay, offset - State->late_feed_tap, f);
+
+        offset += 1;
+        fade += FadeStep;
+    }
 }
-DECL_TEMPLATE(Unfaded)
-DECL_TEMPLATE(Faded)
-#undef DECL_TEMPLATE
+
+static void EarlyReflection_Unfaded(
+    ReverbEffect* State,
+    const ALsizei todo,
+    ALfloat fade,
+    ALfloat (*out)[MAX_UPDATE_SAMPLES])
+{
+    EarlyReflectionT(VectorAllpass_Unfaded, DELAY_OUT_Unfaded, State, todo, fade, out);
+}
+
+static void EarlyReflection_Faded(
+    ReverbEffect* State,
+    const ALsizei todo,
+    ALfloat fade,
+    ALfloat (*out)[MAX_UPDATE_SAMPLES])
+{
+    EarlyReflectionT(VectorAllpass_Faded, DELAY_OUT_Faded, State, todo, fade, out);
+}
 
 /* Applies a first order filter section. */
 static inline ALfloat FirstOrderFilter(const ALfloat in, const ALfloat coeffs[3], ALfloat state[2])
@@ -1465,61 +1552,77 @@ static inline ALfloat LateT60Filter(const ALsizei index, const ALfloat in, Rever
  * Two static specializations are used for transitional (cross-faded) delay
  * line processing and non-transitional processing.
  */
-#define DECL_TEMPLATE(T)                                                      \
-static ALvoid LateReverb_##T(ReverbEffect *State, const ALsizei todo,        \
-                             ALfloat fade,                                    \
-                             ALfloat (*out)[MAX_UPDATE_SAMPLES])     \
-{                                                                             \
-    const ALfloat apFeedCoeff = State->ap_feed_coeff;                           \
-    const ALfloat mixX = State->mix_x;                                         \
-    const ALfloat mixY = State->mix_y;                                         \
-    ALint moddelay[MAX_UPDATE_SAMPLES];                                       \
-    ALsizei delay;                                                            \
-    ALsizei offset;                                                           \
-    ALsizei i, j;                                                             \
-    ALfloat f[4];                                                             \
-                                                                              \
-    CalcModulationDelays(State, moddelay, todo);                              \
-                                                                              \
-    offset = State->offset;                                                   \
-    for(i = 0;i < todo;i++)                                                   \
-    {                                                                         \
-        for(j = 0;j < 4;j++)                                                  \
-            f[j] = DELAY_OUT_##T(&State->delay,                               \
-                offset-State->late_delay_taps[j][0],                             \
-                offset-State->late_delay_taps[j][1], j, fade                     \
-            ) * State->late.density_gain;                                      \
-                                                                              \
-        delay = offset - moddelay[i];                                         \
-        for(j = 0;j < 4;j++)                                                  \
-            f[j] += DELAY_OUT_##T(&State->late.delay,                         \
-                delay-State->late.offsets[j][0],                               \
-                delay-State->late.offsets[j][1], j, fade                       \
-            );                                                                \
-                                                                              \
-        for(j = 0;j < 4;j++)                                                  \
-            f[j] = LateT60Filter(j, f[j], State);                             \
-                                                                              \
-        VectorAllpass_##T(f, offset, apFeedCoeff, mixX, mixY, fade,           \
-                          &State->late.vec_ap);                                \
-                                                                              \
-        for(j = 0;j < 4;j++)                                                  \
-            out[j][i] = f[j];                                                 \
-                                                                              \
-        VectorReverse(f);                                                     \
-                                                                              \
-        VectorPartialScatter(f, mixX, mixY);                                  \
-                                                                              \
-        DelayLineIn4(&State->late.delay, offset, f);                          \
-                                                                              \
-        offset++;                                                             \
-        fade += FadeStep;                                                     \
-    }                                                                         \
-}
-DECL_TEMPLATE(Unfaded)
-DECL_TEMPLATE(Faded)
-#undef DECL_TEMPLATE
+static ALvoid LateReverbT(
+    VectorAllpassFunc vector_allpass_func,
+    DelayOutFunc delay_out_func,
+    ReverbEffect* State,
+    const ALsizei todo,
+    ALfloat fade,
+    ALfloat (*out)[MAX_UPDATE_SAMPLES])
+{
+    const ALfloat apFeedCoeff = State->ap_feed_coeff;
+    const ALfloat mixX = State->mix_x;
+    const ALfloat mixY = State->mix_y;
+    ALint moddelay[MAX_UPDATE_SAMPLES];
+    ALsizei delay;
+    ALsizei offset;
+    ALfloat f[4];
 
+    CalcModulationDelays(State, moddelay, todo);
+
+    offset = State->offset;
+    for (int i = 0; i < todo; i++)
+    {
+        for (int j = 0; j < 4; j++)
+            f[j] = delay_out_func(&State->delay,
+                offset - State->late_delay_taps[j][0],
+                offset - State->late_delay_taps[j][1], j, fade
+            ) * State->late.density_gain;
+
+        delay = offset - moddelay[i];
+        for (int j = 0; j < 4; j++)
+            f[j] += delay_out_func(&State->late.delay,
+                delay - State->late.offsets[j][0],
+                delay - State->late.offsets[j][1], j, fade
+            );
+
+        for (int j = 0; j < 4; j++)
+            f[j] = LateT60Filter(j, f[j], State);
+
+        vector_allpass_func(f, offset, apFeedCoeff, mixX, mixY, fade,
+            &State->late.vec_ap);
+
+        for (int j = 0; j < 4; j++)
+            out[j][i] = f[j];
+
+        VectorReverse(f);
+
+        VectorPartialScatter(f, mixX, mixY);
+
+        DelayLineIn4(&State->late.delay, offset, f);
+
+        offset++;
+        fade += FadeStep;
+    }
+}
+
+static void LateReverb_Unfaded(
+    ReverbEffect* State,
+    const ALsizei todo,
+    ALfloat fade,
+    ALfloat (*out)[MAX_UPDATE_SAMPLES])
+{
+    LateReverbT(VectorAllpass_Unfaded, DELAY_OUT_Unfaded, State, todo, fade, out);
+}
+
+static void LateReverb_Faded(
+    ReverbEffect* State,
+    const ALsizei todo,
+    ALfloat fade,
+    ALfloat (*out)[MAX_UPDATE_SAMPLES])
+{
+    LateReverbT(VectorAllpass_Faded, DELAY_OUT_Faded, State, todo, fade, out);
+}
 
 /* Perform the non-EAX reverb pass on a given input sample, resulting in
  * four-channel output.
