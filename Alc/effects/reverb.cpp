@@ -36,8 +36,6 @@ constexpr auto MAX_UPDATE_SAMPLES = 256;
  */
 constexpr auto FADE_SAMPLES = 128;
 
-#define UNEXPECTED(x) (x)
-
 static MixerFunc MixSamples = Mix_C;
 static RowMixerFunc MixRowSamples = MixRow_C;
 
@@ -1878,7 +1876,7 @@ void ReverbEffect::do_process(
 
         /* Process the samples for reverb. */
         fade = ReverbProc(this, todo, fade, afmt_samples, early_samples, late_samples);
-        if (UNEXPECTED(fadeCount < FADE_SAMPLES) && (fadeCount += todo) >= FADE_SAMPLES)
+        if (fadeCount < FADE_SAMPLES && (fadeCount += todo) >= FADE_SAMPLES)
         {
             /* Update the cross-fading delay line taps. */
             fadeCount = FADE_SAMPLES;
