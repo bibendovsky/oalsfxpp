@@ -152,13 +152,14 @@ extern inline ALint GetChannelIndex(const enum Channel names[MAX_OUTPUT_CHANNELS
  * Updates device parameters according to the attribute list (caller is
  * responsible for holding the list lock).
  */
-static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
+static ALCenum UpdateDeviceParams(
+    ALCdevice* device,
+    const ALCint* attrList)
 {
-    const ALsizei old_sends = device->num_aux_sends;
-    ALsizei new_sends = device->num_aux_sends;
-    ALboolean update_failed;
-    ALCcontext *context;
     size_t size;
+
+    const auto old_sends = device->num_aux_sends;
+    const auto new_sends = device->num_aux_sends;
 
     al_free(device->dry.buffer);
     device->dry.buffer = NULL;
@@ -171,26 +172,32 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
     aluInitRenderer(device);
 
     /* Allocate extra channels for any post-filter output. */
-    size = (device->dry.num_channels + device->foa_out.num_channels +
-            device->real_out.num_channels)*sizeof(device->dry.buffer[0]);
+    size = (device->dry.num_channels +
+        device->foa_out.num_channels +
+        device->real_out.num_channels) * sizeof(device->dry.buffer[0]);
 
-    device->dry.buffer = static_cast<ALfloat (*)[BUFFERSIZE]>(al_calloc(16, size));
-    if(!device->dry.buffer)
+    device->dry.buffer = static_cast<ALfloat(*)[BUFFERSIZE]>(al_calloc(16, size));
+
+    if (!device->dry.buffer)
     {
         return ALC_INVALID_DEVICE;
     }
 
-    if(device->real_out.num_channels != 0)
+    if (device->real_out.num_channels != 0)
+    {
         device->real_out.buffer = device->dry.buffer + device->dry.num_channels +
-                                 device->foa_out.num_channels;
+            device->foa_out.num_channels;
+    }
     else
     {
         device->real_out.buffer = device->dry.buffer;
         device->real_out.num_channels = device->dry.num_channels;
     }
 
-    if(device->foa_out.num_channels != 0)
+    if (device->foa_out.num_channels != 0)
+    {
         device->foa_out.buffer = device->dry.buffer + device->dry.num_channels;
+    }
     else
     {
         device->foa_out.buffer = device->dry.buffer;
@@ -202,67 +209,45 @@ static ALCenum UpdateDeviceParams(ALCdevice *device, const ALCint *attrList)
     /* Need to delay returning failure until replacement Send arrays have been
      * allocated with the appropriate size.
      */
-    update_failed = AL_FALSE;
-    context = device->context;
-    if(context)
+    auto update_failed = ALboolean{AL_FALSE};
+    auto context = device->context;
+
+    if (context)
     {
-        ALsizei pos;
+        auto slot = device->effect_slot;
+        auto state = slot->effect.state;
 
+        state->out_buffer = device->dry.buffer;
+        state->out_channels = device->dry.num_channels;
+
+        if (state->update_device(device) == AL_FALSE)
         {
-            ALeffectslot *slot = device->effect_slot;
-            IEffect *state = slot->effect.state;
-
-            state->out_buffer = device->dry.buffer;
-            state->out_channels = device->dry.num_channels;
-            if(state->update_device(device) == AL_FALSE)
-                update_failed = AL_TRUE;
-            else
-                UpdateEffectSlotProps(slot);
+            update_failed = AL_TRUE;
+        }
+        else
+        {
+            UpdateEffectSlotProps(slot);
         }
 
-        {
-            ALsource *source = device->source;
-
-            if(old_sends != device->num_aux_sends)
-            {
-                ALvoid *sends = al_calloc(16, device->num_aux_sends*sizeof(source->send[0]));
-                ALsizei s;
-
-                memcpy(sends, source->send,
-                    mini(device->num_aux_sends, old_sends)*sizeof(source->send[0])
-                );
-                for(s = device->num_aux_sends;s < old_sends;s++)
-                {
-                    if(source->send[s].slot)
-                        source->send[s].slot->ref -= 1;
-                    source->send[s].slot = NULL;
-                }
-                al_free(source->send);
-                source->send = static_cast<ALsource::SourceSend*>(sends);
-                for(s = old_sends;s < device->num_aux_sends;s++)
-                {
-                    source->send[s].slot = NULL;
-                    source->send[s].gain = 1.0f;
-                    source->send[s].gain_hf = 1.0f;
-                    source->send[s].hf_reference = LOWPASSFREQREF;
-                    source->send[s].gain_lf = 1.0f;
-                    source->send[s].lf_reference = HIGHPASSFREQREF;
-                }
-            }
-        }
         AllocateVoices(context, 1, old_sends);
-        for(pos = 0;pos < context->voice_count;pos++)
-        {
-            ALvoice *voice = context->voice;
 
-            if(voice->source == NULL)
+        for (ALsizei pos = 0; pos < context->voice_count; ++pos)
+        {
+            auto voice = context->voice;
+
+            if (!voice->source)
+            {
                 continue;
+            }
         }
 
         UpdateAllSourceProps(context);
     }
-    if(update_failed)
+
+    if (update_failed)
+    {
         return ALC_INVALID_DEVICE;
+    }
 
     return ALC_NO_ERROR;
 }

@@ -251,67 +251,55 @@ done:
 
 void InitSourceParams(ALsource *Source, ALsizei num_sends)
 {
-    ALsizei i;
-
     Source->direct.gain = 1.0f;
     Source->direct.gain_hf = 1.0f;
     Source->direct.hf_reference = LOWPASSFREQREF;
     Source->direct.gain_lf = 1.0f;
     Source->direct.lf_reference = HIGHPASSFREQREF;
-    Source->send = static_cast<ALsource::SourceSend*>(al_calloc(16, num_sends*sizeof(Source->send[0])));
-    for(i = 0;i < num_sends;i++)
-    {
-        Source->send[i].slot = NULL;
-        Source->send[i].gain = 1.0f;
-        Source->send[i].gain_hf = 1.0f;
-        Source->send[i].hf_reference = LOWPASSFREQREF;
-        Source->send[i].gain_lf = 1.0f;
-        Source->send[i].lf_reference = HIGHPASSFREQREF;
-    }
-
+    Source->send = std::make_unique<ALsource::Send>();
+    Source->send->slot = nullptr;
+    Source->send->gain = 1.0f;
+    Source->send->gain_hf = 1.0f;
+    Source->send->hf_reference = LOWPASSFREQREF;
+    Source->send->gain_lf = 1.0f;
+    Source->send->lf_reference = HIGHPASSFREQREF;
     Source->state = AL_INITIAL;
 }
 
 void DeinitSource(ALsource *source, ALsizei num_sends)
 {
-    ALsizei i;
-
-    if(source->send)
+    if (source->send)
     {
-        for(i = 0;i < num_sends;i++)
+        if (source->send->slot)
         {
-            if(source->send[i].slot)
-                source->send[i].slot->ref -= 1;
-            source->send[i].slot = NULL;
+            source->send->slot->ref -= 1;
         }
-        al_free(source->send);
-        source->send = NULL;
+
+        source->send->slot = nullptr;
+        source->send = nullptr;
     }
 }
 
 void UpdateSourceProps(ALsource *source, ALvoice *voice, ALsizei num_sends)
 {
-    struct ALvoiceProps *props;
-    ALsizei i;
+    // Get an unused property container, or allocate a new one as needed.
+    auto props = voice->props;
 
-    /* Get an unused property container, or allocate a new one as needed. */
-    props = voice->props;
-
-    /* Copy in current property values. */
+    // Copy in current property values.
     props->direct.gain = source->direct.gain;
     props->direct.gain_hf = source->direct.gain_hf;
     props->direct.hf_reference = source->direct.hf_reference;
     props->direct.gain_lf = source->direct.gain_lf;
     props->direct.lf_reference = source->direct.lf_reference;
 
-    for(i = 0;i < num_sends;i++)
+    if (num_sends > 0)
     {
-        props->send[i].slot = source->send[i].slot;
-        props->send[i].gain = source->send[i].gain;
-        props->send[i].gain_hf = source->send[i].gain_hf;
-        props->send[i].hf_reference = source->send[i].hf_reference;
-        props->send[i].gain_lf = source->send[i].gain_lf;
-        props->send[i].lf_reference = source->send[i].lf_reference;
+        props->send->slot = source->send->slot;
+        props->send->gain = source->send->gain;
+        props->send->gain_hf = source->send->gain_hf;
+        props->send->hf_reference = source->send->hf_reference;
+        props->send->gain_lf = source->send->gain_lf;
+        props->send->lf_reference = source->send->lf_reference;
     }
 }
 
