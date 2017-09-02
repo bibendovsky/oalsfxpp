@@ -174,9 +174,9 @@ static ALCenum UpdateDeviceParams(
     /* Allocate extra channels for any post-filter output. */
     size = (device->dry.num_channels +
         device->foa_out.num_channels +
-        device->real_out.num_channels) * sizeof(device->dry.buffer[0]);
+        device->real_out.num_channels) * BUFFERSIZE;
 
-    device->dry.buffer = static_cast<ALfloat(*)[BUFFERSIZE]>(al_calloc(16, size));
+    device->dry.buffer = reinterpret_cast<ALfloat(*)[BUFFERSIZE]>(new ALfloat[size]);
 
     if (!device->dry.buffer)
     {
@@ -259,23 +259,24 @@ static ALCenum UpdateDeviceParams(
  */
 static ALCvoid FreeDevice(ALCdevice *device)
 {
-    al_free(device->effect);
+    delete device->effect;
 
     DeinitEffectSlot(device->effect_slot);
-    al_free(device->effect_slot);
+    delete device->effect_slot;
 
     DeinitSource(device->source, device->num_aux_sends);
-    al_free(device->source);
+    delete device->source;
 
-    al_free(device->dry.buffer);
-    device->dry.buffer = NULL;
+    delete[] reinterpret_cast<ALfloat*>(device->dry.buffer);
+
+    device->dry.buffer = nullptr;
     device->dry.num_channels = 0;
-    device->foa_out.buffer = NULL;
+    device->foa_out.buffer = nullptr;
     device->foa_out.num_channels = 0;
-    device->real_out.buffer = NULL;
+    device->real_out.buffer = nullptr;
     device->real_out.num_channels = 0;
 
-    al_free(device);
+    delete device;
 }
 
 
@@ -624,7 +625,8 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
         return NULL;
     }
 
-    device = static_cast<ALCdevice*>(al_calloc(16, sizeof(ALCdevice)));
+    device = new ALCdevice{};
+
     if(!device)
     {
         return NULL;
@@ -651,14 +653,14 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
 
     if(device->auxiliary_effect_slot_max == 0) device->auxiliary_effect_slot_max = 64;
 
-    device->source = static_cast<ALsource*>(al_calloc(16, sizeof(ALsource)));
+    device->source = new ALsource{};
     InitSourceParams(device->source, device->num_aux_sends);
 
-    device->effect_slot = static_cast<ALeffectslot*>(al_calloc(16, sizeof(ALeffectslot)));
+    device->effect_slot = new ALeffectslot{};
     InitEffectSlot(device->effect_slot);
     aluInitEffectPanning(device->effect_slot);
 
-    device->effect = static_cast<ALeffect*>(al_calloc(16, sizeof(ALeffect)));
+    device->effect = new ALeffect{};
     InitEffect(device->effect);
 
     DeviceList = device;
