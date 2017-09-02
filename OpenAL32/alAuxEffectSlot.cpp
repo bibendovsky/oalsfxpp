@@ -154,13 +154,13 @@ void DeinitEffectSlot(ALeffectslot *slot)
     props = slot->update;
     if(props)
     {
-        al_free(props);
+        delete props;
     }
     props = slot->free_list;
     while(props)
     {
         struct ALeffectslotProps *next = props->next;
-        al_free(props);
+        delete props;
         props = next;
         ++count;
     }
@@ -176,14 +176,10 @@ void UpdateEffectSlotProps(ALeffectslot *slot)
 
     /* Get an unused property container, or allocate a new one as needed. */
     props = slot->free_list;
+
     if(!props)
-        props = static_cast<ALeffectslotProps*>(al_calloc(16, sizeof(*props)));
-    else
     {
-        struct ALeffectslotProps *next;
-        do {
-            next = props->next;
-        } while((slot->free_list == props ? (slot->free_list = next, true) : (props = slot->free_list, false)) == 0);
+        props = new ALeffectslotProps{};
     }
 
     /* Copy in current property values. */
