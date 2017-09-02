@@ -341,7 +341,8 @@ static void FreeContext(ALCcontext *context)
 
     //Invalidate context
     memset(context, 0, sizeof(ALCcontext));
-    al_free(context);
+
+    delete context;
 }
 
 /* ReleaseContext
@@ -498,7 +499,7 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
         return NULL;
     }
 
-    ALContext = static_cast<ALCcontext*>(al_calloc(16, sizeof(ALCcontext)));
+    ALContext = new ALCcontext{};
     if(!ALContext)
     {
         ALCdevice_DecRef(device);
