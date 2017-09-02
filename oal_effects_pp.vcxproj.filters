@@ -80,9 +80,6 @@
     <ClInclude Include="Alc\mixer_defs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="common\almalloc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="common\math_defs.h">
       <Filter>Header Files</Filter>
     </ClInclude>

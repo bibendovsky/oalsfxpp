@@ -142,7 +142,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Alc\mixer_defs.h" />
-    <ClInclude Include="common\almalloc.h" />
     <ClInclude Include="common\math_defs.h" />
     <ClInclude Include="include\AL\al.h" />
     <ClInclude Include="include\AL\alc.h" />
