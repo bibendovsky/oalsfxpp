@@ -156,7 +156,7 @@ static ALCenum UpdateDeviceParams(
         device->foa_out.num_channels +
         device->real_out.num_channels) * BUFFERSIZE;
 
-    device->dry.buffer = reinterpret_cast<ALfloat(*)[BUFFERSIZE]>(new ALfloat[size]);
+    device->dry.buffer = reinterpret_cast<ALfloat(*)[BUFFERSIZE]>(new ALfloat[size]{});
 
     if (!device->dry.buffer)
     {
