@@ -44,9 +44,6 @@ static ALCcontext* GlobalContext = NULL;
 /* One-time configuration init control */
 static ALCboolean alc_config_once = ALC_FALSE;
 
-/* Default effect that applies to sources that don't have an effect on send 0 */
-static ALeffect DefaultEffect;
-
 /* Flag to specify if alcSuspendContext/alcProcessContext should defer/process
  * updates.
  */
@@ -57,23 +54,6 @@ static ALCboolean SuspendDefers = ALC_TRUE;
  * Device lists
  ************************************************/
 static ALCdevice* DeviceList = NULL;
-
-
-/************************************************
- * Library initialization
- ************************************************/
-static void alc_initconfig(void)
-{
-    InitEffect(&DefaultEffect);
-}
-void DO_INITCONFIG()
-{
-    if (!alc_config_once)
-    {
-        alc_config_once = ALC_TRUE;
-        alc_initconfig();
-    }
-}
 
 
 /************************************************
@@ -518,10 +498,7 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
         return NULL;
     }
 
-    if(DefaultEffect.type != AL_EFFECT_NULL)
-        ALContext = static_cast<ALCcontext*>(al_calloc(16, sizeof(ALCcontext)+sizeof(ALeffectslot)));
-    else
-        ALContext = static_cast<ALCcontext*>(al_calloc(16, sizeof(ALCcontext)));
+    ALContext = static_cast<ALCcontext*>(al_calloc(16, sizeof(ALCcontext)));
     if(!ALContext)
     {
         ALCdevice_DecRef(device);
@@ -617,8 +594,6 @@ ALC_API ALCboolean ALC_APIENTRY alcMakeContextCurrent(ALCcontext *context)
 ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
 {
     ALCdevice *device;
-
-    DO_INITCONFIG();
 
     if (DeviceList)
     {
