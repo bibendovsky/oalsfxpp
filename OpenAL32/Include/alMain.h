@@ -9,9 +9,6 @@
 #include "AL/alc.h"
 #include "AL/alext.h"
 
-#include "almalloc.h"
-
-
 
 /* Calculates the size of a struct with N elements of a flexible array member.
  * GCC and Clang allow offsetof(Type, fam[N]) for this, but MSVC seems to have

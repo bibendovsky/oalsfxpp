@@ -492,7 +492,7 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
 
     if((err=UpdateDeviceParams(device, attrList)) != ALC_NO_ERROR)
     {
-        al_free(ALContext);
+        delete ALContext;
         ALContext = NULL;
 
         if(err == ALC_INVALID_DEVICE)
