@@ -222,9 +222,6 @@ struct ALCcontext_struct {
 
     struct ALvoice *voice;
     ALsizei voice_count;
-
-    struct ALeffectslotArray* active_aux_slots;
-
     ALCdevice  *device;
 };
 

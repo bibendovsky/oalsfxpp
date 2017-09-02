@@ -207,13 +207,6 @@ void UpdateEffectSlotProps(ALeffectslot *slot)
 
 void UpdateAllEffectSlotProps(ALCcontext *context)
 {
-    struct ALeffectslotArray *auxslots;
-    ALsizei i;
-
-    auxslots = context->active_aux_slots;
-    for(i = 0;i < auxslots->count;i++)
-    {
-        ALeffectslot *slot = auxslots->slot[i];
-        UpdateEffectSlotProps(slot);
-    }
+    auto slot = context->device->effect_slot;
+    UpdateEffectSlotProps(slot);
 }

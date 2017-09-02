@@ -141,12 +141,12 @@ static ALCenum UpdateDeviceParams(
     const auto old_sends = device->num_aux_sends;
     const auto new_sends = device->num_aux_sends;
 
-    al_free(device->dry.buffer);
-    device->dry.buffer = NULL;
+    delete[] reinterpret_cast<ALfloat*>(device->dry.buffer);
+    device->dry.buffer = nullptr;
     device->dry.num_channels = 0;
-    device->foa_out.buffer = NULL;
+    device->foa_out.buffer = nullptr;
     device->foa_out.num_channels = 0;
-    device->real_out.buffer = NULL;
+    device->real_out.buffer = nullptr;
     device->real_out.num_channels = 0;
 
     aluInitRenderer(device);
@@ -296,23 +296,6 @@ static ALCboolean VerifyDevice(ALCdevice **device)
     return ALC_FALSE;
 }
 
-
-/* InitContext
- *
- * Initializes context fields
- */
-static ALvoid InitContext(ALCcontext *Context)
-{
-    struct ALeffectslotArray *auxslots;
-
-    auxslots = static_cast<ALeffectslotArray*>(al_calloc(DEF_ALIGN, FAM_SIZE(struct ALeffectslotArray, slot, 1)));
-    auxslots->count = 1;
-    auxslots->slot[0] = Context->device->effect_slot;
-
-    Context->active_aux_slots = auxslots;
-}
-
-
 /* FreeContext
  *
  * Cleans up the context, and destroys any remaining objects the app failed to
@@ -320,24 +303,19 @@ static ALvoid InitContext(ALCcontext *Context)
  */
 static void FreeContext(ALCcontext *context)
 {
-    struct ALeffectslotArray *auxslots;
     size_t count;
     ALsizei i;
 
-    auxslots = context->active_aux_slots;
-    context->active_aux_slots = NULL;
-    al_free(auxslots);
-
     for(i = 0;i < context->voice_count;i++)
         DeinitVoice(context->voice);
-    al_free(context->voice);
-    context->voice = NULL;
+    delete[] reinterpret_cast<char*>(context->voice);
+    context->voice = nullptr;
     context->voice_count = 0;
 
     count = 0;
 
     ALCdevice_DecRef(context->device);
-    context->device = NULL;
+    context->device = nullptr;
 
     //Invalidate context
     memset(context, 0, sizeof(ALCcontext));
@@ -456,7 +434,7 @@ void AllocateVoices(ALCcontext *context, ALsizei num_voices, ALsizei old_sends)
     sizeof_props = RoundUp(FAM_SIZE(struct ALvoiceProps, send, num_sends), 16);
     size = sizeof_voice + sizeof_props;
 
-    voice = static_cast<ALvoice*>(al_calloc(16, RoundUp(size*1, 16)));
+    voice = reinterpret_cast<ALvoice*>(new char[RoundUp(size*1, 16)]{});
     /* The voice and property objects are stored interleaved since they're
      * paired together.
      */
@@ -465,7 +443,7 @@ void AllocateVoices(ALCcontext *context, ALsizei num_voices, ALsizei old_sends)
     /* Finish setting the voices' property set pointers and references. */
     voice->props = props;
 
-    al_free(context->voice);
+    delete[] reinterpret_cast<char*>(context->voice);
     context->voice = voice;
     context->voice_count = 1;
 }
@@ -510,7 +488,6 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
 
     ALContext->voice = NULL;
     ALContext->voice_count = 0;
-    ALContext->active_aux_slots = NULL;
     ALContext->device = device;
 
     if((err=UpdateDeviceParams(device, attrList)) != ALC_NO_ERROR)
@@ -528,7 +505,6 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
     AllocateVoices(ALContext, 1, device->num_aux_sends);
 
     ALCdevice_IncRef(ALContext->device);
-    InitContext(ALContext);
 
     device->context = ALContext;
 

@@ -322,17 +322,15 @@ static void CalcSourceParams(ALvoice *voice, ALCcontext *context, ALboolean forc
 
 static void UpdateContextSources(ALCcontext *ctx, const struct ALeffectslotArray *slots)
 {
-    ALvoice *voice;
-    ALsource *source;
-    ALsizei i;
+    auto slot = ctx->device->effect_slot;
+    auto force = CalcEffectSlotParams(slot, ctx->device);
+    auto voice = ctx->voice;
+    auto source = voice->source;
 
-    ALboolean force = AL_TRUE;
-    for(i = 0;i < slots->count;i++)
-        force |= CalcEffectSlotParams(slots->slot[i], ctx->device);
-
-    voice = ctx->voice;
-    source = voice->source;
-    if(source) CalcSourceParams(voice, ctx, force);
+    if(source)
+    {
+        CalcSourceParams(voice, ctx, force);
+    }
 }
 
 static void WriteF32(const ALfloatBUFFERSIZE *InBuffer, ALvoid *OutBuffer,
@@ -373,16 +371,13 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const 
         ctx = device->context;
         if(ctx)
         {
-            const struct ALeffectslotArray *auxslots;
+            UpdateContextSources(ctx, nullptr);
 
-            auxslots = ctx->active_aux_slots;
-            UpdateContextSources(ctx, auxslots);
+            auto slot = device->effect_slot;
 
-            for(i = 0;i < auxslots->count;i++)
+            for(c = 0;c < slot->num_channels;c++)
             {
-                ALeffectslot *slot = auxslots->slot[i];
-                for(c = 0;c < slot->num_channels;c++)
-                    memset(slot->wet_buffer[c], 0, SamplesToDo*sizeof(ALfloat));
+                memset(slot->wet_buffer[c], 0, SamplesToDo*sizeof(ALfloat));
             }
 
             /* source processing */
@@ -401,13 +396,8 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const 
             }
 
             /* effect slot processing */
-            for(i = 0;i < auxslots->count;i++)
-            {
-                const ALeffectslot *slot = auxslots->slot[i];
-                IEffect *state = slot->params.effect_state;
-                state->process(SamplesToDo, slot->wet_buffer, state->out_buffer,
-                                 state->out_channels);
-            }
+            IEffect *state = slot->params.effect_state;
+            state->process(SamplesToDo, slot->wet_buffer, state->out_buffer, state->out_channels);
         }
 
         if(OutBuffer)
