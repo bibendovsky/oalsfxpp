@@ -123,6 +123,7 @@ union ALeffectProps
     Dedicated dedicated;
 }; // ALeffectProps
 
+
 struct ALeffect
 {
     // Effect type (AL_EFFECT_NULL, ...)

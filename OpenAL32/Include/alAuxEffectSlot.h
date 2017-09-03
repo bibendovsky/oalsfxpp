@@ -12,7 +12,7 @@ struct ALeffectslotProps {
     ALenum type;
     ALeffectProps props;
     IEffect *state;
-};
+}; // ALeffectslotProps
 
 
 struct ALeffectslot
@@ -20,20 +20,23 @@ struct ALeffectslot
     struct Effect {
         ALenum type;
         ALeffectProps props;
-
         IEffect *state;
-    } effect;
-
-    struct ALeffectslotProps* update;
-    struct ALeffectslotProps* props;
+    }; // Effect
 
     struct Params {
         ALenum effect_type;
         IEffect *effect_state;
-    } params;
+    }; // Params
+
+
+    Effect effect;
+    ALeffectslotProps* update;
+    ALeffectslotProps* props;
+    Params params;
 
     ALsizei num_channels;
     BFChannelConfig chan_map[MAX_EFFECT_CHANNELS];
+
     /* Wet buffer configuration is ACN channel order with N3D scaling:
      * * Channel 0 is the unattenuated mono signal.
      * * Channel 1 is OpenAL -X
@@ -46,6 +49,7 @@ struct ALeffectslot
      */
     SampleBuffers wet_buffer;
 
+
     ALeffectslot()
         :
         wet_buffer{SampleBuffers::size_type{MAX_EFFECT_CHANNELS}}
@@ -53,12 +57,11 @@ struct ALeffectslot
     }
 }; // ALeffectslot
 
+
 ALenum InitEffectSlot(ALeffectslot *slot);
 void DeinitEffectSlot(ALeffectslot *slot);
 void UpdateEffectSlotProps(ALeffectslot *slot);
 void UpdateAllEffectSlotProps(ALCcontext *context);
-
-
 ALenum InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *effect);
 
 

@@ -97,17 +97,6 @@ enum Channel {
 
 
 /* Device formats */
-enum DevFmtType {
-    DevFmtByte   = ALC_BYTE_SOFT,
-    DevFmtUByte  = ALC_UNSIGNED_BYTE_SOFT,
-    DevFmtShort  = ALC_SHORT_SOFT,
-    DevFmtUShort = ALC_UNSIGNED_SHORT_SOFT,
-    DevFmtInt    = ALC_INT_SOFT,
-    DevFmtUInt   = ALC_UNSIGNED_INT_SOFT,
-    DevFmtFloat  = ALC_FLOAT_SOFT,
-
-    DevFmtTypeDefault = DevFmtFloat
-};
 enum DevFmtChannels {
     DevFmtMono   = ALC_MONO_SOFT,
     DevFmtStereo = ALC_STEREO_SOFT,
@@ -142,9 +131,10 @@ struct BFChannelConfig
 
 union AmbiConfig
 {
-    /* Ambisonic coefficients for mixing to the dry buffer. */
+    // Ambisonic coefficients for mixing to the dry buffer.
     ChannelConfig coeffs[MAX_OUTPUT_CHANNELS];
-    /* Coefficient channel mapping for mixing to the dry buffer. */
+
+    // Coefficient channel mapping for mixing to the dry buffer.
     BFChannelConfig map[MAX_OUTPUT_CHANNELS];
 }; // AmbiConfig
 
@@ -161,6 +151,43 @@ using SampleBuffers = std::vector<SampleBuffer>;
 
 struct ALCdevice_struct
 {
+    // The "dry" path corresponds to the main output.
+    struct Dry
+    {
+        AmbiConfig ambi;
+
+        // Number of coefficients in each Ambi.Coeffs to mix together (4 for
+        // first-order, 9 for second-order, etc). If the count is 0, Ambi.Map
+        // is used instead to map each output to a coefficient index.
+        ALsizei coeff_count;
+
+        SampleBuffers buffer;
+        ALsizei num_channels;
+        ALsizei num_channels_per_order[MAX_AMBI_ORDER + 1];
+    }; // Dry
+
+    // First-order ambisonics output, to be upsampled to the dry buffer if different. */
+    struct FOAOut
+    {
+        AmbiConfig ambi;
+
+        // Will only be 4 or 0.
+        ALsizei coeff_count;
+
+        SampleBuffers* buffer;
+        ALsizei num_channels;
+    }; // FOAOut
+
+    // "Real" output, which will be written to the device buffer. May alias the
+    // dry buffer.
+    struct RealOut
+    {
+        Channel channel_name[MAX_OUTPUT_CHANNELS];
+        SampleBuffers *buffer;
+        ALsizei num_channels;
+    }; // RealOut
+
+
     unsigned int ref;
 
     ALuint frequency;
@@ -177,39 +204,9 @@ struct ALCdevice_struct
     ALfloat resampled_data[BUFFERSIZE];
     ALfloat filtered_data[BUFFERSIZE];
 
-    /* The "dry" path corresponds to the main output. */
-    struct Dry {
-        AmbiConfig ambi;
-        /* Number of coefficients in each Ambi.Coeffs to mix together (4 for
-         * first-order, 9 for second-order, etc). If the count is 0, Ambi.Map
-         * is used instead to map each output to a coefficient index.
-         */
-        ALsizei coeff_count;
-
-        SampleBuffers buffer;
-        ALsizei num_channels;
-        ALsizei num_channels_per_order[MAX_AMBI_ORDER+1];
-    } dry;
-
-    /* First-order ambisonics output, to be upsampled to the dry buffer if different. */
-    struct FOAOut {
-        AmbiConfig ambi;
-        /* Will only be 4 or 0. */
-        ALsizei coeff_count;
-
-        SampleBuffers* buffer;
-        ALsizei num_channels;
-    } foa_out;
-
-    /* "Real" output, which will be written to the device buffer. May alias the
-     * dry buffer.
-     */
-    struct RealOut {
-        enum Channel channel_name[MAX_OUTPUT_CHANNELS];
-
-        SampleBuffers *buffer;
-        ALsizei num_channels;
-    } real_out;
+    Dry dry;
+    FOAOut foa_out;
+    RealOut real_out;
 
     ALCcontext* context;
 
@@ -217,16 +214,17 @@ struct ALCdevice_struct
     const ALfloat* source_samples;
     struct ALeffectslot* effect_slot;
     struct ALeffect* effect;
-};
+}; // ALCdevice_struct
 
 
-struct ALCcontext_struct {
+struct ALCcontext_struct
+{
     unsigned int ref;
 
-    struct ALvoice *voice;
+    struct ALvoice* voice;
     ALsizei voice_count;
-    ALCdevice  *device;
-};
+    ALCdevice* device;
+}; // ALCcontext_struct
 
 ALCcontext *GetContextRef(void);
 
@@ -255,6 +253,7 @@ inline ALint GetChannelIndex(const enum Channel names[MAX_OUTPUT_CHANNELS], enum
     }
     return -1;
 }
+
 #define GetChannelIdxByName(x, c) GetChannelIndex((x).channel_name, (c))
 
 

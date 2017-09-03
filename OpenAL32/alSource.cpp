@@ -159,7 +159,6 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
     for(i = 0;i < n;i++)
     {
         bool start_fading = false;
-        ALsizei s;
 
         source = context->device->source;
 
@@ -200,8 +199,11 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
         voice->num_channels = device->dry.num_channels;
 
         memset(voice->direct.params, 0, sizeof(voice->direct.params[0])*voice->num_channels);
-        for(s = 0;s < device->num_aux_sends;s++)
-            memset(voice->send[s].params, 0, sizeof(voice->send[s].params[0])*voice->num_channels);
+
+        if(device->num_aux_sends > 0)
+        {
+            memset(voice->send->params, 0, sizeof(SendParams)*voice->num_channels);
+        }
 
         voice->source = source;
         voice->playing = true;

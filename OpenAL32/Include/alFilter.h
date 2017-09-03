@@ -37,11 +37,19 @@ enum ALfilterType
     ALfilterType_BandPass,
 }; // ALfilterType
 
-struct ALfilterState {
-    ALfloat x[2]; /* History of two last input samples  */
-    ALfloat y[2]; /* History of two last output samples */
-    ALfloat b0, b1, b2; /* Transfer function coefficients "b" */
-    ALfloat a1, a2; /* Transfer function coefficients "a" (a0 is pre-applied) */
+struct ALfilterState
+{
+    ALfloat x[2]; // History of two last input samples
+    ALfloat y[2]; // History of two last output samples
+
+    // Transfer function coefficients "b"
+    ALfloat b0;
+    ALfloat b1;
+    ALfloat b2;
+
+    // Transfer function coefficients "a" (a0 is pre-applied)
+    ALfloat a1;
+    ALfloat a2;
 }; // ALfilterState
 
 /* Calculates the rcpQ (i.e. 1/Q) coefficient for shelving filters, using the
