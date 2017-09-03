@@ -104,7 +104,7 @@ struct ALvoiceProps
 
     // Direct filter and auxiliary send info.
     Direct direct;
-    Send send[1];
+    Send send;
 };
 
 struct ALvoice
@@ -127,7 +127,7 @@ struct ALvoice
     }; // Send
 
 
-    struct ALvoiceProps *props;
+    ALvoiceProps props;
     struct ALsource* source;
     bool playing;
 
@@ -136,7 +136,7 @@ struct ALvoice
     ALsizei num_channels;
 
     Direct direct;
-    Send send[1];
+    Send send;
 }; // ALvoice
 
 void DeinitVoice(ALvoice *voice);

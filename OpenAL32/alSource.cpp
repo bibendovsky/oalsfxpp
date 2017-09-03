@@ -202,7 +202,7 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
 
         if(device->num_aux_sends > 0)
         {
-            memset(voice->send->params, 0, sizeof(SendParams)*voice->num_channels);
+            memset(voice->send.params, 0, sizeof(SendParams)*voice->num_channels);
         }
 
         voice->source = source;
@@ -281,23 +281,23 @@ void DeinitSource(ALsource *source, ALsizei num_sends)
 void UpdateSourceProps(ALsource *source, ALvoice *voice, ALsizei num_sends)
 {
     // Get an unused property container, or allocate a new one as needed.
-    auto props = voice->props;
+    auto& props = voice->props;
 
     // Copy in current property values.
-    props->direct.gain = source->direct.gain;
-    props->direct.gain_hf = source->direct.gain_hf;
-    props->direct.hf_reference = source->direct.hf_reference;
-    props->direct.gain_lf = source->direct.gain_lf;
-    props->direct.lf_reference = source->direct.lf_reference;
+    props.direct.gain = source->direct.gain;
+    props.direct.gain_hf = source->direct.gain_hf;
+    props.direct.hf_reference = source->direct.hf_reference;
+    props.direct.gain_lf = source->direct.gain_lf;
+    props.direct.lf_reference = source->direct.lf_reference;
 
     if (num_sends > 0)
     {
-        props->send->slot = source->send->slot;
-        props->send->gain = source->send->gain;
-        props->send->gain_hf = source->send->gain_hf;
-        props->send->hf_reference = source->send->hf_reference;
-        props->send->gain_lf = source->send->gain_lf;
-        props->send->lf_reference = source->send->lf_reference;
+        props.send.slot = source->send->slot;
+        props.send.gain = source->send->gain;
+        props.send.gain_hf = source->send->gain_hf;
+        props.send.hf_reference = source->send->hf_reference;
+        props.send.gain_lf = source->send->gain_lf;
+        props.send.lf_reference = source->send->lf_reference;
     }
 }
 

@@ -66,7 +66,6 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
 {
     ALsizei NumChannels;
     ALsizei chan;
-    ALsizei send;
 
     /* Get source info */
     NumChannels = voice->num_channels;
@@ -105,11 +104,11 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
             0,
             SamplesToDo);
 
-        for (send = 0; send < Device->num_aux_sends; ++send)
+        if (Device->num_aux_sends > 0)
         {
-            SendParams *parms = &voice->send[send].params[chan];
+            SendParams *parms = &voice->send.params[chan];
 
-            if (!voice->send[send].buffer)
+            if (!voice->send.buffer)
             {
                 continue;
             }
@@ -120,14 +119,14 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
                 Device->filtered_data,
                 Device->resampled_data,
                 SamplesToDo,
-                voice->send[send].filter_type);
+                voice->send.filter_type);
 
             memcpy(parms->gains.current, parms->gains.target, sizeof(parms->gains.current));
 
             MixSamples(
                 samples,
-                voice->send[send].channels,
-                *voice->send[send].buffer,
+                voice->send.channels,
+                *voice->send.buffer,
                 parms->gains.current,
                 parms->gains.target,
                 0,

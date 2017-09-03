@@ -382,39 +382,13 @@ ALCcontext *GetContextRef(void)
 
 void AllocateVoices(ALCcontext *context, ALsizei num_voices, ALsizei old_sends)
 {
-    ALCdevice *device = context->device;
-    ALsizei num_sends = device->num_aux_sends;
-    struct ALvoiceProps *props;
-    size_t sizeof_props;
-    size_t sizeof_voice;
-    ALvoice *voice;
-    ALsizei v = 0;
-    size_t size;
-
     if (context->voice)
     {
         return;
     }
 
-    /* Allocate the voice pointers, voices, and the voices' stored source
-     * property set (including the dynamically-sized Send[] array) in one
-     * chunk.
-     */
-    sizeof_voice = RoundUp(FAM_SIZE(ALvoice, send, num_sends), 16);
-    sizeof_props = RoundUp(FAM_SIZE(struct ALvoiceProps, send, num_sends), 16);
-    size = sizeof_voice + sizeof_props;
-
-    voice = reinterpret_cast<ALvoice*>(new char[RoundUp(size*1, 16)]{});
-    /* The voice and property objects are stored interleaved since they're
-     * paired together.
-     */
-    props = (struct ALvoiceProps*)((char*)voice + sizeof_voice);
-
-    /* Finish setting the voices' property set pointers and references. */
-    voice->props = props;
-
-    delete[] reinterpret_cast<char*>(context->voice);
-    context->voice = voice;
+    delete context->voice;
+    context->voice = new ALvoice{};
     context->voice_count = 1;
 }
 
