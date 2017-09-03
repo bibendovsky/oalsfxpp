@@ -36,8 +36,6 @@ static ALCchar *alcDefaultAllDevicesSpecifier;
 
 static ALCenum LastNullDeviceError = ALC_NO_ERROR;
 
-/* Thread-local current context */
-static ALCcontext* LocalContext;
 /* Process-wide current context */
 static ALCcontext* GlobalContext = NULL;
 
@@ -299,35 +297,11 @@ static void FreeContext(ALCcontext *context)
  * being current on the running thread or globally. Returns true if other
  * contexts still exist on the device.
  */
-static bool ReleaseContext(ALCcontext *context, ALCdevice *device)
+static void ReleaseContext(ALCdevice *device)
 {
-    ALCcontext *origctx, *newhead;
-    bool ret = true;
-
-    origctx = context;
-    if(GlobalContext == origctx ? (GlobalContext = NULL, true) : (origctx = GlobalContext, false))
-        ALCcontext_DecRef(context);
-
-    origctx = context;
-    newhead = NULL;
-    if(device->context == origctx ? (device->context = newhead, true) : (origctx = device->context, false))
-    {
-        ret = !!newhead;
-    }
-
-    ALCcontext_DecRef(context);
-    return ret;
-}
-
-void ALCcontext_IncRef(ALCcontext *context)
-{
-    unsigned int ref = ++context->ref;
-}
-
-void ALCcontext_DecRef(ALCcontext *context)
-{
-    unsigned int ref = --context->ref;
-    if(ref == 0) FreeContext(context);
+    FreeContext(device->context);
+    device->context = nullptr;
+    GlobalContext = nullptr;
 }
 
 /* VerifyContext
@@ -346,7 +320,6 @@ static ALCboolean VerifyContext(ALCcontext **context)
         {
             if(ctx == *context)
             {
-                ALCcontext_IncRef(ctx);
                 return ALC_TRUE;
             }
         }
@@ -362,21 +335,9 @@ static ALCboolean VerifyContext(ALCcontext **context)
  * Returns the currently active context for this thread, and adds a reference
  * without locking it.
  */
-ALCcontext *GetContextRef(void)
+ALCcontext* GetContextRef()
 {
-    ALCcontext *context;
-
-    context = LocalContext;
-    if(context)
-        ALCcontext_IncRef(context);
-    else
-    {
-        context = GlobalContext;
-        if(context)
-            ALCcontext_IncRef(context);
-    }
-
-    return context;
+    return GlobalContext;
 }
 
 
@@ -403,7 +364,6 @@ void AllocateVoices(ALCcontext *context, ALsizei num_voices, ALsizei old_sends)
  */
 ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCint *attrList)
 {
-    ALCcontext *ALContext;
     ALCenum err;
 
     /* Explicitly hold the list lock while taking the BackendLock in case the
@@ -421,14 +381,12 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
         return NULL;
     }
 
-    ALContext = new ALCcontext{};
+    auto ALContext = new ALCcontext{};
     if(!ALContext)
     {
         ALCdevice_DecRef(device);
         return NULL;
     }
-
-    ALContext->ref = 1;
 
     ALContext->voice = NULL;
     ALContext->voice_count = 0;
@@ -451,6 +409,7 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
     ALCdevice_IncRef(ALContext->device);
 
     device->context = ALContext;
+    GlobalContext = ALContext;
 
     ALCdevice_DecRef(device);
 
@@ -463,49 +422,16 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
  */
 ALC_API ALCvoid ALC_APIENTRY alcDestroyContext(ALCcontext *context)
 {
-    ALCdevice *Device;
-
     if(!VerifyContext(&context))
     {
         return;
     }
 
-    Device = context->device;
+    auto Device = context->device;
     if(Device)
     {
-        ReleaseContext(context, Device);
+        ReleaseContext(Device);
     }
-
-    ALCcontext_DecRef(context);
-}
-
-/* alcMakeContextCurrent
- *
- * Makes the given context the active process-wide context, and removes the
- * thread-local context for the calling thread.
- */
-ALC_API ALCboolean ALC_APIENTRY alcMakeContextCurrent(ALCcontext *context)
-{
-    ALCcontext* temp_context;
-
-    /* context must be valid or NULL */
-    if(context && !VerifyContext(&context))
-    {
-        return ALC_FALSE;
-    }
-    /* context's reference count is already incremented */
-    temp_context = context;
-    context = GlobalContext;
-    GlobalContext = temp_context;
-    if(context) ALCcontext_DecRef(context);
-
-    if((context=LocalContext) != NULL)
-    {
-        LocalContext = NULL;
-        ALCcontext_DecRef(context);
-    }
-
-    return ALC_TRUE;
 }
 
 /* alcOpenDevice
@@ -582,7 +508,7 @@ ALC_API ALCboolean ALC_APIENTRY alcCloseDevice(ALCdevice *device)
     ctx = device->context;
     if(ctx != NULL)
     {
-        ReleaseContext(ctx, device);
+        ReleaseContext(device);
     }
 
     ALCdevice_DecRef(device);

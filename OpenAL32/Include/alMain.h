@@ -219,17 +219,12 @@ struct ALCdevice_struct
 
 struct ALCcontext_struct
 {
-    unsigned int ref;
-
     struct ALvoice* voice;
     ALsizei voice_count;
     ALCdevice* device;
 }; // ALCcontext_struct
 
 ALCcontext *GetContextRef(void);
-
-void ALCcontext_IncRef(ALCcontext *context);
-void ALCcontext_DecRef(ALCcontext *context);
 
 void AllocateVoices(ALCcontext *context, ALsizei num_voices, ALsizei old_sends);
 

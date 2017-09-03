@@ -166,18 +166,6 @@ int main()
 
     if (is_succeed)
     {
-        auto result = alcMakeContextCurrent(oal_context);
-
-        if (result == AL_FALSE)
-        {
-            is_succeed = 0;
-            printf("%s\n", "Failed to make a context current.");
-        }
-    }
-
-
-    if (is_succeed)
-    {
         InitEffectParams(oal_device->effect, AL_EFFECT_EAXREVERB);
         UpdateEffectSlotProps(oal_device->effect_slot);
     }
@@ -282,7 +270,6 @@ int main()
 
     alSourceStop(oal_source);
 
-    alcMakeContextCurrent(NULL);
     alcDestroyContext(oal_context);
     alcCloseDevice(oal_device);
 

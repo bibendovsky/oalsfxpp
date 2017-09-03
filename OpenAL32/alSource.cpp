@@ -152,7 +152,7 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
     if(!context) return;
 
     if(!(n == 1))
-        goto done;
+        return;
 
     device = context->device;
 
@@ -168,14 +168,14 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
             case AL_PLAYING:
                 assert(voice != NULL);
                 /* A source that's already playing is restarted from the beginning. */
-                goto finish_play;
+                return;
 
             case AL_PAUSED:
                 assert(voice != NULL);
                 /* A source that's paused simply resumes. */
                 voice->playing = true;
                 source->state = AL_PLAYING;
-                goto finish_play;
+                return;
 
             default:
                 break;
@@ -208,12 +208,7 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
         voice->source = source;
         voice->playing = true;
         source->state = AL_PLAYING;
-    finish_play:
-        ;
     }
-
-done:
-    ALCcontext_DecRef(context);
 }
 
 
@@ -233,7 +228,7 @@ AL_API ALvoid AL_APIENTRY alSourceStopv(ALsizei n, const ALuint *sources)
     if(!context) return;
 
     if(!(n == 1))
-        goto done;
+        return;
 
     device = context->device;
     for(i = 0;i < n;i++)
@@ -247,9 +242,6 @@ AL_API ALvoid AL_APIENTRY alSourceStopv(ALsizei n, const ALuint *sources)
         if(source->state != AL_INITIAL)
             source->state = AL_STOPPED;
     }
-
-done:
-    ALCcontext_DecRef(context);
 }
 
 void InitSourceParams(ALsource *Source, ALsizei num_sends)
