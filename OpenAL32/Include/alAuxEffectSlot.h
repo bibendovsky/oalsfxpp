@@ -11,12 +11,6 @@ struct ALeffectslot;
 constexpr auto MAX_EFFECT_CHANNELS = 4;
 
 
-struct ALeffectslotArray {
-    ALsizei count;
-    struct ALeffectslot *slot[];
-};
-
-
 struct ALeffectslotProps {
     ALenum type;
     ALeffectProps props;
@@ -38,7 +32,7 @@ typedef struct ALeffectslot {
     unsigned int ref;
 
     struct ALeffectslotProps* update;
-    struct ALeffectslotProps* free_list;
+    struct ALeffectslotProps* props;
 
     struct Params {
         ALenum effect_type;

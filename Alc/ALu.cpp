@@ -85,7 +85,7 @@ static ALboolean CalcEffectSlotParams(ALeffectslot *slot, ALCdevice *device)
 
     state->update(device, slot, &props->props);
 
-    props->next = slot->free_list;
+    props->next = slot->props;
     return AL_TRUE;
 }
 
@@ -321,7 +321,7 @@ static void CalcSourceParams(ALvoice *voice, ALCcontext *context, ALboolean forc
 }
 
 
-static void UpdateContextSources(ALCcontext *ctx, const struct ALeffectslotArray *slots)
+static void UpdateContextSources(ALCcontext *ctx)
 {
     auto slot = ctx->device->effect_slot;
     auto force = CalcEffectSlotParams(slot, ctx->device);
@@ -370,7 +370,7 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const 
 
         if(ctx)
         {
-            UpdateContextSources(ctx, nullptr);
+            UpdateContextSources(ctx);
 
             auto slot = device->effect_slot;
 

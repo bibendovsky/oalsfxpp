@@ -118,11 +118,10 @@ ALenum InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *e
         EffectSlot->effect.props = effect->props;
 
     /* Remove state references from old effect slot property updates. */
-    props = EffectSlot->free_list;
-    while(props)
+    props = EffectSlot->props;
+    if(props)
     {
-        props->state = NULL;
-        props = props->next;
+        props->state = nullptr;
     }
 
     return AL_NO_ERROR;
@@ -139,7 +138,7 @@ ALenum InitEffectSlot(ALeffectslot *slot)
     slot->ref = 0;
 
     slot->update = NULL;
-    slot->free_list = NULL;
+    slot->props = nullptr;
 
     slot->params.effect_state = slot->effect.state;
 
@@ -148,21 +147,18 @@ ALenum InitEffectSlot(ALeffectslot *slot)
 
 void DeinitEffectSlot(ALeffectslot *slot)
 {
-    struct ALeffectslotProps *props;
-    size_t count = 0;
+    auto props = slot->update;
 
-    props = slot->update;
-    if(props)
+    if (props)
     {
         delete props;
     }
-    props = slot->free_list;
-    while(props)
+
+    props = slot->props;
+
+    if (props)
     {
-        struct ALeffectslotProps *next = props->next;
         delete props;
-        props = next;
-        ++count;
     }
 
     destroy_effect(slot->effect.state);
@@ -175,7 +171,7 @@ void UpdateEffectSlotProps(ALeffectslot *slot)
     IEffect *oldstate;
 
     /* Get an unused property container, or allocate a new one as needed. */
-    props = slot->free_list;
+    props = slot->props;
 
     if(!props)
     {
@@ -196,12 +192,12 @@ void UpdateEffectSlotProps(ALeffectslot *slot)
     props = slot->update;
     slot->update = temp_props;
 
-    if(props)
+    if (props)
     {
         /* If there was an unused update container, put it back in the
          * freelist.
          */
-        props->next = slot->free_list;
+        props->next = slot->props;
     }
 }
 
