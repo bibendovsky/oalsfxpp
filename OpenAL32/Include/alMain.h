@@ -222,11 +222,9 @@ struct ALCcontext_struct
     ALCdevice* device;
 }; // ALCcontext_struct
 
-ALCcontext *GetContextRef(void);
 
+ALCcontext* GetContextRef();
 void AllocateVoices(ALCcontext *context, ALsizei num_voices, ALsizei old_sends);
-
-
 void SetDefaultWFXChannelOrder(ALCdevice *device);
 
 

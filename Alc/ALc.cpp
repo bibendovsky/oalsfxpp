@@ -286,32 +286,6 @@ static void ReleaseContext(ALCdevice *device)
     GlobalContext = nullptr;
 }
 
-/* VerifyContext
- *
- * Checks that the given context is valid, and increments its reference count.
- */
-static ALCboolean VerifyContext(ALCcontext **context)
-{
-    ALCdevice *dev;
-
-    dev = DeviceList;
-    if(dev)
-    {
-        ALCcontext *ctx = dev->context;
-        if(ctx)
-        {
-            if(ctx == *context)
-            {
-                return ALC_TRUE;
-            }
-        }
-    }
-
-    *context = NULL;
-    return ALC_FALSE;
-}
-
-
 /* GetContextRef
  *
  * Returns the currently active context for this thread, and adds a reference
@@ -321,7 +295,6 @@ ALCcontext* GetContextRef()
 {
     return GlobalContext;
 }
-
 
 void AllocateVoices(ALCcontext *context, ALsizei num_voices, ALsizei old_sends)
 {
@@ -397,11 +370,6 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
  */
 ALC_API ALCvoid ALC_APIENTRY alcDestroyContext(ALCcontext *context)
 {
-    if(!VerifyContext(&context))
-    {
-        return;
-    }
-
     auto Device = context->device;
     if(Device)
     {
