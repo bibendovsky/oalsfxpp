@@ -57,7 +57,13 @@ typedef struct ALeffectslot {
      * ambisonics signal and make a B-Format pan (ComputeFirstOrderGains) for
      * first-order device output (FOAOut).
      */
-    ALfloat wet_buffer[MAX_EFFECT_CHANNELS][BUFFERSIZE];
+    SampleBuffers wet_buffer;
+
+    ALeffectslot()
+        :
+        wet_buffer{SampleBuffers::size_type{MAX_EFFECT_CHANNELS}}
+    {
+    }
 } ALeffectslot;
 
 ALenum InitEffectSlot(ALeffectslot *slot);

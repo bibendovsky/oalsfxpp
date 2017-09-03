@@ -1,10 +1,15 @@
 #ifndef _AL_EFFECT_H_
 #define _AL_EFFECT_H_
 
+#include <vector>
 #include "alMain.h"
 
 
 struct ALeffect;
+
+
+using EffectSampleBuffer = std::vector<ALfloat>;
+
 
 typedef union ALeffectProps {
     struct Reverb {
@@ -120,7 +125,7 @@ public:
     virtual ~IEffect();
 
 
-    ALfloat (*out_buffer)[BUFFERSIZE];
+    SampleBuffers* out_buffer;
     ALsizei out_channels;
 
 
@@ -132,15 +137,15 @@ public:
         ALCdevice* device);
 
     void update(
-        const ALCdevice* device,
+        ALCdevice* device,
         const struct ALeffectslot* slot,
         const union ALeffectProps *props);
 
     void process(
-        ALsizei sample_count,
-        const ALfloat(*src_samples)[BUFFERSIZE],
-        ALfloat(*dst_samples)[BUFFERSIZE],
-        ALsizei channel_count);
+        const ALsizei sample_count,
+        const SampleBuffers& src_samples,
+        SampleBuffers& dst_samples,
+        const ALsizei channel_count);
 
 
 protected:
@@ -155,15 +160,15 @@ protected:
         ALCdevice* device) = 0;
 
     virtual void do_update(
-        const ALCdevice* device,
+        ALCdevice* device,
         const struct ALeffectslot* slot,
         const union ALeffectProps *props) = 0;
 
     virtual void do_process(
-        ALsizei sample_count,
-        const ALfloat(*src_samples)[BUFFERSIZE],
-        ALfloat(*dst_samples)[BUFFERSIZE],
-        ALsizei channel_count) = 0;
+        const ALsizei sample_count,
+        const SampleBuffers& src_samples,
+        SampleBuffers& dst_samples,
+        const ALsizei channel_count) = 0;
 }; // IEffect
 
 

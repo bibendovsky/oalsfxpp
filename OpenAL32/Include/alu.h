@@ -108,7 +108,7 @@ typedef struct ALvoice {
         enum ActiveFilters filter_type;
         DirectParams params[MAX_INPUT_CHANNELS];
 
-        ALfloat (*buffer)[BUFFERSIZE];
+        SampleBuffers* buffer;
         ALsizei channels;
         ALsizei channels_per_order[MAX_AMBI_ORDER+1];
     } direct;
@@ -117,7 +117,7 @@ typedef struct ALvoice {
         enum ActiveFilters filter_type;
         SendParams params[MAX_INPUT_CHANNELS];
 
-        ALfloat (*buffer)[BUFFERSIZE];
+        SampleBuffers* buffer;
         ALsizei channels;
     } send[];
 } ALvoice;
@@ -126,11 +126,11 @@ void DeinitVoice(ALvoice *voice);
 
 
 typedef void (*MixerFunc)(const ALfloat *data, ALsizei OutChans,
-                          ALfloat (*OutBuffer)[BUFFERSIZE], ALfloat *CurrentGains,
+                          SampleBuffers& OutBuffer, ALfloat *CurrentGains,
                           const ALfloat *TargetGains, ALsizei Counter, ALsizei OutPos,
                           ALsizei BufferSize);
 typedef void (*RowMixerFunc)(ALfloat *OutBuffer, const ALfloat *gains,
-                             const ALfloat (*data)[BUFFERSIZE], ALsizei InChans,
+                             const SampleBuffers& data, ALsizei InChans,
                              ALsizei InPos, ALsizei BufferSize);
 
 

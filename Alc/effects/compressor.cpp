@@ -62,15 +62,15 @@ protected:
         ALCdevice* device) final;
 
     void do_update(
-        const ALCdevice* device,
+        ALCdevice* device,
         const struct ALeffectslot* slot,
         const union ALeffectProps *props) final;
 
     void do_process(
-        ALsizei sample_count,
-        const ALfloat(*src_samples)[BUFFERSIZE],
-        ALfloat(*dst_samples)[BUFFERSIZE],
-        ALsizei channel_count) final;
+        const ALsizei sample_count,
+        const SampleBuffers& src_samples,
+        SampleBuffers& dst_samples,
+        const ALsizei channel_count) final;
 }; // CompressorEffect
 
 
@@ -99,7 +99,7 @@ ALboolean CompressorEffect::do_update_device(
 }
 
 void CompressorEffect::do_update(
-    const ALCdevice* device,
+    ALCdevice* device,
     const struct ALeffectslot* slot,
     const union ALeffectProps *props)
 {
@@ -116,10 +116,10 @@ void CompressorEffect::do_update(
 }
 
 void CompressorEffect::do_process(
-    ALsizei sample_count,
-    const ALfloat(*src_samples)[BUFFERSIZE],
-    ALfloat(*dst_samples)[BUFFERSIZE],
-    ALsizei channel_count)
+    const ALsizei sample_count,
+    const SampleBuffers& src_samples,
+    SampleBuffers& dst_samples,
+    const ALsizei channel_count)
 {
     ALsizei i, j, k;
     ALsizei base;

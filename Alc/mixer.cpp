@@ -98,7 +98,7 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
         MixSamples(
             samples,
             voice->direct.channels,
-            voice->direct.buffer,
+            *voice->direct.buffer,
             parms->gains.current,
             parms->gains.target,
             0,
@@ -127,7 +127,7 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
             MixSamples(
                 samples,
                 voice->send[send].channels,
-                voice->send[send].buffer,
+                *voice->send[send].buffer,
                 parms->gains.current,
                 parms->gains.target,
                 0,

@@ -44,7 +44,7 @@ void ALfilterState_processC(ALfilterState *filter, ALfloat *dst, const ALfloat *
 }
 
 
-void Mix_C(const ALfloat *data, ALsizei OutChans, ALfloat (*OutBuffer)[BUFFERSIZE],
+void Mix_C(const ALfloat *data, ALsizei OutChans, SampleBuffers& OutBuffer,
            ALfloat *CurrentGains, const ALfloat *TargetGains, ALsizei Counter, ALsizei OutPos,
            ALsizei BufferSize)
 {
@@ -84,7 +84,7 @@ void Mix_C(const ALfloat *data, ALsizei OutChans, ALfloat (*OutBuffer)[BUFFERSIZ
  * transform. And as the matrices are more or less static once set up, no
  * stepping is necessary.
  */
-void MixRow_C(ALfloat *OutBuffer, const ALfloat *Gains, const ALfloat (*data)[BUFFERSIZE], ALsizei InChans, ALsizei InPos, ALsizei BufferSize)
+void MixRow_C(ALfloat *OutBuffer, const ALfloat *Gains, const SampleBuffers& data, ALsizei InChans, ALsizei InPos, ALsizei BufferSize)
 {
     ALsizei c, i;
 

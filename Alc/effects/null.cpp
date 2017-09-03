@@ -26,15 +26,15 @@ protected:
         ALCdevice* device) final;
 
     void do_update(
-        const ALCdevice* device,
+        ALCdevice* device,
         const struct ALeffectslot* slot,
         const union ALeffectProps *props) final;
 
     void do_process(
         ALsizei sample_count,
-        const ALfloat(*src_samples)[BUFFERSIZE],
-        ALfloat(*dst_samples)[BUFFERSIZE],
-        ALsizei channel_count) final;
+        const SampleBuffers& src_samples,
+        SampleBuffers& dst_samples,
+        const ALsizei channel_count) final;
 }; // NullEffect
 
 
@@ -54,7 +54,7 @@ ALboolean NullEffect::do_update_device(
 }
 
 void NullEffect::do_update(
-    const ALCdevice* device,
+    ALCdevice* device,
     const struct ALeffectslot* slot,
     const union ALeffectProps *props)
 {
@@ -65,9 +65,9 @@ void NullEffect::do_update(
 
 void NullEffect::do_process(
     ALsizei sample_count,
-    const ALfloat(*src_samples)[BUFFERSIZE],
-    ALfloat(*dst_samples)[BUFFERSIZE],
-    ALsizei channel_count)
+    const SampleBuffers& src_samples,
+    SampleBuffers& dst_samples,
+    const ALsizei channel_count)
 {
     static_cast<void>(sample_count);
     static_cast<void>(src_samples);

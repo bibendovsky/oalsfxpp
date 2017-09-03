@@ -25,9 +25,6 @@
 #include "alu.h"
 
 
-using SampleBuffer = std::vector<ALfloat>;
-
-
 class EchoEffect :
     public IEffect
 {
@@ -56,7 +53,7 @@ public:
     }
 
 
-    SampleBuffer sample_buffer;
+    EffectSampleBuffer sample_buffer;
     ALsizei buffer_length;
 
     // The echo is two tap. The delay is the number of samples from before the
@@ -82,22 +79,22 @@ protected:
         ALCdevice* device) final;
 
     void do_update(
-        const ALCdevice* device,
+        ALCdevice* device,
         const struct ALeffectslot* slot,
         const union ALeffectProps *props) final;
 
     void do_process(
-        ALsizei sample_count,
-        const ALfloat(*src_samples)[BUFFERSIZE],
-        ALfloat(*dst_samples)[BUFFERSIZE],
-        ALsizei channel_count) final;
+        const ALsizei sample_count,
+        const SampleBuffers& src_samples,
+        SampleBuffers& dst_samples,
+        const ALsizei channel_count) final;
 }; // EchoEffect
 
 
 void EchoEffect::do_construct()
 {
     buffer_length = 0;
-    sample_buffer = SampleBuffer{};
+    sample_buffer = EffectSampleBuffer{};
 
     tap[0].delay = 0;
     tap[1].delay = 0;
@@ -108,7 +105,7 @@ void EchoEffect::do_construct()
 
 void EchoEffect::do_destruct()
 {
-    sample_buffer = SampleBuffer{};
+    sample_buffer = EffectSampleBuffer{};
 }
 
 ALboolean EchoEffect::do_update_device(
@@ -134,7 +131,7 @@ ALboolean EchoEffect::do_update_device(
 }
 
 void EchoEffect::do_update(
-    const ALCdevice* device,
+    ALCdevice* device,
     const struct ALeffectslot* slot,
     const union ALeffectProps *props)
 {
@@ -173,10 +170,10 @@ void EchoEffect::do_update(
 }
 
 void EchoEffect::do_process(
-    ALsizei sample_count,
-    const ALfloat(*src_samples)[BUFFERSIZE],
-    ALfloat(*dst_samples)[BUFFERSIZE],
-    ALsizei channel_count)
+    const ALsizei sample_count,
+    const SampleBuffers& src_samples,
+    SampleBuffers& dst_samples,
+    const ALsizei channel_count)
 {
     const ALsizei mask = buffer_length - 1;
     const ALsizei tap1 = tap[0].delay;

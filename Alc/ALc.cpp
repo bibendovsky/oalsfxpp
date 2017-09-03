@@ -136,13 +136,10 @@ static ALCenum UpdateDeviceParams(
     ALCdevice* device,
     const ALCint* attrList)
 {
-    size_t size;
-
     const auto old_sends = device->num_aux_sends;
     const auto new_sends = device->num_aux_sends;
 
-    delete[] reinterpret_cast<ALfloat*>(device->dry.buffer);
-    device->dry.buffer = nullptr;
+    device->dry.buffer = SampleBuffers{};
     device->dry.num_channels = 0;
     device->foa_out.buffer = nullptr;
     device->foa_out.num_channels = 0;
@@ -151,38 +148,13 @@ static ALCenum UpdateDeviceParams(
 
     aluInitRenderer(device);
 
-    /* Allocate extra channels for any post-filter output. */
-    size = (device->dry.num_channels +
-        device->foa_out.num_channels +
-        device->real_out.num_channels) * BUFFERSIZE;
+    device->dry.buffer.resize(device->dry.num_channels);
 
-    device->dry.buffer = reinterpret_cast<ALfloat(*)[BUFFERSIZE]>(new ALfloat[size]{});
+    device->real_out.buffer = &device->dry.buffer;
+    device->real_out.num_channels = device->dry.num_channels;
 
-    if (!device->dry.buffer)
-    {
-        return ALC_INVALID_DEVICE;
-    }
-
-    if (device->real_out.num_channels != 0)
-    {
-        device->real_out.buffer = device->dry.buffer + device->dry.num_channels +
-            device->foa_out.num_channels;
-    }
-    else
-    {
-        device->real_out.buffer = device->dry.buffer;
-        device->real_out.num_channels = device->dry.num_channels;
-    }
-
-    if (device->foa_out.num_channels != 0)
-    {
-        device->foa_out.buffer = device->dry.buffer + device->dry.num_channels;
-    }
-    else
-    {
-        device->foa_out.buffer = device->dry.buffer;
-        device->foa_out.num_channels = device->dry.num_channels;
-    }
+    device->foa_out.buffer = &device->dry.buffer;
+    device->foa_out.num_channels = device->dry.num_channels;
 
     device->num_aux_sends = new_sends;
 
@@ -197,7 +169,7 @@ static ALCenum UpdateDeviceParams(
         auto slot = device->effect_slot;
         auto state = slot->effect.state;
 
-        state->out_buffer = device->dry.buffer;
+        state->out_buffer = &device->dry.buffer;
         state->out_channels = device->dry.num_channels;
 
         if (state->update_device(device) == AL_FALSE)
@@ -247,9 +219,7 @@ static ALCvoid FreeDevice(ALCdevice *device)
     DeinitSource(device->source, device->num_aux_sends);
     delete device->source;
 
-    delete[] reinterpret_cast<ALfloat*>(device->dry.buffer);
-
-    device->dry.buffer = nullptr;
+    device->dry.buffer = SampleBuffers{};
     device->dry.num_channels = 0;
     device->foa_out.buffer = nullptr;
     device->foa_out.num_channels = 0;
@@ -586,7 +556,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
 
     device->ref = 1;
 
-    device->dry.buffer = NULL;
+    device->dry.buffer = SampleBuffers{};
     device->dry.num_channels = 0;
     device->foa_out.buffer = NULL;
     device->foa_out.num_channels = 0;

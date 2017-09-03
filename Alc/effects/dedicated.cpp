@@ -52,15 +52,15 @@ protected:
         ALCdevice* device) final;
 
     void do_update(
-        const ALCdevice* device,
+        ALCdevice* device,
         const struct ALeffectslot* slot,
         const union ALeffectProps *props) final;
 
     void do_process(
-        ALsizei sample_count,
-        const ALfloat(*src_samples)[BUFFERSIZE],
-        ALfloat(*dst_samples)[BUFFERSIZE],
-        ALsizei channel_count) final;
+        const ALsizei sample_count,
+        const SampleBuffers& src_samples,
+        SampleBuffers& dst_samples,
+        const ALsizei channel_count) final;
 }; // DedicatedEffect
 
 
@@ -84,7 +84,7 @@ ALboolean DedicatedEffect::do_update_device(
 }
 
 void DedicatedEffect::do_update(
-    const ALCdevice* device,
+    ALCdevice* device,
     const struct ALeffectslot* slot,
     const union ALeffectProps *props)
 {
@@ -121,7 +121,7 @@ void DedicatedEffect::do_update(
             ALfloat coeffs[MAX_AMBI_COEFFS];
             CalcAngleCoeffs(0.0f, 0.0f, 0.0f, coeffs);
 
-            out_buffer = device->dry.buffer;
+            out_buffer = &device->dry.buffer;
             out_channels = device->dry.num_channels;
             ComputePanningGains(device->dry, coeffs, Gain, gains);
         }
@@ -129,10 +129,10 @@ void DedicatedEffect::do_update(
 }
 
 void DedicatedEffect::do_process(
-    ALsizei sample_count,
-    const ALfloat(*src_samples)[BUFFERSIZE],
-    ALfloat(*dst_samples)[BUFFERSIZE],
-    ALsizei channel_count)
+    const ALsizei sample_count,
+    const SampleBuffers& src_samples,
+    SampleBuffers& dst_samples,
+    const ALsizei channel_count)
 {
     for (int c = 0; c < channel_count; c++)
     {

@@ -54,7 +54,7 @@ ALboolean IEffect::update_device(
 }
 
 void IEffect::update(
-    const ALCdevice* device,
+    ALCdevice* device,
     const struct ALeffectslot* slot,
     const union ALeffectProps *props)
 {
@@ -62,12 +62,12 @@ void IEffect::update(
 }
 
 void IEffect::process(
-    ALsizei samplesToDo,
-    const ALfloat(*samplesIn)[BUFFERSIZE],
-    ALfloat(*samplesOut)[BUFFERSIZE],
-    ALsizei numChannels)
+    ALsizei sample_count,
+    const SampleBuffers& src_samples,
+    SampleBuffers& dst_samples,
+    const ALsizei channel_count)
 {
-    do_process(samplesToDo, samplesIn, samplesOut, numChannels);
+    do_process(sample_count, src_samples, dst_samples, channel_count);
 }
 
 // IEffect

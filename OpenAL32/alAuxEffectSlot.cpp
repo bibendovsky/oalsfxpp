@@ -93,7 +93,7 @@ ALenum InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *e
         State = createByType(newtype);
         if(!State) return AL_OUT_OF_MEMORY;
 
-        State->out_buffer = Device->dry.buffer;
+        State->out_buffer = &Device->dry.buffer;
         State->out_channels = Device->dry.num_channels;
         if(State->update_device(Device) == AL_FALSE)
         {

@@ -54,7 +54,7 @@ struct VecAllpass {
     ALsizei offsets[4][2];
 };
 
-using ReverbSampleBuffer = std::vector<ALfloat>;
+using ReverbSampleBuffer = EffectSampleBuffer;
 
 
 class ReverbEffect :
@@ -206,15 +206,15 @@ protected:
         ALCdevice* device) final;
 
     void do_update(
-        const ALCdevice* device,
+        ALCdevice* device,
         const struct ALeffectslot* slot,
         const union ALeffectProps *props) final;
 
     void do_process(
-        ALsizei sample_count,
-        const ALfloat(*src_samples)[BUFFERSIZE],
-        ALfloat(*dst_samples)[BUFFERSIZE],
-        ALsizei channel_count) final;
+        const ALsizei sample_count,
+        const SampleBuffers& src_samples,
+        SampleBuffers& dst_samples,
+        const ALsizei channel_count) final;
 }; // ReverbEffect
 
 
@@ -428,7 +428,7 @@ static ALuint CalcLineLength(const ALfloat length, const ptrdiff_t offset, const
  */
 static ALboolean AllocLines(const ALuint frequency, ReverbEffect *State)
 {
-    ALuint totalSamples, i;
+    ALuint totalSamples;
     ALfloat multiplier, length;
 
     /* All delay line lengths are calculated to accomodate the full range of
@@ -1849,7 +1849,7 @@ ALboolean ReverbEffect::do_update_device(
 }
 
 void ReverbEffect::do_update(
-    const ALCdevice* device,
+    ALCdevice* device,
     const struct ALeffectslot* slot,
     const union ALeffectProps *props)
 {
@@ -1946,10 +1946,10 @@ void ReverbEffect::do_update(
 }
 
 void ReverbEffect::do_process(
-    ALsizei sample_count,
-    const ALfloat(*src_samples)[BUFFERSIZE],
-    ALfloat(*dst_samples)[BUFFERSIZE],
-    ALsizei channel_count)
+    const ALsizei sample_count,
+    const SampleBuffers& src_samples,
+    SampleBuffers& dst_samples,
+    const ALsizei channel_count)
 {
     auto ReverbProc = is_eax ? EAXVerbPass : VerbPass;
     auto afmt_samples = a_format_samples;

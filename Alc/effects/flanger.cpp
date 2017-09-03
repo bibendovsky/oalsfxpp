@@ -31,8 +31,8 @@ enum FlangerWaveForm {
     FWF_Sinusoid = AL_FLANGER_WAVEFORM_SINUSOID
 };
 
-using SampleBuffer = std::vector<ALfloat>;
-using SampleBuffers = std::array<SampleBuffer, 2>;
+using FlangerSampleBuffer = EffectSampleBuffer;
+using FlangerSampleBuffers = std::array<FlangerSampleBuffer, 2>;
 
 class FlangerEffect :
     public IEffect
@@ -60,7 +60,7 @@ public:
     }
 
 
-    SampleBuffers sample_buffers;
+    FlangerSampleBuffers sample_buffers;
     ALsizei buffer_length;
     ALsizei offset;
     ALsizei lfo_range;
@@ -86,15 +86,15 @@ protected:
         ALCdevice* device) final;
 
     void do_update(
-        const ALCdevice* device,
+        ALCdevice* device,
         const struct ALeffectslot* slot,
         const union ALeffectProps *props) final;
 
     void do_process(
-        ALsizei sample_count,
-        const ALfloat(*src_samples)[BUFFERSIZE],
-        ALfloat(*dst_samples)[BUFFERSIZE],
-        ALsizei channel_count) final;
+        const ALsizei sample_count,
+        const SampleBuffers& src_samples,
+        SampleBuffers& dst_samples,
+        const ALsizei channel_count) final;
 }; // FlangerEffect
 
 
@@ -129,7 +129,7 @@ void FlangerEffect::do_construct()
 
     for (auto& buffer : sample_buffers)
     {
-        buffer = SampleBuffer{};
+        buffer = FlangerSampleBuffer{};
     }
 
     offset = 0;
@@ -141,7 +141,7 @@ void FlangerEffect::do_destruct()
 {
     for (auto& buffer : sample_buffers)
     {
-        buffer = SampleBuffer{};
+        buffer = FlangerSampleBuffer{};
     }
 }
 
@@ -172,7 +172,7 @@ ALboolean FlangerEffect::do_update_device(
 }
 
 void FlangerEffect::do_update(
-    const ALCdevice* device,
+    ALCdevice* device,
     const struct ALeffectslot* slot,
     const union ALeffectProps *props)
 {
@@ -232,10 +232,10 @@ void FlangerEffect::do_update(
 }
 
 void FlangerEffect::do_process(
-    ALsizei sample_count,
-    const ALfloat(*src_samples)[BUFFERSIZE],
-    ALfloat(*dst_samples)[BUFFERSIZE],
-    ALsizei channel_count)
+    const ALsizei sample_count,
+    const SampleBuffers& src_samples,
+    SampleBuffers& dst_samples,
+    const ALsizei channel_count)
 {
     auto& leftbuf = sample_buffers[0];
     auto& rightbuf = sample_buffers[1];

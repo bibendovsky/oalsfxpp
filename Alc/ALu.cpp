@@ -19,6 +19,7 @@
  */
 
 
+#include <algorithm>
 #include "config.h"
 #include "alSource.h"
 #include "alu.h"
@@ -180,7 +181,7 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
             {
                 for(j = 0;j < MAX_OUTPUT_CHANNELS;j++)
                     voice->direct.params[c].gains.target[j] = 0.0f;
-                if(Device->dry.buffer == Device->real_out.buffer)
+                if(&Device->dry.buffer == Device->real_out.buffer)
                 {
                     int idx = GetChannelIdxByName(Device->real_out, chans[c].channel);
                     if(idx != -1) voice->direct.params[c].gains.target[idx] = DryGain;
@@ -269,7 +270,7 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
 static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *props, const ALCcontext *ALContext)
 {
     static const ALfloat dir[3] = { 0.0f, 0.0f, -1.0f };
-    const ALCdevice *Device = ALContext->device;
+    ALCdevice *Device = ALContext->device;
     ALfloat DryGain, DryGainHF, DryGainLF;
     ALfloat WetGain[MAX_SENDS];
     ALfloat WetGainHF[MAX_SENDS];
@@ -277,20 +278,20 @@ static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *p
     ALeffectslot *SendSlots[MAX_SENDS];
     ALsizei i;
 
-    voice->direct.buffer = Device->dry.buffer;
+    voice->direct.buffer = &Device->dry.buffer;
     voice->direct.channels = Device->dry.num_channels;
     for(i = 0;i < Device->num_aux_sends;i++)
     {
         SendSlots[i] = props->send[i].slot;
         if(!SendSlots[i] || SendSlots[i]->params.effect_type == AL_EFFECT_NULL)
         {
-            SendSlots[i] = NULL;
-            voice->send[i].buffer = NULL;
+            SendSlots[i] = nullptr;
+            voice->send[i].buffer = nullptr;
             voice->send[i].channels = 0;
         }
         else
         {
-            voice->send[i].buffer = SendSlots[i]->wet_buffer;
+            voice->send[i].buffer = &SendSlots[i]->wet_buffer;
             voice->send[i].channels = SendSlots[i]->num_channels;
         }
     }
@@ -333,13 +334,13 @@ static void UpdateContextSources(ALCcontext *ctx, const struct ALeffectslotArray
     }
 }
 
-static void WriteF32(const ALfloatBUFFERSIZE *InBuffer, ALvoid *OutBuffer,
+static void WriteF32(const SampleBuffers* InBuffer, ALvoid *OutBuffer,
                      ALsizei Offset, ALsizei SamplesToDo, ALsizei numchans)
 {
     ALsizei i, j;
     for(j = 0;j < numchans;j++)
     {
-        const ALfloat *in = ASSUME_ALIGNED(InBuffer[j], 16);
+        const ALfloat *in = (*InBuffer)[j].data();
         auto *out = (ALfloat*)OutBuffer + Offset*numchans + j;
 
         for(i = 0;i < SamplesToDo;i++)
@@ -359,16 +360,14 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const 
     for(SamplesDone = 0;SamplesDone < NumSamples;)
     {
         SamplesToDo = mini(NumSamples-SamplesDone, BUFFERSIZE);
+
         for(c = 0;c < device->dry.num_channels;c++)
-            memset(device->dry.buffer[c], 0, SamplesToDo*sizeof(ALfloat));
-        if(device->dry.buffer != device->foa_out.buffer)
-            for(c = 0;c < device->foa_out.num_channels;c++)
-                memset(device->foa_out.buffer[c], 0, SamplesToDo*sizeof(ALfloat));
-        if(device->dry.buffer != device->real_out.buffer)
-            for(c = 0;c < device->real_out.num_channels;c++)
-                memset(device->real_out.buffer[c], 0, SamplesToDo*sizeof(ALfloat));
+        {
+            std::fill_n(device->dry.buffer[c].begin(), SamplesToDo, 0.0F);
+        }
 
         ctx = device->context;
+
         if(ctx)
         {
             UpdateContextSources(ctx, nullptr);
@@ -377,7 +376,7 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const 
 
             for(c = 0;c < slot->num_channels;c++)
             {
-                memset(slot->wet_buffer[c], 0, SamplesToDo*sizeof(ALfloat));
+                std::fill_n(slot->wet_buffer[c].begin(), SamplesToDo, 0.0F);
             }
 
             /* source processing */
@@ -397,12 +396,12 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const 
 
             /* effect slot processing */
             IEffect *state = slot->params.effect_state;
-            state->process(SamplesToDo, slot->wet_buffer, state->out_buffer, state->out_channels);
+            state->process(SamplesToDo, slot->wet_buffer, *state->out_buffer, state->out_channels);
         }
 
         if(OutBuffer)
         {
-            ALfloat (*Buffer)[BUFFERSIZE] = device->real_out.buffer;
+            auto Buffer = device->real_out.buffer;
             ALsizei Channels = device->real_out.num_channels;
             WriteF32(Buffer, OutBuffer, SamplesDone, SamplesToDo, Channels);
         }

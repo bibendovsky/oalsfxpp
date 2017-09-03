@@ -5,6 +5,9 @@
 #include <cassert>
 #include <cmath>
 
+#include <array>
+#include <vector>
+
 #include "AL/al.h"
 #include "AL/alc.h"
 #include "AL/alext.h"
@@ -17,9 +20,6 @@
 #define FAM_SIZE(T, M, N)  (offsetof(T, M) + sizeof(((T*)NULL)->M[0])*(N))
 
 #define COUNTOF(x) (sizeof(x) / sizeof(0[x]))
-
-
-struct Compressor;
 
 
 constexpr auto DEFAULT_OUTPUT_RATE = 44100;
@@ -153,6 +153,9 @@ typedef union AmbiConfig {
  */
 constexpr auto BUFFERSIZE = 2048;
 
+using SampleBuffer = std::array<ALfloat, BUFFERSIZE>;
+using SampleBuffers = std::vector<SampleBuffer>;
+
 struct ALCdevice_struct
 {
     unsigned int ref;
@@ -180,7 +183,7 @@ struct ALCdevice_struct
          */
         ALsizei coeff_count;
 
-        ALfloat (*buffer)[BUFFERSIZE];
+        SampleBuffers buffer;
         ALsizei num_channels;
         ALsizei num_channels_per_order[MAX_AMBI_ORDER+1];
     } dry;
@@ -191,7 +194,7 @@ struct ALCdevice_struct
         /* Will only be 4 or 0. */
         ALsizei coeff_count;
 
-        ALfloat (*buffer)[BUFFERSIZE];
+        SampleBuffers* buffer;
         ALsizei num_channels;
     } foa_out;
 
@@ -201,7 +204,7 @@ struct ALCdevice_struct
     struct RealOut {
         enum Channel channel_name[MAX_OUTPUT_CHANNELS];
 
-        ALfloat (*buffer)[BUFFERSIZE];
+        SampleBuffers *buffer;
         ALsizei num_channels;
     } real_out;
 
