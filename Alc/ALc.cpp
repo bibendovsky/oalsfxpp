@@ -227,20 +227,6 @@ static ALCvoid FreeDevice(ALCdevice *device)
     delete device;
 }
 
-
-void ALCdevice_IncRef(ALCdevice *device)
-{
-    unsigned int ref;
-    ref = ++device->ref;
-}
-
-void ALCdevice_DecRef(ALCdevice *device)
-{
-    unsigned int ref;
-    ref = --device->ref;
-    if(ref == 0) FreeDevice(device);
-}
-
 /* VerifyDevice
  *
  * Checks if the device handle is valid, and increments its ref count if so.
@@ -255,7 +241,6 @@ static ALCboolean VerifyDevice(ALCdevice **device)
     {
         if(tmpDevice == *device)
         {
-            ALCdevice_IncRef(tmpDevice);
             return ALC_TRUE;
         }
     }
@@ -281,9 +266,6 @@ static void FreeContext(ALCcontext *context)
     context->voice_count = 0;
 
     count = 0;
-
-    ALCdevice_DecRef(context->device);
-    context->device = nullptr;
 
     //Invalidate context
     memset(context, 0, sizeof(ALCcontext));
@@ -372,7 +354,6 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
      */
     if(!VerifyDevice(&device))
     {
-        if(device) ALCdevice_DecRef(device);
         return NULL;
     }
 
@@ -384,7 +365,6 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
     auto ALContext = new ALCcontext{};
     if(!ALContext)
     {
-        ALCdevice_DecRef(device);
         return NULL;
     }
 
@@ -401,17 +381,12 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
         {
             aluHandleDisconnect(device);
         }
-        ALCdevice_DecRef(device);
         return NULL;
     }
     AllocateVoices(ALContext, 1, device->num_aux_sends);
 
-    ALCdevice_IncRef(ALContext->device);
-
     device->context = ALContext;
     GlobalContext = ALContext;
-
-    ALCdevice_DecRef(device);
 
     return ALContext;
 }
@@ -453,8 +428,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     {
         return NULL;
     }
-
-    device->ref = 1;
 
     device->dry.buffer = SampleBuffers{};
     device->dry.num_channels = 0;
@@ -510,8 +483,6 @@ ALC_API ALCboolean ALC_APIENTRY alcCloseDevice(ALCdevice *device)
     {
         ReleaseContext(device);
     }
-
-    ALCdevice_DecRef(device);
 
     return ALC_TRUE;
 }

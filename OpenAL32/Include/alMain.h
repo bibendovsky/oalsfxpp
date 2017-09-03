@@ -188,11 +188,9 @@ struct ALCdevice_struct
     }; // RealOut
 
 
-    unsigned int ref;
-
     ALuint frequency;
     ALuint update_size;
-    enum DevFmtChannels fmt_chans;
+    DevFmtChannels fmt_chans;
 
     // Maximum number of slots that can be created
     ALuint auxiliary_effect_slot_max;
