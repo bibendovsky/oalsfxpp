@@ -14,10 +14,7 @@ constexpr auto MAX_EFFECT_CHANNELS = 4;
 struct ALeffectslotProps {
     ALenum type;
     ALeffectProps props;
-
     IEffect *state;
-
-    struct ALeffectslotProps* next;
 };
 
 

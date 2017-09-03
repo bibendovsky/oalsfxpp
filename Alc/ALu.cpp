@@ -85,7 +85,6 @@ static ALboolean CalcEffectSlotParams(ALeffectslot *slot, ALCdevice *device)
 
     state->update(device, slot, &props->props);
 
-    props->next = slot->props;
     return AL_TRUE;
 }
 

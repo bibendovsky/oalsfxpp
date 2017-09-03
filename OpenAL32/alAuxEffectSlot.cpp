@@ -191,14 +191,6 @@ void UpdateEffectSlotProps(ALeffectslot *slot)
     temp_props = props;
     props = slot->update;
     slot->update = temp_props;
-
-    if (props)
-    {
-        /* If there was an unused update container, put it back in the
-         * freelist.
-         */
-        props->next = slot->props;
-    }
 }
 
 void UpdateAllEffectSlotProps(ALCcontext *context)
