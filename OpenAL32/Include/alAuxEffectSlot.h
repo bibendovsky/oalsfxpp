@@ -24,8 +24,6 @@ struct ALeffectslot
         IEffect *state;
     } effect;
 
-    unsigned int ref;
-
     struct ALeffectslotProps* update;
     struct ALeffectslotProps* props;
 

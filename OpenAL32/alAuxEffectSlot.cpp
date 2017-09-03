@@ -135,9 +135,7 @@ ALenum InitEffectSlot(ALeffectslot *slot)
     if(!(slot->effect.state= createByType(AL_EFFECT_NULL)))
         return AL_OUT_OF_MEMORY;
 
-    slot->ref = 0;
-
-    slot->update = NULL;
+    slot->update = nullptr;
     slot->props = nullptr;
 
     slot->params.effect_state = slot->effect.state;

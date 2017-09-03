@@ -271,11 +271,6 @@ void DeinitSource(ALsource *source, ALsizei num_sends)
 {
     if (source->send)
     {
-        if (source->send->slot)
-        {
-            source->send->slot->ref -= 1;
-        }
-
         source->send->slot = nullptr;
         source->send = nullptr;
     }
