@@ -5,9 +5,6 @@
 #include "alEffect.h"
 
 
-struct ALeffectslot;
-
-
 constexpr auto MAX_EFFECT_CHANNELS = 4;
 
 
@@ -18,7 +15,8 @@ struct ALeffectslotProps {
 };
 
 
-typedef struct ALeffectslot {
+struct ALeffectslot
+{
     struct Effect {
         ALenum type;
         ALeffectProps props;
@@ -55,7 +53,7 @@ typedef struct ALeffectslot {
         wet_buffer{SampleBuffers::size_type{MAX_EFFECT_CHANNELS}}
     {
     }
-} ALeffectslot;
+}; // ALeffectslot
 
 ALenum InitEffectSlot(ALeffectslot *slot);
 void DeinitEffectSlot(ALeffectslot *slot);

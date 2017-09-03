@@ -20,7 +20,8 @@ constexpr auto HIGHPASSFREQREF = 250.0F;
  * the square root of the desired linear gain (or halve the dB gain).
  */
 
-typedef enum ALfilterType {
+enum ALfilterType
+{
     /** EFX-style low-pass filter, specifying a gain and reference frequency. */
     ALfilterType_HighShelf,
     /** EFX-style high-pass filter, specifying a gain and reference frequency. */
@@ -34,14 +35,14 @@ typedef enum ALfilterType {
     ALfilterType_HighPass,
     /** Band-pass filter, specifying a center frequency. */
     ALfilterType_BandPass,
-} ALfilterType;
+}; // ALfilterType
 
-typedef struct ALfilterState {
+struct ALfilterState {
     ALfloat x[2]; /* History of two last input samples  */
     ALfloat y[2]; /* History of two last output samples */
     ALfloat b0, b1, b2; /* Transfer function coefficients "b" */
     ALfloat a1, a2; /* Transfer function coefficients "a" (a0 is pre-applied) */
-} ALfilterState;
+}; // ALfilterState
 
 /* Calculates the rcpQ (i.e. 1/Q) coefficient for shelving filters, using the
  * reference gain and shelf slope parameter.

@@ -5,14 +5,13 @@
 #include "alMain.h"
 
 
-struct ALeffect;
-
-
 using EffectSampleBuffer = std::vector<ALfloat>;
 
 
-typedef union ALeffectProps {
-    struct Reverb {
+union ALeffectProps
+{
+    struct Reverb
+    {
         // Shared Reverb Properties
         ALfloat density;
         ALfloat diffusion;
@@ -39,30 +38,34 @@ typedef union ALeffectProps {
         ALfloat modulation_depth;
         ALfloat hf_reference;
         ALfloat lf_reference;
-    } reverb;
+    }; // Reverb
 
-    struct Chorus {
+    struct Chorus
+    {
         ALint waveform;
         ALint phase;
         ALfloat rate;
         ALfloat depth;
         ALfloat feedback;
         ALfloat delay;
-    } chorus;
+    }; // Chorus
 
-    struct ReverbCompressor {
+    struct Compressor
+    {
         ALboolean on_off;
-    } compressor;
+    }; // Compressor
 
-    struct Distortion {
+    struct Distortion
+    {
         ALfloat edge;
         ALfloat gain;
         ALfloat lowpass_cutoff;
         ALfloat eq_center;
         ALfloat eq_bandwidth;
-    } distortion;
+    }; // Distortion
 
-    struct Echo {
+    struct Echo
+    {
         ALfloat delay;
         ALfloat lr_delay;
 
@@ -70,9 +73,10 @@ typedef union ALeffectProps {
         ALfloat feedback;
 
         ALfloat spread;
-    } echo;
+    }; // Echo
 
-    struct Equalizer {
+    struct Equalizer
+    {
         ALfloat low_cutoff;
         ALfloat low_gain;
         ALfloat mid1_center;
@@ -83,34 +87,49 @@ typedef union ALeffectProps {
         ALfloat mid2_width;
         ALfloat high_cutoff;
         ALfloat high_gain;
-    } equalizer;
+    }; // Equalizer
 
-    struct Flanger {
+    struct Flanger
+    {
         ALint waveform;
         ALint phase;
         ALfloat rate;
         ALfloat depth;
         ALfloat feedback;
         ALfloat delay;
-    } flanger;
+    }; // Flanger
 
-    struct Modulator {
+    struct Modulator
+    {
         ALfloat frequency;
         ALfloat high_pass_cutoff;
         ALint waveform;
-    } modulator;
+    }; // Modulator
 
-    struct Dedicated {
+    struct Dedicated
+    {
         ALfloat gain;
-    } dedicated;
-} ALeffectProps;
+    }; // Dedicated
 
-typedef struct ALeffect {
+
+    Reverb reverb;
+    Chorus chorus;
+    Compressor compressor;
+    Distortion distortion;
+    Echo echo;
+    Equalizer equalizer;
+    Flanger flanger;
+    Modulator modulator;
+    Dedicated dedicated;
+}; // ALeffectProps
+
+struct ALeffect
+{
     // Effect type (AL_EFFECT_NULL, ...)
     ALenum type;
 
     ALeffectProps props;
-} ALeffect;
+}; // ALeffect
 
 
 class IEffect

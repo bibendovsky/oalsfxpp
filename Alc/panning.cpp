@@ -187,10 +187,11 @@ void ComputeFirstOrderGainsBF(const BFChannelConfig *chanmap, ALsizei numchans, 
 }
 
 
-typedef struct ChannelMap {
+struct ChannelMap
+{
     enum Channel ChanName;
     ChannelConfig Config;
-} ChannelMap;
+}; // ChannelMap
 
 static void SetChannelMap(const enum Channel *devchans, ChannelConfig *ambicoeffs,
                           const ChannelMap *chanmap, size_t count, ALsizei *outcount)

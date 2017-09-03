@@ -12,9 +12,11 @@ struct ALvoice;
 struct ALeffectslot;
 
 
-typedef union aluMatrixf {
+union aluMatrixf
+{
     ALfloat m[4][4];
-} aluMatrixf;
+}; // aluMatrixf
+
 extern const aluMatrixf IdentityMatrixf;
 
 inline void aluMatrixfSetRow(aluMatrixf *matrix, ALuint row,
@@ -46,7 +48,8 @@ enum ActiveFilters {
 };
 
 
-typedef struct DirectParams {
+struct DirectParams
+{
     ALfilterState low_pass;
     ALfilterState high_pass;
 
@@ -54,9 +57,10 @@ typedef struct DirectParams {
         ALfloat current[MAX_OUTPUT_CHANNELS];
         ALfloat target[MAX_OUTPUT_CHANNELS];
     } gains;
-} DirectParams;
+}; // DirectParams
 
-typedef struct SendParams {
+struct SendParams
+{
     ALfilterState low_pass;
     ALfilterState high_pass;
 
@@ -64,10 +68,11 @@ typedef struct SendParams {
         ALfloat current[MAX_OUTPUT_CHANNELS];
         ALfloat target[MAX_OUTPUT_CHANNELS];
     } gains;
-} SendParams;
+}; // SendParams
 
 
-struct ALvoiceProps {
+struct ALvoiceProps
+{
     struct ALvoiceProps* next;
 
     ALfloat stereo_pan[2];
@@ -82,6 +87,7 @@ struct ALvoiceProps {
         ALfloat gain_lf;
         ALfloat lf_reference;
     } direct;
+
     struct Send {
         struct ALeffectslot *slot;
         ALfloat gain;
@@ -92,7 +98,8 @@ struct ALvoiceProps {
     } send[];
 };
 
-typedef struct ALvoice {
+struct ALvoice
+{
     struct ALvoiceProps *props;
 
     struct ALsource* source;
@@ -120,16 +127,17 @@ typedef struct ALvoice {
         SampleBuffers* buffer;
         ALsizei channels;
     } send[];
-} ALvoice;
+}; // ALvoice
 
 void DeinitVoice(ALvoice *voice);
 
 
-typedef void (*MixerFunc)(const ALfloat *data, ALsizei OutChans,
+using MixerFunc = void (*)(const ALfloat *data, ALsizei OutChans,
                           SampleBuffers& OutBuffer, ALfloat *CurrentGains,
                           const ALfloat *TargetGains, ALsizei Counter, ALsizei OutPos,
                           ALsizei BufferSize);
-typedef void (*RowMixerFunc)(ALfloat *OutBuffer, const ALfloat *gains,
+
+using RowMixerFunc = void (*)(ALfloat *OutBuffer, const ALfloat *gains,
                              const SampleBuffers& data, ALsizei InChans,
                              ALsizei InPos, ALsizei BufferSize);
 

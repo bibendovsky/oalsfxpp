@@ -132,18 +132,21 @@ constexpr auto MAX_AMBI_ORDER = 3;
 constexpr auto MAX_AMBI_COEFFS = (MAX_AMBI_ORDER+1) * (MAX_AMBI_ORDER+1);
 
 
-typedef ALfloat ChannelConfig[MAX_AMBI_COEFFS];
-typedef struct BFChannelConfig {
+using ChannelConfig = ALfloat[MAX_AMBI_COEFFS];
+
+struct BFChannelConfig
+{
     ALfloat scale;
     ALsizei index;
-} BFChannelConfig;
+}; // BFChannelConfig
 
-typedef union AmbiConfig {
+union AmbiConfig
+{
     /* Ambisonic coefficients for mixing to the dry buffer. */
     ChannelConfig coeffs[MAX_OUTPUT_CHANNELS];
     /* Coefficient channel mapping for mixing to the dry buffer. */
     BFChannelConfig map[MAX_OUTPUT_CHANNELS];
-} AmbiConfig;
+}; // AmbiConfig
 
 
 /* Size for temporary storage of buffer data, in ALfloats. Larger values need
@@ -259,7 +262,7 @@ inline ALint GetChannelIndex(const enum Channel names[MAX_OUTPUT_CHANNELS], enum
 /* Small hack to use a pointer-to-array types as a normal argument type.
  * Shouldn't be used directly.
  */
-typedef ALfloat ALfloatBUFFERSIZE[BUFFERSIZE];
+using ALfloatBUFFERSIZE = ALfloat[BUFFERSIZE];
 
 
 #endif

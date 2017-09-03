@@ -27,7 +27,8 @@ void InitSourceParams(ALsource *Source, ALsizei num_sends);
 void DeinitSource(ALsource *source, ALsizei num_sends);
 void UpdateSourceProps(ALsource *source, ALvoice *voice, ALsizei num_sends);
 
-typedef enum SourceProp {
+enum SourceProp
+{
     srcPitch = AL_PITCH,
     srcGain = AL_GAIN,
     srcMinGain = AL_MIN_GAIN,
@@ -93,7 +94,7 @@ typedef enum SourceProp {
 
     /* AL_SOFT_source_spatialize */
     srcSpatialize = AL_SOURCE_SPATIALIZE_SOFT,
-} SourceProp;
+}; // SourceProp
 
 static inline ALvoice *GetSourceVoice(const ALsource *source, const ALCcontext *context)
 {
