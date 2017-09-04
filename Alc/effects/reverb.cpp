@@ -41,18 +41,22 @@ constexpr auto FADE_SAMPLES = 128;
 static MixerFunc MixSamples = Mix_C;
 static RowMixerFunc MixRowSamples = MixRow_C;
 
-struct DelayLineI {
-    /* The delay lines use interleaved samples, with the lengths being powers
-     * of 2 to allow the use of bit-masking instead of a modulus for wrapping.
-     */
+struct DelayLineI
+{
+    // The delay lines use interleaved samples, with the lengths being powers
+    // of 2 to allow the use of bit-masking instead of a modulus for wrapping.
+
     ALsizei  mask;
     ALfloat (*lines)[4];
-};
+}; // DelayLineI
 
-struct VecAllpass {
+struct VecAllpass
+{
+    using Offsets = ALsizei[4][2];
+
     DelayLineI delay;
-    ALsizei offsets[4][2];
-};
+    Offsets offsets;
+}; // VecAllpass
 
 using ReverbSampleBuffer = EffectSampleBuffer;
 
@@ -61,6 +65,97 @@ class ReverbEffect :
     public IEffect
 {
 public:
+    struct Filter
+    {
+        ALfilterState lp;
+        ALfilterState hp; // EAX only
+    }; // Filter
+
+    using Filters = Filter[4];
+
+    struct Early
+    {
+        using Offsets = ALsizei[4][2];
+        using Coeffs = ALfloat[4];
+        using Gains = ALfloat[4][MAX_OUTPUT_CHANNELS];
+
+        // A Gerzon vector all-pass filter is used to simulate initial
+        // diffusion.  The spread from this filter also helps smooth out the
+        // reverb tail.
+        //
+        VecAllpass vec_ap;
+
+        // An echo line is used to complete the second half of the early
+        // reflections.
+        //
+        DelayLineI delay;
+        Offsets offsets;
+        Coeffs coeffs;
+
+        // The gain for each output channel based on 3D panning.
+        Gains current_gains;
+        Gains pan_gains;
+    }; // Early
+
+    struct Mod
+    {
+        // The vibrato time is tracked with an index over a modulus-wrapped
+        // range (in samples).
+        //
+        ALuint index;
+        ALuint range;
+
+        // The depth of frequency change (also in samples) and its filter.
+        ALfloat depth;
+        ALfloat coeff;
+        ALfloat filter;
+    }; // Mod
+
+    struct Late
+    {
+        struct Filter
+        {
+            using Coeffs = ALfloat[3];
+            using States = ALfloat[2][2];
+
+            Coeffs lf_coeffs;
+            Coeffs hf_coeffs;
+            ALfloat mid_coeff;
+
+            // The LF and HF filters keep a state of the last input and last
+            // output sample.
+            States states;
+        }; // Filter
+
+        using Filters = Filter[4];
+        using Offsets = ALsizei[4][2];
+        using Gains = ALfloat[4][MAX_OUTPUT_CHANNELS];
+
+
+        // Attenuation to compensate for the modal density and decay rate of
+        // the late lines.
+        //
+        ALfloat density_gain;
+
+        // A recursive delay line is used fill in the reverb tail.
+        DelayLineI delay;
+        Offsets offsets;
+
+        // T60 decay filters are used to simulate absorption.
+        Filters filters;
+
+        // A Gerzon vector all-pass filter is used to simulate diffusion.
+        VecAllpass vec_ap;
+
+        // The gain for each output channel based on 3D panning.
+        Gains current_gains;
+        Gains pan_gains;
+    }; // Late
+
+    using Taps = ALsizei[4][2];
+    using Samples = ALfloat[4][MAX_UPDATE_SAMPLES];
+
+
     ReverbEffect()
         :
         IEffect{},
@@ -101,21 +196,18 @@ public:
     ALuint total_samples;
 
     // Master effect filters
-    struct Filter {
-        ALfilterState lp;
-        ALfilterState hp; // EAX only
-    } filters[4];
+    Filters filters;
 
     // Core delay line (early reflections and late reverb tap from this).
     DelayLineI delay;
 
     // Tap points for early reflection delay.
-    ALsizei early_delay_taps[4][2];
+    Taps early_delay_taps;
     ALfloat early_delay_coeffs[4];
 
     // Tap points for late reverb feed and delay.
     ALsizei late_feed_tap;
-    ALsizei late_delay_taps[4][2];
+    Taps late_delay_taps;
 
     // The feed-back and feed-forward all-pass coefficient.
     ALfloat ap_feed_coeff;
@@ -124,66 +216,9 @@ public:
     ALfloat mix_x;
     ALfloat mix_y;
 
-    struct Early {
-        // A Gerzon vector all-pass filter is used to simulate initial
-        // diffusion.  The spread from this filter also helps smooth out the
-        // reverb tail.
-        //
-        VecAllpass vec_ap;
-
-        // An echo line is used to complete the second half of the early
-        // reflections.
-        //
-        DelayLineI delay;
-        ALsizei offsets[4][2];
-        ALfloat coeffs[4];
-
-        // The gain for each output channel based on 3D panning.
-        ALfloat current_gains[4][MAX_OUTPUT_CHANNELS];
-        ALfloat pan_gains[4][MAX_OUTPUT_CHANNELS];
-    } early;
-
-    struct Mod {
-        // The vibrato time is tracked with an index over a modulus-wrapped
-        // range (in samples).
-        //
-        ALuint index;
-        ALuint range;
-
-        // The depth of frequency change (also in samples) and its filter.
-        ALfloat depth;
-        ALfloat coeff;
-        ALfloat filter;
-    } mod; // EAX only
-
-    struct Late {
-        // Attenuation to compensate for the modal density and decay rate of
-        // the late lines.
-        //
-        ALfloat density_gain;
-
-        // A recursive delay line is used fill in the reverb tail.
-        DelayLineI delay;
-        ALsizei offsets[4][2];
-
-        // T60 decay filters are used to simulate absorption.
-        struct Filter {
-            ALfloat lf_coeffs[3];
-            ALfloat hf_coeffs[3];
-            ALfloat mid_coeff;
-            // The LF and HF filters keep a state of the last input and last
-            // output sample.
-            //
-            ALfloat states[2][2];
-        } filters[4];
-
-        // A Gerzon vector all-pass filter is used to simulate diffusion.
-        VecAllpass vec_ap;
-
-        // The gain for each output channel based on 3D panning.
-        ALfloat current_gains[4][MAX_OUTPUT_CHANNELS];
-        ALfloat pan_gains[4][MAX_OUTPUT_CHANNELS];
-    } late;
+    Early early;
+    Mod mod; // EAX only
+    Late late;
 
     // Indicates the cross-fade point for delay line reads [0,FADE_SAMPLES].
     ALsizei fade_count;
@@ -192,9 +227,9 @@ public:
     ALsizei offset;
 
     // Temporary storage used when processing.
-    ALfloat a_format_samples[4][MAX_UPDATE_SAMPLES];
-    ALfloat reverb_samples[4][MAX_UPDATE_SAMPLES];
-    ALfloat early_samples[4][MAX_UPDATE_SAMPLES];
+    Samples a_format_samples;
+    Samples reverb_samples;
+    Samples early_samples;
 
 
 protected:
