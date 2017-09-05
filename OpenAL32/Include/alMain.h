@@ -25,6 +25,31 @@
 constexpr auto DEFAULT_OUTPUT_RATE = 44100;
 
 
+namespace detail
+{
+
+
+template<typename T, int TExtent1, std::size_t... TExtents>
+struct MdArray
+{
+    using Type = typename std::array<typename MdArray<T, TExtents...>::Type, TExtent1>;
+};
+
+template<typename T, std::size_t TExtent>
+struct MdArray<T, TExtent>
+{
+    using Type = std::array<T, TExtent>;
+};
+
+
+} // detail
+
+
+// Multidimensional std::array.
+template<typename T, std::size_t... TExtents>
+using MdArray = typename detail::MdArray<T, TExtents...>::Type;
+
+
 /* Find the next power-of-2 for non-power-of-2 numbers. */
 inline ALuint NextPowerOf2(ALuint value)
 {
