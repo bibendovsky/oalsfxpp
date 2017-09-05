@@ -21,6 +21,8 @@
 
 #include <cstdint>
 #include <algorithm>
+#include <array>
+#include <vector>
 #include "config.h"
 #include "alu.h"
 #include "mixer_defs.h"
@@ -34,8 +36,6 @@ public:
         :
         IEffect{},
         is_eax_{},
-        sample_buffer_{},
-        total_samples_{},
         filters_{},
         delay_{},
         early_delay_taps_{},
@@ -66,17 +66,13 @@ protected:
     {
         is_eax_ = AL_FALSE;
 
-        total_samples_ = 0;
-        sample_buffer_ = ReverbSampleBuffer{};
-
         for (int i = 0; i < 4; ++i)
         {
             ALfilterState_clear(&filters_[i].lp);
             ALfilterState_clear(&filters_[i].hp);
         }
 
-        delay_.mask = 0;
-        delay_.lines = nullptr;
+        delay_.reset();
 
         for (int i = 0; i < 4; ++i)
         {
@@ -97,10 +93,8 @@ protected:
         mix_x_ = 0.0F;
         mix_y_ = 0.0F;
 
-        early_.vec_ap.delay.mask = 0;
-        early_.vec_ap.delay.lines = nullptr;
-        early_.delay.mask = 0;
-        early_.delay.lines = nullptr;
+        early_.vec_ap.delay.reset();
+        early_.delay.reset();
 
         for (int i = 0; i < 4; ++i)
         {
@@ -119,10 +113,8 @@ protected:
 
         late_.density_gain = 0.0F;
 
-        late_.delay.mask = 0;
-        late_.delay.lines = nullptr;
-        late_.vec_ap.delay.mask = 0;
-        late_.vec_ap.delay.lines = nullptr;
+        late_.delay.reset();
+        late_.vec_ap.delay.reset();
 
         for (int i = 0; i < 4; ++i)
         {
@@ -163,7 +155,6 @@ protected:
 
     void ReverbEffect::do_destruct() final
     {
-        sample_buffer_ = ReverbSampleBuffer{};
     }
 
     ALboolean ReverbEffect::do_update_device(
@@ -172,10 +163,7 @@ protected:
         const auto frequency = device->frequency;
 
         // Allocate the delay lines.
-        if (!alloc_lines(frequency))
-        {
-            return AL_FALSE;
-        }
+        alloc_lines(frequency);
 
         // Calculate the modulation filter coefficient.  Notice that the exponent
         // is calculated given the current sample rate.  This ensures that the
@@ -429,11 +417,41 @@ private:
 
     struct DelayLineI
     {
+        using Line = std::array<ALfloat, 4>;
+        using Lines = std::vector<Line>;
+
         // The delay lines use interleaved samples, with the lengths being powers
         // of 2 to allow the use of bit-masking instead of a modulus for wrapping.
-
         ALsizei mask;
-        ALfloat (*lines)[4];
+        Lines lines;
+
+
+        int get_sample_count() const
+        {
+            return (mask > 0 ? mask + 1 : 0);
+        }
+
+        void reset()
+        {
+            mask = 0;
+            lines = Lines{};
+        }
+
+        void initialize(
+            const int sample_count)
+        {
+            if (sample_count == get_sample_count())
+            {
+                lines.clear();
+                lines.resize(sample_count);
+                return;
+            }
+
+            reset();
+
+            mask = sample_count - 1;
+            lines.resize(sample_count);
+        }
     }; // DelayLineI
 
     struct VecAllpass
@@ -443,9 +461,6 @@ private:
         DelayLineI delay;
         Offsets offsets;
     }; // VecAllpass
-
-    using ReverbSampleBuffer = EffectSampleBuffer;
-
 
     struct Filter
     {
@@ -539,12 +554,6 @@ private:
 
 
     ALboolean is_eax_;
-
-    // All delay lines are allocated as a single buffer to reduce memory
-    // fragmentation and management code.
-    //
-    ReverbSampleBuffer sample_buffer_;
-    ALuint total_samples_;
 
     // Master effect filters
     Filters filters_;
@@ -747,55 +756,32 @@ private:
     // Device Update
     //
 
-    // Given the allocated sample buffer, this function updates each delay line
-    // offset.
-    static void realize_line_offset(
-        ReverbSampleBuffer& sample_buffer,
-        DelayLineI* delay)
-    {
-        auto ptr1 = &sample_buffer[reinterpret_cast<intptr_t>(delay->lines) * 4];
-        auto ptr2 = reinterpret_cast<ALfloat (*)[4]>(ptr1);
-
-        delay->lines = ptr2;
-    }
-
     // Calculate the length of a delay line and store its mask and offset.
-    static ALuint calc_line_length(
+    static void initialize_delay_line(
         const ALfloat length,
-        const ptrdiff_t offset,
         const ALuint frequency,
         const ALuint extra,
-        DelayLineI *delay)
+        DelayLineI& delay)
     {
-        auto samples = ALuint{};
+        auto sample_count = ALuint{};
 
         // All line lengths are powers of 2, calculated from their lengths in
         // seconds, rounded up.
-        samples = fastf2i(std::ceil(length * frequency));
-        samples = NextPowerOf2(samples + extra);
+        sample_count = fastf2i(std::ceil(length * frequency));
+        sample_count = NextPowerOf2(sample_count + extra);
 
-        // All lines share a single sample buffer.
-        delay->mask = samples - 1;
-        delay->lines = reinterpret_cast<ALfloat(*)[4]>(offset);
-
-        // Return the sample count for accumulation.
-        return samples;
+        delay.initialize(sample_count);
     }
 
-    // Calculates the delay line metrics and allocates the shared sample buffer
-    // for all lines given the sample rate (frequency).  If an allocation failure
-    // occurs, it returns AL_FALSE.
-    ALboolean alloc_lines(
+    // Calculates the delay line metrics and allocates the lines for given
+    // the sample rate (frequency).
+    void alloc_lines(
         const ALuint frequency)
     {
-        // All delay line lengths are calculated to accomodate the full range of
-        // lengths given their respective paramters.
-        auto total_samples = ALuint{0};
-
         // Multiplier for the maximum density value, i.e. density=1, which is
         // actually the least density...
         //
-        auto multiplier = 1.0F + line_multiplier;
+        const auto multiplier = 1.0F + line_multiplier;
 
         // The main delay length includes the maximum early reflection delay, the
         // largest early tap width, the maximum late reverb delay, and the
@@ -804,49 +790,33 @@ private:
         auto length = AL_EAXREVERB_MAX_REFLECTIONS_DELAY +
                  (early_tap_lengths[3] * multiplier) +
                  AL_EAXREVERB_MAX_LATE_REVERB_DELAY +
-                 (late_line_lengths[3] - late_line_lengths[0]) * 0.25F * multiplier;
+                 ((late_line_lengths[3] - late_line_lengths[0]) * 0.25F * multiplier);
 
-        total_samples += calc_line_length(length, total_samples, frequency, max_update_samples, &delay_);
+        initialize_delay_line(length, frequency, max_update_samples, delay_);
 
         // The early vector all-pass line.
         length = early_allpass_lengths[3] * multiplier;
-        total_samples += calc_line_length(length, total_samples, frequency, 0, &early_.vec_ap.delay);
+        initialize_delay_line(length, frequency, 0, early_.vec_ap.delay);
 
         // The early reflection line.
         length = early_line_lengths[3] * multiplier;
-        total_samples += calc_line_length(length, total_samples, frequency, 0, &early_.delay);
+        initialize_delay_line(length, frequency, 0, early_.delay);
 
         // The late vector all-pass line.
         length = late_allpass_lengths[3] * multiplier;
-        total_samples += calc_line_length(length, total_samples, frequency, 0, &late_.vec_ap.delay);
+        initialize_delay_line(length, frequency, 0, late_.vec_ap.delay);
 
         // The late delay lines are calculated from the larger of the maximum
         // density line length or the maximum echo time, and includes the maximum
         // modulation-related delay. The modulator's delay is calculated from the
         // maximum modulation time and depth coefficient, and halved for the low-
         // to-high frequency swing.
-        length = std::max(AL_EAXREVERB_MAX_ECHO_TIME, late_line_lengths[3] * multiplier) +
-            (AL_EAXREVERB_MAX_MODULATION_TIME * modulation_depth_coeff / 2.0F);
+        length = std::max(
+            AL_EAXREVERB_MAX_ECHO_TIME,
+            late_line_lengths[3] * multiplier) +
+                (AL_EAXREVERB_MAX_MODULATION_TIME * modulation_depth_coeff / 2.0F);
 
-        total_samples += calc_line_length(length, total_samples, frequency, 0, &late_.delay);
-
-        if (total_samples != total_samples_)
-        {
-            sample_buffer_.resize(4 * total_samples);
-            total_samples_ = total_samples;
-        }
-
-        // Update all delays to reflect the new sample buffer.
-        realize_line_offset(sample_buffer_, &delay_);
-        realize_line_offset(sample_buffer_, &early_.vec_ap.delay);
-        realize_line_offset(sample_buffer_, &early_.delay);
-        realize_line_offset(sample_buffer_, &late_.vec_ap.delay);
-        realize_line_offset(sample_buffer_, &late_.delay);
-
-        // Clear the sample buffer.
-        std::fill(sample_buffer_.begin(), sample_buffer_.end(), 0.0F);
-
-        return AL_TRUE;
+        initialize_delay_line(length, frequency, 0, late_.delay);
     }
 
 
