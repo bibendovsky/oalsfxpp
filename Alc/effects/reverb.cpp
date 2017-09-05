@@ -273,22 +273,22 @@ protected:
         early_.delay.mask = 0;
         early_.delay.lines = nullptr;
 
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 4; ++i)
         {
             early_.vec_ap.offsets[i][0] = 0;
             early_.vec_ap.offsets[i][1] = 0;
             early_.offsets[i][0] = 0;
             early_.offsets[i][1] = 0;
-            early_.coeffs[i] = 0.0f;
+            early_.coeffs[i] = 0.0F;
         }
 
         mod_.index = 0;
         mod_.range = 1;
-        mod_.depth = 0.0f;
-        mod_.coeff = 0.0f;
-        mod_.filter = 0.0f;
+        mod_.depth = 0.0F;
+        mod_.coeff = 0.0F;
+        mod_.filter = 0.0F;
 
-        late_.density_gain = 0.0f;
+        late_.density_gain = 0.0F;
 
         late_.delay.mask = 0;
         late_.delay.lines = nullptr;
@@ -305,26 +305,26 @@ protected:
 
             for (int j = 0; j < 3; ++j)
             {
-                late_.filters[i].lf_coeffs[j] = 0.0f;
-                late_.filters[i].hf_coeffs[j] = 0.0f;
+                late_.filters[i].lf_coeffs[j] = 0.0F;
+                late_.filters[i].hf_coeffs[j] = 0.0F;
             }
 
-            late_.filters[i].mid_coeff = 0.0f;
+            late_.filters[i].mid_coeff = 0.0F;
 
-            late_.filters[i].states[0][0] = 0.0f;
-            late_.filters[i].states[0][1] = 0.0f;
-            late_.filters[i].states[1][0] = 0.0f;
-            late_.filters[i].states[1][1] = 0.0f;
+            late_.filters[i].states[0][0] = 0.0F;
+            late_.filters[i].states[0][1] = 0.0F;
+            late_.filters[i].states[1][0] = 0.0F;
+            late_.filters[i].states[1][1] = 0.0F;
         }
 
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 4; ++i)
         {
             for (int j = 0; j < MAX_OUTPUT_CHANNELS; ++j)
             {
-                early_.current_gains[i][j] = 0.0f;
-                early_.pan_gains[i][j] = 0.0f;
-                late_.current_gains[i][j] = 0.0f;
-                late_.pan_gains[i][j] = 0.0f;
+                early_.current_gains[i][j] = 0.0F;
+                early_.pan_gains[i][j] = 0.0F;
+                late_.current_gains[i][j] = 0.0F;
+                late_.pan_gains[i][j] = 0.0F;
             }
         }
 
@@ -340,28 +340,28 @@ protected:
     ALboolean ReverbEffect::do_update_device(
         ALCdevice* device) final
     {
-        ALuint frequency = device->frequency, i;
-        ALfloat multiplier;
+        const auto frequency = device->frequency;
 
-        /* Allocate the delay lines. */
+        // Allocate the delay lines.
         if (!alloc_lines(frequency))
+        {
             return AL_FALSE;
+        }
 
-        /* Calculate the modulation filter coefficient.  Notice that the exponent
-        * is calculated given the current sample rate.  This ensures that the
-        * resulting filter response over time is consistent across all sample
-        * rates.
-        */
-        mod_.coeff = powf(modulation_filter_coeff,
-            modulation_filter_const / frequency);
+        // Calculate the modulation filter coefficient.  Notice that the exponent
+        // is calculated given the current sample rate.  This ensures that the
+        // resulting filter response over time is consistent across all sample
+        // rates.
+        mod_.coeff = std::pow(modulation_filter_coeff, modulation_filter_const / frequency);
 
-        multiplier = 1.0f + line_multiplier;
+        const auto multiplier = 1.0F + line_multiplier;
 
-        /* The late feed taps are set a fixed position past the latest delay tap. */
-        for (i = 0; i < 4; i++)
-            late_feed_tap_ = fastf2i((AL_EAXREVERB_MAX_REFLECTIONS_DELAY +
-                early_tap_lengths[3] * multiplier) *
-                frequency);
+        // The late feed taps are set a fixed position past the latest delay tap.
+        for (int i = 0; i < 4; ++i)
+        {
+            late_feed_tap_ = fastf2i(
+                (AL_EAXREVERB_MAX_REFLECTIONS_DELAY + (early_tap_lengths[3] * multiplier)) * frequency);
+        }
 
         return AL_TRUE;
     }
@@ -369,92 +369,124 @@ protected:
     void ReverbEffect::do_update(
         ALCdevice* device,
         const struct ALeffectslot* slot,
-        const union ALeffectProps *props) final
+        const union ALeffectProps* props) final
     {
-        ALuint frequency = device->frequency;
-        ALfloat lf_scale, hf_scale, hf_ratio;
-        ALfloat lf_decay_time, hf_decay_time;
-        ALfloat gain, gainlf, gainhf;
-        ALsizei i;
-
         if (slot->params.effect_type == AL_EFFECT_EAXREVERB)
+        {
             is_eax_ = AL_TRUE;
+        }
         else if (slot->params.effect_type == AL_EFFECT_REVERB)
+        {
             is_eax_ = AL_FALSE;
+        }
 
-        /* Calculate the master filters */
-        hf_scale = props->reverb.hf_reference / frequency;
-        /* Restrict the filter gains from going below -60dB to keep the filter from
-        * killing most of the signal.
-        */
-        gainhf = maxf(props->reverb.gain_hf, 0.001f);
-        ALfilterState_setParams(&filters_[0].lp, ALfilterType_HighShelf,
-            gainhf, hf_scale, calc_rcpQ_from_slope(gainhf, 1.0f));
-        lf_scale = props->reverb.lf_reference / frequency;
-        gainlf = maxf(props->reverb.gain_lf, 0.001f);
-        ALfilterState_setParams(&filters_[0].hp, ALfilterType_LowShelf,
-            gainlf, lf_scale, calc_rcpQ_from_slope(gainlf, 1.0f));
-        for (i = 1; i < 4; i++)
+        const auto frequency = device->frequency;
+
+        // Calculate the master filters
+        const auto hf_scale = props->reverb.hf_reference / frequency;
+
+        // Restrict the filter gains from going below -60dB to keep the filter from
+        // killing most of the signal.
+        const auto gain_hf = std::max(props->reverb.gain_hf, 0.001F);
+
+        ALfilterState_setParams(
+            &filters_[0].lp,
+            ALfilterType_HighShelf,
+            gain_hf,
+            hf_scale,
+            calc_rcpQ_from_slope(gain_hf, 1.0F));
+
+        const auto lf_scale = props->reverb.lf_reference / frequency;
+
+        const auto gain_lf = std::max(props->reverb.gain_lf, 0.001F);
+
+        ALfilterState_setParams(
+            &filters_[0].hp,
+            ALfilterType_LowShelf,
+            gain_lf,
+            lf_scale,
+            calc_rcpQ_from_slope(gain_lf, 1.0F));
+
+        for (int i = 1; i < 4; ++i)
         {
             ALfilterState_copyParams(&filters_[i].lp, &filters_[0].lp);
             ALfilterState_copyParams(&filters_[i].hp, &filters_[0].hp);
         }
 
-        /* Update the main effect delay and associated taps. */
-        update_delay_line(props->reverb.reflections_delay, props->reverb.late_reverb_delay,
-            props->reverb.density, props->reverb.decay_time, frequency);
-
-        /* Calculate the all-pass feed-back/forward coefficient. */
-        ap_feed_coeff_ = sqrtf(0.5f) * powf(props->reverb.diffusion, 2.0f);
-
-        /* Update the early lines. */
-        update_early_lines(props->reverb.density, props->reverb.decay_time,
+        // Update the main effect delay and associated taps.
+        update_delay_line(
+            props->reverb.reflections_delay,
+            props->reverb.late_reverb_delay,
+            props->reverb.density,
+            props->reverb.decay_time,
             frequency);
 
-        /* Get the mixing matrix coefficients. */
+        // Calculate the all-pass feed-back/forward coefficient.
+        ap_feed_coeff_ = std::sqrt(0.5F) * std::pow(props->reverb.diffusion, 2.0F);
+
+        // Update the early lines.
+        update_early_lines(props->reverb.density, props->reverb.decay_time, frequency);
+
+        // Get the mixing matrix coefficients.
         calc_matrix_coeffs(props->reverb.diffusion, &mix_x_, &mix_y_);
 
-        /* If the HF limit parameter is flagged, calculate an appropriate limit
-        * based on the air absorption parameter.
-        */
-        hf_ratio = props->reverb.decay_hf_ratio;
-        if (props->reverb.decay_hf_limit && props->reverb.air_absorption_gain_hf < 1.0f)
-            hf_ratio = calc_limited_hf_ratio(hf_ratio, props->reverb.air_absorption_gain_hf,
+        // If the HF limit parameter is flagged, calculate an appropriate limit
+        // based on the air absorption parameter.
+        auto hf_ratio = props->reverb.decay_hf_ratio;
+
+        if (props->reverb.decay_hf_limit && props->reverb.air_absorption_gain_hf < 1.0F)
+        {
+            hf_ratio = calc_limited_hf_ratio(
+                hf_ratio,
+                props->reverb.air_absorption_gain_hf,
                 props->reverb.decay_time);
+        }
 
-        /* Calculate the LF/HF decay times. */
-        lf_decay_time = clampf(props->reverb.decay_time * props->reverb.decay_lf_ratio,
-            AL_EAXREVERB_MIN_DECAY_TIME, AL_EAXREVERB_MAX_DECAY_TIME);
-        hf_decay_time = clampf(props->reverb.decay_time * hf_ratio,
-            AL_EAXREVERB_MIN_DECAY_TIME, AL_EAXREVERB_MAX_DECAY_TIME);
+        // Calculate the LF/HF decay times.
+        const auto lf_decay_time = clampf(
+            props->reverb.decay_time * props->reverb.decay_lf_ratio,
+            AL_EAXREVERB_MIN_DECAY_TIME,
+            AL_EAXREVERB_MAX_DECAY_TIME);
 
-        /* Update the modulator line. */
-        update_modulator(props->reverb.modulation_time, props->reverb.modulation_depth,
+        const auto hf_decay_time = clampf(
+            props->reverb.decay_time * hf_ratio,
+            AL_EAXREVERB_MIN_DECAY_TIME,
+            AL_EAXREVERB_MAX_DECAY_TIME);
+
+        // Update the modulator line.
+        update_modulator(props->reverb.modulation_time, props->reverb.modulation_depth, frequency);
+
+        // Update the late lines.
+        update_late_lines(
+            props->reverb.density,
+            props->reverb.diffusion,
+            lf_decay_time,
+            props->reverb.decay_time,
+            hf_decay_time,
+            F_TAU * lf_scale,
+            F_TAU * hf_scale,
+            props->reverb.echo_time,
+            props->reverb.echo_depth,
             frequency);
 
-        /* Update the late lines. */
-        update_late_lines(props->reverb.density, props->reverb.diffusion,
-            lf_decay_time, props->reverb.decay_time, hf_decay_time,
-            F_TAU * lf_scale, F_TAU * hf_scale,
-            props->reverb.echo_time, props->reverb.echo_depth,
-            frequency);
-
-        /* Update early and late 3D panning. */
-        gain = props->reverb.gain;
-        update_3d_panning(device, props->reverb.reflections_pan,
-            props->reverb.late_reverb_pan, gain,
+        // Update early and late 3D panning.
+        update_3d_panning(
+            device,
+            props->reverb.reflections_pan,
+            props->reverb.late_reverb_pan,
+            props->reverb.gain,
             props->reverb.reflections_gain,
             props->reverb.late_reverb_gain);
 
-        /* Determine if delay-line cross-fading is required. */
-        for (i = 0; i < 4; i++)
+        // Determine if delay-line cross-fading is required.
+        for (int i = 0; i < 4; ++i)
         {
-            if ((early_delay_taps_[i][1] != early_delay_taps_[i][0]) ||
-                (early_.vec_ap.offsets[i][1] != early_.vec_ap.offsets[i][0]) ||
-                (early_.offsets[i][1] != early_.offsets[i][0]) ||
-                (late_delay_taps_[i][1] != late_delay_taps_[i][0]) ||
-                (late_.vec_ap.offsets[i][1] != late_.vec_ap.offsets[i][0]) ||
-                (late_.offsets[i][1] != late_.offsets[i][0]))
+            if (early_delay_taps_[i][1] != early_delay_taps_[i][0] ||
+                early_.vec_ap.offsets[i][1] != early_.vec_ap.offsets[i][0] ||
+                early_.offsets[i][1] != early_.offsets[i][0] ||
+                late_delay_taps_[i][1] != late_delay_taps_[i][0] ||
+                late_.vec_ap.offsets[i][1] != late_.vec_ap.offsets[i][0] ||
+                late_.offsets[i][1] != late_.offsets[i][0])
             {
                 fade_count_ = 0;
                 break;
