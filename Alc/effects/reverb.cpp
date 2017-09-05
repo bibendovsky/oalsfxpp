@@ -82,7 +82,7 @@ protected:
         {
             early_delay_taps_[i][0] = 0;
             early_delay_taps_[i][1] = 0;
-            early_delay_coeffs_[i] = 0.0f;
+            early_delay_coeffs_[i] = 0.0F;
         }
 
         late_feed_tap_ = 0;
@@ -93,9 +93,9 @@ protected:
             late_delay_taps_[i][1] = 0;
         }
 
-        ap_feed_coeff_ = 0.0f;
-        mix_x_ = 0.0f;
-        mix_y_ = 0.0f;
+        ap_feed_coeff_ = 0.0F;
+        mix_x_ = 0.0F;
+        mix_y_ = 0.0F;
 
         early_.vec_ap.delay.mask = 0;
         early_.vec_ap.delay.lines = nullptr;
@@ -733,7 +733,7 @@ private:
     // modulation depth property. This value must be below half the shortest late
     // line length (0.0097/2 = ~0.0048), otherwise with certain parameters (high
     // mod time, low density) the downswing can sample before the input.
-    static constexpr ALfloat modulation_depth_coeff = 1.0f / 4096.0f;
+    static constexpr ALfloat modulation_depth_coeff = 1.0F / 4096.0F;
 
     // A filter is used to avoid the terrible distortion caused by changing
     // modulation time and/or depth.  To be consistent across different sample
@@ -795,7 +795,7 @@ private:
         // Multiplier for the maximum density value, i.e. density=1, which is
         // actually the least density...
         //
-        auto multiplier = 1.0f + line_multiplier;
+        auto multiplier = 1.0F + line_multiplier;
 
         // The main delay length includes the maximum early reflection delay, the
         // largest early tap width, the maximum late reverb delay, and the
@@ -1334,7 +1334,7 @@ private:
         const ALfloat decay_time,
         const ALuint frequency)
     {
-        const auto multiplier = 1.0f + density*line_multiplier;
+        const auto multiplier = 1.0F + density*line_multiplier;
 
         for(int i = 0; i < 4; ++i)
         {
@@ -2071,7 +2071,7 @@ private:
 
             // Generate late reverb.
             late_reverb_faded(todo, fade, late);
-            fade = minf(1.0f, fade + todo*fade_step);
+            fade = minf(1.0F, fade + todo*fade_step);
         }
         else
         {
