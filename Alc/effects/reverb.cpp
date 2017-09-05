@@ -332,12 +332,15 @@ protected:
             }
 
             // Convert B-Format to A-Format for processing.
-            memset(a_format_samples_, 0, sizeof(*a_format_samples_) * 4);
+            for (auto& samples : a_format_samples_)
+            {
+                samples.fill(0.0F);
+            }
 
             for (int c = 0; c < 4; ++c)
             {
                 MixRow_C(
-                    a_format_samples_[c],
+                    a_format_samples_[c].data(),
                     b2a.m[c],
                     src_samples,
                     MAX_EFFECT_CHANNELS,
@@ -375,7 +378,7 @@ protected:
             for (int c = 0; c < 4; c++)
             {
                 Mix_C(
-                    early_samples_[c],
+                    early_samples_[c].data(),
                     channel_count,
                     dst_samples,
                     early_.current_gains[c].data(),
@@ -388,7 +391,7 @@ protected:
             for (int c = 0; c < 4; c++)
             {
                 Mix_C(
-                    reverb_samples_[c],
+                    reverb_samples_[c].data(),
                     channel_count,
                     dst_samples,
                     late_.current_gains[c].data(),
@@ -468,7 +471,7 @@ private:
         ALfilterState hp; // EAX only
     }; // Filter
 
-    using Filters = Filter[4];
+    using Filters = std::array<Filter, 4>;
 
     struct Early
     {
@@ -512,7 +515,7 @@ private:
     {
         struct Filter
         {
-            using Coeffs = ALfloat[3];
+            using Coeffs = std::array<ALfloat, 3>;
             using States = MdArray<ALfloat, 2, 2>;
 
             Coeffs lf_coeffs;
@@ -524,7 +527,7 @@ private:
             States states;
         }; // Filter
 
-        using Filters = Filter[4];
+        using Filters = std::array<Filter, 4>;
         using Offsets = MdArray<ALsizei, 4, 2>;
         using Gains = MdArray<ALfloat, 4, MAX_OUTPUT_CHANNELS>;
 
@@ -550,7 +553,9 @@ private:
     }; // Late
 
     using Taps = MdArray<ALsizei, 4, 2>;
-    using Samples = ALfloat[4][max_update_samples];
+
+    using SamplesPerChannel = std::array<ALfloat, max_update_samples>;
+    using Samples = std::array<SamplesPerChannel, 4>;
 
 
     ALboolean is_eax_;
@@ -1411,8 +1416,8 @@ private:
                 hf_decay_time,
                 lf_w,
                 hf_w,
-                late_.filters[i].lf_coeffs,
-                late_.filters[i].hf_coeffs,
+                late_.filters[i].lf_coeffs.data(),
+                late_.filters[i].hf_coeffs.data(),
                 &late_.filters[i].mid_coeff);
         }
     }
@@ -1832,7 +1837,7 @@ private:
         DelayOutFunc delay_out_func,
         const ALsizei todo,
         ALfloat fade,
-        ALfloat (*out)[max_update_samples])
+        Samples& out)
     {
         ALfloat f[4];
         auto current_offset = offset_;
@@ -1879,7 +1884,7 @@ private:
     void early_reflection_unfaded(
         const ALsizei todo,
         ALfloat fade,
-        ALfloat (*out)[max_update_samples])
+        Samples& out)
     {
         early_reflection_x(vector_allpass_unfaded, delay_out_unfaded, todo, fade, out);
     }
@@ -1887,7 +1892,7 @@ private:
     void early_reflection_faded(
         const ALsizei todo,
         ALfloat fade,
-        ALfloat (*out)[max_update_samples])
+        Samples& out)
     {
         early_reflection_x(vector_allpass_faded, delay_out_faded, todo, fade, out);
     }
@@ -1913,11 +1918,13 @@ private:
     {
         ALfloat out = first_order_filter(
             in,
-            late_.filters[index].lf_coeffs,
+            late_.filters[index].lf_coeffs.data(),
             late_.filters[index].states[0].data());
 
         return late_.filters[index].mid_coeff *
-            first_order_filter(out, late_.filters[index].hf_coeffs,
+            first_order_filter(
+                out,
+                late_.filters[index].hf_coeffs.data(),
                 late_.filters[index].states[1].data());
     }
 
@@ -1940,7 +1947,7 @@ private:
         DelayOutFunc delay_out_func,
         const ALsizei todo,
         ALfloat fade,
-        ALfloat(*out)[max_update_samples])
+        Samples& out)
     {
         ALfloat f[4];
         ALint moddelay[max_update_samples];
@@ -1999,7 +2006,7 @@ private:
     void late_reverb_unfaded(
         const ALsizei todo,
         ALfloat fade,
-        ALfloat (*out)[max_update_samples])
+        Samples& out)
     {
         late_reverb_x(vector_allpass_unfaded, delay_out_unfaded, todo, fade, out);
     }
@@ -2007,7 +2014,7 @@ private:
     void late_reverb_faded(
         const ALsizei todo,
         ALfloat fade,
-        ALfloat (*out)[max_update_samples])
+        Samples& out)
     {
         late_reverb_x(vector_allpass_faded, delay_out_faded, todo, fade, out);
     }
@@ -2017,15 +2024,15 @@ private:
     ALfloat verb_pass(
         const ALsizei todo,
         ALfloat fade,
-        const ALfloat(*input)[max_update_samples],
-        ALfloat(*early)[max_update_samples],
-        ALfloat(*late)[max_update_samples])
+        const Samples& input,
+        Samples& early,
+        Samples& late)
     {
         for (int c = 0; c < 4; ++c)
         {
             // Low-pass filter the incoming samples (use the early buffer as temp
             // storage).
-            ALfilterState_processC(&filters_[c].lp, &early[0][0], input[c], todo);
+            ALfilterState_processC(&filters_[c].lp, early[0].data(), input[c].data(), todo);
 
             // Feed the initial delay line.
             for (int i = 0; i < todo; ++i)
@@ -2063,16 +2070,16 @@ private:
     ALfloat eax_verb_pass(
         const ALsizei todo,
         ALfloat fade,
-        const ALfloat(*input)[max_update_samples],
-        ALfloat(*early)[max_update_samples],
-        ALfloat(*late)[max_update_samples])
+        const Samples& input,
+        Samples& early,
+        Samples& late)
     {
         for (int c = 0; c < 4; ++c)
         {
             // Band-pass the incoming samples. Use the early output lines for temp
             // storage.
-            ALfilterState_processC(&filters_[c].lp, early[0], input[c], todo);
-            ALfilterState_processC(&filters_[c].hp, early[1], early[0], todo);
+            ALfilterState_processC(&filters_[c].lp, early[0].data(), input[c].data(), todo);
+            ALfilterState_processC(&filters_[c].hp, early[1].data(), early[0].data(), todo);
 
             // Feed the initial delay line.
             for (int i = 0; i < todo; i++)
