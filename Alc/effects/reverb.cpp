@@ -378,8 +378,8 @@ protected:
                     early_samples_[c],
                     channel_count,
                     dst_samples,
-                    early_.current_gains[c],
-                    early_.pan_gains[c],
+                    early_.current_gains[c].data(),
+                    early_.pan_gains[c].data(),
                     sample_count - base,
                     base,
                     todo);
@@ -391,8 +391,8 @@ protected:
                     reverb_samples_[c],
                     channel_count,
                     dst_samples,
-                    late_.current_gains[c],
-                    late_.pan_gains[c],
+                    late_.current_gains[c].data(),
+                    late_.pan_gains[c].data(),
                     sample_count - base,
                     base,
                     todo);
@@ -456,7 +456,7 @@ private:
 
     struct VecAllpass
     {
-        using Offsets = ALsizei[4][2];
+        using Offsets = MdArray<ALsizei, 4, 2>;
 
         DelayLineI delay;
         Offsets offsets;
@@ -472,9 +472,9 @@ private:
 
     struct Early
     {
-        using Offsets = ALsizei[4][2];
+        using Offsets = MdArray<ALsizei, 4, 2>;
         using Coeffs = ALfloat[4];
-        using Gains = ALfloat[4][MAX_OUTPUT_CHANNELS];
+        using Gains = MdArray<ALfloat, 4, MAX_OUTPUT_CHANNELS>;
 
         // A Gerzon vector all-pass filter is used to simulate initial
         // diffusion.  The spread from this filter also helps smooth out the
@@ -513,7 +513,7 @@ private:
         struct Filter
         {
             using Coeffs = ALfloat[3];
-            using States = ALfloat[2][2];
+            using States = MdArray<ALfloat, 2, 2>;
 
             Coeffs lf_coeffs;
             Coeffs hf_coeffs;
@@ -525,8 +525,8 @@ private:
         }; // Filter
 
         using Filters = Filter[4];
-        using Offsets = ALsizei[4][2];
-        using Gains = ALfloat[4][MAX_OUTPUT_CHANNELS];
+        using Offsets = MdArray<ALsizei, 4, 2>;
+        using Gains = MdArray<ALfloat, 4, MAX_OUTPUT_CHANNELS>;
 
 
         // Attenuation to compensate for the modal density and decay rate of
@@ -549,7 +549,7 @@ private:
         Gains pan_gains;
     }; // Late
 
-    using Taps = ALsizei[4][2];
+    using Taps = MdArray<ALsizei, 4, 2>;
     using Samples = ALfloat[4][max_update_samples];
 
 
@@ -1542,7 +1542,7 @@ private:
 
         for (int i = 0; i < MAX_EFFECT_CHANNELS; ++i)
         {
-            ComputeFirstOrderGains(device->foa_out, transform.m[i], gain*early_gain, early_.pan_gains[i]);
+            ComputeFirstOrderGains(device->foa_out, transform.m[i], gain*early_gain, early_.pan_gains[i].data());
         }
 
         rot = get_transform_from_vector(late_reverb_pan);
@@ -1551,7 +1551,7 @@ private:
 
         for (int i = 0; i < MAX_EFFECT_CHANNELS; ++i)
         {
-            ComputeFirstOrderGains(device->foa_out, transform.m[i], gain*late_gain, late_.pan_gains[i]);
+            ComputeFirstOrderGains(device->foa_out, transform.m[i], gain*late_gain, late_.pan_gains[i].data());
         }
     }
 
@@ -1914,11 +1914,11 @@ private:
         ALfloat out = first_order_filter(
             in,
             late_.filters[index].lf_coeffs,
-            late_.filters[index].states[0]);
+            late_.filters[index].states[0].data());
 
         return late_.filters[index].mid_coeff *
             first_order_filter(out, late_.filters[index].hf_coeffs,
-                late_.filters[index].states[1]);
+                late_.filters[index].states[1].data());
     }
 
     // This generates the reverb tail using a modified feed-back delay network
