@@ -164,6 +164,7 @@ int main()
         }
     }
 
+#if 0
     if (is_succeed)
     {
         InitEffectParams(oal_device->effect, AL_EFFECT_EAXREVERB);
@@ -172,7 +173,6 @@ int main()
 
     if (is_succeed)
     {
-#if 1
         EFXEAXREVERBPROPERTIES props = EFX_REVERB_PRESET_BATHROOM;
         ALeffectProps* oal_props = &oal_device->effect->props;
 
@@ -203,8 +203,27 @@ int main()
         oal_props->reverb.lf_reference = props.flLFReference;
         oal_props->reverb.room_rolloff_factor = props.flRoomRolloffFactor;
         oal_props->reverb.decay_hf_limit = props.iDecayHFLimit;
-#endif
     }
+#endif
+
+#if 1
+    if (is_succeed)
+    {
+        InitEffectParams(oal_device->effect, AL_EFFECT_CHORUS);
+        UpdateEffectSlotProps(oal_device->effect_slot);
+    }
+
+    if (is_succeed)
+    {
+        ALeffectProps* oal_props = &oal_device->effect->props;
+        oal_props->chorus.delay = AL_CHORUS_DEFAULT_DELAY;
+        oal_props->chorus.depth = AL_CHORUS_DEFAULT_DEPTH;
+        oal_props->chorus.feedback = AL_CHORUS_DEFAULT_FEEDBACK;
+        oal_props->chorus.phase = AL_CHORUS_DEFAULT_PHASE;
+        oal_props->chorus.rate = AL_CHORUS_DEFAULT_RATE;
+        oal_props->chorus.waveform = AL_CHORUS_DEFAULT_WAVEFORM;
+    }
+#endif
 
     if (is_succeed)
     {
