@@ -40,7 +40,7 @@ public:
         lfo_range_{},
         lfo_scale_{},
         lfo_disp_{},
-        gain_{},
+        gains_{},
         waveform_{},
         delay_{},
         depth_{},
@@ -60,36 +60,35 @@ protected:
 
         for (auto& buffer : sample_buffers_)
         {
-            buffer = ChorusSampleBuffer{};
+            buffer = SampleBuffer{};
         }
 
         offset_ = 0;
         lfo_range_ = 1;
-        waveform_ = CWF_Triangle;
+        waveform_ = Waveform::triangle;
     }
 
     void ChorusEffect::do_destruct() final
     {
         for (auto& buffer : sample_buffers_)
         {
-            buffer = ChorusSampleBuffer{};
+            buffer = SampleBuffer{};
         }
     }
 
     ALboolean ChorusEffect::do_update_device(
         ALCdevice* device) final
     {
-        ALsizei maxlen;
+        auto max_len = fastf2i(AL_CHORUS_MAX_DELAY * 2.0F * device->frequency) + 1;
 
-        maxlen = fastf2i(AL_CHORUS_MAX_DELAY * 2.0f * device->frequency) + 1;
-        maxlen = NextPowerOf2(maxlen);
+        max_len = NextPowerOf2(max_len);
 
-        if (maxlen != buffer_length_)
+        if (max_len != buffer_length_)
         {
-            sample_buffers_[0].resize(maxlen);
-            sample_buffers_[1].resize(maxlen);
+            sample_buffers_[0].resize(max_len);
+            sample_buffers_[1].resize(max_len);
 
-            buffer_length_ = maxlen;
+            buffer_length_ = max_len;
         }
 
         for (auto& buffer : sample_buffers_)
@@ -103,60 +102,69 @@ protected:
     void ChorusEffect::do_update(
         ALCdevice* device,
         const struct ALeffectslot* slot,
-        const union ALeffectProps *props) final
+        const union ALeffectProps* props) final
     {
-        ALfloat frequency = (ALfloat)device->frequency;
-        ALfloat coeffs[MAX_AMBI_COEFFS];
-        ALfloat rate;
-        ALint phase;
+        const auto frequency = static_cast<ALfloat>(device->frequency);
 
         switch (props->chorus.waveform)
         {
         case AL_CHORUS_WAVEFORM_TRIANGLE:
-            waveform_ = CWF_Triangle;
+            waveform_ = Waveform::triangle;
             break;
+
         case AL_CHORUS_WAVEFORM_SINUSOID:
-            waveform_ = CWF_Sinusoid;
+            waveform_ = Waveform::sinusoid;
             break;
         }
+
         feedback_ = props->chorus.feedback;
         delay_ = fastf2i(props->chorus.delay * frequency);
-        /* The LFO depth is scaled to be relative to the sample delay. */
+
+        // The LFO depth is scaled to be relative to the sample delay.
         depth_ = props->chorus.depth * delay_;
 
-        /* Gains for left and right sides */
-        CalcAngleCoeffs(-F_PI_2, 0.0f, 0.0f, coeffs);
-        ComputePanningGains(device->dry, coeffs, 1.0F, gain_[0]);
-        CalcAngleCoeffs(F_PI_2, 0.0f, 0.0f, coeffs);
-        ComputePanningGains(device->dry, coeffs, 1.0F, gain_[1]);
+        ALfloat coeffs[MAX_AMBI_COEFFS];
 
-        phase = props->chorus.phase;
-        rate = props->chorus.rate;
-        if (!(rate > 0.0f))
+        // Gains for left and right sides
+        CalcAngleCoeffs(-F_PI_2, 0.0F, 0.0F, coeffs);
+        ComputePanningGains(device->dry, coeffs, 1.0F, gains_[0].data());
+        CalcAngleCoeffs(F_PI_2, 0.0F, 0.0F, coeffs);
+        ComputePanningGains(device->dry, coeffs, 1.0F, gains_[1].data());
+
+        const auto phase = props->chorus.phase;
+        const auto rate = props->chorus.rate;
+
+        if (!(rate > 0.0F))
         {
-            lfo_scale_ = 0.0f;
+            lfo_scale_ = 0.0F;
             lfo_range_ = 1;
             lfo_disp_ = 0;
         }
         else
         {
-            /* Calculate LFO coefficient */
-            lfo_range_ = fastf2i(frequency / rate + 0.5f);
+            // Calculate LFO coefficient
+            lfo_range_ = fastf2i(frequency / rate + 0.5F);
+
             switch (waveform_)
             {
-            case CWF_Triangle:
-                lfo_scale_ = 4.0f / lfo_range_;
+            case Waveform::triangle:
+                lfo_scale_ = 4.0F / lfo_range_;
                 break;
-            case CWF_Sinusoid:
+
+            case Waveform::sinusoid:
                 lfo_scale_ = F_TAU / lfo_range_;
                 break;
             }
 
-            /* Calculate lfo phase displacement */
+            // Calculate lfo phase displacement
             if (phase >= 0)
-                lfo_disp_ = fastf2i(lfo_range_ * (phase / 360.0f));
+            {
+                lfo_disp_ = fastf2i(lfo_range_ * (phase / 360.0F));
+            }
             else
-                lfo_disp_ = fastf2i(lfo_range_ * ((360 + phase) / 360.0f));
+            {
+                lfo_disp_ = fastf2i(lfo_range_ * ((360 + phase) / 360.0F));
+            }
         }
     }
 
@@ -166,63 +174,94 @@ protected:
         SampleBuffers& dst_samples,
         const ALsizei channel_count) final
     {
-        auto& leftbuf = sample_buffers_[0];
-        auto& rightbuf = sample_buffers_[1];
-        const ALsizei bufmask = buffer_length_ - 1;
-        ALsizei i, c;
-        ALsizei base;
+        auto& left_buf = sample_buffers_[0];
+        auto& right_buf = sample_buffers_[1];
+        const auto buf_mask = buffer_length_ - 1;
 
-        for (base = 0; base < sample_count;)
+        for (int base = 0; base < sample_count; )
         {
-            const ALsizei todo = mini(128, sample_count - base);
             ALfloat temps[128][2];
-            ALint moddelays[2][128];
+            ALint mod_delays[2][128];
+            const auto todo = std::min(128, sample_count - base);
 
             switch (waveform_)
             {
-            case CWF_Triangle:
-                GetTriangleDelays(moddelays[0], offset_%lfo_range_, lfo_range_,
-                    lfo_scale_, depth_, delay_, todo);
-                GetTriangleDelays(moddelays[1], (offset_ + lfo_disp_) % lfo_range_,
-                    lfo_range_, lfo_scale_, depth_, delay_,
+            case Waveform::triangle:
+                GetTriangleDelays(
+                    mod_delays[0],
+                    offset_ % lfo_range_,
+                    lfo_range_,
+                    lfo_scale_,
+                    depth_,
+                    delay_,
                     todo);
+
+                GetTriangleDelays(
+                    mod_delays[1],
+                    (offset_ + lfo_disp_) % lfo_range_,
+                    lfo_range_,
+                    lfo_scale_,
+                    depth_,
+                    delay_,
+                    todo);
+
                 break;
-            case CWF_Sinusoid:
-                GetSinusoidDelays(moddelays[0], offset_%lfo_range_, lfo_range_,
-                    lfo_scale_, depth_, delay_, todo);
-                GetSinusoidDelays(moddelays[1], (offset_ + lfo_disp_) % lfo_range_,
-                    lfo_range_, lfo_scale_, depth_, delay_,
+
+            case Waveform::sinusoid:
+                GetSinusoidDelays(
+                    mod_delays[0],
+                    offset_ % lfo_range_,
+                    lfo_range_,
+                    lfo_scale_,
+                    depth_,
+                    delay_,
                     todo);
+
+                GetSinusoidDelays(
+                    mod_delays[1],
+                    (offset_ + lfo_disp_) % lfo_range_,
+                    lfo_range_,
+                    lfo_scale_,
+                    depth_,
+                    delay_,
+                    todo);
+
                 break;
             }
 
-            for (i = 0; i < todo; i++)
+            for (int i = 0; i < todo; ++i)
             {
-                leftbuf[offset_&bufmask] = src_samples[0][base + i];
-                temps[i][0] = leftbuf[(offset_ - moddelays[0][i])&bufmask] * feedback_;
-                leftbuf[offset_&bufmask] += temps[i][0];
+                left_buf[offset_ & buf_mask] = src_samples[0][base + i];
+                temps[i][0] = left_buf[(offset_ - mod_delays[0][i]) & buf_mask] * feedback_;
+                left_buf[offset_ & buf_mask] += temps[i][0];
 
-                rightbuf[offset_&bufmask] = src_samples[0][base + i];
-                temps[i][1] = rightbuf[(offset_ - moddelays[1][i])&bufmask] * feedback_;
-                rightbuf[offset_&bufmask] += temps[i][1];
+                right_buf[offset_ & buf_mask] = src_samples[0][base + i];
+                temps[i][1] = right_buf[(offset_ - mod_delays[1][i]) & buf_mask] * feedback_;
+                right_buf[offset_ & buf_mask] += temps[i][1];
 
-                offset_++;
+                offset_ += 1;
             }
 
-            for (c = 0; c < channel_count; c++)
+            for (int c = 0; c < channel_count; ++c)
             {
-                ALfloat channel_gain = gain_[0][c];
-                if (fabsf(channel_gain) > GAIN_SILENCE_THRESHOLD)
+                auto channel_gain = gains_[0][c];
+
+                if (std::abs(channel_gain) > GAIN_SILENCE_THRESHOLD)
                 {
-                    for (i = 0; i < todo; i++)
+                    for (int i = 0; i < todo; ++i)
+                    {
                         dst_samples[c][i + base] += temps[i][0] * channel_gain;
+                    }
                 }
 
-                channel_gain = gain_[1][c];
-                if (fabsf(channel_gain) > GAIN_SILENCE_THRESHOLD)
+                channel_gain = gains_[1][c];
+
+                if (std::abs(channel_gain) > GAIN_SILENCE_THRESHOLD)
                 {
-                    for (i = 0; i < todo; i++)
+                    for (int i = 0; i < todo; ++i)
+                    {
                         dst_samples[c][i + base] += temps[i][1] * channel_gain;
+                    }
                 }
             }
 
@@ -232,63 +271,64 @@ protected:
 
 
 private:
-    enum ChorusWaveForm {
-        CWF_Triangle = AL_CHORUS_WAVEFORM_TRIANGLE,
-        CWF_Sinusoid = AL_CHORUS_WAVEFORM_SINUSOID
-    };
+    enum class Waveform
+    {
+        triangle = AL_CHORUS_WAVEFORM_TRIANGLE,
+        sinusoid = AL_CHORUS_WAVEFORM_SINUSOID
+    }; // Waveform
 
 
-    using ChorusSampleBuffer = EffectSampleBuffer;
-    using ChorusSampleBuffers = std::array<ChorusSampleBuffer, 2>;
+    using SampleBuffer = EffectSampleBuffer;
+    using SampleBuffers = std::array<SampleBuffer, 2>;
+
+    using Gains = MdArray<float, 2, MAX_OUTPUT_CHANNELS>;
 
 
-    ChorusSampleBuffers sample_buffers_;
-    ALsizei buffer_length_;
-    ALsizei offset_;
-    ALsizei lfo_range_;
-    ALfloat lfo_scale_;
-    ALint lfo_disp_;
+    SampleBuffers sample_buffers_;
+    int buffer_length_;
+    int offset_;
+    int lfo_range_;
+    float lfo_scale_;
+    int lfo_disp_;
 
     // Gains for left and right sides
-    ALfloat gain_[2][MAX_OUTPUT_CHANNELS];
+    Gains gains_;
 
     // effect parameters
-    ChorusWaveForm waveform_;
-    ALint delay_;
-    ALfloat depth_;
-    ALfloat feedback_;
+    Waveform waveform_;
+    int delay_;
+    float depth_;
+    float feedback_;
 
 
     static void GetTriangleDelays(
-        ALint *delays,
-        ALsizei offset,
-        const ALsizei lfo_range,
-        const ALfloat lfo_scale,
-        const ALfloat depth,
-        const ALsizei delay,
-        const ALsizei todo)
+        int* delays,
+        int offset,
+        const int lfo_range,
+        const float lfo_scale,
+        const float depth,
+        const int delay,
+        const int todo)
     {
-        ALsizei i;
-        for (i = 0; i < todo; i++)
+        for (int i = 0; i < todo; ++i)
         {
-            delays[i] = fastf2i((1.0f - fabsf(2.0f - lfo_scale*offset)) * depth) + delay;
+            delays[i] = fastf2i((1.0F - std::abs(2.0F - (lfo_scale * offset))) * depth) + delay;
             offset = (offset + 1) % lfo_range;
         }
     }
 
     static void GetSinusoidDelays(
-        ALint *delays,
-        ALsizei offset,
-        const ALsizei lfo_range,
-        const ALfloat lfo_scale,
-        const ALfloat depth,
-        const ALsizei delay,
-        const ALsizei todo)
+        int* delays,
+        int offset,
+        const int lfo_range,
+        const float lfo_scale,
+        const float depth,
+        const int delay,
+        const int todo)
     {
-        ALsizei i;
-        for (i = 0; i < todo; i++)
+        for (int i = 0; i < todo; ++i)
         {
-            delays[i] = fastf2i(sinf(lfo_scale*offset) * depth) + delay;
+            delays[i] = fastf2i(std::sin(lfo_scale * offset) * depth) + delay;
             offset = (offset + 1) % lfo_range;
         }
     }
