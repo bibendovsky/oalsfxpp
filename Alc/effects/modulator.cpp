@@ -29,11 +29,11 @@ public:
     ModulatorEffect()
         :
         IEffect{},
-        process{},
-        index{},
-        step{},
-        gains{},
-        filters{}
+        process_{},
+        index_{},
+        step_{},
+        gains_{},
+        filters_{}
     {
     }
 
@@ -42,14 +42,11 @@ public:
     }
 
 
-    void (*process)(ALfloat*, const ALfloat* const, ALsizei, const ALsizei, const ALsizei);
-
-    ALsizei index;
-    ALsizei step;
-
-    ALfloat gains[MAX_EFFECT_CHANNELS][MAX_OUTPUT_CHANNELS];
-
-    ALfilterState filters[MAX_EFFECT_CHANNELS];
+    void (*process_)(ALfloat*, const ALfloat* const, ALsizei, const ALsizei, const ALsizei);
+    ALsizei index_;
+    ALsizei step_;
+    ALfloat gains_[MAX_EFFECT_CHANNELS][MAX_OUTPUT_CHANNELS];
+    ALfilterState filters_[MAX_EFFECT_CHANNELS];
 
 
 protected:
@@ -146,12 +143,12 @@ static void ModulateSquare(
 
 void ModulatorEffect::do_construct()
 {
-    index = 0;
-    step = 1;
+    index_ = 0;
+    step_ = 1;
 
     for (int i = 0; i < MAX_EFFECT_CHANNELS; ++i)
     {
-        ALfilterState_clear(&filters[i]);
+        ALfilterState_clear(&filters_[i]);
     }
 }
 
@@ -175,15 +172,15 @@ void ModulatorEffect::do_update(
     ALsizei i;
 
     if (props->modulator.waveform == AL_RING_MODULATOR_SINUSOID)
-        process = ModulateSin;
+        process_ = ModulateSin;
     else if (props->modulator.waveform == AL_RING_MODULATOR_SAWTOOTH)
-        process = ModulateSaw;
+        process_ = ModulateSaw;
     else /*if(Slot->Params.EffectProps.Modulator.Waveform == AL_RING_MODULATOR_SQUARE)*/
-        process = ModulateSquare;
+        process_ = ModulateSquare;
 
-    step = fastf2i(props->modulator.frequency*WAVEFORM_FRACONE /
+    step_ = fastf2i(props->modulator.frequency*WAVEFORM_FRACONE /
         device->frequency);
-    if (step == 0) step = 1;
+    if (step_ == 0) step_ = 1;
 
     /* Custom filter coeffs, which match the old version instead of a low-shelf. */
     cw = cosf(F_TAU * props->modulator.high_pass_cutoff / device->frequency);
@@ -191,18 +188,18 @@ void ModulatorEffect::do_update(
 
     for (i = 0; i < MAX_EFFECT_CHANNELS; i++)
     {
-        filters[i].b0 = a;
-        filters[i].b1 = -a;
-        filters[i].b2 = 0.0f;
-        filters[i].a1 = -a;
-        filters[i].a2 = 0.0f;
+        filters_[i].b0 = a;
+        filters_[i].b1 = -a;
+        filters_[i].b2 = 0.0f;
+        filters_[i].a1 = -a;
+        filters_[i].a2 = 0.0f;
     }
 
     out_buffer = device->foa_out.buffer;
     out_channels = device->foa_out.num_channels;
     for (i = 0; i < MAX_EFFECT_CHANNELS; i++)
         ComputeFirstOrderGains(device->foa_out, IdentityMatrixf.m[i],
-            1.0F, gains[i]);
+            1.0F, gains_[i]);
 }
 
 void ModulatorEffect::do_process(
@@ -221,12 +218,12 @@ void ModulatorEffect::do_process(
 
         for (j = 0; j < MAX_EFFECT_CHANNELS; j++)
         {
-            ALfilterState_processC(&filters[j], temps[0], &src_samples[j][base], td);
-            process(temps[1], temps[0], index, step, td);
+            ALfilterState_processC(&filters_[j], temps[0], &src_samples[j][base], td);
+            process_(temps[1], temps[0], index_, step_, td);
 
             for (k = 0; k < channel_count; k++)
             {
-                ALfloat gain = gains[j][k];
+                ALfloat gain = gains_[j][k];
                 if (!(fabsf(gain) > GAIN_SILENCE_THRESHOLD))
                     continue;
 
@@ -237,8 +234,8 @@ void ModulatorEffect::do_process(
 
         for (i = 0; i < td; i++)
         {
-            index += step;
-            index &= WAVEFORM_FRACMASK;
+            index_ += step_;
+            index_ &= WAVEFORM_FRACMASK;
         }
         base += td;
     }

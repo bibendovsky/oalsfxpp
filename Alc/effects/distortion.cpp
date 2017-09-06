@@ -30,11 +30,11 @@ public:
     DistortionEffect()
         :
         IEffect{},
-        gains{},
-        lowpass{},
-        bandpass{},
-        attenuation{},
-        edge_coeff{}
+        gains_{},
+        low_pass_{},
+        band_pass_{},
+        attenuation_{},
+        edge_coeff_{}
     {
     }
 
@@ -44,13 +44,13 @@ public:
 
 
     // Effect gains for each channel
-    ALfloat gains[MAX_OUTPUT_CHANNELS];
+    ALfloat gains_[MAX_OUTPUT_CHANNELS];
 
     // Effect parameters
-    ALfilterState lowpass;
-    ALfilterState bandpass;
-    ALfloat attenuation;
-    ALfloat edge_coeff;
+    ALfilterState low_pass_;
+    ALfilterState band_pass_;
+    ALfloat attenuation_;
+    ALfloat edge_coeff_;
 
 
 protected:
@@ -76,8 +76,8 @@ protected:
 
 void DistortionEffect::do_construct()
 {
-    ALfilterState_clear(&lowpass);
-    ALfilterState_clear(&bandpass);
+    ALfilterState_clear(&low_pass_);
+    ALfilterState_clear(&band_pass_);
 }
 
 void DistortionEffect::do_destruct()
@@ -102,12 +102,12 @@ void DistortionEffect::do_update(
     ALfloat edge;
 
     /* Store distorted signal attenuation settings. */
-    attenuation = props->distortion.gain;
+    attenuation_ = props->distortion.gain;
 
     /* Store waveshaper edge settings. */
     edge = sinf(props->distortion.edge * (F_PI_2));
     edge = minf(edge, 0.99f);
-    edge_coeff = 2.0f * edge / (1.0f - edge);
+    edge_coeff_ = 2.0f * edge / (1.0f - edge);
 
     cutoff = props->distortion.lowpass_cutoff;
     /* Bandwidth value is constant in octaves. */
@@ -115,18 +115,18 @@ void DistortionEffect::do_update(
     /* Multiply sampling frequency by the amount of oversampling done during
     * processing.
     */
-    ALfilterState_setParams(&lowpass, ALfilterType_LowPass, 1.0f,
+    ALfilterState_setParams(&low_pass_, ALfilterType_LowPass, 1.0f,
         cutoff / (frequency*4.0f), calc_rcpQ_from_bandwidth(cutoff / (frequency*4.0f), bandwidth)
     );
 
     cutoff = props->distortion.eq_center;
     /* Convert bandwidth in Hz to octaves. */
     bandwidth = props->distortion.eq_bandwidth / (cutoff * 0.67f);
-    ALfilterState_setParams(&bandpass, ALfilterType_BandPass, 1.0f,
+    ALfilterState_setParams(&band_pass_, ALfilterType_BandPass, 1.0f,
         cutoff / (frequency*4.0f), calc_rcpQ_from_bandwidth(cutoff / (frequency*4.0f), bandwidth)
     );
 
-    ComputeAmbientGains(device->dry, 1.0F, gains);
+    ComputeAmbientGains(device->dry, 1.0F, gains_);
 }
 
 void DistortionEffect::do_process(
@@ -135,7 +135,7 @@ void DistortionEffect::do_process(
     SampleBuffers& dst_samples,
     const ALsizei channel_count)
 {
-    const ALfloat fc = edge_coeff;
+    const ALfloat fc = edge_coeff_;
     ALsizei it, kt;
     ALsizei base;
 
@@ -167,7 +167,7 @@ void DistortionEffect::do_process(
         * (which is fortunately first step of distortion). So combine three
         * operations into the one.
         */
-        ALfilterState_processC(&lowpass, buffer[1], buffer[0], td * 4);
+        ALfilterState_processC(&low_pass_, buffer[1], buffer[0], td * 4);
 
         /* Second step, do distortion using waveshaper function to emulate
         * signal processing during tube overdriving. Three steps of
@@ -186,14 +186,14 @@ void DistortionEffect::do_process(
         }
 
         /* Third step, do bandpass filtering of distorted signal. */
-        ALfilterState_processC(&bandpass, buffer[1], buffer[0], td * 4);
+        ALfilterState_processC(&band_pass_, buffer[1], buffer[0], td * 4);
 
         for (kt = 0; kt < channel_count; kt++)
         {
             /* Fourth step, final, do attenuation and perform decimation,
             * store only one sample out of 4.
             */
-            ALfloat gain = gains[kt] * attenuation;
+            ALfloat gain = gains_[kt] * attenuation_;
             if (!(fabsf(gain) > GAIN_SILENCE_THRESHOLD))
                 continue;
 

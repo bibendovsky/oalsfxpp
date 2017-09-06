@@ -38,13 +38,13 @@ public:
     EchoEffect()
         :
         IEffect{},
-        sample_buffer{},
-        buffer_length{},
-        tap{},
-        offset{},
-        gains{},
-        feed_gain{},
-        filter{}
+        sample_buffer_{},
+        buffer_length_{},
+        taps_{},
+        offset_{},
+        gains_{},
+        feed_gain_{},
+        filter_{}
     {
     }
 
@@ -53,21 +53,21 @@ public:
     }
 
 
-    EffectSampleBuffer sample_buffer;
-    ALsizei buffer_length;
+    EffectSampleBuffer sample_buffer_;
+    ALsizei buffer_length_;
 
     // The echo is two tap. The delay is the number of samples from before the
     // current offset
-    Tap tap[2];
+    Tap taps_[2];
 
-    ALsizei offset;
+    ALsizei offset_;
 
     // The panning gains for the two taps
-    ALfloat gains[2][MAX_OUTPUT_CHANNELS];
+    ALfloat gains_[2][MAX_OUTPUT_CHANNELS];
 
-    ALfloat feed_gain;
+    ALfloat feed_gain_;
 
-    ALfilterState filter;
+    ALfilterState filter_;
 
 
 protected:
@@ -93,19 +93,19 @@ protected:
 
 void EchoEffect::do_construct()
 {
-    buffer_length = 0;
-    sample_buffer = EffectSampleBuffer{};
+    buffer_length_ = 0;
+    sample_buffer_ = EffectSampleBuffer{};
 
-    tap[0].delay = 0;
-    tap[1].delay = 0;
-    offset = 0;
+    taps_[0].delay = 0;
+    taps_[1].delay = 0;
+    offset_ = 0;
 
-    ALfilterState_clear(&filter);
+    ALfilterState_clear(&filter_);
 }
 
 void EchoEffect::do_destruct()
 {
-    sample_buffer = EffectSampleBuffer{};
+    sample_buffer_ = EffectSampleBuffer{};
 }
 
 ALboolean EchoEffect::do_update_device(
@@ -119,13 +119,13 @@ ALboolean EchoEffect::do_update_device(
     maxlen += fastf2i(AL_ECHO_MAX_LRDELAY * device->frequency) + 1;
     maxlen = NextPowerOf2(maxlen);
 
-    if (maxlen != buffer_length)
+    if (maxlen != buffer_length_)
     {
-        sample_buffer.resize(maxlen);
-        buffer_length = maxlen;
+        sample_buffer_.resize(maxlen);
+        buffer_length_ = maxlen;
     }
 
-    std::fill(sample_buffer.begin(), sample_buffer.end(), 0.0F);
+    std::fill(sample_buffer_.begin(), sample_buffer_.end(), 0.0F);
 
     return AL_TRUE;
 }
@@ -139,9 +139,9 @@ void EchoEffect::do_update(
     ALfloat coeffs[MAX_AMBI_COEFFS];
     ALfloat effect_gain, lrpan, spread;
 
-    tap[0].delay = fastf2i(props->echo.delay * frequency) + 1;
-    tap[1].delay = fastf2i(props->echo.lr_delay * frequency);
-    tap[1].delay += tap[0].delay;
+    taps_[0].delay = fastf2i(props->echo.delay * frequency) + 1;
+    taps_[1].delay = fastf2i(props->echo.lr_delay * frequency);
+    taps_[1].delay += taps_[0].delay;
 
     spread = props->echo.spread;
     if (spread < 0.0f) lrpan = -1.0f;
@@ -151,10 +151,10 @@ void EchoEffect::do_update(
     */
     spread = asinf(1.0f - fabsf(spread))*4.0f;
 
-    feed_gain = props->echo.feedback;
+    feed_gain_ = props->echo.feedback;
 
     effect_gain = maxf(1.0f - props->echo.damping, 0.0625f); /* Limit -24dB */
-    ALfilterState_setParams(&filter, ALfilterType_HighShelf,
+    ALfilterState_setParams(&filter_, ALfilterType_HighShelf,
         effect_gain, LOWPASSFREQREF / frequency,
         calc_rcpQ_from_slope(effect_gain, 1.0f));
 
@@ -162,11 +162,11 @@ void EchoEffect::do_update(
 
     /* First tap panning */
     CalcAngleCoeffs(-F_PI_2*lrpan, 0.0f, spread, coeffs);
-    ComputePanningGains(device->dry, coeffs, effect_gain, gains[0]);
+    ComputePanningGains(device->dry, coeffs, effect_gain, gains_[0]);
 
     /* Second tap panning */
     CalcAngleCoeffs(F_PI_2*lrpan, 0.0f, spread, coeffs);
-    ComputePanningGains(device->dry, coeffs, effect_gain, gains[1]);
+    ComputePanningGains(device->dry, coeffs, effect_gain, gains_[1]);
 }
 
 void EchoEffect::do_process(
@@ -175,17 +175,17 @@ void EchoEffect::do_process(
     SampleBuffers& dst_samples,
     const ALsizei channel_count)
 {
-    const ALsizei mask = buffer_length - 1;
-    const ALsizei tap1 = tap[0].delay;
-    const ALsizei tap2 = tap[1].delay;
+    const ALsizei mask = buffer_length_ - 1;
+    const ALsizei tap1 = taps_[0].delay;
+    const ALsizei tap2 = taps_[1].delay;
     ALfloat x[2], y[2], in, out;
     ALsizei base, k;
     ALsizei i;
 
-    x[0] = filter.x[0];
-    x[1] = filter.x[1];
-    y[0] = filter.y[0];
-    y[1] = filter.y[1];
+    x[0] = filter_.x[0];
+    x[1] = filter_.x[1];
+    y[0] = filter_.y[0];
+    y[1] = filter_.y[1];
     for (base = 0; base < sample_count;)
     {
         ALfloat temps[128][2];
@@ -194,33 +194,33 @@ void EchoEffect::do_process(
         for (i = 0; i < td; i++)
         {
             /* First tap */
-            temps[i][0] = sample_buffer[(offset - tap1) & mask];
+            temps[i][0] = sample_buffer_[(offset_ - tap1) & mask];
             /* Second tap */
-            temps[i][1] = sample_buffer[(offset - tap2) & mask];
+            temps[i][1] = sample_buffer_[(offset_ - tap2) & mask];
 
             // Apply damping and feedback gain to the second tap, and mix in the
             // new sample
             in = temps[i][1] + src_samples[0][i + base];
-            out = in*filter.b0 +
-                x[0] * filter.b1 + x[1] * filter.b2 -
-                y[0] * filter.a1 - y[1] * filter.a2;
+            out = in*filter_.b0 +
+                x[0] * filter_.b1 + x[1] * filter_.b2 -
+                y[0] * filter_.a1 - y[1] * filter_.a2;
             x[1] = x[0]; x[0] = in;
             y[1] = y[0]; y[0] = out;
 
-            sample_buffer[offset&mask] = out * feed_gain;
-            offset++;
+            sample_buffer_[offset_&mask] = out * feed_gain_;
+            offset_++;
         }
 
         for (k = 0; k < channel_count; k++)
         {
-            ALfloat channel_gain = gains[0][k];
+            ALfloat channel_gain = gains_[0][k];
             if (fabsf(channel_gain) > GAIN_SILENCE_THRESHOLD)
             {
                 for (i = 0; i < td; i++)
                     dst_samples[k][i + base] += temps[i][0] * channel_gain;
             }
 
-            channel_gain = gains[1][k];
+            channel_gain = gains_[1][k];
             if (fabsf(channel_gain) > GAIN_SILENCE_THRESHOLD)
             {
                 for (i = 0; i < td; i++)
@@ -230,10 +230,10 @@ void EchoEffect::do_process(
 
         base += td;
     }
-    filter.x[0] = x[0];
-    filter.x[1] = x[1];
-    filter.y[0] = y[0];
-    filter.y[1] = y[1];
+    filter_.x[0] = x[0];
+    filter_.x[1] = x[1];
+    filter_.y[0] = y[0];
+    filter_.y[1] = y[1];
 }
 
 IEffect* create_echo_effect()

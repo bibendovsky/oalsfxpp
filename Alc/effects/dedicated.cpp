@@ -31,7 +31,7 @@ public:
     DedicatedEffect()
         :
         IEffect{},
-        gains{}
+        gains_{}
     {
     }
 
@@ -40,7 +40,7 @@ public:
     }
 
 
-    ALfloat gains[MAX_OUTPUT_CHANNELS];
+    ALfloat gains_[MAX_OUTPUT_CHANNELS];
 
 
 protected:
@@ -68,7 +68,7 @@ void DedicatedEffect::do_construct()
 {
     for (int i = 0; i < MAX_OUTPUT_CHANNELS; ++i)
     {
-        gains[i] = 0.0f;
+        gains_[i] = 0.0f;
     }
 }
 
@@ -92,7 +92,7 @@ void DedicatedEffect::do_update(
     ALuint i;
 
     for (i = 0; i < MAX_OUTPUT_CHANNELS; i++)
-        gains[i] = 0.0f;
+        gains_[i] = 0.0f;
 
     Gain = props->dedicated.gain;
     if (slot->params.effect_type == AL_EFFECT_DEDICATED_LOW_FREQUENCY_EFFECT)
@@ -102,7 +102,7 @@ void DedicatedEffect::do_update(
         {
             out_buffer = device->real_out.buffer;
             out_channels = device->real_out.num_channels;
-            gains[idx] = Gain;
+            gains_[idx] = Gain;
         }
     }
     else if (slot->params.effect_type == AL_EFFECT_DEDICATED_DIALOGUE)
@@ -114,7 +114,7 @@ void DedicatedEffect::do_update(
         {
             out_buffer = device->real_out.buffer;
             out_channels = device->real_out.num_channels;
-            gains[idx] = Gain;
+            gains_[idx] = Gain;
         }
         else
         {
@@ -123,7 +123,7 @@ void DedicatedEffect::do_update(
 
             out_buffer = &device->dry.buffer;
             out_channels = device->dry.num_channels;
-            ComputePanningGains(device->dry, coeffs, Gain, gains);
+            ComputePanningGains(device->dry, coeffs, Gain, gains_);
         }
     }
 }
@@ -136,7 +136,7 @@ void DedicatedEffect::do_process(
 {
     for (int c = 0; c < channel_count; c++)
     {
-        const ALfloat gain = gains[c];
+        const ALfloat gain = gains_[c];
         if (!(fabsf(gain) > GAIN_SILENCE_THRESHOLD))
             continue;
 
