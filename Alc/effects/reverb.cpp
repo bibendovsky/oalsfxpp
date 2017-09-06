@@ -476,7 +476,7 @@ private:
     struct Early
     {
         using Offsets = MdArray<int, 4, 2>;
-        using Coeffs = float[4];
+        using Coeffs = std::array<float, 4>;
         using Gains = MdArray<float, 4, MAX_OUTPUT_CHANNELS>;
 
         // A Gerzon vector all-pass filter is used to simulate initial
@@ -556,6 +556,7 @@ private:
 
     using SamplesPerChannel = std::array<float, max_update_samples>;
     using Samples = std::array<SamplesPerChannel, 4>;
+    using Coeffs = std::array<float, 4>;
 
 
     bool is_eax_;
@@ -568,7 +569,7 @@ private:
 
     // Tap points for early reflection delay.
     Taps early_delay_taps_;
-    float early_delay_coeffs_[4];
+    Coeffs early_delay_coeffs_;
 
     // Tap points for late reverb feed and delay.
     int late_feed_tap_;
