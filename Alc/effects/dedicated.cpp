@@ -19,6 +19,7 @@
  */
 
 
+#include <array>
 #include "config.h"
 #include "alFilter.h"
 #include "alu.h"
@@ -40,110 +41,99 @@ public:
     }
 
 
-    ALfloat gains_[MAX_OUTPUT_CHANNELS];
-
-
 protected:
-    void do_construct() final;
+    void DedicatedEffect::do_construct() final
+    {
+        gains_.fill(0.0F);
+    }
 
-    void do_destruct() final;
+    void DedicatedEffect::do_destruct() final
+    {
+    }
 
-    ALboolean do_update_device(
-        ALCdevice* device) final;
+    ALboolean DedicatedEffect::do_update_device(
+        ALCdevice* device) final
+    {
+        static_cast<void>(device);
+        return AL_TRUE;
+    }
 
-    void do_update(
+    void DedicatedEffect::do_update(
         ALCdevice* device,
         const struct ALeffectslot* slot,
-        const union ALeffectProps *props) final;
+        const union ALeffectProps* props)
+    {
+        gains_.fill(0.0F);
 
-    void do_process(
+        const auto gain = props->dedicated.gain;
+
+        if (slot->params.effect_type == AL_EFFECT_DEDICATED_LOW_FREQUENCY_EFFECT)
+        {
+            const auto idx = GetChannelIdxByName(device->real_out, LFE);
+
+            if (idx != -1)
+            {
+                out_buffer = device->real_out.buffer;
+                out_channels = device->real_out.num_channels;
+                gains_[idx] = gain;
+            }
+        }
+        else if (slot->params.effect_type == AL_EFFECT_DEDICATED_DIALOGUE)
+        {
+            const auto idx = GetChannelIdxByName(device->real_out, FrontCenter);
+
+            // Dialog goes to the front-center speaker if it exists, otherwise it
+            // plays from the front-center location.
+
+            if (idx != -1)
+            {
+                out_buffer = device->real_out.buffer;
+                out_channels = device->real_out.num_channels;
+                gains_[idx] = gain;
+            }
+            else
+            {
+                float coeffs[MAX_AMBI_COEFFS];
+
+                CalcAngleCoeffs(0.0F, 0.0F, 0.0F, coeffs);
+
+                out_buffer = &device->dry.buffer;
+                out_channels = device->dry.num_channels;
+
+                ComputePanningGains(device->dry, coeffs, gain, gains_.data());
+            }
+        }
+    }
+
+    void DedicatedEffect::do_process(
         const ALsizei sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
-        const ALsizei channel_count) final;
+        const ALsizei channel_count) final
+    {
+        for (int c = 0; c < channel_count; ++c)
+        {
+            const auto gain = gains_[c];
+
+            if (!(std::abs(gain) > GAIN_SILENCE_THRESHOLD))
+            {
+                continue;
+            }
+
+            for (int i = 0; i < sample_count; ++i)
+            {
+                dst_samples[c][i] += src_samples[0][i] * gain;
+            }
+        }
+    }
+
+
+private:
+    using Gains = std::array<float, MAX_OUTPUT_CHANNELS>;
+
+    Gains gains_;
 }; // DedicatedEffect
 
-
-void DedicatedEffect::do_construct()
-{
-    for (int i = 0; i < MAX_OUTPUT_CHANNELS; ++i)
-    {
-        gains_[i] = 0.0f;
-    }
-}
-
-void DedicatedEffect::do_destruct()
-{
-}
-
-ALboolean DedicatedEffect::do_update_device(
-    ALCdevice* device)
-{
-    static_cast<void>(device);
-    return AL_TRUE;
-}
-
-void DedicatedEffect::do_update(
-    ALCdevice* device,
-    const struct ALeffectslot* slot,
-    const union ALeffectProps *props)
-{
-    ALfloat Gain;
-    ALuint i;
-
-    for (i = 0; i < MAX_OUTPUT_CHANNELS; i++)
-        gains_[i] = 0.0f;
-
-    Gain = props->dedicated.gain;
-    if (slot->params.effect_type == AL_EFFECT_DEDICATED_LOW_FREQUENCY_EFFECT)
-    {
-        int idx;
-        if ((idx = GetChannelIdxByName(device->real_out, LFE)) != -1)
-        {
-            out_buffer = device->real_out.buffer;
-            out_channels = device->real_out.num_channels;
-            gains_[idx] = Gain;
-        }
-    }
-    else if (slot->params.effect_type == AL_EFFECT_DEDICATED_DIALOGUE)
-    {
-        int idx;
-        /* Dialog goes to the front-center speaker if it exists, otherwise it
-        * plays from the front-center location. */
-        if ((idx = GetChannelIdxByName(device->real_out, FrontCenter)) != -1)
-        {
-            out_buffer = device->real_out.buffer;
-            out_channels = device->real_out.num_channels;
-            gains_[idx] = Gain;
-        }
-        else
-        {
-            ALfloat coeffs[MAX_AMBI_COEFFS];
-            CalcAngleCoeffs(0.0f, 0.0f, 0.0f, coeffs);
-
-            out_buffer = &device->dry.buffer;
-            out_channels = device->dry.num_channels;
-            ComputePanningGains(device->dry, coeffs, Gain, gains_);
-        }
-    }
-}
-
-void DedicatedEffect::do_process(
-    const ALsizei sample_count,
-    const SampleBuffers& src_samples,
-    SampleBuffers& dst_samples,
-    const ALsizei channel_count)
-{
-    for (int c = 0; c < channel_count; c++)
-    {
-        const ALfloat gain = gains_[c];
-        if (!(fabsf(gain) > GAIN_SILENCE_THRESHOLD))
-            continue;
-
-        for (int i = 0; i < sample_count; i++)
-            dst_samples[c][i] += src_samples[0][i] * gain;
-    }
-}
 
 IEffect* create_dedicated_effect()
 {
