@@ -289,7 +289,7 @@ int main()
     }
 #endif
 
-#if 1
+#if 0
     if (is_succeed)
     {
         InitEffectParams(oal_device->effect, AL_EFFECT_EQUALIZER);
@@ -309,6 +309,25 @@ int main()
         oal_props->equalizer.mid2_center = AL_EQUALIZER_DEFAULT_MID2_CENTER;
         oal_props->equalizer.mid2_gain = AL_EQUALIZER_DEFAULT_MID2_GAIN;
         oal_props->equalizer.mid2_width = AL_EQUALIZER_DEFAULT_MID2_WIDTH;
+    }
+#endif
+
+#if 1
+    if (is_succeed)
+    {
+        InitEffectParams(oal_device->effect, AL_EFFECT_FLANGER);
+        UpdateEffectSlotProps(oal_device->effect_slot);
+    }
+
+    if (is_succeed)
+    {
+        auto oal_props = &oal_device->effect->props;
+        oal_props->flanger.delay = AL_FLANGER_DEFAULT_DELAY;
+        oal_props->flanger.depth = AL_FLANGER_DEFAULT_DEPTH;
+        oal_props->flanger.feedback = AL_FLANGER_DEFAULT_FEEDBACK;
+        oal_props->flanger.phase = AL_FLANGER_DEFAULT_PHASE;
+        oal_props->flanger.rate = AL_FLANGER_DEFAULT_RATE;
+        oal_props->flanger.waveform = AL_FLANGER_DEFAULT_WAVEFORM;
     }
 #endif
 
