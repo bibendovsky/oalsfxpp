@@ -206,7 +206,7 @@ int main()
     }
 #endif
 
-#if 1
+#if 0
     if (is_succeed)
     {
         InitEffectParams(oal_device->effect, AL_EFFECT_CHORUS);
@@ -222,6 +222,20 @@ int main()
         oal_props->chorus.phase = AL_CHORUS_DEFAULT_PHASE;
         oal_props->chorus.rate = AL_CHORUS_DEFAULT_RATE;
         oal_props->chorus.waveform = AL_CHORUS_DEFAULT_WAVEFORM;
+    }
+#endif
+
+#if 1
+    if (is_succeed)
+    {
+        InitEffectParams(oal_device->effect, AL_EFFECT_COMPRESSOR);
+        UpdateEffectSlotProps(oal_device->effect_slot);
+    }
+
+    if (is_succeed)
+    {
+        ALeffectProps* oal_props = &oal_device->effect->props;
+        oal_props->compressor.on_off = AL_TRUE;
     }
 #endif
 
