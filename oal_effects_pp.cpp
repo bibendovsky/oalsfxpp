@@ -225,7 +225,7 @@ int main()
     }
 #endif
 
-#if 1
+#if 0
     if (is_succeed)
     {
         InitEffectParams(oal_device->effect, AL_EFFECT_COMPRESSOR);
@@ -236,6 +236,20 @@ int main()
     {
         ALeffectProps* oal_props = &oal_device->effect->props;
         oal_props->compressor.on_off = AL_TRUE;
+    }
+#endif
+
+#if 1
+    if (is_succeed)
+    {
+        InitEffectParams(oal_device->effect, AL_EFFECT_DEDICATED_DIALOGUE);
+        UpdateEffectSlotProps(oal_device->effect_slot);
+    }
+
+    if (is_succeed)
+    {
+        ALeffectProps* oal_props = &oal_device->effect->props;
+        oal_props->dedicated.gain = 1.0F;
     }
 #endif
 
