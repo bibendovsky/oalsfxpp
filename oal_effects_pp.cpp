@@ -239,7 +239,7 @@ int main()
     }
 #endif
 
-#if 1
+#if 0
     if (is_succeed)
     {
         InitEffectParams(oal_device->effect, AL_EFFECT_DEDICATED_DIALOGUE);
@@ -250,6 +250,24 @@ int main()
     {
         ALeffectProps* oal_props = &oal_device->effect->props;
         oal_props->dedicated.gain = 1.0F;
+    }
+#endif
+
+#if 1
+    if (is_succeed)
+    {
+        InitEffectParams(oal_device->effect, AL_EFFECT_DISTORTION);
+        UpdateEffectSlotProps(oal_device->effect_slot);
+    }
+
+    if (is_succeed)
+    {
+        ALeffectProps* oal_props = &oal_device->effect->props;
+        oal_props->distortion.edge = AL_DISTORTION_DEFAULT_EDGE;
+        oal_props->distortion.eq_bandwidth = AL_DISTORTION_DEFAULT_EQBANDWIDTH;
+        oal_props->distortion.eq_center = AL_DISTORTION_DEFAULT_EQCENTER;
+        oal_props->distortion.gain = AL_DISTORTION_DEFAULT_GAIN;
+        oal_props->distortion.lowpass_cutoff = AL_DISTORTION_DEFAULT_LOWPASS_CUTOFF;
     }
 #endif
 
