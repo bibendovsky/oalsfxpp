@@ -19,6 +19,8 @@
  */
 
 
+#include <algorithm>
+#include <array>
 #include "config.h"
 #include "alu.h"
 
@@ -43,167 +45,159 @@ public:
     }
 
 
+protected:
+    void DistortionEffect::do_construct() final
+    {
+        ALfilterState_clear(&low_pass_);
+        ALfilterState_clear(&band_pass_);
+    }
+
+    void DistortionEffect::do_destruct() final
+    {
+    }
+
+    ALboolean DistortionEffect::do_update_device(
+        ALCdevice* device) final
+    {
+        static_cast<void>(device);
+        return AL_TRUE;
+    }
+
+    void DistortionEffect::do_update(
+        ALCdevice* device,
+        const struct ALeffectslot* slot,
+        const union ALeffectProps* props) final
+    {
+        const auto frequency = static_cast<float>(device->frequency);
+
+        // Store distorted signal attenuation settings.
+        attenuation_ = props->distortion.gain;
+
+        // Store waveshaper edge settings.
+        auto edge = std::sin(props->distortion.edge * (F_PI_2));
+        edge = std::min(edge, 0.99F);
+        edge_coeff_ = 2.0F * edge / (1.0F - edge);
+
+        auto cutoff = props->distortion.lowpass_cutoff;
+
+        // Bandwidth value is constant in octaves.
+        auto bandwidth = (cutoff / 2.0F) / (cutoff * 0.67F);
+
+        // Multiply sampling frequency by the amount of oversampling done during
+        // processing.
+        ALfilterState_setParams(
+            &low_pass_,
+            ALfilterType_LowPass, 1.0F,
+            cutoff / (frequency * 4.0F),
+            calc_rcpQ_from_bandwidth(cutoff / (frequency * 4.0F), bandwidth));
+
+        cutoff = props->distortion.eq_center;
+
+        // Convert bandwidth in Hz to octaves.
+        bandwidth = props->distortion.eq_bandwidth / (cutoff * 0.67F);
+
+        ALfilterState_setParams(
+            &band_pass_,
+            ALfilterType_BandPass,
+            1.0F,
+            cutoff / (frequency * 4.0F),
+            calc_rcpQ_from_bandwidth(cutoff / (frequency * 4.0F), bandwidth));
+
+        ComputeAmbientGains(device->dry, 1.0F, gains_.data());
+    }
+
+    void DistortionEffect::do_process(
+        const ALsizei sample_count,
+        const SampleBuffers& src_samples,
+        SampleBuffers& dst_samples,
+        const ALsizei channel_count) final
+    {
+        const auto fc = edge_coeff_;
+
+        for (int base = 0; base < sample_count; )
+        {
+            float buffer[2][64 * 4];
+
+            const auto td = std::min(64, sample_count - base);
+
+            // Perform 4x oversampling to avoid aliasing. Oversampling greatly
+            // improves distortion quality and allows to implement lowpass and
+            // bandpass filters using high frequencies, at which classic IIR
+            // filters became unstable.
+
+            // Fill oversample buffer using zero stuffing.
+            for (int it = 0; it < td; ++it)
+            {
+                // Multiply the sample by the amount of oversampling to maintain
+                // the signal's power.
+
+                buffer[0][(it * 4) + 0] = src_samples[0][it + base] * 4.0F;
+                buffer[0][(it * 4) + 1] = 0.0F;
+                buffer[0][(it * 4) + 2] = 0.0F;
+                buffer[0][(it * 4) + 3] = 0.0F;
+            }
+
+            // First step, do lowpass filtering of original signal. Additionally
+            // perform buffer interpolation and lowpass cutoff for oversampling
+            // (which is fortunately first step of distortion). So combine three
+            // operations into the one.
+            ALfilterState_processC(&low_pass_, buffer[1], buffer[0], td * 4);
+
+            // Second step, do distortion using waveshaper function to emulate
+            // signal processing during tube overdriving. Three steps of
+            // waveshaping are intended to modify waveform without boost/clipping/
+            // attenuation process.
+            for (int it = 0; it < td * 4; it++)
+            {
+                auto smp = buffer[1][it];
+
+                smp = (1.0F + fc) * smp / (1.0F + (fc * std::abs(smp)));
+                smp = (1.0F + fc) * smp / (1.0F + (fc * std::abs(smp))) * -1.0F;
+                smp = (1.0F + fc) * smp / (1.0F + (fc * std::abs(smp)));
+
+                buffer[0][it] = smp;
+            }
+
+            // Third step, do bandpass filtering of distorted signal.
+            ALfilterState_processC(&band_pass_, buffer[1], buffer[0], td * 4);
+
+            for (int kt = 0; kt < channel_count; ++kt)
+            {
+                // Fourth step, final, do attenuation and perform decimation,
+                // store only one sample out of 4.
+
+                const auto gain = gains_[kt] * attenuation_;
+
+                if (!(std::abs(gain) > GAIN_SILENCE_THRESHOLD))
+                {
+                    continue;
+                }
+
+                for (int it = 0; it < td; ++it)
+                {
+                    dst_samples[kt][base + it] += gain * buffer[1][it * 4];
+                }
+            }
+
+            base += td;
+        }
+    }
+
+
+private:
+    using Gains = std::array<float, MAX_OUTPUT_CHANNELS>;
+
+
     // Effect gains for each channel
-    ALfloat gains_[MAX_OUTPUT_CHANNELS];
+    Gains gains_;
 
     // Effect parameters
     ALfilterState low_pass_;
     ALfilterState band_pass_;
     ALfloat attenuation_;
     ALfloat edge_coeff_;
-
-
-protected:
-    void do_construct() final;
-
-    void do_destruct() final;
-
-    ALboolean do_update_device(
-        ALCdevice* device) final;
-
-    void do_update(
-        ALCdevice* device,
-        const struct ALeffectslot* slot,
-        const union ALeffectProps *props) final;
-
-    void do_process(
-        const ALsizei sample_count,
-        const SampleBuffers& src_samples,
-        SampleBuffers& dst_samples,
-        const ALsizei channel_count) final;
 }; // DistortionEffect
 
-
-void DistortionEffect::do_construct()
-{
-    ALfilterState_clear(&low_pass_);
-    ALfilterState_clear(&band_pass_);
-}
-
-void DistortionEffect::do_destruct()
-{
-}
-
-ALboolean DistortionEffect::do_update_device(
-    ALCdevice* device)
-{
-    static_cast<void>(device);
-    return AL_TRUE;
-}
-
-void DistortionEffect::do_update(
-    ALCdevice* device,
-    const struct ALeffectslot* slot,
-    const union ALeffectProps *props)
-{
-    const auto frequency = static_cast<ALfloat>(device->frequency);
-    ALfloat bandwidth;
-    ALfloat cutoff;
-    ALfloat edge;
-
-    /* Store distorted signal attenuation settings. */
-    attenuation_ = props->distortion.gain;
-
-    /* Store waveshaper edge settings. */
-    edge = sinf(props->distortion.edge * (F_PI_2));
-    edge = minf(edge, 0.99f);
-    edge_coeff_ = 2.0f * edge / (1.0f - edge);
-
-    cutoff = props->distortion.lowpass_cutoff;
-    /* Bandwidth value is constant in octaves. */
-    bandwidth = (cutoff / 2.0f) / (cutoff * 0.67f);
-    /* Multiply sampling frequency by the amount of oversampling done during
-    * processing.
-    */
-    ALfilterState_setParams(&low_pass_, ALfilterType_LowPass, 1.0f,
-        cutoff / (frequency*4.0f), calc_rcpQ_from_bandwidth(cutoff / (frequency*4.0f), bandwidth)
-    );
-
-    cutoff = props->distortion.eq_center;
-    /* Convert bandwidth in Hz to octaves. */
-    bandwidth = props->distortion.eq_bandwidth / (cutoff * 0.67f);
-    ALfilterState_setParams(&band_pass_, ALfilterType_BandPass, 1.0f,
-        cutoff / (frequency*4.0f), calc_rcpQ_from_bandwidth(cutoff / (frequency*4.0f), bandwidth)
-    );
-
-    ComputeAmbientGains(device->dry, 1.0F, gains_);
-}
-
-void DistortionEffect::do_process(
-    const ALsizei sample_count,
-    const SampleBuffers& src_samples,
-    SampleBuffers& dst_samples,
-    const ALsizei channel_count)
-{
-    const ALfloat fc = edge_coeff_;
-    ALsizei it, kt;
-    ALsizei base;
-
-    for (base = 0; base < sample_count;)
-    {
-        float buffer[2][64 * 4];
-        ALsizei td = mini(64, sample_count - base);
-
-        /* Perform 4x oversampling to avoid aliasing. Oversampling greatly
-        * improves distortion quality and allows to implement lowpass and
-        * bandpass filters using high frequencies, at which classic IIR
-        * filters became unstable.
-        */
-
-        /* Fill oversample buffer using zero stuffing. */
-        for (it = 0; it < td; it++)
-        {
-            /* Multiply the sample by the amount of oversampling to maintain
-            * the signal's power.
-            */
-            buffer[0][it * 4 + 0] = src_samples[0][it + base] * 4.0f;
-            buffer[0][it * 4 + 1] = 0.0f;
-            buffer[0][it * 4 + 2] = 0.0f;
-            buffer[0][it * 4 + 3] = 0.0f;
-        }
-
-        /* First step, do lowpass filtering of original signal. Additionally
-        * perform buffer interpolation and lowpass cutoff for oversampling
-        * (which is fortunately first step of distortion). So combine three
-        * operations into the one.
-        */
-        ALfilterState_processC(&low_pass_, buffer[1], buffer[0], td * 4);
-
-        /* Second step, do distortion using waveshaper function to emulate
-        * signal processing during tube overdriving. Three steps of
-        * waveshaping are intended to modify waveform without boost/clipping/
-        * attenuation process.
-        */
-        for (it = 0; it < td * 4; it++)
-        {
-            ALfloat smp = buffer[1][it];
-
-            smp = (1.0f + fc) * smp / (1.0f + fc*fabsf(smp));
-            smp = (1.0f + fc) * smp / (1.0f + fc*fabsf(smp)) * -1.0f;
-            smp = (1.0f + fc) * smp / (1.0f + fc*fabsf(smp));
-
-            buffer[0][it] = smp;
-        }
-
-        /* Third step, do bandpass filtering of distorted signal. */
-        ALfilterState_processC(&band_pass_, buffer[1], buffer[0], td * 4);
-
-        for (kt = 0; kt < channel_count; kt++)
-        {
-            /* Fourth step, final, do attenuation and perform decimation,
-            * store only one sample out of 4.
-            */
-            ALfloat gain = gains_[kt] * attenuation_;
-            if (!(fabsf(gain) > GAIN_SILENCE_THRESHOLD))
-                continue;
-
-            for (it = 0; it < td; it++)
-                dst_samples[kt][base + it] += gain * buffer[1][it * 4];
-        }
-
-        base += td;
-    }
-}
 
 IEffect* create_distortion_effect()
 {
