@@ -271,7 +271,7 @@ int main()
     }
 #endif
 
-#if 1
+#if 0
     if (is_succeed)
     {
         InitEffectParams(oal_device->effect, AL_EFFECT_ECHO);
@@ -286,6 +286,29 @@ int main()
         oal_props->echo.feedback = AL_ECHO_DEFAULT_FEEDBACK;
         oal_props->echo.lr_delay = AL_ECHO_DEFAULT_LRDELAY;
         oal_props->echo.spread = AL_ECHO_DEFAULT_SPREAD;
+    }
+#endif
+
+#if 1
+    if (is_succeed)
+    {
+        InitEffectParams(oal_device->effect, AL_EFFECT_EQUALIZER);
+        UpdateEffectSlotProps(oal_device->effect_slot);
+    }
+
+    if (is_succeed)
+    {
+        auto oal_props = &oal_device->effect->props;
+        oal_props->equalizer.high_cutoff = AL_EQUALIZER_DEFAULT_HIGH_CUTOFF;
+        oal_props->equalizer.high_gain = AL_EQUALIZER_DEFAULT_HIGH_GAIN;
+        oal_props->equalizer.low_cutoff = AL_EQUALIZER_DEFAULT_LOW_CUTOFF;
+        oal_props->equalizer.low_gain = AL_EQUALIZER_DEFAULT_LOW_GAIN;
+        oal_props->equalizer.mid1_center = AL_EQUALIZER_DEFAULT_MID1_CENTER;
+        oal_props->equalizer.mid1_gain = AL_EQUALIZER_DEFAULT_MID1_GAIN;
+        oal_props->equalizer.mid1_width = AL_EQUALIZER_DEFAULT_MID1_WIDTH;
+        oal_props->equalizer.mid2_center = AL_EQUALIZER_DEFAULT_MID2_CENTER;
+        oal_props->equalizer.mid2_gain = AL_EQUALIZER_DEFAULT_MID2_GAIN;
+        oal_props->equalizer.mid2_width = AL_EQUALIZER_DEFAULT_MID2_WIDTH;
     }
 #endif
 
