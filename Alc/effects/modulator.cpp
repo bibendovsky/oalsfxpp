@@ -18,6 +18,7 @@
  * Or go to http://www.gnu.org/copyleft/lgpl.html
  */
 
+
 #include "config.h"
 #include "alu.h"
 
@@ -29,7 +30,7 @@ public:
     ModulatorEffect()
         :
         IEffect{},
-        process_{},
+        process_func_{},
         index_{},
         step_{},
         gains_{},
@@ -42,204 +43,211 @@ public:
     }
 
 
-    void (*process_)(ALfloat*, const ALfloat* const, ALsizei, const ALsizei, const ALsizei);
-    ALsizei index_;
-    ALsizei step_;
-    ALfloat gains_[MAX_EFFECT_CHANNELS][MAX_OUTPUT_CHANNELS];
-    ALfilterState filters_[MAX_EFFECT_CHANNELS];
-
-
 protected:
-    void do_construct() final;
+    void ModulatorEffect::do_construct() final
+    {
+        index_ = 0;
+        step_ = 1;
 
-    void do_destruct() final;
+        for (int i = 0; i < MAX_EFFECT_CHANNELS; ++i)
+        {
+            ALfilterState_clear(&filters_[i]);
+        }
+    }
 
-    ALboolean do_update_device(
-        ALCdevice* device) final;
+    void ModulatorEffect::do_destruct() final
+    {
+    }
 
-    void do_update(
+    ALboolean ModulatorEffect::do_update_device(
+        ALCdevice* device) final
+    {
+        static_cast<void>(device);
+        return AL_TRUE;
+    }
+
+    void ModulatorEffect::do_update(
         ALCdevice* device,
         const struct ALeffectslot* slot,
-        const union ALeffectProps *props) final;
+        const union ALeffectProps* props) final
+    {
+        if (props->modulator.waveform == AL_RING_MODULATOR_SINUSOID)
+        {
+            process_func_ = modulate_sin;
+        }
+        else if (props->modulator.waveform == AL_RING_MODULATOR_SAWTOOTH)
+        {
+            process_func_ = modulate_saw;
+        }
+        else
+        {
+            process_func_ = modulate_square;
+        }
 
-    void do_process(
+        step_ = fastf2i(props->modulator.frequency * WAVEFORM_FRACONE / device->frequency);
+
+        if (step_ == 0)
+        {
+            step_ = 1;
+        }
+
+        // Custom filter coeffs, which match the old version instead of a low-shelf.
+        const auto cw = std::cos(F_TAU * props->modulator.high_pass_cutoff / device->frequency);
+        const auto a = (2.0F - cw) - std::sqrt(std::pow(2.0F - cw, 2.0F) - 1.0F);
+
+        for (int i = 0; i < MAX_EFFECT_CHANNELS; ++i)
+        {
+            filters_[i].b0 = a;
+            filters_[i].b1 = -a;
+            filters_[i].b2 = 0.0F;
+            filters_[i].a1 = -a;
+            filters_[i].a2 = 0.0F;
+        }
+
+        out_buffer = device->foa_out.buffer;
+        out_channels = device->foa_out.num_channels;
+
+        for (int i = 0; i < MAX_EFFECT_CHANNELS; ++i)
+        {
+            ComputeFirstOrderGains(device->foa_out, IdentityMatrixf.m[i], 1.0F, gains_[i].data());
+        }
+    }
+
+    void ModulatorEffect::do_process(
         const ALsizei sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
-        const ALsizei channel_count) final;
+        const ALsizei channel_count) final
+    {
+        for (int base = 0; base < sample_count; )
+        {
+            float temps[2][128];
+            const auto td = std::min(128, sample_count - base);
+
+            for (int j = 0; j < MAX_EFFECT_CHANNELS; ++j)
+            {
+                ALfilterState_processC(&filters_[j], temps[0], &src_samples[j][base], td);
+                process_func_(temps[1], temps[0], index_, step_, td);
+
+                for (int k = 0; k < channel_count; ++k)
+                {
+                    const auto gain = gains_[j][k];
+
+                    if (!(std::abs(gain) > GAIN_SILENCE_THRESHOLD))
+                    {
+                        continue;
+                    }
+
+                    for (int i = 0; i < td; ++i)
+                    {
+                        dst_samples[k][base + i] += gain * temps[1][i];
+                    }
+                }
+            }
+
+            for (int i = 0; i < td; ++i)
+            {
+                index_ += step_;
+                index_ &= WAVEFORM_FRACMASK;
+            }
+
+            base += td;
+        }
+    }
+
+
+private:
+    static constexpr auto WAVEFORM_FRACBITS = 24;
+    static constexpr auto WAVEFORM_FRACONE = 1 << WAVEFORM_FRACBITS;
+    static constexpr auto WAVEFORM_FRACMASK = WAVEFORM_FRACONE - 1;
+
+
+    using Gains = MdArray<float, MAX_EFFECT_CHANNELS, MAX_OUTPUT_CHANNELS>;
+    using Filters = std::array<ALfilterState, MAX_EFFECT_CHANNELS>;
+
+    using ModulateFunc = float (*)(
+        const int index);
+
+    using ProcessFunc = void (*)(
+        float* const dst,
+        const float* const src,
+        int index,
+        const int step,
+        const int todo);
+
+
+    ProcessFunc process_func_;
+    ALsizei index_;
+    ALsizei step_;
+    Gains gains_;
+    Filters filters_;
+
+
+    static float sin_func(
+        const int index)
+    {
+        return std::sin(index * (F_TAU / WAVEFORM_FRACONE) - F_PI) * 0.5F + 0.5F;
+    }
+
+    static float saw_func(
+        const int index)
+    {
+        return static_cast<float>(index) / WAVEFORM_FRACONE;
+    }
+
+    static float square_func(
+        const int index)
+    {
+        return static_cast<float>((index >> (WAVEFORM_FRACBITS - 1)) & 1);
+    }
+
+    static void modulate(
+        const ModulateFunc func,
+        float* const dst,
+        const float* const src,
+        int index,
+        const int step,
+        const int todo)
+    {
+        for (int i = 0; i < todo; ++i)
+        {
+            index += step;
+            index &= WAVEFORM_FRACMASK;
+            dst[i] = src[i] * func(index);
+        }
+    }
+
+    static void modulate_sin(
+        float* const dst,
+        const float* const src,
+        int index,
+        const int step,
+        const int todo)
+    {
+        modulate(sin_func, dst, src, index, step, todo);
+    }
+
+    static void modulate_saw(
+        float* const dst,
+        const float* const src,
+        int index,
+        const int step,
+        const int todo)
+    {
+        modulate(saw_func, dst, src, index, step, todo);
+    }
+
+    static void modulate_square(
+        float* const dst,
+        const float* const src,
+        int index,
+        const int step,
+        const int todo)
+    {
+        modulate(square_func, dst, src, index, step, todo);
+    }
 }; // ModulatorEffect
 
-
-
-constexpr auto WAVEFORM_FRACBITS = 24;
-constexpr auto WAVEFORM_FRACONE = 1<<WAVEFORM_FRACBITS;
-constexpr auto WAVEFORM_FRACMASK = WAVEFORM_FRACONE-1;
-
-
-static inline ALfloat Sin(const ALsizei index)
-{
-    return sinf(index*(F_TAU/WAVEFORM_FRACONE) - F_PI)*0.5f + 0.5f;
-}
-
-static inline ALfloat Saw(const ALsizei index)
-{
-    return (ALfloat)index / WAVEFORM_FRACONE;
-}
-
-static inline ALfloat Square(const ALsizei index)
-{
-    return (ALfloat)((index >> (WAVEFORM_FRACBITS - 1)) & 1);
-}
-
-
-using ModulateFunc = ALfloat (*)(const ALsizei index);
-
-static void Modulate(
-    const ModulateFunc func,
-    ALfloat* const dst,
-    const ALfloat* const src,
-    ALsizei index,
-    const ALsizei step,
-    const ALsizei todo)
-{
-    for (ALsizei i = 0; i < todo; ++i)
-    {
-        index += step;
-        index &= WAVEFORM_FRACMASK;
-        dst[i] = src[i] * func(index);
-    }
-}
-
-static void ModulateSin(
-    ALfloat* const dst,
-    const ALfloat* const src,
-    ALsizei index,
-    const ALsizei step,
-    const ALsizei todo)
-{
-    Modulate(Sin, dst, src, index, step, todo);
-}
-
-static void ModulateSaw(
-    ALfloat* const dst,
-    const ALfloat* const src,
-    ALsizei index,
-    const ALsizei step,
-    const ALsizei todo)
-{
-    Modulate(Saw, dst, src, index, step, todo);
-}
-
-static void ModulateSquare(
-    ALfloat* const dst,
-    const ALfloat* const src,
-    ALsizei index,
-    const ALsizei step,
-    const ALsizei todo)
-{
-    Modulate(Square, dst, src, index, step, todo);
-}
-
-
-void ModulatorEffect::do_construct()
-{
-    index_ = 0;
-    step_ = 1;
-
-    for (int i = 0; i < MAX_EFFECT_CHANNELS; ++i)
-    {
-        ALfilterState_clear(&filters_[i]);
-    }
-}
-
-void ModulatorEffect::do_destruct()
-{
-}
-
-ALboolean ModulatorEffect::do_update_device(
-    ALCdevice* device)
-{
-    static_cast<void>(device);
-    return AL_TRUE;
-}
-
-void ModulatorEffect::do_update(
-    ALCdevice* device,
-    const struct ALeffectslot* slot,
-    const union ALeffectProps *props)
-{
-    ALfloat cw, a;
-    ALsizei i;
-
-    if (props->modulator.waveform == AL_RING_MODULATOR_SINUSOID)
-        process_ = ModulateSin;
-    else if (props->modulator.waveform == AL_RING_MODULATOR_SAWTOOTH)
-        process_ = ModulateSaw;
-    else /*if(Slot->Params.EffectProps.Modulator.Waveform == AL_RING_MODULATOR_SQUARE)*/
-        process_ = ModulateSquare;
-
-    step_ = fastf2i(props->modulator.frequency*WAVEFORM_FRACONE /
-        device->frequency);
-    if (step_ == 0) step_ = 1;
-
-    /* Custom filter coeffs, which match the old version instead of a low-shelf. */
-    cw = cosf(F_TAU * props->modulator.high_pass_cutoff / device->frequency);
-    a = (2.0f - cw) - sqrtf(powf(2.0f - cw, 2.0f) - 1.0f);
-
-    for (i = 0; i < MAX_EFFECT_CHANNELS; i++)
-    {
-        filters_[i].b0 = a;
-        filters_[i].b1 = -a;
-        filters_[i].b2 = 0.0f;
-        filters_[i].a1 = -a;
-        filters_[i].a2 = 0.0f;
-    }
-
-    out_buffer = device->foa_out.buffer;
-    out_channels = device->foa_out.num_channels;
-    for (i = 0; i < MAX_EFFECT_CHANNELS; i++)
-        ComputeFirstOrderGains(device->foa_out, IdentityMatrixf.m[i],
-            1.0F, gains_[i]);
-}
-
-void ModulatorEffect::do_process(
-    const ALsizei sample_count,
-    const SampleBuffers& src_samples,
-    SampleBuffers& dst_samples,
-    const ALsizei channel_count)
-{
-    ALsizei base;
-
-    for (base = 0; base < sample_count;)
-    {
-        ALfloat temps[2][128];
-        ALsizei td = mini(128, sample_count - base);
-        ALsizei i, j, k;
-
-        for (j = 0; j < MAX_EFFECT_CHANNELS; j++)
-        {
-            ALfilterState_processC(&filters_[j], temps[0], &src_samples[j][base], td);
-            process_(temps[1], temps[0], index_, step_, td);
-
-            for (k = 0; k < channel_count; k++)
-            {
-                ALfloat gain = gains_[j][k];
-                if (!(fabsf(gain) > GAIN_SILENCE_THRESHOLD))
-                    continue;
-
-                for (i = 0; i < td; i++)
-                    dst_samples[k][base + i] += gain * temps[1][i];
-            }
-        }
-
-        for (i = 0; i < td; i++)
-        {
-            index_ += step_;
-            index_ &= WAVEFORM_FRACMASK;
-        }
-        base += td;
-    }
-}
 
 IEffect* create_modulator_effect()
 {
