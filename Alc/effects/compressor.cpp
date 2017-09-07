@@ -45,7 +45,7 @@ public:
 
 
 protected:
-    void CompressorEffect::do_construct()
+    void CompressorEffect::do_construct() final
     {
         is_enabled_ = true;
         attack_rate_ = 0.0F;
@@ -53,12 +53,12 @@ protected:
         gain_control_ = 1.0F;
     }
 
-    void CompressorEffect::do_destruct()
+    void CompressorEffect::do_destruct() final
     {
     }
 
     ALboolean CompressorEffect::do_update_device(
-        ALCdevice* device)
+        ALCdevice* device) final
     {
         const auto attackTime = device->frequency * 0.2F; // 200ms Attack
         const auto releaseTime = device->frequency * 0.4F; // 400ms Release
@@ -72,7 +72,7 @@ protected:
     void CompressorEffect::do_update(
         ALCdevice* device,
         const struct ALeffectslot* slot,
-        const union ALeffectProps* props)
+        const union ALeffectProps* props) final
     {
         is_enabled_ = (props->compressor.on_off != AL_FALSE);
 
@@ -89,7 +89,7 @@ protected:
         const ALsizei sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
-        const ALsizei channel_count)
+        const ALsizei channel_count) final
     {
         for (int base = 0; base < sample_count; )
         {
