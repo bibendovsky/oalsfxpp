@@ -174,7 +174,7 @@ int main()
     if (is_succeed)
     {
         EFXEAXREVERBPROPERTIES props = EFX_REVERB_PRESET_BATHROOM;
-        ALeffectProps* oal_props = &oal_device->effect->props;
+        auto oal_props = &oal_device->effect->props;
 
         oal_props->reverb.density = props.flDensity;
         oal_props->reverb.diffusion = props.flDiffusion;
@@ -215,7 +215,7 @@ int main()
 
     if (is_succeed)
     {
-        ALeffectProps* oal_props = &oal_device->effect->props;
+        auto oal_props = &oal_device->effect->props;
         oal_props->chorus.delay = AL_CHORUS_DEFAULT_DELAY;
         oal_props->chorus.depth = AL_CHORUS_DEFAULT_DEPTH;
         oal_props->chorus.feedback = AL_CHORUS_DEFAULT_FEEDBACK;
@@ -234,7 +234,7 @@ int main()
 
     if (is_succeed)
     {
-        ALeffectProps* oal_props = &oal_device->effect->props;
+        auto oal_props = &oal_device->effect->props;
         oal_props->compressor.on_off = AL_TRUE;
     }
 #endif
@@ -248,12 +248,12 @@ int main()
 
     if (is_succeed)
     {
-        ALeffectProps* oal_props = &oal_device->effect->props;
+        auto oal_props = &oal_device->effect->props;
         oal_props->dedicated.gain = 1.0F;
     }
 #endif
 
-#if 1
+#if 0
     if (is_succeed)
     {
         InitEffectParams(oal_device->effect, AL_EFFECT_DISTORTION);
@@ -262,12 +262,30 @@ int main()
 
     if (is_succeed)
     {
-        ALeffectProps* oal_props = &oal_device->effect->props;
+        auto oal_props = &oal_device->effect->props;
         oal_props->distortion.edge = AL_DISTORTION_DEFAULT_EDGE;
         oal_props->distortion.eq_bandwidth = AL_DISTORTION_DEFAULT_EQBANDWIDTH;
         oal_props->distortion.eq_center = AL_DISTORTION_DEFAULT_EQCENTER;
         oal_props->distortion.gain = AL_DISTORTION_DEFAULT_GAIN;
         oal_props->distortion.lowpass_cutoff = AL_DISTORTION_DEFAULT_LOWPASS_CUTOFF;
+    }
+#endif
+
+#if 1
+    if (is_succeed)
+    {
+        InitEffectParams(oal_device->effect, AL_EFFECT_ECHO);
+        UpdateEffectSlotProps(oal_device->effect_slot);
+    }
+
+    if (is_succeed)
+    {
+        auto oal_props = &oal_device->effect->props;
+        oal_props->echo.damping = AL_ECHO_DEFAULT_DAMPING;
+        oal_props->echo.delay = AL_ECHO_DEFAULT_DELAY;
+        oal_props->echo.feedback = AL_ECHO_DEFAULT_FEEDBACK;
+        oal_props->echo.lr_delay = AL_ECHO_DEFAULT_LRDELAY;
+        oal_props->echo.spread = AL_ECHO_DEFAULT_SPREAD;
     }
 #endif
 
