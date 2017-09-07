@@ -312,7 +312,7 @@ int main()
     }
 #endif
 
-#if 1
+#if 0
     if (is_succeed)
     {
         InitEffectParams(oal_device->effect, AL_EFFECT_FLANGER);
@@ -328,6 +328,22 @@ int main()
         oal_props->flanger.phase = AL_FLANGER_DEFAULT_PHASE;
         oal_props->flanger.rate = AL_FLANGER_DEFAULT_RATE;
         oal_props->flanger.waveform = AL_FLANGER_DEFAULT_WAVEFORM;
+    }
+#endif
+
+#if 1
+    if (is_succeed)
+    {
+        InitEffectParams(oal_device->effect, AL_EFFECT_RING_MODULATOR);
+        UpdateEffectSlotProps(oal_device->effect_slot);
+    }
+
+    if (is_succeed)
+    {
+        auto oal_props = &oal_device->effect->props;
+        oal_props->modulator.frequency = AL_RING_MODULATOR_DEFAULT_FREQUENCY;
+        oal_props->modulator.high_pass_cutoff = AL_RING_MODULATOR_DEFAULT_HIGHPASS_CUTOFF;
+        oal_props->modulator.waveform = AL_RING_MODULATOR_DEFAULT_WAVEFORM;
     }
 #endif
 
