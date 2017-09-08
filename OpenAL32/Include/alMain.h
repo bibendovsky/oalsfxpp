@@ -14,12 +14,6 @@
 #include "AL/alext.h"
 
 
-/* Calculates the size of a struct with N elements of a flexible array member.
- * GCC and Clang allow offsetof(Type, fam[N]) for this, but MSVC seems to have
- * trouble, so a bit more verbose workaround is needed.
- */
-#define FAM_SIZE(T, M, N)  (offsetof(T, M) + sizeof(((T*)NULL)->M[0])*(N))
-
 template<typename T>
 constexpr int count_of(const T&)
 {
