@@ -68,7 +68,7 @@ protected:
 
         if (slot->params.effect_type == AL_EFFECT_DEDICATED_LOW_FREQUENCY_EFFECT)
         {
-            const auto idx = GetChannelIdxByName(device->real_out, LFE);
+            const auto idx = get_channel_index_by_name(device->real_out, LFE);
 
             if (idx != -1)
             {
@@ -79,7 +79,7 @@ protected:
         }
         else if (slot->params.effect_type == AL_EFFECT_DEDICATED_DIALOGUE)
         {
-            const auto idx = GetChannelIdxByName(device->real_out, FrontCenter);
+            const auto idx = get_channel_index_by_name(device->real_out, FrontCenter);
 
             // Dialog goes to the front-center speaker if it exists, otherwise it
             // plays from the front-center location.
@@ -94,12 +94,12 @@ protected:
             {
                 float coeffs[max_ambi_coeffs];
 
-                CalcAngleCoeffs(0.0F, 0.0F, 0.0F, coeffs);
+                calc_angle_coeffs(0.0F, 0.0F, 0.0F, coeffs);
 
                 out_buffer = &device->dry.buffers;
                 out_channels = device->dry.num_channels;
 
-                ComputePanningGains(device->dry, coeffs, gain, gains_.data());
+                compute_panning_gains(device->dry, coeffs, gain, gains_.data());
             }
         }
     }

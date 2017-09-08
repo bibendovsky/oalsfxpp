@@ -16,16 +16,16 @@
 #include "alSource.h"
 
 
-void InitEffectParams(
+void init_effect_params(
     ALeffect* effect,
     ALenum type);
 
-void UpdateSourceProps(
+void update_source_props(
     ALsource* source,
     ALvoice* voice,
     int num_sends);
 
-void aluMixData(
+void alu_mix_data(
     ALCdevice* device,
     void* OutBuffer,
     int NumSamples,
@@ -145,8 +145,8 @@ int main()
 #if 1
     if (is_succeed)
     {
-        InitEffectParams(oal_device->effect, AL_EFFECT_EAXREVERB);
-        UpdateEffectSlotProps(oal_device->effect_slot);
+        init_effect_params(oal_device->effect, AL_EFFECT_EAXREVERB);
+        update_effect_slot_props(oal_device->effect_slot);
     }
 
     if (is_succeed)
@@ -327,14 +327,14 @@ int main()
 
     if (is_succeed)
     {
-        InitializeEffect(oal_device, oal_device->effect_slot, oal_device->effect);
-        UpdateEffectSlotProps(oal_device->effect_slot);
+        initialize_effect(oal_device, oal_device->effect_slot, oal_device->effect);
+        update_effect_slot_props(oal_device->effect_slot);
     }
 
     if (is_succeed)
     {
         oal_device->source->send->slot = oal_device->effect_slot;
-        UpdateSourceProps(oal_device->source, oal_device->voice, 1);
+        update_source_props(oal_device->source, oal_device->voice, 1);
     }
 
     if (is_succeed)
@@ -374,7 +374,7 @@ int main()
             const int write_sample_count = sample_count < remain ? sample_count : remain;
             const int write_size = write_sample_count * 4 * channel_count;
 
-            aluMixData(oal_device, dst_buffer, sample_count, &src_buffer_f32[offset]);
+            alu_mix_data(oal_device, dst_buffer, sample_count, &src_buffer_f32[offset]);
 
             if (fwrite(dst_buffer, 1, write_size, dst_stream) != write_size)
             {

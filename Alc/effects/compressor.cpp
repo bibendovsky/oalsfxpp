@@ -79,7 +79,7 @@ protected:
 
         for (int i = 0; i < 4; ++i)
         {
-            ComputeFirstOrderGains(device->foa_out, IdentityMatrixf.m[i], 1.0F, gains_[i].data());
+            compute_first_order_gains(device->foa_out, identity_matrix_f.m[i], 1.0F, gains_[i].data());
         }
     }
 

@@ -60,11 +60,11 @@ struct ALeffectslot
 }; // ALeffectslot
 
 
-int InitEffectSlot(ALeffectslot* slot);
-void DeinitEffectSlot(ALeffectslot* slot);
-void UpdateEffectSlotProps(ALeffectslot* slot);
-void UpdateAllEffectSlotProps(ALCdevice* device);
-int InitializeEffect(ALCdevice* Device, ALeffectslot* EffectSlot, ALeffect* effect);
+int init_effect_slot(ALeffectslot* slot);
+void deinit_effect_slot(ALeffectslot* slot);
+void update_effect_slot_props(ALeffectslot* slot);
+void update_all_effect_slot_props(ALCdevice* device);
+int initialize_effect(ALCdevice* device, ALeffectslot* effect_slot, ALeffect* effect);
 
 
 template<typename T>

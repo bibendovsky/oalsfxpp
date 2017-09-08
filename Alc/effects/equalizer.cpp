@@ -92,7 +92,7 @@ protected:
         {
             for (int ft = 0; ft < max_effect_channels; ++ft)
             {
-                ALfilterState_clear(&filter_[it][ft]);
+                al_filter_state_clear(&filter_[it][ft]);
             }
         }
     }
@@ -121,7 +121,7 @@ protected:
 
         for (int i = 0; i < max_effect_channels; ++i)
         {
-            ComputeFirstOrderGains(device->foa_out, IdentityMatrixf.m[i], 1.0F, gains_[i].data());
+            compute_first_order_gains(device->foa_out, identity_matrix_f.m[i], 1.0F, gains_[i].data());
         }
 
         // Calculate coefficients for the each type of filter. Note that the shelf
@@ -130,62 +130,62 @@ protected:
         gain = std::max(std::sqrt(props->equalizer.low_gain), 0.0625F); // Limit -24dB
         freq_mult = props->equalizer.low_cutoff / frequency;
 
-        ALfilterState_setParams(
+        al_filter_state_set_params(
             &filter_[0][0],
             ALfilterType_LowShelf,
             gain,
             freq_mult,
-            calc_rcpQ_from_slope(gain, 0.75F));
+            calc_rcp_q_from_slope(gain, 0.75F));
 
         // Copy the filter coefficients for the other input channels.
         for (int i = 1; i < max_effect_channels; ++i)
         {
-            ALfilterState_copyParams(&filter_[0][i], &filter_[0][0]);
+            al_filter_state_copy_params(&filter_[0][i], &filter_[0][0]);
         }
 
         gain = std::max(props->equalizer.mid1_gain, 0.0625F);
         freq_mult = props->equalizer.mid1_center / frequency;
 
-        ALfilterState_setParams(
+        al_filter_state_set_params(
             &filter_[1][0],
             ALfilterType_Peaking,
             gain,
             freq_mult,
-            calc_rcpQ_from_bandwidth(freq_mult, props->equalizer.mid1_width));
+            calc_rcp_q_from_bandwidth(freq_mult, props->equalizer.mid1_width));
 
         for (int i = 1; i < max_effect_channels; ++i)
         {
-            ALfilterState_copyParams(&filter_[1][i], &filter_[1][0]);
+            al_filter_state_copy_params(&filter_[1][i], &filter_[1][0]);
         }
 
         gain = std::max(props->equalizer.mid2_gain, 0.0625F);
         freq_mult = props->equalizer.mid2_center / frequency;
 
-        ALfilterState_setParams(
+        al_filter_state_set_params(
             &filter_[2][0],
             ALfilterType_Peaking,
             gain,
             freq_mult,
-            calc_rcpQ_from_bandwidth(freq_mult, props->equalizer.mid2_width));
+            calc_rcp_q_from_bandwidth(freq_mult, props->equalizer.mid2_width));
 
         for (int i = 1; i < max_effect_channels; ++i)
         {
-            ALfilterState_copyParams(&filter_[2][i], &filter_[2][0]);
+            al_filter_state_copy_params(&filter_[2][i], &filter_[2][0]);
         }
 
         gain = std::max(std::sqrt(props->equalizer.high_gain), 0.0625F);
         freq_mult = props->equalizer.high_cutoff / frequency;
 
-        ALfilterState_setParams(
+        al_filter_state_set_params(
             &filter_[3][0],
             ALfilterType_HighShelf,
             gain,
             freq_mult,
-            calc_rcpQ_from_slope(gain, 0.75F));
+            calc_rcp_q_from_slope(gain, 0.75F));
 
         for (int i = 1; i < max_effect_channels; ++i)
         {
-            ALfilterState_copyParams(&filter_[3][i], &filter_[3][0]);
+            al_filter_state_copy_params(&filter_[3][i], &filter_[3][0]);
         }
     }
 
@@ -203,22 +203,22 @@ protected:
 
             for (int ft = 0; ft < max_effect_channels; ++ft)
             {
-                ALfilterState_processC(&filter_[0][ft], samples[0][ft].data(), &src_samples[ft][base], td);
+                al_filter_state_process_c(&filter_[0][ft], samples[0][ft].data(), &src_samples[ft][base], td);
             }
 
             for (int ft = 0; ft < max_effect_channels; ++ft)
             {
-                ALfilterState_processC(&filter_[1][ft], samples[1][ft].data(), samples[0][ft].data(), td);
+                al_filter_state_process_c(&filter_[1][ft], samples[1][ft].data(), samples[0][ft].data(), td);
             }
 
             for (int ft = 0; ft < max_effect_channels; ++ft)
             {
-                ALfilterState_processC(&filter_[2][ft], samples[2][ft].data(), samples[1][ft].data(), td);
+                al_filter_state_process_c(&filter_[2][ft], samples[2][ft].data(), samples[1][ft].data(), td);
             }
 
             for (int ft = 0; ft < max_effect_channels; ++ft)
             {
-                ALfilterState_processC(&filter_[3][ft], samples[3][ft].data(), samples[2][ft].data(), td);
+                al_filter_state_process_c(&filter_[3][ft], samples[3][ft].data(), samples[2][ft].data(), td);
             }
 
             for (int ft = 0; ft < max_effect_channels; ++ft)

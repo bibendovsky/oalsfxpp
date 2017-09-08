@@ -63,7 +63,7 @@ protected:
         taps_[1].delay = 0;
         offset_ = 0;
 
-        ALfilterState_clear(&filter_);
+        al_filter_state_clear(&filter_);
     }
 
     void EchoEffect::do_destruct() final
@@ -78,7 +78,7 @@ protected:
         // wrapped using a mask instead of a modulo
         auto maxlen = fastf2i(AL_ECHO_MAX_DELAY * device->frequency) + 1;
         maxlen += fastf2i(AL_ECHO_MAX_LRDELAY * device->frequency) + 1;
-        maxlen = NextPowerOf2(maxlen);
+        maxlen = next_power_of_2(maxlen);
 
         if (maxlen != buffer_length_)
         {
@@ -122,22 +122,22 @@ protected:
 
         effect_gain = std::max(1.0F - props->echo.damping, 0.0625F); // Limit -24dB
 
-        ALfilterState_setParams(
+        al_filter_state_set_params(
             &filter_,
             ALfilterType_HighShelf,
             effect_gain,
             lp_frequency_reference / frequency,
-            calc_rcpQ_from_slope(effect_gain, 1.0F));
+            calc_rcp_q_from_slope(effect_gain, 1.0F));
 
         effect_gain = 1.0F;
 
         // First tap panning
-        CalcAngleCoeffs(-pi_2 * lrpan, 0.0F, spread, coeffs);
-        ComputePanningGains(device->dry, coeffs, effect_gain, gains_[0].data());
+        calc_angle_coeffs(-pi_2 * lrpan, 0.0F, spread, coeffs);
+        compute_panning_gains(device->dry, coeffs, effect_gain, gains_[0].data());
 
         // Second tap panning
-        CalcAngleCoeffs(pi_2 * lrpan, 0.0F, spread, coeffs);
-        ComputePanningGains(device->dry, coeffs, effect_gain, gains_[1].data());
+        calc_angle_coeffs(pi_2 * lrpan, 0.0F, spread, coeffs);
+        compute_panning_gains(device->dry, coeffs, effect_gain, gains_[1].data());
     }
 
     void EchoEffect::do_process(

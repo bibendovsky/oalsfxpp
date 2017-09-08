@@ -23,8 +23,8 @@
 #include "alSource.h"
 
 
-void InitSourceParams(ALsource *Source, int num_sends);
-void DeinitSource(ALsource *source, int num_sends);
+void init_source_params(ALsource *source, int num_sends);
+void deinit_source(ALsource *source, int num_sends);
 
 
 /************************************************
@@ -56,7 +56,7 @@ ALCdevice* g_device = nullptr;
  *
  * Sets the default channel order used by WaveFormatEx.
  */
-void SetDefaultWFXChannelOrder(ALCdevice *device)
+void set_default_wfx_channel_order(ALCdevice *device)
 {
     int i;
 
@@ -124,7 +124,7 @@ extern inline int GetChannelIndex(const enum Channel names[max_output_channels],
  * Updates device parameters according to the attribute list (caller is
  * responsible for holding the list lock).
  */
-static void UpdateDeviceParams(
+static void update_device_params(
     ALCdevice* device)
 {
     const auto old_sends = device->num_aux_sends;
@@ -137,7 +137,7 @@ static void UpdateDeviceParams(
     device->real_out.buffers = nullptr;
     device->real_out.num_channels = 0;
 
-    aluInitRenderer(device);
+    alu_init_renderer(device);
 
     device->dry.buffers.resize(device->dry.num_channels);
 
@@ -156,9 +156,9 @@ static void UpdateDeviceParams(
     state->out_channels = device->dry.num_channels;
 
     state->update_device(device);
-    UpdateEffectSlotProps(slot);
+    update_effect_slot_props(slot);
 
-    AllocateVoices(device, 1, old_sends);
+    allocate_voices(device, 1, old_sends);
 
     for (int pos = 0; pos < device->voice_count; ++pos)
     {
@@ -170,7 +170,7 @@ static void UpdateDeviceParams(
         }
     }
 
-    UpdateAllSourceProps(device);
+    update_all_source_props(device);
 }
 
 /* FreeDevice
@@ -178,14 +178,14 @@ static void UpdateDeviceParams(
  * Frees the device structure, and destroys any objects the app failed to
  * delete. Called once there's no more references on the device.
  */
-static ALCvoid FreeDevice(ALCdevice *device)
+static ALCvoid free_device(ALCdevice *device)
 {
     delete device->effect;
 
-    DeinitEffectSlot(device->effect_slot);
+    deinit_effect_slot(device->effect_slot);
     delete device->effect_slot;
 
-    DeinitSource(device->source, device->num_aux_sends);
+    deinit_source(device->source, device->num_aux_sends);
     delete device->source;
 
     device->dry.buffers = SampleBuffers{};
@@ -203,13 +203,13 @@ static ALCvoid FreeDevice(ALCdevice *device)
  * Cleans up the context, and destroys any remaining objects the app failed to
  * delete. Called once there's no more references on the context.
  */
-static void FreeContext(ALCcontext *context)
+static void free_context(ALCcontext *context)
 {
     auto device = g_device;
 
     for(int i = 0; i < device->voice_count; ++i)
     {
-        DeinitVoice(device->voice);
+        deinit_voice(device->voice);
     }
 
     delete[] reinterpret_cast<char*>(device->voice);
@@ -223,12 +223,12 @@ static void FreeContext(ALCcontext *context)
  * being current on the running thread or globally. Returns true if other
  * contexts still exist on the device.
  */
-static void ReleaseContext(ALCdevice *device)
+static void release_context(ALCdevice *device)
 {
-    FreeContext(nullptr);
+    free_context(nullptr);
 }
 
-void AllocateVoices(ALCdevice* device, int num_voices, int old_sends)
+void allocate_voices(ALCdevice* device, int num_voices, int old_sends)
 {
     if (device->voice)
     {
@@ -283,20 +283,20 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     if(device->auxiliary_effect_slot_max == 0) device->auxiliary_effect_slot_max = 64;
 
     device->source = new ALsource{};
-    InitSourceParams(device->source, device->num_aux_sends);
+    init_source_params(device->source, device->num_aux_sends);
 
     device->effect_slot = new ALeffectslot{};
-    InitEffectSlot(device->effect_slot);
-    aluInitEffectPanning(device->effect_slot);
+    init_effect_slot(device->effect_slot);
+    alu_init_effect_panning(device->effect_slot);
 
     device->effect = new ALeffect{};
-    InitEffect(device->effect);
+    init_effect(device->effect);
 
     device->voice = nullptr;
     device->voice_count = 0;
 
-    UpdateDeviceParams(device);
-    AllocateVoices(device, 1, device->num_aux_sends);
+    update_device_params(device);
+    allocate_voices(device, 1, device->num_aux_sends);
 
     g_device = device;
 
@@ -309,6 +309,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
  */
 ALC_API ALCboolean ALC_APIENTRY alcCloseDevice(ALCdevice *device)
 {
-    ReleaseContext(device);
+    release_context(device);
     return ALC_TRUE;
 }

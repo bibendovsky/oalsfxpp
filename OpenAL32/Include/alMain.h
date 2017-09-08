@@ -64,7 +64,7 @@ using MdArray = typename detail::MdArray<T, TExtents...>::Type;
 
 
 /* Find the next power-of-2 for non-power-of-2 numbers. */
-inline int NextPowerOf2(int value)
+inline int next_power_of_2(int value)
 {
     if(value > 0)
     {
@@ -79,7 +79,7 @@ inline int NextPowerOf2(int value)
 }
 
 /** Round up a value to the next multiple. */
-inline size_t RoundUp(size_t value, size_t r)
+inline size_t round_up(size_t value, size_t r)
 {
     value += r-1;
     return value - (value%r);
@@ -248,8 +248,8 @@ struct ALCdevice_struct
 
 
 extern ALCdevice* g_device;
-void AllocateVoices(ALCdevice* device, int num_voices, int old_sends);
-void SetDefaultWFXChannelOrder(ALCdevice* device);
+void allocate_voices(ALCdevice* device, int num_voices, int old_sends);
+void set_default_wfx_channel_order(ALCdevice* device);
 
 
 /**
@@ -258,7 +258,7 @@ void SetDefaultWFXChannelOrder(ALCdevice* device);
  * Returns the index for the given channel name (e.g. FrontCenter), or -1 if it
  * doesn't exist.
  */
-inline int GetChannelIndex(const ALCdevice::ChannelNames& names, const Channel chan)
+inline int get_channel_index(const ALCdevice::ChannelNames& names, const Channel chan)
 {
     int i;
     for(i = 0;i < max_output_channels;i++)
@@ -269,7 +269,7 @@ inline int GetChannelIndex(const ALCdevice::ChannelNames& names, const Channel c
     return -1;
 }
 
-#define GetChannelIdxByName(x, c) GetChannelIndex((x).channel_name, (c))
+#define get_channel_index_by_name(x, c) get_channel_index((x).channel_name, (c))
 
 
 #endif

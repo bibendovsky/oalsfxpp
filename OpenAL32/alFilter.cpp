@@ -23,14 +23,14 @@
 #include "alFilter.h"
 
 
-extern inline void ALfilterState_clear(ALfilterState *filter);
-extern inline void ALfilterState_copyParams(ALfilterState *dst, const ALfilterState *src);
-extern inline void ALfilterState_processPassthru(ALfilterState *filter, const float *src, int numsamples);
-extern inline float calc_rcpQ_from_slope(float gain, float slope);
-extern inline float calc_rcpQ_from_bandwidth(float freq_mult, float bandwidth);
+extern inline void al_filter_state_clear(ALfilterState *filter);
+extern inline void al_filter_state_copy_params(ALfilterState *dst, const ALfilterState *src);
+extern inline void al_filter_state_process_pass_through(ALfilterState *filter, const float *src, int numsamples);
+extern inline float calc_rcp_q_from_slope(float gain, float slope);
+extern inline float calc_rcp_q_from_bandwidth(float freq_mult, float bandwidth);
 
 
-void ALfilterState_setParams(ALfilterState *filter, ALfilterType type, float gain, float freq_mult, float rcpQ)
+void al_filter_state_set_params(ALfilterState *filter, ALfilterType type, float gain, float freq_mult, float rcpQ)
 {
     float alpha, sqrtgain_alpha_2;
     float w0, sin_w0, cos_w0;

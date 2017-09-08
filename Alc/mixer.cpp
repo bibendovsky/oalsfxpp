@@ -23,38 +23,42 @@
 #include "mixer_defs.h"
 
 
-static MixerFunc MixSamples = Mix_C;
+static MixerFunc mix_samples = mix_c;
 
 
-static const float *DoFilters(ALfilterState *lpfilter, ALfilterState *hpfilter,
-                                float *dst, const float *src,
-                                int numsamples, enum ActiveFilters type)
+static const float *do_filters(
+    ALfilterState* lp_filter,
+    ALfilterState* hp_filter,
+    float* dst,
+    const float* src,
+    int num_samples,
+    ActiveFilters type)
 {
     int i;
     switch(type)
     {
         case AF_None:
-            ALfilterState_processPassthru(lpfilter, src, numsamples);
-            ALfilterState_processPassthru(hpfilter, src, numsamples);
+            al_filter_state_process_pass_through(lp_filter, src, num_samples);
+            al_filter_state_process_pass_through(hp_filter, src, num_samples);
             break;
 
         case AF_LowPass:
-            ALfilterState_processC(lpfilter, dst, src, numsamples);
-            ALfilterState_processPassthru(hpfilter, dst, numsamples);
+            al_filter_state_process_c(lp_filter, dst, src, num_samples);
+            al_filter_state_process_pass_through(hp_filter, dst, num_samples);
             return dst;
         case AF_HighPass:
-            ALfilterState_processPassthru(lpfilter, src, numsamples);
-            ALfilterState_processC(hpfilter, dst, src, numsamples);
+            al_filter_state_process_pass_through(lp_filter, src, num_samples);
+            al_filter_state_process_c(hp_filter, dst, src, num_samples);
             return dst;
 
         case AF_BandPass:
-            for(i = 0;i < numsamples;)
+            for(i = 0;i < num_samples;)
             {
                 float temp[256];
-                int todo = std::min(256, numsamples-i);
+                int todo = std::min(256, num_samples-i);
 
-                ALfilterState_processC(lpfilter, temp, src+i, todo);
-                ALfilterState_processC(hpfilter, dst+i, temp, todo);
+                al_filter_state_process_c(lp_filter, temp, src+i, todo);
+                al_filter_state_process_c(hp_filter, dst+i, temp, todo);
                 i += todo;
             }
             return dst;
@@ -62,7 +66,7 @@ static const float *DoFilters(ALfilterState *lpfilter, ALfilterState *hpfilter,
     return src;
 }
 
-bool MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, int SamplesToDo)
+bool mix_source(ALvoice* voice, ALsource* source, ALCdevice* device, int samples_to_do)
 {
     int NumChannels;
     int chan;
@@ -77,25 +81,25 @@ bool MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, int SamplesT
 
         /* Load what's left to play from the source buffer, and
             * clear the rest of the temp buffer */
-        std::uninitialized_copy_n(Device->source_samples, NumChannels * SamplesToDo, Device->source_data.begin());
+        std::uninitialized_copy_n(device->source_samples, NumChannels * samples_to_do, device->source_data.begin());
 
         /* Now resample, then filter and mix to the appropriate outputs. */
-        std::uninitialized_copy_n(Device->source_data.cbegin(), SamplesToDo, Device->resampled_data.begin());
+        std::uninitialized_copy_n(device->source_data.cbegin(), samples_to_do, device->resampled_data.begin());
 
 
         parms = &voice->direct.params[chan];
 
-        samples = DoFilters(
+        samples = do_filters(
             &parms->low_pass,
             &parms->high_pass,
-            Device->filtered_data.data(),
-            Device->resampled_data.data(),
-            SamplesToDo,
+            device->filtered_data.data(),
+            device->resampled_data.data(),
+            samples_to_do,
             voice->direct.filter_type);
 
         memcpy(parms->gains.current, parms->gains.target, sizeof(parms->gains.current));
 
-        MixSamples(
+        mix_samples(
             samples,
             voice->direct.channels,
             *voice->direct.buffer,
@@ -103,9 +107,9 @@ bool MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, int SamplesT
             parms->gains.target,
             0,
             0,
-            SamplesToDo);
+            samples_to_do);
 
-        if (Device->num_aux_sends > 0)
+        if (device->num_aux_sends > 0)
         {
             SendParams *parms = &voice->send.params[chan];
 
@@ -114,17 +118,17 @@ bool MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, int SamplesT
                 continue;
             }
 
-            samples = DoFilters(
+            samples = do_filters(
                 &parms->low_pass,
                 &parms->high_pass,
-                Device->filtered_data.data(),
-                Device->resampled_data.data(),
-                SamplesToDo,
+                device->filtered_data.data(),
+                device->resampled_data.data(),
+                samples_to_do,
                 voice->send.filter_type);
 
             memcpy(parms->gains.current, parms->gains.target, sizeof(parms->gains.current));
 
-            MixSamples(
+            mix_samples(
                 samples,
                 voice->send.channels,
                 *voice->send.buffer,
@@ -132,7 +136,7 @@ bool MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, int SamplesT
                 parms->gains.target,
                 0,
                 0,
-                SamplesToDo);
+                samples_to_do);
         }
     }
 

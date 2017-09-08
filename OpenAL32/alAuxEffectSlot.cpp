@@ -82,40 +82,40 @@ static IEffect* createByType(
     }
 }
 
-int InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *effect)
+int initialize_effect(ALCdevice *device, ALeffectslot *effect_slot, ALeffect *effect)
 {
     int newtype = (effect ? effect->type : AL_EFFECT_NULL);
     struct ALeffectslotProps *props;
     IEffect *State;
 
-    if(newtype != EffectSlot->effect.type)
+    if(newtype != effect_slot->effect.type)
     {
         State = createByType(newtype);
         if(!State) return AL_OUT_OF_MEMORY;
 
-        State->out_buffer = &Device->dry.buffers;
-        State->out_channels = Device->dry.num_channels;
-        State->update_device(Device);
+        State->out_buffer = &device->dry.buffers;
+        State->out_channels = device->dry.num_channels;
+        State->update_device(device);
 
         if(!effect)
         {
-            EffectSlot->effect.type = AL_EFFECT_NULL;
-            memset(&EffectSlot->effect.props, 0, sizeof(EffectSlot->effect.props));
+            effect_slot->effect.type = AL_EFFECT_NULL;
+            memset(&effect_slot->effect.props, 0, sizeof(effect_slot->effect.props));
         }
         else
         {
-            EffectSlot->effect.type = effect->type;
-            EffectSlot->effect.props = effect->props;
+            effect_slot->effect.type = effect->type;
+            effect_slot->effect.props = effect->props;
         }
 
-        destroy_effect(EffectSlot->effect.state);
-        EffectSlot->effect.state = State;
+        destroy_effect(effect_slot->effect.state);
+        effect_slot->effect.state = State;
     }
     else if(effect)
-        EffectSlot->effect.props = effect->props;
+        effect_slot->effect.props = effect->props;
 
     /* Remove state references from old effect slot property updates. */
-    props = EffectSlot->props;
+    props = effect_slot->props;
     if(props)
     {
         props->state = nullptr;
@@ -125,7 +125,7 @@ int InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *effe
 }
 
 
-int InitEffectSlot(ALeffectslot *slot)
+int init_effect_slot(ALeffectslot* slot)
 {
     slot->effect.type = AL_EFFECT_NULL;
 
@@ -140,7 +140,7 @@ int InitEffectSlot(ALeffectslot *slot)
     return AL_NO_ERROR;
 }
 
-void DeinitEffectSlot(ALeffectslot *slot)
+void deinit_effect_slot(ALeffectslot* slot)
 {
     auto props = slot->update;
 
@@ -159,7 +159,7 @@ void DeinitEffectSlot(ALeffectslot *slot)
     destroy_effect(slot->effect.state);
 }
 
-void UpdateEffectSlotProps(ALeffectslot *slot)
+void update_effect_slot_props(ALeffectslot* slot)
 {
     struct ALeffectslotProps *props;
     struct ALeffectslotProps *temp_props;
@@ -188,8 +188,8 @@ void UpdateEffectSlotProps(ALeffectslot *slot)
     slot->update = temp_props;
 }
 
-void UpdateAllEffectSlotProps(ALCdevice* device)
+void update_all_effect_slot_props(ALCdevice* device)
 {
     auto slot = device->effect_slot;
-    UpdateEffectSlotProps(slot);
+    update_effect_slot_props(slot);
 }

@@ -23,9 +23,9 @@
 #include "alSource.h"
 
 
-void InitSourceParams(ALsource *Source, int num_sends);
-void DeinitSource(ALsource *source, int num_sends);
-void UpdateSourceProps(ALsource *source, ALvoice *voice, int num_sends);
+void init_source_params(ALsource* source, int num_sends);
+void deinit_source(ALsource *source, int num_sends);
+void update_source_props(ALsource* source, ALvoice* voice, int num_sends);
 
 enum SourceProp
 {
@@ -101,7 +101,7 @@ enum SourceProp
  * Returns if the last known state for the source was playing or paused. Does
  * not sync with the mixer voice.
  */
-static inline bool IsPlayingOrPaused(ALsource *source)
+static inline bool IsPlayingOrPaused(ALsource* source)
 {
     int state = source->state;
     return state == AL_PLAYING || state == AL_PAUSED;
@@ -111,7 +111,7 @@ static inline bool IsPlayingOrPaused(ALsource *source)
  * Returns an updated source state using the matching voice's status (or lack
  * thereof).
  */
-static inline int GetSourceState(ALsource *source, ALvoice *voice)
+static inline int get_source_state(ALsource* source, ALvoice* voice)
 {
     if(!voice)
     {
@@ -146,7 +146,7 @@ AL_API void AL_APIENTRY alSourcePlayv(int n, const ALuint *sources)
         source = device->source;
         voice = device->voice;
 
-        switch(GetSourceState(source, voice))
+        switch(get_source_state(source, voice))
         {
             case AL_PLAYING:
                 assert(voice != NULL);
@@ -177,7 +177,7 @@ AL_API void AL_APIENTRY alSourcePlayv(int n, const ALuint *sources)
         }
         voice->playing = false;
 
-        UpdateSourceProps(source, voice, device->num_aux_sends);
+        update_source_props(source, voice, device->num_aux_sends);
 
         voice->num_channels = device->dry.num_channels;
 
@@ -224,24 +224,24 @@ AL_API void AL_APIENTRY alSourceStopv(int n, const ALuint *sources)
     }
 }
 
-void InitSourceParams(ALsource *Source, int num_sends)
+void init_source_params(ALsource* source, int num_sends)
 {
-    Source->direct.gain = 1.0f;
-    Source->direct.gain_hf = 1.0f;
-    Source->direct.hf_reference = lp_frequency_reference;
-    Source->direct.gain_lf = 1.0f;
-    Source->direct.lf_reference = hp_frequency_reference;
-    Source->send = std::make_unique<ALsource::Send>();
-    Source->send->slot = nullptr;
-    Source->send->gain = 1.0f;
-    Source->send->gain_hf = 1.0f;
-    Source->send->hf_reference = lp_frequency_reference;
-    Source->send->gain_lf = 1.0f;
-    Source->send->lf_reference = hp_frequency_reference;
-    Source->state = AL_INITIAL;
+    source->direct.gain = 1.0f;
+    source->direct.gain_hf = 1.0f;
+    source->direct.hf_reference = lp_frequency_reference;
+    source->direct.gain_lf = 1.0f;
+    source->direct.lf_reference = hp_frequency_reference;
+    source->send = std::make_unique<ALsource::Send>();
+    source->send->slot = nullptr;
+    source->send->gain = 1.0f;
+    source->send->gain_hf = 1.0f;
+    source->send->hf_reference = lp_frequency_reference;
+    source->send->gain_lf = 1.0f;
+    source->send->lf_reference = hp_frequency_reference;
+    source->state = AL_INITIAL;
 }
 
-void DeinitSource(ALsource *source, int num_sends)
+void deinit_source(ALsource* source, int num_sends)
 {
     if (source->send)
     {
@@ -250,7 +250,7 @@ void DeinitSource(ALsource *source, int num_sends)
     }
 }
 
-void UpdateSourceProps(ALsource *source, ALvoice *voice, int num_sends)
+void update_source_props(ALsource* source, ALvoice* voice, int num_sends)
 {
     // Get an unused property container, or allocate a new one as needed.
     auto& props = voice->props;
@@ -273,7 +273,7 @@ void UpdateSourceProps(ALsource *source, ALvoice *voice, int num_sends)
     }
 }
 
-void UpdateAllSourceProps(ALCdevice* device)
+void update_all_source_props(ALCdevice* device)
 {
     int num_sends = device->num_aux_sends;
     int pos;
@@ -283,6 +283,6 @@ void UpdateAllSourceProps(ALCdevice* device)
         ALvoice *voice = device->voice;
         ALsource *source = voice->source;
         if(source)
-            UpdateSourceProps(source, voice, num_sends);
+            update_source_props(source, voice, num_sends);
     }
 }

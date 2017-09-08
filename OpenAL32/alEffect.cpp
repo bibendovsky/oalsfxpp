@@ -74,16 +74,16 @@ void IEffect::process(
 // ==========================================================================
 
 
-void InitEffectParams(ALeffect *effect, int type);
+void init_effect_params(ALeffect* effect, int type);
 
 
-int InitEffect(ALeffect *effect)
+int init_effect(ALeffect* effect)
 {
-    InitEffectParams(effect, AL_EFFECT_NULL);
+    init_effect_params(effect, AL_EFFECT_NULL);
     return AL_NO_ERROR;
 }
 
-void InitEffectParams(ALeffect *effect, int type)
+void init_effect_params(ALeffect* effect, int type)
 {
     switch(type)
     {

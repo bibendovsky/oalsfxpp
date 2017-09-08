@@ -51,7 +51,7 @@ protected:
 
         for (int i = 0; i < max_effect_channels; ++i)
         {
-            ALfilterState_clear(&filters_[i]);
+            al_filter_state_clear(&filters_[i]);
         }
     }
 
@@ -108,7 +108,7 @@ protected:
 
         for (int i = 0; i < max_effect_channels; ++i)
         {
-            ComputeFirstOrderGains(device->foa_out, IdentityMatrixf.m[i], 1.0F, gains_[i].data());
+            compute_first_order_gains(device->foa_out, identity_matrix_f.m[i], 1.0F, gains_[i].data());
         }
     }
 
@@ -125,7 +125,7 @@ protected:
 
             for (int j = 0; j < max_effect_channels; ++j)
             {
-                ALfilterState_processC(&filters_[j], temps[0], &src_samples[j][base], td);
+                al_filter_state_process_c(&filters_[j], temps[0], &src_samples[j][base], td);
                 process_func_(temps[1], temps[0], index_, step_, td);
 
                 for (int k = 0; k < channel_count; ++k)

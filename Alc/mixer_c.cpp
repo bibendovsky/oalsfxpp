@@ -3,10 +3,10 @@
 #include "alu.h"
 
 
-void ALfilterState_processC(ALfilterState *filter, float *dst, const float *src, int numsamples)
+void al_filter_state_process_c(ALfilterState* filter, float* dst, const float* src, int num_samples)
 {
     int i;
-    if(numsamples > 1)
+    if(num_samples > 1)
     {
         dst[0] = filter->b0 * src[0] +
                  filter->b1 * filter->x[0] +
@@ -18,7 +18,7 @@ void ALfilterState_processC(ALfilterState *filter, float *dst, const float *src,
                  filter->b2 * filter->x[0] -
                  filter->a1 * dst[0] -
                  filter->a2 * filter->y[0];
-        for(i = 2;i < numsamples;i++)
+        for(i = 2;i < num_samples;i++)
             dst[i] = filter->b0 * src[i] +
                      filter->b1 * src[i-1] +
                      filter->b2 * src[i-2] -
@@ -29,7 +29,7 @@ void ALfilterState_processC(ALfilterState *filter, float *dst, const float *src,
         filter->y[0] = dst[i-1];
         filter->y[1] = dst[i-2];
     }
-    else if(numsamples == 1)
+    else if(num_samples == 1)
     {
         dst[0] = filter->b0 * src[0] +
                  filter->b1 * filter->x[0] +
@@ -43,38 +43,43 @@ void ALfilterState_processC(ALfilterState *filter, float *dst, const float *src,
     }
 }
 
-
-void Mix_C(const float *data, int OutChans, SampleBuffers& OutBuffer,
-           float *CurrentGains, const float *TargetGains, int Counter, int OutPos,
-           int BufferSize)
+void mix_c(
+    const float* data,
+    int out_chans,
+    SampleBuffers& out_buffer,
+    float* current_gains,
+    const float* target_gains,
+    int counter,
+    int out_pos,
+    int buffer_size)
 {
     float gain, delta, step;
     int c;
 
-    delta = (Counter > 0) ? 1.0f/(float)Counter : 0.0f;
+    delta = (counter > 0) ? 1.0f/(float)counter : 0.0f;
 
-    for(c = 0;c < OutChans;c++)
+    for(c = 0;c < out_chans;c++)
     {
         int pos = 0;
-        gain = CurrentGains[c];
-        step = (TargetGains[c] - gain) * delta;
+        gain = current_gains[c];
+        step = (target_gains[c] - gain) * delta;
         if(fabsf(step) > FLT_EPSILON)
         {
-            int minsize = std::min(BufferSize, Counter);
+            int minsize = std::min(buffer_size, counter);
             for(;pos < minsize;pos++)
             {
-                OutBuffer[c][OutPos+pos] += data[pos]*gain;
+                out_buffer[c][out_pos+pos] += data[pos]*gain;
                 gain += step;
             }
-            if(pos == Counter)
-                gain = TargetGains[c];
-            CurrentGains[c] = gain;
+            if(pos == counter)
+                gain = target_gains[c];
+            current_gains[c] = gain;
         }
 
         if(!(fabsf(gain) > silence_threshold_gain))
             continue;
-        for(;pos < BufferSize;pos++)
-            OutBuffer[c][OutPos+pos] += data[pos]*gain;
+        for(;pos < buffer_size;pos++)
+            out_buffer[c][out_pos+pos] += data[pos]*gain;
     }
 }
 
@@ -84,17 +89,23 @@ void Mix_C(const float *data, int OutChans, SampleBuffers& OutBuffer,
  * transform. And as the matrices are more or less static once set up, no
  * stepping is necessary.
  */
-void MixRow_C(float *OutBuffer, const float *Gains, const SampleBuffers& data, int InChans, int InPos, int BufferSize)
+void mix_row_c(
+    float* out_buffer,
+    const float* gains,
+    const SampleBuffers& data,
+    int in_chans,
+    int in_pos,
+    int buffer_size)
 {
     int c, i;
 
-    for(c = 0;c < InChans;c++)
+    for(c = 0;c < in_chans;c++)
     {
-        float gain = Gains[c];
+        float gain = gains[c];
         if(!(fabsf(gain) > silence_threshold_gain))
             continue;
 
-        for(i = 0;i < BufferSize;i++)
-            OutBuffer[i] += data[c][InPos+i] * gain;
+        for(i = 0;i < buffer_size;i++)
+            out_buffer[i] += data[c][in_pos+i] * gain;
     }
 }

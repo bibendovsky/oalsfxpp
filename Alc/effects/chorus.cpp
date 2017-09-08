@@ -81,7 +81,7 @@ protected:
     {
         auto max_len = fastf2i(AL_CHORUS_MAX_DELAY * 2.0F * device->frequency) + 1;
 
-        max_len = NextPowerOf2(max_len);
+        max_len = next_power_of_2(max_len);
 
         if (max_len != buffer_length_)
         {
@@ -124,10 +124,10 @@ protected:
         float coeffs[max_ambi_coeffs];
 
         // Gains for left and right sides
-        CalcAngleCoeffs(-pi_2, 0.0F, 0.0F, coeffs);
-        ComputePanningGains(device->dry, coeffs, 1.0F, gains_[0].data());
-        CalcAngleCoeffs(pi_2, 0.0F, 0.0F, coeffs);
-        ComputePanningGains(device->dry, coeffs, 1.0F, gains_[1].data());
+        calc_angle_coeffs(-pi_2, 0.0F, 0.0F, coeffs);
+        compute_panning_gains(device->dry, coeffs, 1.0F, gains_[0].data());
+        calc_angle_coeffs(pi_2, 0.0F, 0.0F, coeffs);
+        compute_panning_gains(device->dry, coeffs, 1.0F, gains_[1].data());
 
         const auto phase = props->chorus.phase;
         const auto rate = props->chorus.rate;

@@ -22,10 +22,10 @@
 #include "alu.h"
 
 
-extern inline void CalcAngleCoeffs(float azimuth, float elevation, float spread, float coeffs[max_ambi_coeffs]);
+extern inline void calc_angle_coeffs(float azimuth, float elevation, float spread, float coeffs[max_ambi_coeffs]);
 
 
-void CalcDirectionCoeffs(const float dir[3], float spread, float coeffs[max_ambi_coeffs])
+void calc_direction_coeffs(const float dir[3], float spread, float coeffs[max_ambi_coeffs])
 {
     /* Convert from OpenAL coords to Ambisonics. */
     float x = -dir[2];
@@ -111,7 +111,7 @@ void CalcDirectionCoeffs(const float dir[3], float spread, float coeffs[max_ambi
     }
 }
 
-void ComputeAmbientGainsMC(const ChannelConfig *chancoeffs, int numchans, float ingain, float gains[max_output_channels])
+void compute_ambient_gains_mc(const ChannelConfig *chancoeffs, int numchans, float ingain, float gains[max_output_channels])
 {
     int i;
 
@@ -121,7 +121,7 @@ void ComputeAmbientGainsMC(const ChannelConfig *chancoeffs, int numchans, float 
         gains[i] = 0.0f;
 }
 
-void ComputeAmbientGainsBF(const BFChannelConfig *chanmap, int numchans, float ingain, float gains[max_output_channels])
+void compute_ambient_gains_bf(const BFChannelConfig *chanmap, int numchans, float ingain, float gains[max_output_channels])
 {
     float gain = 0.0f;
     int i;
@@ -136,7 +136,7 @@ void ComputeAmbientGainsBF(const BFChannelConfig *chanmap, int numchans, float i
         gains[i] = 0.0f;
 }
 
-void ComputePanningGainsMC(const ChannelConfig *chancoeffs, int numchans, int numcoeffs, const float coeffs[max_ambi_coeffs], float ingain, float gains[max_output_channels])
+void compute_panning_gains_mc(const ChannelConfig *chancoeffs, int numchans, int numcoeffs, const float coeffs[max_ambi_coeffs], float ingain, float gains[max_output_channels])
 {
     int i, j;
 
@@ -151,7 +151,7 @@ void ComputePanningGainsMC(const ChannelConfig *chancoeffs, int numchans, int nu
         gains[i] = 0.0f;
 }
 
-void ComputePanningGainsBF(const BFChannelConfig *chanmap, int numchans, const float coeffs[max_ambi_coeffs], float ingain, float gains[max_output_channels])
+void compute_panning_gains_bf(const BFChannelConfig *chanmap, int numchans, const float coeffs[max_ambi_coeffs], float ingain, float gains[max_output_channels])
 {
     int i;
 
@@ -161,7 +161,7 @@ void ComputePanningGainsBF(const BFChannelConfig *chanmap, int numchans, const f
         gains[i] = 0.0f;
 }
 
-void ComputeFirstOrderGainsMC(const ChannelConfig *chancoeffs, int numchans, const float mtx[4], float ingain, float gains[max_output_channels])
+void compute_first_order_gains_mc(const ChannelConfig *chancoeffs, int numchans, const float mtx[4], float ingain, float gains[max_output_channels])
 {
     int i, j;
 
@@ -176,7 +176,7 @@ void ComputeFirstOrderGainsMC(const ChannelConfig *chancoeffs, int numchans, con
         gains[i] = 0.0f;
 }
 
-void ComputeFirstOrderGainsBF(const BFChannelConfig *chanmap, int numchans, const float mtx[4], float ingain, float gains[max_output_channels])
+void compute_first_order_gains_bf(const BFChannelConfig *chanmap, int numchans, const float mtx[4], float ingain, float gains[max_output_channels])
 {
     int i;
 
@@ -346,7 +346,7 @@ static void InitPanning(ALCdevice *device)
     device->real_out.num_channels = 0;
 }
 
-void aluInitRenderer(ALCdevice *device)
+void alu_init_renderer(ALCdevice *device)
 {
     size_t i;
 
@@ -356,7 +356,7 @@ void aluInitRenderer(ALCdevice *device)
     for(i = 0;i < max_ambi_order+1;i++)
         device->dry.num_channels_per_order[i] = 0;
 
-    SetDefaultWFXChannelOrder(device);
+    set_default_wfx_channel_order(device);
 
     if(device->fmt_chans != DevFmtStereo)
     {
@@ -368,7 +368,7 @@ void aluInitRenderer(ALCdevice *device)
 }
 
 
-void aluInitEffectPanning(ALeffectslot *slot)
+void alu_init_effect_panning(ALeffectslot *slot)
 {
     int i;
 

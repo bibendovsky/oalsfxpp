@@ -79,7 +79,7 @@ protected:
         ALCdevice* device) final
     {
         auto maxlen = fastf2i(AL_FLANGER_MAX_DELAY * 2.0F * device->frequency) + 1;
-        maxlen = NextPowerOf2(maxlen);
+        maxlen = next_power_of_2(maxlen);
 
         if (maxlen != buffer_length_)
         {
@@ -123,10 +123,10 @@ protected:
         depth_ = props->flanger.depth * delay_;
 
         // Gains for left and right sides
-        CalcAngleCoeffs(-pi_2, 0.0F, 0.0F, coeffs);
-        ComputePanningGains(device->dry, coeffs, 1.0F, gains_[0].data());
-        CalcAngleCoeffs(pi_2, 0.0F, 0.0F, coeffs);
-        ComputePanningGains(device->dry, coeffs, 1.0F, gains_[1].data());
+        calc_angle_coeffs(-pi_2, 0.0F, 0.0F, coeffs);
+        compute_panning_gains(device->dry, coeffs, 1.0F, gains_[0].data());
+        calc_angle_coeffs(pi_2, 0.0F, 0.0F, coeffs);
+        compute_panning_gains(device->dry, coeffs, 1.0F, gains_[1].data());
 
         const auto phase = props->flanger.phase;
         const auto rate = props->flanger.rate;

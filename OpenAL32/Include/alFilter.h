@@ -57,7 +57,7 @@ struct ALfilterState
  * 0 < gain
  * 0 < slope <= 1
  */
-inline float calc_rcpQ_from_slope(float gain, float slope)
+inline float calc_rcp_q_from_slope(float gain, float slope)
 {
     return std::sqrt((gain + 1.0f/gain)*(1.0f/slope - 1.0f) + 2.0f);
 }
@@ -65,13 +65,13 @@ inline float calc_rcpQ_from_slope(float gain, float slope)
  * multiple (i.e. ref_freq / sampling_freq) and bandwidth.
  * 0 < freq_mult < 0.5.
  */
-inline float calc_rcpQ_from_bandwidth(float freq_mult, float bandwidth)
+inline float calc_rcp_q_from_bandwidth(float freq_mult, float bandwidth)
 {
     float w0 = tau * freq_mult;
     return 2.0f*std::sinh(std::log(2.0f)/2.0f*bandwidth*w0/std::sin(w0));
 }
 
-inline void ALfilterState_clear(ALfilterState *filter)
+inline void al_filter_state_clear(ALfilterState* filter)
 {
     filter->x[0] = 0.0f;
     filter->x[1] = 0.0f;
@@ -79,9 +79,9 @@ inline void ALfilterState_clear(ALfilterState *filter)
     filter->y[1] = 0.0f;
 }
 
-void ALfilterState_setParams(ALfilterState *filter, ALfilterType type, float gain, float freq_mult, float rcpQ);
+void al_filter_state_set_params(ALfilterState *filter, ALfilterType type, float gain, float freq_mult, float rcp_q);
 
-inline void ALfilterState_copyParams(ALfilterState *dst, const ALfilterState *src)
+inline void al_filter_state_copy_params(ALfilterState *dst, const ALfilterState *src)
 {
     dst->b0 = src->b0;
     dst->b1 = src->b1;
@@ -90,18 +90,18 @@ inline void ALfilterState_copyParams(ALfilterState *dst, const ALfilterState *sr
     dst->a2 = src->a2;
 }
 
-void ALfilterState_processC(ALfilterState *filter, float *dst, const float *src, int numsamples);
+void al_filter_state_process_c(ALfilterState *filter, float *dst, const float *src, int num_samples);
 
-inline void ALfilterState_processPassthru(ALfilterState *filter, const float *src, int numsamples)
+inline void al_filter_state_process_pass_through(ALfilterState *filter, const float *src, int num_samples)
 {
-    if(numsamples >= 2)
+    if (num_samples >= 2)
     {
-        filter->x[1] = src[numsamples-2];
-        filter->x[0] = src[numsamples-1];
-        filter->y[1] = src[numsamples-2];
-        filter->y[0] = src[numsamples-1];
+        filter->x[1] = src[num_samples - 2];
+        filter->x[0] = src[num_samples - 1];
+        filter->y[1] = src[num_samples - 2];
+        filter->y[0] = src[num_samples - 1];
     }
-    else if(numsamples == 1)
+    else if (num_samples == 1)
     {
         filter->x[1] = filter->x[0];
         filter->x[0] = src[0];

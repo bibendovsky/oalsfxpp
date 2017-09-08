@@ -68,8 +68,8 @@ protected:
 
         for (int i = 0; i < 4; ++i)
         {
-            ALfilterState_clear(&filters_[i].lp);
-            ALfilterState_clear(&filters_[i].hp);
+            al_filter_state_clear(&filters_[i].lp);
+            al_filter_state_clear(&filters_[i].hp);
         }
 
         delay_.reset();
@@ -204,28 +204,28 @@ protected:
         // killing most of the signal.
         const auto gain_hf = std::max(props->reverb.gain_hf, 0.001F);
 
-        ALfilterState_setParams(
+        al_filter_state_set_params(
             &filters_[0].lp,
             ALfilterType_HighShelf,
             gain_hf,
             hf_scale,
-            calc_rcpQ_from_slope(gain_hf, 1.0F));
+            calc_rcp_q_from_slope(gain_hf, 1.0F));
 
         const auto lf_scale = props->reverb.lf_reference / frequency;
 
         const auto gain_lf = std::max(props->reverb.gain_lf, 0.001F);
 
-        ALfilterState_setParams(
+        al_filter_state_set_params(
             &filters_[0].hp,
             ALfilterType_LowShelf,
             gain_lf,
             lf_scale,
-            calc_rcpQ_from_slope(gain_lf, 1.0F));
+            calc_rcp_q_from_slope(gain_lf, 1.0F));
 
         for (int i = 1; i < 4; ++i)
         {
-            ALfilterState_copyParams(&filters_[i].lp, &filters_[0].lp);
-            ALfilterState_copyParams(&filters_[i].hp, &filters_[0].hp);
+            al_filter_state_copy_params(&filters_[i].lp, &filters_[0].lp);
+            al_filter_state_copy_params(&filters_[i].hp, &filters_[0].hp);
         }
 
         // Update the main effect delay and associated taps.
@@ -337,7 +337,7 @@ protected:
 
             for (int c = 0; c < 4; ++c)
             {
-                MixRow_C(
+                mix_row_c(
                     a_format_samples_[c].data(),
                     b2a.m[c],
                     src_samples,
@@ -375,7 +375,7 @@ protected:
             // B-Format.
             for (int c = 0; c < 4; c++)
             {
-                Mix_C(
+                mix_c(
                     early_samples_[c].data(),
                     channel_count,
                     dst_samples,
@@ -388,7 +388,7 @@ protected:
 
             for (int c = 0; c < 4; c++)
             {
-                Mix_C(
+                mix_c(
                     reverb_samples_[c].data(),
                     channel_count,
                     dst_samples,
@@ -772,7 +772,7 @@ private:
         // All line lengths are powers of 2, calculated from their lengths in
         // seconds, rounded up.
         sample_count = fastf2i(std::ceil(length * frequency));
-        sample_count = NextPowerOf2(sample_count + extra);
+        sample_count = next_power_of_2(sample_count + extra);
 
         delay.initialize(sample_count);
     }
@@ -1462,7 +1462,7 @@ private:
         // length.
         const auto sa = std::sin(std::min(length, 1.0F) * (pi / 4.0F));
 
-        aluMatrixfSet(
+        alu_matrix_f_set(
             &zfocus,
             1.0F / (1.0F + sa), 0.0F, 0.0F, (sa / (1.0F + sa)) / 1.732050808F,
             0.0F, std::sqrt((1.0F - sa) / (1.0F + sa)), 0.0F, 0.0F,
@@ -1473,7 +1473,7 @@ private:
         // Define rotation around X (Y in Ambisonics)
         auto a = std::atan2(vec[1], std::sqrt((vec[0] * vec[0]) + (vec[2] * vec[2])));
 
-        aluMatrixfSet(
+        alu_matrix_f_set(
             &xrot,
             1.0F, 0.0F, 0.0F, 0.0F,
             0.0F, 1.0F, 0.0F, 0.0F,
@@ -1488,7 +1488,7 @@ private:
         // cancelling it out.
         a = std::atan2(-vec[0], vec[2]);
 
-        aluMatrixfSet(
+        alu_matrix_f_set(
             &yrot,
             1.0F, 0.0F, 0.0F, 0.0F,
             0.0F, std::cos(a), 0.0F, std::sin(a),
@@ -1546,7 +1546,7 @@ private:
 
         for (int i = 0; i < max_effect_channels; ++i)
         {
-            ComputeFirstOrderGains(device->foa_out, transform.m[i], gain*early_gain, early_.pan_gains[i].data());
+            compute_first_order_gains(device->foa_out, transform.m[i], gain*early_gain, early_.pan_gains[i].data());
         }
 
         rot = get_transform_from_vector(late_reverb_pan);
@@ -1555,7 +1555,7 @@ private:
 
         for (int i = 0; i < max_effect_channels; ++i)
         {
-            ComputeFirstOrderGains(device->foa_out, transform.m[i], gain*late_gain, late_.pan_gains[i].data());
+            compute_first_order_gains(device->foa_out, transform.m[i], gain*late_gain, late_.pan_gains[i].data());
         }
     }
 
@@ -2031,7 +2031,7 @@ private:
         {
             // Low-pass filter the incoming samples (use the early buffer as temp
             // storage).
-            ALfilterState_processC(&filters_[c].lp, early[0].data(), input[c].data(), todo);
+            al_filter_state_process_c(&filters_[c].lp, early[0].data(), input[c].data(), todo);
 
             // Feed the initial delay line.
             for (int i = 0; i < todo; ++i)
@@ -2077,8 +2077,8 @@ private:
         {
             // Band-pass the incoming samples. Use the early output lines for temp
             // storage.
-            ALfilterState_processC(&filters_[c].lp, early[0].data(), input[c].data(), todo);
-            ALfilterState_processC(&filters_[c].hp, early[1].data(), early[0].data(), todo);
+            al_filter_state_process_c(&filters_[c].lp, early[0].data(), input[c].data(), todo);
+            al_filter_state_process_c(&filters_[c].hp, early[1].data(), early[0].data(), todo);
 
             // Feed the initial delay line.
             for (int i = 0; i < todo; i++)
