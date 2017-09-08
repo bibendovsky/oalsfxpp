@@ -74,7 +74,7 @@ inline size_t RoundUp(size_t value, size_t r)
 
 /* Fast float-to-int conversion. Assumes the FPU is already in round-to-zero
  * mode. */
-inline ALint fastf2i(float f)
+inline int fastf2i(float f)
 {
     return lrintf(f);
 }
@@ -260,9 +260,9 @@ void SetDefaultWFXChannelOrder(ALCdevice* device);
  * Returns the index for the given channel name (e.g. FrontCenter), or -1 if it
  * doesn't exist.
  */
-inline ALint GetChannelIndex(const ALCdevice::ChannelNames& names, const Channel chan)
+inline int GetChannelIndex(const ALCdevice::ChannelNames& names, const Channel chan)
 {
-    ALint i;
+    int i;
     for(i = 0;i < MAX_OUTPUT_CHANNELS;i++)
     {
         if(names[i] == chan)

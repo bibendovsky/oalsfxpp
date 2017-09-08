@@ -181,7 +181,7 @@ protected:
         for (int base = 0; base < sample_count; )
         {
             float temps[128][2];
-            ALint mod_delays[2][128];
+            int mod_delays[2][128];
             const auto todo = std::min(128, sample_count - base);
 
             switch (waveform_)

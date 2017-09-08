@@ -116,7 +116,7 @@ void SetDefaultWFXChannelOrder(ALCdevice *device)
     }
 }
 
-extern inline ALint GetChannelIndex(const enum Channel names[MAX_OUTPUT_CHANNELS], enum Channel chan);
+extern inline int GetChannelIndex(const enum Channel names[MAX_OUTPUT_CHANNELS], enum Channel chan);
 
 
 /* UpdateDeviceParams

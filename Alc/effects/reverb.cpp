@@ -1653,7 +1653,7 @@ private:
     }
 
     void calc_modulation_delays(
-        ALint* delays,
+        int* delays,
         const int todo)
     {
         auto index = mod_.index;
@@ -1951,7 +1951,7 @@ private:
         Samples& out)
     {
         float f[4];
-        ALint moddelay[max_update_samples];
+        int moddelay[max_update_samples];
 
         calc_modulation_delays(moddelay, todo);
 

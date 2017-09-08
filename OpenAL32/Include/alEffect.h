@@ -42,8 +42,8 @@ union ALeffectProps
 
     struct Chorus
     {
-        ALint waveform;
-        ALint phase;
+        int waveform;
+        int phase;
         float rate;
         float depth;
         float feedback;
@@ -91,8 +91,8 @@ union ALeffectProps
 
     struct Flanger
     {
-        ALint waveform;
-        ALint phase;
+        int waveform;
+        int phase;
         float rate;
         float depth;
         float feedback;
@@ -103,7 +103,7 @@ union ALeffectProps
     {
         float frequency;
         float high_pass_cutoff;
-        ALint waveform;
+        int waveform;
     }; // Modulator
 
     struct Dedicated
