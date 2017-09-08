@@ -96,17 +96,6 @@ enum SourceProp
     srcSpatialize = AL_SOURCE_SPATIALIZE_SOFT,
 }; // SourceProp
 
-
-/**
- * Returns if the last known state for the source was playing or paused. Does
- * not sync with the mixer voice.
- */
-static inline bool IsPlayingOrPaused(ALsource* source)
-{
-    int state = source->state;
-    return state == AL_PLAYING || state == AL_PAUSED;
-}
-
 /**
  * Returns an updated source state using the matching voice's status (or lack
  * thereof).

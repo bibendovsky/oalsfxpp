@@ -31,20 +31,6 @@ void deinit_source(ALsource *source, int num_sends);
  * Global variables
  ************************************************/
 
-/* Default is always the first in the list */
-static ALCchar *alcDefaultAllDevicesSpecifier;
-
-static ALCenum LastNullDeviceError = ALC_NO_ERROR;
-
-/* One-time configuration init control */
-static ALCboolean alc_config_once = ALC_FALSE;
-
-/* Flag to specify if alcSuspendContext/alcProcessContext should defer/process
- * updates.
- */
-static ALCboolean SuspendDefers = ALC_TRUE;
-
-
 ALCdevice* g_device = nullptr;
 
 
@@ -115,9 +101,6 @@ void set_default_wfx_channel_order(ALCdevice *device)
         break;
     }
 }
-
-extern inline int GetChannelIndex(const enum Channel names[max_output_channels], enum Channel chan);
-
 
 /* UpdateDeviceParams
  *
