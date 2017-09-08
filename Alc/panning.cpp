@@ -271,7 +271,7 @@ static const ChannelMap X71Cfg[6] = {
     {BackRight, {2.04124145E-1F, -1.08880247E-1F, 0.0F, -1.88586120E-1F, 1.29099444E-1F, 0.0F, 0.0F, 0.0F, 7.45355993E-2F, -3.73460789E-2F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.00000000E+0F}},
 };
 
-static void InitPanning(ALCdevice *device)
+static void init_panning(ALCdevice *device)
 {
     const ChannelMap *chanmap = NULL;
     int coeffcount = 0;
@@ -360,11 +360,11 @@ void alu_init_renderer(ALCdevice *device)
 
     if(device->fmt_chans != DevFmtStereo)
     {
-        InitPanning(device);
+        init_panning(device);
         return;
     }
 
-    InitPanning(device);
+    init_panning(device);
 }
 
 
