@@ -96,10 +96,6 @@ enum SourceProp
     srcSpatialize = AL_SOURCE_SPATIALIZE_SOFT,
 }; // SourceProp
 
-static inline ALvoice *GetSourceVoice(const ALsource *source, const ALCcontext *context)
-{
-    return context->voice;
-}
 
 /**
  * Returns if the last known state for the source was playing or paused. Does
@@ -127,42 +123,29 @@ static inline int GetSourceState(ALsource *source, ALvoice *voice)
     return source->state;
 }
 
-/**
- * Returns if the source should specify an update, given the context's
- * deferring state and the source's last known state.
- */
-static inline bool SourceShouldUpdate(ALsource *source, ALCcontext *context)
-{
-    return IsPlayingOrPaused(source);
-}
-
 AL_API void AL_APIENTRY alSourcePlay(ALuint source)
 {
     alSourcePlayv(1, &source);
 }
 AL_API void AL_APIENTRY alSourcePlayv(int n, const ALuint *sources)
 {
-    ALCcontext *context;
     ALCdevice *device;
     ALsource *source;
     ALvoice *voice;
     int i, j;
 
-    context = GetContextRef();
-    if(!context) return;
+    device = g_device;
 
     if(!(n == 1))
         return;
-
-    device = context->device;
 
     for(i = 0;i < n;i++)
     {
         bool start_fading = false;
 
-        source = context->device->source;
+        source = device->source;
+        voice = device->voice;
 
-        voice = GetSourceVoice(source, context);
         switch(GetSourceState(source, voice))
         {
             case AL_PLAYING:
@@ -184,11 +167,11 @@ AL_API void AL_APIENTRY alSourcePlayv(int n, const ALuint *sources)
         /* Make sure this source isn't already active, and if not, look for an
          * unused voice to put it in.
          */
-        for(j = 0;j < context->voice_count;j++)
+        for(j = 0;j < device->voice_count;j++)
         {
-            if(context->voice->source == NULL)
+            if(device->voice->source == NULL)
             {
-                voice = context->voice;
+                voice = device->voice;
                 break;
             }
         }
@@ -218,23 +201,20 @@ AL_API void AL_APIENTRY alSourceStop(ALuint source)
 }
 AL_API void AL_APIENTRY alSourceStopv(int n, const ALuint *sources)
 {
-    ALCcontext *context;
     ALCdevice *device;
     ALsource *source;
     ALvoice *voice;
     int i;
 
-    context = GetContextRef();
-    if(!context) return;
-
     if(!(n == 1))
         return;
 
-    device = context->device;
+    device = g_device;
+
     for(i = 0;i < n;i++)
     {
-        source = context->device->source;
-        if((voice=GetSourceVoice(source, context)) != NULL)
+        source = device->source;
+        if((voice=device->voice) != NULL)
         {
             voice->source = NULL;
             voice->playing = false;
@@ -293,14 +273,14 @@ void UpdateSourceProps(ALsource *source, ALvoice *voice, int num_sends)
     }
 }
 
-void UpdateAllSourceProps(ALCcontext *context)
+void UpdateAllSourceProps(ALCdevice* device)
 {
-    int num_sends = context->device->num_aux_sends;
+    int num_sends = device->num_aux_sends;
     int pos;
 
-    for(pos = 0;pos < context->voice_count;pos++)
+    for(pos = 0;pos < device->voice_count;pos++)
     {
-        ALvoice *voice = context->voice;
+        ALvoice *voice = device->voice;
         ALsource *source = voice->source;
         if(source)
             UpdateSourceProps(source, voice, num_sends);

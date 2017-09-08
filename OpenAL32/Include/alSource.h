@@ -43,7 +43,7 @@ struct ALsource
 }; // ALsource
 
 
-void UpdateAllSourceProps(ALCcontext *context);
+void UpdateAllSourceProps(ALCdevice* device);
 
 
 #endif

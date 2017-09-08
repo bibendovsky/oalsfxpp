@@ -36,9 +36,6 @@ static ALCchar *alcDefaultAllDevicesSpecifier;
 
 static ALCenum LastNullDeviceError = ALC_NO_ERROR;
 
-/* Process-wide current context */
-static ALCcontext* GlobalContext = NULL;
-
 /* One-time configuration init control */
 static ALCboolean alc_config_once = ALC_FALSE;
 
@@ -48,10 +45,7 @@ static ALCboolean alc_config_once = ALC_FALSE;
 static ALCboolean SuspendDefers = ALC_TRUE;
 
 
-/************************************************
- * Device lists
- ************************************************/
-static ALCdevice* DeviceList = NULL;
+ALCdevice* g_device = nullptr;
 
 
 /************************************************
@@ -160,39 +154,35 @@ static ALCenum UpdateDeviceParams(
      * allocated with the appropriate size.
      */
     auto update_failed = ALboolean{AL_FALSE};
-    auto context = device->context;
 
-    if (context)
+    auto slot = device->effect_slot;
+    auto state = slot->effect.state;
+
+    state->out_buffer = &device->dry.buffer;
+    state->out_channels = device->dry.num_channels;
+
+    if (state->update_device(device) == AL_FALSE)
     {
-        auto slot = device->effect_slot;
-        auto state = slot->effect.state;
-
-        state->out_buffer = &device->dry.buffer;
-        state->out_channels = device->dry.num_channels;
-
-        if (state->update_device(device) == AL_FALSE)
-        {
-            update_failed = AL_TRUE;
-        }
-        else
-        {
-            UpdateEffectSlotProps(slot);
-        }
-
-        AllocateVoices(context, 1, old_sends);
-
-        for (int pos = 0; pos < context->voice_count; ++pos)
-        {
-            auto voice = context->voice;
-
-            if (!voice->source)
-            {
-                continue;
-            }
-        }
-
-        UpdateAllSourceProps(context);
+        update_failed = AL_TRUE;
     }
+    else
+    {
+        UpdateEffectSlotProps(slot);
+    }
+
+    AllocateVoices(device, 1, old_sends);
+
+    for (int pos = 0; pos < device->voice_count; ++pos)
+    {
+        auto voice = device->voice;
+
+        if (!voice->source)
+        {
+            continue;
+        }
+    }
+
+    UpdateAllSourceProps(device);
 
     if (update_failed)
     {
@@ -227,28 +217,6 @@ static ALCvoid FreeDevice(ALCdevice *device)
     delete device;
 }
 
-/* VerifyDevice
- *
- * Checks if the device handle is valid, and increments its ref count if so.
- */
-static ALCboolean VerifyDevice(ALCdevice **device)
-{
-    ALCdevice *tmpDevice;
-
-    tmpDevice = DeviceList;
-
-    if(tmpDevice)
-    {
-        if(tmpDevice == *device)
-        {
-            return ALC_TRUE;
-        }
-    }
-
-    *device = NULL;
-    return ALC_FALSE;
-}
-
 /* FreeContext
  *
  * Cleans up the context, and destroys any remaining objects the app failed to
@@ -256,21 +224,16 @@ static ALCboolean VerifyDevice(ALCdevice **device)
  */
 static void FreeContext(ALCcontext *context)
 {
-    size_t count;
-    int i;
+    auto device = g_device;
 
-    for(i = 0;i < context->voice_count;i++)
-        DeinitVoice(context->voice);
-    delete[] reinterpret_cast<char*>(context->voice);
-    context->voice = nullptr;
-    context->voice_count = 0;
+    for(int i = 0; i < device->voice_count; ++i)
+    {
+        DeinitVoice(device->voice);
+    }
 
-    count = 0;
-
-    //Invalidate context
-    memset(context, 0, sizeof(ALCcontext));
-
-    delete context;
+    delete[] reinterpret_cast<char*>(device->voice);
+    device->voice = nullptr;
+    device->voice_count = 0;
 }
 
 /* ReleaseContext
@@ -281,31 +244,19 @@ static void FreeContext(ALCcontext *context)
  */
 static void ReleaseContext(ALCdevice *device)
 {
-    FreeContext(device->context);
-    device->context = nullptr;
-    GlobalContext = nullptr;
+    FreeContext(nullptr);
 }
 
-/* GetContextRef
- *
- * Returns the currently active context for this thread, and adds a reference
- * without locking it.
- */
-ALCcontext* GetContextRef()
+void AllocateVoices(ALCdevice* device, int num_voices, int old_sends)
 {
-    return GlobalContext;
-}
-
-void AllocateVoices(ALCcontext *context, int num_voices, int old_sends)
-{
-    if (context->voice)
+    if (device->voice)
     {
         return;
     }
 
-    delete context->voice;
-    context->voice = new ALvoice{};
-    context->voice_count = 1;
+    delete device->voice;
+    device->voice = new ALvoice{};
+    device->voice_count = 1;
 }
 
 
@@ -319,49 +270,17 @@ void AllocateVoices(ALCcontext *context, int num_voices, int old_sends)
  */
 ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCint *attrList)
 {
-    ALCenum err;
+    device->voice = nullptr;
+    device->voice_count = 0;
 
-    /* Explicitly hold the list lock while taking the BackendLock in case the
-     * device is asynchronously destropyed, to ensure this new context is
-     * properly cleaned up after being made.
-     */
-    if(!VerifyDevice(&device))
+    if(UpdateDeviceParams(device, attrList) != ALC_NO_ERROR)
     {
-        return NULL;
+        return nullptr;
     }
 
-    if (device->context)
-    {
-        return NULL;
-    }
+    AllocateVoices(device, 1, device->num_aux_sends);
 
-    auto ALContext = new ALCcontext{};
-    if(!ALContext)
-    {
-        return NULL;
-    }
-
-    ALContext->voice = NULL;
-    ALContext->voice_count = 0;
-    ALContext->device = device;
-
-    if((err=UpdateDeviceParams(device, attrList)) != ALC_NO_ERROR)
-    {
-        delete ALContext;
-        ALContext = NULL;
-
-        if(err == ALC_INVALID_DEVICE)
-        {
-            aluHandleDisconnect(device);
-        }
-        return NULL;
-    }
-    AllocateVoices(ALContext, 1, device->num_aux_sends);
-
-    device->context = ALContext;
-    GlobalContext = ALContext;
-
-    return ALContext;
+    return nullptr;
 }
 
 /* alcDestroyContext
@@ -370,10 +289,11 @@ ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCin
  */
 ALC_API ALCvoid ALC_APIENTRY alcDestroyContext(ALCcontext *context)
 {
-    auto Device = context->device;
-    if(Device)
+    auto device = g_device;
+
+    if(device)
     {
-        ReleaseContext(Device);
+        ReleaseContext(device);
     }
 }
 
@@ -385,9 +305,9 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
 {
     ALCdevice *device;
 
-    if (DeviceList)
+    if (g_device)
     {
-        return NULL;
+        return nullptr;
     }
 
     device = new ALCdevice{};
@@ -403,8 +323,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     device->foa_out.num_channels = 0;
     device->real_out.buffer = NULL;
     device->real_out.num_channels = 0;
-
-    device->context = NULL;
 
     device->auxiliary_effect_slot_max = 64;
     device->num_aux_sends = DEFAULT_SENDS;
@@ -426,7 +344,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     device->effect = new ALeffect{};
     InitEffect(device->effect);
 
-    DeviceList = device;
+    g_device = device;
 
     return device;
 }
@@ -437,20 +355,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
  */
 ALC_API ALCboolean ALC_APIENTRY alcCloseDevice(ALCdevice *device)
 {
-    ALCdevice *iter;
-    ALCcontext *ctx;
-
-    iter = DeviceList;
-    if(!iter)
-    {
-        return ALC_FALSE;
-    }
-
-    ctx = device->context;
-    if(ctx != NULL)
-    {
-        ReleaseContext(device);
-    }
-
+    ReleaseContext(device);
     return ALC_TRUE;
 }

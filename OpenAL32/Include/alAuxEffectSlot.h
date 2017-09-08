@@ -61,7 +61,7 @@ struct ALeffectslot
 int InitEffectSlot(ALeffectslot* slot);
 void DeinitEffectSlot(ALeffectslot* slot);
 void UpdateEffectSlotProps(ALeffectslot* slot);
-void UpdateAllEffectSlotProps(ALCcontext* context);
+void UpdateAllEffectSlotProps(ALCdevice* device);
 int InitializeEffect(ALCdevice* Device, ALeffectslot* EffectSlot, ALeffect* effect);
 
 

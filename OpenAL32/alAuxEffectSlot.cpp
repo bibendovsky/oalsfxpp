@@ -191,8 +191,8 @@ void UpdateEffectSlotProps(ALeffectslot *slot)
     slot->update = temp_props;
 }
 
-void UpdateAllEffectSlotProps(ALCcontext *context)
+void UpdateAllEffectSlotProps(ALCdevice* device)
 {
-    auto slot = context->device->effect_slot;
+    auto slot = device->effect_slot;
     UpdateEffectSlotProps(slot);
 }

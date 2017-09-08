@@ -38,13 +38,6 @@ int main()
     const char* dst_file_name = "f:\\temp\\rev\\out.raw";
     const int sample_count = 1024;
     const int channel_count = 1;
-    const ALCint context_attribs[] = {
-        ALC_MAX_AUXILIARY_SENDS,
-        1,
-
-        0,
-    };
-
     FILE* src_stream = NULL;
     FILE* dst_stream = NULL;
     long stream_size = 0;
@@ -58,7 +51,6 @@ int main()
     int i = 0;
     int is_succeed = 1;
     ALCdevice* oal_device = NULL;
-    ALCcontext* oal_context = NULL;
 
 
     if (is_succeed)
@@ -152,13 +144,7 @@ int main()
 
     if (is_succeed)
     {
-        oal_context = alcCreateContext(oal_device, context_attribs);
-
-        if (!oal_context)
-        {
-            is_succeed = 0;
-            printf("%s\n", "Failed to create a context.");
-        }
+        alcCreateContext(oal_device, nullptr);
     }
 
 #if 1
@@ -353,7 +339,7 @@ int main()
     if (is_succeed)
     {
         oal_device->source->send->slot = oal_device->effect_slot;
-        UpdateSourceProps(oal_device->source, oal_context->voice, 1);
+        UpdateSourceProps(oal_device->source, oal_device->voice, 1);
     }
 
     if (is_succeed)
@@ -408,7 +394,7 @@ int main()
 
     alSourceStop(0);
 
-    alcDestroyContext(oal_context);
+    alcDestroyContext(nullptr);
     alcCloseDevice(oal_device);
 
     free(dst_buffer);

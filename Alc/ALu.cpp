@@ -268,10 +268,9 @@ static void CalcPanningAndFilters(ALvoice *voice, const float Distance, const fl
     }
 }
 
-static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *props, const ALCcontext *ALContext)
+static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *props, ALCdevice* device)
 {
     static const float dir[3] = { 0.0f, 0.0f, -1.0f };
-    ALCdevice *Device = ALContext->device;
     float DryGain, DryGainHF, DryGainLF;
     float WetGain[MAX_SENDS];
     float WetGainHF[MAX_SENDS];
@@ -279,9 +278,9 @@ static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *p
     ALeffectslot* send_slot = nullptr;
     int i;
 
-    voice->direct.buffer = &Device->dry.buffer;
-    voice->direct.channels = Device->dry.num_channels;
-    if(Device->num_aux_sends > 0)
+    voice->direct.buffer = &device->dry.buffer;
+    voice->direct.channels = device->dry.num_channels;
+    if(device->num_aux_sends > 0)
     {
         send_slot = props->send.slot;
         if(!send_slot || send_slot->params.effect_type == AL_EFFECT_NULL)
@@ -302,7 +301,7 @@ static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *p
     DryGain  = minf(DryGain, GAIN_MIX_MAX);
     DryGainHF = props->direct.gain_hf;
     DryGainLF = props->direct.gain_lf;
-    for(i = 0;i < Device->num_aux_sends;i++)
+    for(i = 0;i < device->num_aux_sends;i++)
     {
         WetGain[i]  = 1.0F;
         WetGain[i] *= props->send.gain;
@@ -312,25 +311,25 @@ static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *p
     }
 
     CalcPanningAndFilters(voice, 0.0f, dir, 0.0f, DryGain, DryGainHF, DryGainLF, WetGain,
-                          WetGainLF, WetGainHF, send_slot, props, Device);
+                          WetGainLF, WetGainHF, send_slot, props, device);
 }
 
-static void CalcSourceParams(ALvoice *voice, ALCcontext *context, ALboolean force)
+static void CalcSourceParams(ALvoice *voice, ALCdevice* device, ALboolean force)
 {
-    CalcNonAttnSourceParams(voice, &voice->props, context);
+    CalcNonAttnSourceParams(voice, &voice->props, device);
 }
 
 
-static void UpdateContextSources(ALCcontext *ctx)
+static void UpdateContextSources(ALCdevice* device)
 {
-    auto slot = ctx->device->effect_slot;
-    auto force = CalcEffectSlotParams(slot, ctx->device);
-    auto voice = ctx->voice;
+    auto slot = device->effect_slot;
+    auto force = CalcEffectSlotParams(slot, device);
+    auto voice = device->voice;
     auto source = voice->source;
 
     if(source)
     {
-        CalcSourceParams(voice, ctx, force);
+        CalcSourceParams(voice, device, force);
     }
 }
 
@@ -352,7 +351,6 @@ void aluMixData(ALCdevice *device, void *OutBuffer, int NumSamples, const float*
 {
     int SamplesToDo;
     int SamplesDone;
-    ALCcontext *ctx;
     int i, c;
 
     device->source_samples = src_samples;
@@ -366,38 +364,33 @@ void aluMixData(ALCdevice *device, void *OutBuffer, int NumSamples, const float*
             std::fill_n(device->dry.buffer[c].begin(), SamplesToDo, 0.0F);
         }
 
-        ctx = device->context;
+        UpdateContextSources(device);
 
-        if(ctx)
+        auto slot = device->effect_slot;
+
+        for(c = 0;c < slot->num_channels;c++)
         {
-            UpdateContextSources(ctx);
+            std::fill_n(slot->wet_buffer[c].begin(), SamplesToDo, 0.0F);
+        }
 
-            auto slot = device->effect_slot;
-
-            for(c = 0;c < slot->num_channels;c++)
+        /* source processing */
+        for(i = 0;i < device->voice_count;i++)
+        {
+            ALvoice *voice = device->voice;
+            ALsource *source = voice->source;
+            if(source && voice->playing)
             {
-                std::fill_n(slot->wet_buffer[c].begin(), SamplesToDo, 0.0F);
-            }
-
-            /* source processing */
-            for(i = 0;i < ctx->voice_count;i++)
-            {
-                ALvoice *voice = ctx->voice;
-                ALsource *source = voice->source;
-                if(source && voice->playing)
+                if(!MixSource(voice, source, device, SamplesToDo))
                 {
-                    if(!MixSource(voice, source, device, SamplesToDo))
-                    {
-                        voice->source = NULL;
-                        voice->playing = false;
-                    }
+                    voice->source = NULL;
+                    voice->playing = false;
                 }
             }
-
-            /* effect slot processing */
-            IEffect *state = slot->params.effect_state;
-            state->process(SamplesToDo, slot->wet_buffer, *state->out_buffer, state->out_channels);
         }
+
+        /* effect slot processing */
+        IEffect *state = slot->params.effect_state;
+        state->process(SamplesToDo, slot->wet_buffer, *state->out_buffer, state->out_channels);
 
         if(OutBuffer)
         {
@@ -407,34 +400,5 @@ void aluMixData(ALCdevice *device, void *OutBuffer, int NumSamples, const float*
         }
 
         SamplesDone += SamplesToDo;
-    }
-}
-
-void aluHandleDisconnect(ALCdevice *device)
-{
-    ALCcontext *ctx;
-
-    ctx = device->context;
-    if(ctx)
-    {
-        int i;
-        for(i = 0;i < ctx->voice_count;i++)
-        {
-            ALvoice *voice = ctx->voice;
-            ALsource *source;
-
-            source = voice->source;
-            voice->source = NULL;
-            voice->playing = false;
-
-            if(source)
-            {
-                if (source->state == AL_PLAYING)
-                {
-                    source->state = AL_STOPPED;
-                }
-            }
-        }
-        ctx->voice_count = 0;
     }
 }

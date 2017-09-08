@@ -231,25 +231,20 @@ struct ALCdevice_struct
     FOAOut foa_out;
     RealOut real_out;
 
-    ALCcontext* context;
-
     struct ALsource* source;
     const float* source_samples;
     struct ALeffectslot* effect_slot;
     struct ALeffect* effect;
+    struct ALvoice* voice;
+    int voice_count;
 }; // ALCdevice_struct
-
 
 struct ALCcontext_struct
 {
-    struct ALvoice* voice;
-    int voice_count;
-    ALCdevice* device;
-}; // ALCcontext_struct
+};
 
-
-ALCcontext* GetContextRef();
-void AllocateVoices(ALCcontext *context, int num_voices, int old_sends);
+extern ALCdevice* g_device;
+void AllocateVoices(ALCdevice *device, int num_voices, int old_sends);
 void SetDefaultWFXChannelOrder(ALCdevice *device);
 
 
