@@ -73,7 +73,7 @@ protected:
 
             if (idx != -1)
             {
-                out_buffer = device->real_out.buffer;
+                out_buffer = device->real_out.buffers;
                 out_channels = device->real_out.num_channels;
                 gains_[idx] = gain;
             }
@@ -87,7 +87,7 @@ protected:
 
             if (idx != -1)
             {
-                out_buffer = device->real_out.buffer;
+                out_buffer = device->real_out.buffers;
                 out_channels = device->real_out.num_channels;
                 gains_[idx] = gain;
             }
@@ -97,7 +97,7 @@ protected:
 
                 CalcAngleCoeffs(0.0F, 0.0F, 0.0F, coeffs);
 
-                out_buffer = &device->dry.buffer;
+                out_buffer = &device->dry.buffers;
                 out_channels = device->dry.num_channels;
 
                 ComputePanningGains(device->dry, coeffs, gain, gains_.data());

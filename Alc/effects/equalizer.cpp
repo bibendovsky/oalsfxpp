@@ -117,7 +117,7 @@ protected:
         float gain;
         float freq_mult;
 
-        out_buffer = device->foa_out.buffer;
+        out_buffer = device->foa_out.buffers;
         out_channels = device->foa_out.num_channels;
 
         for (int i = 0; i < MAX_EFFECT_CHANNELS; ++i)

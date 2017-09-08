@@ -1537,7 +1537,7 @@ private:
         aluMatrixf transform;
         aluMatrixf rot;
 
-        out_buffer = device->foa_out.buffer;
+        out_buffer = device->foa_out.buffers;
         out_channels = device->foa_out.num_channels;
 
         // Create a matrix that first converts A-Format to B-Format, then rotates

@@ -299,8 +299,6 @@ void ComputeFirstOrderGainsBF(const BFChannelConfig *chanmap, int numchans, cons
 ALboolean MixSource(struct ALvoice *voice, struct ALsource *Source, ALCdevice *Device, int SamplesToDo);
 
 void aluMixData(ALCdevice *device, void *OutBuffer, int NumSamples, const float* src_samples);
-/* Caller must lock the device. */
-void aluHandleDisconnect(ALCdevice *device);
 
 
 #endif

@@ -195,7 +195,7 @@ struct ALCdevice_struct
         // is used instead to map each output to a coefficient index.
         int coeff_count;
 
-        SampleBuffers buffer;
+        SampleBuffers buffers;
         int num_channels;
         ChannelsPerOrder num_channels_per_order;
     }; // Dry
@@ -208,7 +208,7 @@ struct ALCdevice_struct
         // Will only be 4 or 0.
         int coeff_count;
 
-        SampleBuffers* buffer;
+        SampleBuffers* buffers;
         int num_channels;
     }; // FOAOut
 
@@ -217,7 +217,7 @@ struct ALCdevice_struct
     struct RealOut
     {
         ChannelNames channel_name;
-        SampleBuffers* buffer;
+        SampleBuffers* buffers;
         int num_channels;
     }; // RealOut
 

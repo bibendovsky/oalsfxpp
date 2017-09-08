@@ -176,7 +176,7 @@ static void CalcPanningAndFilters(ALvoice *voice, const float Distance, const fl
             {
                 for(j = 0;j < MAX_OUTPUT_CHANNELS;j++)
                     voice->direct.params[c].gains.target[j] = 0.0f;
-                if(&Device->dry.buffer == Device->real_out.buffer)
+                if(&Device->dry.buffers == Device->real_out.buffers)
                 {
                     int idx = GetChannelIdxByName(Device->real_out, chans[c].channel);
                     if(idx != -1) voice->direct.params[c].gains.target[idx] = DryGain;
@@ -278,7 +278,7 @@ static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *p
     ALeffectslot* send_slot = nullptr;
     int i;
 
-    voice->direct.buffer = &device->dry.buffer;
+    voice->direct.buffer = &device->dry.buffers;
     voice->direct.channels = device->dry.num_channels;
     if(device->num_aux_sends > 0)
     {
@@ -361,7 +361,7 @@ void aluMixData(ALCdevice *device, void *OutBuffer, int NumSamples, const float*
 
         for(c = 0;c < device->dry.num_channels;c++)
         {
-            std::fill_n(device->dry.buffer[c].begin(), SamplesToDo, 0.0F);
+            std::fill_n(device->dry.buffers[c].begin(), SamplesToDo, 0.0F);
         }
 
         UpdateContextSources(device);
@@ -394,7 +394,7 @@ void aluMixData(ALCdevice *device, void *OutBuffer, int NumSamples, const float*
 
         if(OutBuffer)
         {
-            auto Buffer = device->real_out.buffer;
+            auto Buffer = device->real_out.buffers;
             int Channels = device->real_out.num_channels;
             WriteF32(Buffer, OutBuffer, SamplesDone, SamplesToDo, Channels);
         }

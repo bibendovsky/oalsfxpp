@@ -131,21 +131,21 @@ static ALCenum UpdateDeviceParams(
     const auto old_sends = device->num_aux_sends;
     const auto new_sends = device->num_aux_sends;
 
-    device->dry.buffer = SampleBuffers{};
+    device->dry.buffers = SampleBuffers{};
     device->dry.num_channels = 0;
-    device->foa_out.buffer = nullptr;
+    device->foa_out.buffers = nullptr;
     device->foa_out.num_channels = 0;
-    device->real_out.buffer = nullptr;
+    device->real_out.buffers = nullptr;
     device->real_out.num_channels = 0;
 
     aluInitRenderer(device);
 
-    device->dry.buffer.resize(device->dry.num_channels);
+    device->dry.buffers.resize(device->dry.num_channels);
 
-    device->real_out.buffer = &device->dry.buffer;
+    device->real_out.buffers = &device->dry.buffers;
     device->real_out.num_channels = device->dry.num_channels;
 
-    device->foa_out.buffer = &device->dry.buffer;
+    device->foa_out.buffers = &device->dry.buffers;
     device->foa_out.num_channels = device->dry.num_channels;
 
     device->num_aux_sends = new_sends;
@@ -158,7 +158,7 @@ static ALCenum UpdateDeviceParams(
     auto slot = device->effect_slot;
     auto state = slot->effect.state;
 
-    state->out_buffer = &device->dry.buffer;
+    state->out_buffer = &device->dry.buffers;
     state->out_channels = device->dry.num_channels;
 
     if (state->update_device(device) == AL_FALSE)
@@ -207,11 +207,11 @@ static ALCvoid FreeDevice(ALCdevice *device)
     DeinitSource(device->source, device->num_aux_sends);
     delete device->source;
 
-    device->dry.buffer = SampleBuffers{};
+    device->dry.buffers = SampleBuffers{};
     device->dry.num_channels = 0;
-    device->foa_out.buffer = nullptr;
+    device->foa_out.buffers = nullptr;
     device->foa_out.num_channels = 0;
-    device->real_out.buffer = nullptr;
+    device->real_out.buffers = nullptr;
     device->real_out.num_channels = 0;
 
     delete device;
@@ -284,11 +284,11 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
         return NULL;
     }
 
-    device->dry.buffer = SampleBuffers{};
+    device->dry.buffers = SampleBuffers{};
     device->dry.num_channels = 0;
-    device->foa_out.buffer = NULL;
+    device->foa_out.buffers = NULL;
     device->foa_out.num_channels = 0;
-    device->real_out.buffer = NULL;
+    device->real_out.buffers = NULL;
     device->real_out.num_channels = 0;
 
     device->auxiliary_effect_slot_max = 64;

@@ -76,7 +76,7 @@ protected:
     {
         is_enabled_ = (props->compressor.on_off != AL_FALSE);
 
-        out_buffer = device->foa_out.buffer;
+        out_buffer = device->foa_out.buffers;
         out_channels = device->foa_out.num_channels;
 
         for (int i = 0; i < 4; ++i)
