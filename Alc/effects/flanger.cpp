@@ -75,7 +75,7 @@ protected:
         }
     }
 
-    ALboolean FlangerEffect::do_update_device(
+    bool FlangerEffect::do_update_device(
         ALCdevice* device) final
     {
         auto maxlen = fastf2i(AL_FLANGER_MAX_DELAY * 2.0F * device->frequency) + 1;
@@ -96,7 +96,7 @@ protected:
             std::fill(buffer.begin(), buffer.end(), 0.0F);
         }
 
-        return AL_TRUE;
+        return true;
     }
 
     void FlangerEffect::do_update(

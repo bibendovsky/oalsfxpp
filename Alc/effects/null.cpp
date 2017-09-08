@@ -22,7 +22,7 @@ protected:
 
     void do_destruct() final;
 
-    ALboolean do_update_device(
+    bool do_update_device(
         ALCdevice* device) final;
 
     void do_update(
@@ -46,11 +46,11 @@ void NullEffect::do_destruct()
 {
 }
 
-ALboolean NullEffect::do_update_device(
+bool NullEffect::do_update_device(
     ALCdevice* device)
 {
     static_cast<void>(device);
-    return AL_TRUE;
+    return true;
 }
 
 void NullEffect::do_update(

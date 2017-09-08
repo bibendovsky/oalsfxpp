@@ -51,11 +51,11 @@ protected:
     {
     }
 
-    ALboolean DedicatedEffect::do_update_device(
+    bool DedicatedEffect::do_update_device(
         ALCdevice* device) final
     {
         static_cast<void>(device);
-        return AL_TRUE;
+        return true;
     }
 
     void DedicatedEffect::do_update(

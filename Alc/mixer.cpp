@@ -62,7 +62,7 @@ static const float *DoFilters(ALfilterState *lpfilter, ALfilterState *hpfilter,
     return src;
 }
 
-ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, int SamplesToDo)
+bool MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, int SamplesToDo)
 {
     int NumChannels;
     int chan;
@@ -136,5 +136,5 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, int Sam
         }
     }
 
-    return 1;
+    return true;
 }

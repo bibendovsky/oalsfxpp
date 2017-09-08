@@ -153,7 +153,7 @@ static ALCenum UpdateDeviceParams(
     /* Need to delay returning failure until replacement Send arrays have been
      * allocated with the appropriate size.
      */
-    auto update_failed = ALboolean{AL_FALSE};
+    auto update_failed = false;
 
     auto slot = device->effect_slot;
     auto state = slot->effect.state;
@@ -161,9 +161,9 @@ static ALCenum UpdateDeviceParams(
     state->out_buffer = &device->dry.buffers;
     state->out_channels = device->dry.num_channels;
 
-    if (state->update_device(device) == AL_FALSE)
+    if (!state->update_device(device))
     {
-        update_failed = AL_TRUE;
+        update_failed = true;
     }
     else
     {

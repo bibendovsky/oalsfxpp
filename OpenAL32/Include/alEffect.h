@@ -25,7 +25,7 @@ union ALeffectProps
         float late_reverb_delay;
         float air_absorption_gain_hf;
         float room_rolloff_factor;
-        ALboolean decay_hf_limit;
+        bool decay_hf_limit;
 
         // Additional EAX Reverb Properties
         float gain_lf;
@@ -52,7 +52,7 @@ union ALeffectProps
 
     struct Compressor
     {
-        ALboolean on_off;
+        bool on_off;
     }; // Compressor
 
     struct Distortion
@@ -153,7 +153,7 @@ public:
 
     void destruct();
 
-    ALboolean update_device(
+    bool update_device(
         ALCdevice* device);
 
     void update(
@@ -176,7 +176,7 @@ protected:
 
     virtual void do_destruct() = 0;
 
-    virtual ALboolean do_update_device(
+    virtual bool do_update_device(
         ALCdevice* device) = 0;
 
     virtual void do_update(

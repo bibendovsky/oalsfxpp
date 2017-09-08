@@ -59,11 +59,11 @@ protected:
     {
     }
 
-    ALboolean ModulatorEffect::do_update_device(
+    bool ModulatorEffect::do_update_device(
         ALCdevice* device) final
     {
         static_cast<void>(device);
-        return AL_TRUE;
+        return true;
     }
 
     void ModulatorEffect::do_update(

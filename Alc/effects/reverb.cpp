@@ -157,7 +157,7 @@ protected:
     {
     }
 
-    ALboolean ReverbEffect::do_update_device(
+    bool ReverbEffect::do_update_device(
         ALCdevice* device) final
     {
         const auto frequency = device->frequency;
@@ -180,7 +180,7 @@ protected:
                 (AL_EAXREVERB_MAX_REFLECTIONS_DELAY + (early_tap_lengths[3] * multiplier)) * frequency);
         }
 
-        return AL_TRUE;
+        return true;
     }
 
     void ReverbEffect::do_update(

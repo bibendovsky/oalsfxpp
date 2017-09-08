@@ -56,11 +56,11 @@ protected:
     {
     }
 
-    ALboolean DistortionEffect::do_update_device(
+    bool DistortionEffect::do_update_device(
         ALCdevice* device) final
     {
         static_cast<void>(device);
-        return AL_TRUE;
+        return true;
     }
 
     void DistortionEffect::do_update(

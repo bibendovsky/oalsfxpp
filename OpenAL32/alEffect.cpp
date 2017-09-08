@@ -47,7 +47,7 @@ void IEffect::destruct()
     do_destruct();
 }
 
-ALboolean IEffect::update_device(
+bool IEffect::update_device(
     ALCdevice* device)
 {
     return do_update_device(device);

@@ -76,7 +76,7 @@ protected:
         }
     }
 
-    ALboolean ChorusEffect::do_update_device(
+    bool ChorusEffect::do_update_device(
         ALCdevice* device) final
     {
         auto max_len = fastf2i(AL_CHORUS_MAX_DELAY * 2.0F * device->frequency) + 1;
@@ -96,7 +96,7 @@ protected:
             std::fill(buffer.begin(), buffer.end(), 0.0F);
         }
 
-        return AL_TRUE;
+        return true;
     }
 
     void ChorusEffect::do_update(

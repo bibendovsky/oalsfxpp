@@ -53,14 +53,14 @@ void DeinitVoice(ALvoice *voice)
 {
 }
 
-static ALboolean CalcEffectSlotParams(ALeffectslot *slot, ALCdevice *device)
+static bool CalcEffectSlotParams(ALeffectslot *slot, ALCdevice *device)
 {
     struct ALeffectslotProps *props;
     IEffect *state;
 
     props = slot->update;
     slot->update = NULL;
-    if(!props) return AL_FALSE;
+    if(!props) return false;
 
     slot->params.effect_type = props->type;
 
@@ -73,7 +73,7 @@ static ALboolean CalcEffectSlotParams(ALeffectslot *slot, ALCdevice *device)
 
     state->update(device, slot, &props->props);
 
-    return AL_TRUE;
+    return true;
 }
 
 
@@ -306,7 +306,7 @@ static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *p
                           WetGainLF, WetGainHF, send_slot, props, device);
 }
 
-static void CalcSourceParams(ALvoice *voice, ALCdevice* device, ALboolean force)
+static void CalcSourceParams(ALvoice *voice, ALCdevice* device, bool force)
 {
     CalcNonAttnSourceParams(voice, &voice->props, device);
 }

@@ -296,7 +296,7 @@ void ComputeFirstOrderGainsMC(const ChannelConfig *chancoeffs, int numchans, con
 void ComputeFirstOrderGainsBF(const BFChannelConfig *chanmap, int numchans, const float mtx[4], float ingain, float gains[MAX_OUTPUT_CHANNELS]);
 
 
-ALboolean MixSource(struct ALvoice *voice, struct ALsource *Source, ALCdevice *Device, int SamplesToDo);
+bool MixSource(struct ALvoice *voice, struct ALsource *Source, ALCdevice *Device, int SamplesToDo);
 
 void aluMixData(ALCdevice *device, void *OutBuffer, int NumSamples, const float* src_samples);
 
