@@ -124,9 +124,8 @@ extern inline int GetChannelIndex(const enum Channel names[MAX_OUTPUT_CHANNELS],
  * Updates device parameters according to the attribute list (caller is
  * responsible for holding the list lock).
  */
-static ALCenum UpdateDeviceParams(
-    ALCdevice* device,
-    const ALCint* attrList)
+static void UpdateDeviceParams(
+    ALCdevice* device)
 {
     const auto old_sends = device->num_aux_sends;
     const auto new_sends = device->num_aux_sends;
@@ -150,25 +149,14 @@ static ALCenum UpdateDeviceParams(
 
     device->num_aux_sends = new_sends;
 
-    /* Need to delay returning failure until replacement Send arrays have been
-     * allocated with the appropriate size.
-     */
-    auto update_failed = false;
-
     auto slot = device->effect_slot;
     auto state = slot->effect.state;
 
     state->out_buffer = &device->dry.buffers;
     state->out_channels = device->dry.num_channels;
 
-    if (!state->update_device(device))
-    {
-        update_failed = true;
-    }
-    else
-    {
-        UpdateEffectSlotProps(slot);
-    }
+    state->update_device(device);
+    UpdateEffectSlotProps(slot);
 
     AllocateVoices(device, 1, old_sends);
 
@@ -183,13 +171,6 @@ static ALCenum UpdateDeviceParams(
     }
 
     UpdateAllSourceProps(device);
-
-    if (update_failed)
-    {
-        return ALC_INVALID_DEVICE;
-    }
-
-    return ALC_NO_ERROR;
 }
 
 /* FreeDevice
@@ -314,7 +295,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     device->voice = nullptr;
     device->voice_count = 0;
 
-    UpdateDeviceParams(device, nullptr);
+    UpdateDeviceParams(device);
     AllocateVoices(device, 1, device->num_aux_sends);
 
     g_device = device;

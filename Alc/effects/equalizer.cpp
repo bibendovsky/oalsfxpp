@@ -101,11 +101,10 @@ protected:
     {
     }
 
-    bool EqualizerEffect::do_update_device(
+    void EqualizerEffect::do_update_device(
         ALCdevice* device)
     {
         static_cast<void>(device);
-        return true;
     }
 
     void EqualizerEffect::do_update(

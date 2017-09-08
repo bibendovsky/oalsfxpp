@@ -59,11 +59,10 @@ protected:
     {
     }
 
-    bool ModulatorEffect::do_update_device(
+    void ModulatorEffect::do_update_device(
         ALCdevice* device) final
     {
         static_cast<void>(device);
-        return true;
     }
 
     void ModulatorEffect::do_update(

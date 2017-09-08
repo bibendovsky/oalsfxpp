@@ -47,10 +47,10 @@ void IEffect::destruct()
     do_destruct();
 }
 
-bool IEffect::update_device(
+void IEffect::update_device(
     ALCdevice* device)
 {
-    return do_update_device(device);
+    do_update_device(device);
 }
 
 void IEffect::update(

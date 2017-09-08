@@ -51,11 +51,10 @@ protected:
     {
     }
 
-    bool DedicatedEffect::do_update_device(
+    void DedicatedEffect::do_update_device(
         ALCdevice* device) final
     {
         static_cast<void>(device);
-        return true;
     }
 
     void DedicatedEffect::do_update(

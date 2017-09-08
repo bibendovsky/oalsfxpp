@@ -157,7 +157,7 @@ protected:
     {
     }
 
-    bool ReverbEffect::do_update_device(
+    void ReverbEffect::do_update_device(
         ALCdevice* device) final
     {
         const auto frequency = device->frequency;
@@ -179,8 +179,6 @@ protected:
             late_feed_tap_ = fastf2i(
                 (AL_EAXREVERB_MAX_REFLECTIONS_DELAY + (early_tap_lengths[3] * multiplier)) * frequency);
         }
-
-        return true;
     }
 
     void ReverbEffect::do_update(

@@ -153,7 +153,7 @@ public:
 
     void destruct();
 
-    bool update_device(
+    void update_device(
         ALCdevice* device);
 
     void update(
@@ -176,7 +176,7 @@ protected:
 
     virtual void do_destruct() = 0;
 
-    virtual bool do_update_device(
+    virtual void do_update_device(
         ALCdevice* device) = 0;
 
     virtual void do_update(

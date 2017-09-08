@@ -71,7 +71,7 @@ protected:
         sample_buffer_ = EffectSampleBuffer{};
     }
 
-    bool EchoEffect::do_update_device(
+    void EchoEffect::do_update_device(
         ALCdevice* device) final
     {
         // Use the next power of 2 for the buffer length, so the tap offsets can be
@@ -87,8 +87,6 @@ protected:
         }
 
         std::fill(sample_buffer_.begin(), sample_buffer_.end(), 0.0F);
-
-        return true;
     }
 
     void EchoEffect::do_update(

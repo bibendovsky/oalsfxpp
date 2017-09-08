@@ -95,10 +95,7 @@ int InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *effe
 
         State->out_buffer = &Device->dry.buffers;
         State->out_channels = Device->dry.num_channels;
-        if(State->update_device(Device) == AL_FALSE)
-        {
-            return AL_OUT_OF_MEMORY;
-        }
+        State->update_device(Device);
 
         if(!effect)
         {

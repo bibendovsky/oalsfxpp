@@ -57,7 +57,7 @@ protected:
     {
     }
 
-    bool CompressorEffect::do_update_device(
+    void CompressorEffect::do_update_device(
         ALCdevice* device) final
     {
         const auto attackTime = device->frequency * 0.2F; // 200ms Attack
@@ -65,8 +65,6 @@ protected:
 
         attack_rate_ = 1.0F / attackTime;
         release_rate_ = 1.0F / releaseTime;
-
-        return true;
     }
 
     void CompressorEffect::do_update(
