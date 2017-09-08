@@ -55,8 +55,8 @@ struct DirectParams
 {
     struct Gains
     {
-        float current[MAX_OUTPUT_CHANNELS];
-        float target[MAX_OUTPUT_CHANNELS];
+        float current[max_output_channels];
+        float target[max_output_channels];
     }; // Gains
 
 
@@ -69,8 +69,8 @@ struct SendParams
 {
     struct Gains
     {
-        float current[MAX_OUTPUT_CHANNELS];
-        float target[MAX_OUTPUT_CHANNELS];
+        float current[max_output_channels];
+        float target[max_output_channels];
     }; // Gains
 
 
@@ -115,16 +115,16 @@ struct ALvoice
     struct Direct
     {
         ActiveFilters filter_type;
-        DirectParams params[MAX_INPUT_CHANNELS];
+        DirectParams params[max_input_channels];
         SampleBuffers* buffer;
         int channels;
-        int channels_per_order[MAX_AMBI_ORDER + 1];
+        int channels_per_order[max_ambi_order + 1];
     }; // Direct
 
     struct Send
     {
         ActiveFilters filter_type;
-        SendParams params[MAX_INPUT_CHANNELS];
+        SendParams params[max_input_channels];
         SampleBuffers* buffer;
         int channels;
     }; // Send
@@ -155,14 +155,14 @@ using RowMixerFunc = void (*)(float *OutBuffer, const float *gains,
                              int InPos, int BufferSize);
 
 
-constexpr auto GAIN_MIX_MAX = 16.0F; /* +24dB */
+constexpr auto max_mix_gain = 16.0F; // +24dB
 
-constexpr auto GAIN_SILENCE_THRESHOLD = 0.00001F; /* -100dB */
+constexpr auto silence_threshold_gain = 0.00001F; // -100dB
 
-constexpr auto SPEEDOFSOUNDMETRESPERSEC = 343.3F;
+constexpr auto speed_of_sound_mps = 343.3F;
 
-/* Target gain for the reverb decay feedback reaching the decay time. */
-constexpr auto REVERB_DECAY_GAIN = 0.001F; /* -60 dB */
+// Target gain for the reverb decay feedback reaching the decay time.
+constexpr auto reverb_decay_gain = 0.001F; // -60 dB
 
 
 template<typename T>
@@ -199,7 +199,7 @@ void aluInitEffectPanning(struct ALeffectslot *slot);
  * must be normalized (unit length), and the spread is the angular width of the
  * sound (0...tau).
  */
-void CalcDirectionCoeffs(const float dir[3], float spread, float coeffs[MAX_AMBI_COEFFS]);
+void CalcDirectionCoeffs(const float dir[3], float spread, float coeffs[max_ambi_coeffs]);
 
 /**
  * CalcAngleCoeffs
@@ -208,7 +208,7 @@ void CalcDirectionCoeffs(const float dir[3], float spread, float coeffs[MAX_AMBI
  * azimuth and elevation parameters are in radians, going right and up
  * respectively.
  */
-inline void CalcAngleCoeffs(float azimuth, float elevation, float spread, float coeffs[MAX_AMBI_COEFFS])
+inline void CalcAngleCoeffs(float azimuth, float elevation, float spread, float coeffs[max_ambi_coeffs])
 {
     float dir[3] = {
         std::sin(azimuth) * std::cos(elevation),
@@ -239,8 +239,8 @@ void ComputeAmbientGains(
     }
 }
 
-void ComputeAmbientGainsMC(const ChannelConfig *chancoeffs, int numchans, float ingain, float gains[MAX_OUTPUT_CHANNELS]);
-void ComputeAmbientGainsBF(const BFChannelConfig *chanmap, int numchans, float ingain, float gains[MAX_OUTPUT_CHANNELS]);
+void ComputeAmbientGainsMC(const ChannelConfig *chancoeffs, int numchans, float ingain, float gains[max_output_channels]);
+void ComputeAmbientGainsBF(const BFChannelConfig *chanmap, int numchans, float ingain, float gains[max_output_channels]);
 
 /**
  * ComputePanningGains
@@ -265,8 +265,8 @@ void ComputePanningGains(
     }
 }
 
-void ComputePanningGainsMC(const ChannelConfig *chancoeffs, int numchans, int numcoeffs, const float coeffs[MAX_AMBI_COEFFS], float ingain, float gains[MAX_OUTPUT_CHANNELS]);
-void ComputePanningGainsBF(const BFChannelConfig *chanmap, int numchans, const float coeffs[MAX_AMBI_COEFFS], float ingain, float gains[MAX_OUTPUT_CHANNELS]);
+void ComputePanningGainsMC(const ChannelConfig *chancoeffs, int numchans, int numcoeffs, const float coeffs[max_ambi_coeffs], float ingain, float gains[max_output_channels]);
+void ComputePanningGainsBF(const BFChannelConfig *chanmap, int numchans, const float coeffs[max_ambi_coeffs], float ingain, float gains[max_output_channels]);
 
 /**
  * ComputeFirstOrderGains
@@ -292,8 +292,8 @@ void ComputeFirstOrderGains(
     }
 }
 
-void ComputeFirstOrderGainsMC(const ChannelConfig *chancoeffs, int numchans, const float mtx[4], float ingain, float gains[MAX_OUTPUT_CHANNELS]);
-void ComputeFirstOrderGainsBF(const BFChannelConfig *chanmap, int numchans, const float mtx[4], float ingain, float gains[MAX_OUTPUT_CHANNELS]);
+void ComputeFirstOrderGainsMC(const ChannelConfig *chancoeffs, int numchans, const float mtx[4], float ingain, float gains[max_output_channels]);
+void ComputeFirstOrderGainsBF(const BFChannelConfig *chanmap, int numchans, const float mtx[4], float ingain, float gains[max_output_channels]);
 
 
 bool MixSource(struct ALvoice *voice, struct ALsource *Source, ALCdevice *Device, int SamplesToDo);

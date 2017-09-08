@@ -80,37 +80,37 @@ static bool CalcEffectSlotParams(ALeffectslot *slot, ALCdevice *device)
 static const struct ChanMap MonoMap[1] = {
     { FrontCenter, 0.0f, 0.0f }
 }, RearMap[2] = {
-    { BackLeft,  DEG2RAD(-150.0f), DEG2RAD(0.0f) },
-    { BackRight, DEG2RAD( 150.0f), DEG2RAD(0.0f) }
+    { BackLeft,  deg_to_rad(-150.0f), deg_to_rad(0.0f) },
+    { BackRight, deg_to_rad( 150.0f), deg_to_rad(0.0f) }
 }, QuadMap[4] = {
-    { FrontLeft,  DEG2RAD( -45.0f), DEG2RAD(0.0f) },
-    { FrontRight, DEG2RAD(  45.0f), DEG2RAD(0.0f) },
-    { BackLeft,   DEG2RAD(-135.0f), DEG2RAD(0.0f) },
-    { BackRight,  DEG2RAD( 135.0f), DEG2RAD(0.0f) }
+    { FrontLeft,  deg_to_rad( -45.0f), deg_to_rad(0.0f) },
+    { FrontRight, deg_to_rad(  45.0f), deg_to_rad(0.0f) },
+    { BackLeft,   deg_to_rad(-135.0f), deg_to_rad(0.0f) },
+    { BackRight,  deg_to_rad( 135.0f), deg_to_rad(0.0f) }
 }, X51Map[6] = {
-    { FrontLeft,   DEG2RAD( -30.0f), DEG2RAD(0.0f) },
-    { FrontRight,  DEG2RAD(  30.0f), DEG2RAD(0.0f) },
-    { FrontCenter, DEG2RAD(   0.0f), DEG2RAD(0.0f) },
+    { FrontLeft,   deg_to_rad( -30.0f), deg_to_rad(0.0f) },
+    { FrontRight,  deg_to_rad(  30.0f), deg_to_rad(0.0f) },
+    { FrontCenter, deg_to_rad(   0.0f), deg_to_rad(0.0f) },
     { LFE, 0.0f, 0.0f },
-    { SideLeft,    DEG2RAD(-110.0f), DEG2RAD(0.0f) },
-    { SideRight,   DEG2RAD( 110.0f), DEG2RAD(0.0f) }
+    { SideLeft,    deg_to_rad(-110.0f), deg_to_rad(0.0f) },
+    { SideRight,   deg_to_rad( 110.0f), deg_to_rad(0.0f) }
 }, X61Map[7] = {
-    { FrontLeft,    DEG2RAD(-30.0f), DEG2RAD(0.0f) },
-    { FrontRight,   DEG2RAD( 30.0f), DEG2RAD(0.0f) },
-    { FrontCenter,  DEG2RAD(  0.0f), DEG2RAD(0.0f) },
+    { FrontLeft,    deg_to_rad(-30.0f), deg_to_rad(0.0f) },
+    { FrontRight,   deg_to_rad( 30.0f), deg_to_rad(0.0f) },
+    { FrontCenter,  deg_to_rad(  0.0f), deg_to_rad(0.0f) },
     { LFE, 0.0f, 0.0f },
-    { BackCenter,   DEG2RAD(180.0f), DEG2RAD(0.0f) },
-    { SideLeft,     DEG2RAD(-90.0f), DEG2RAD(0.0f) },
-    { SideRight,    DEG2RAD( 90.0f), DEG2RAD(0.0f) }
+    { BackCenter,   deg_to_rad(180.0f), deg_to_rad(0.0f) },
+    { SideLeft,     deg_to_rad(-90.0f), deg_to_rad(0.0f) },
+    { SideRight,    deg_to_rad( 90.0f), deg_to_rad(0.0f) }
 }, X71Map[8] = {
-    { FrontLeft,   DEG2RAD( -30.0f), DEG2RAD(0.0f) },
-    { FrontRight,  DEG2RAD(  30.0f), DEG2RAD(0.0f) },
-    { FrontCenter, DEG2RAD(   0.0f), DEG2RAD(0.0f) },
+    { FrontLeft,   deg_to_rad( -30.0f), deg_to_rad(0.0f) },
+    { FrontRight,  deg_to_rad(  30.0f), deg_to_rad(0.0f) },
+    { FrontCenter, deg_to_rad(   0.0f), deg_to_rad(0.0f) },
     { LFE, 0.0f, 0.0f },
-    { BackLeft,    DEG2RAD(-150.0f), DEG2RAD(0.0f) },
-    { BackRight,   DEG2RAD( 150.0f), DEG2RAD(0.0f) },
-    { SideLeft,    DEG2RAD( -90.0f), DEG2RAD(0.0f) },
-    { SideRight,   DEG2RAD(  90.0f), DEG2RAD(0.0f) }
+    { BackLeft,    deg_to_rad(-150.0f), deg_to_rad(0.0f) },
+    { BackRight,   deg_to_rad( 150.0f), deg_to_rad(0.0f) },
+    { SideLeft,    deg_to_rad( -90.0f), deg_to_rad(0.0f) },
+    { SideRight,   deg_to_rad(  90.0f), deg_to_rad(0.0f) }
 };
 
 static void CalcPanningAndFilters(ALvoice *voice, const float Distance, const float *Dir,
@@ -122,8 +122,8 @@ static void CalcPanningAndFilters(ALvoice *voice, const float Distance, const fl
                                   const ALCdevice *Device)
 {
     struct ChanMap StereoMap[2] = {
-        { FrontLeft,  DEG2RAD(-30.0f), DEG2RAD(0.0f) },
-        { FrontRight, DEG2RAD( 30.0f), DEG2RAD(0.0f) }
+        { FrontLeft,  deg_to_rad(-30.0f), deg_to_rad(0.0f) },
+        { FrontRight, deg_to_rad( 30.0f), deg_to_rad(0.0f) }
     };
     bool DirectChannels = AL_FALSE;
     const int NumSends = Device->num_aux_sends;
@@ -161,12 +161,12 @@ static void CalcPanningAndFilters(ALvoice *voice, const float Distance, const fl
 
         for(c = 0;c < num_channels;c++)
         {
-            float coeffs[MAX_AMBI_COEFFS];
+            float coeffs[max_ambi_coeffs];
 
             /* Special-case LFE */
             if(chans[c].channel == LFE)
             {
-                for(j = 0;j < MAX_OUTPUT_CHANNELS;j++)
+                for(j = 0;j < max_output_channels;j++)
                     voice->direct.params[c].gains.target[j] = 0.0f;
                 if(&Device->dry.buffers == Device->real_out.buffers)
                 {
@@ -176,7 +176,7 @@ static void CalcPanningAndFilters(ALvoice *voice, const float Distance, const fl
 
                 if (NumSends > 0)
                 {
-                    for(j = 0;j < MAX_EFFECT_CHANNELS;j++)
+                    for(j = 0;j < max_effect_channels;j++)
                         voice->send.params[c].gains.target[j] = 0.0f;
                 }
                 continue;
@@ -198,7 +198,7 @@ static void CalcPanningAndFilters(ALvoice *voice, const float Distance, const fl
                 }
                 else
                 {
-                    for(j = 0;j < MAX_EFFECT_CHANNELS;j++)
+                    for(j = 0;j < max_effect_channels;j++)
                     {
                         voice->send.params[c].gains.target[j] = 0.0f;
                     }
@@ -264,9 +264,9 @@ static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *p
 {
     static const float dir[3] = { 0.0f, 0.0f, -1.0f };
     float DryGain, DryGainHF, DryGainLF;
-    float WetGain[MAX_SENDS];
-    float WetGainHF[MAX_SENDS];
-    float WetGainLF[MAX_SENDS];
+    float WetGain[max_sends];
+    float WetGainHF[max_sends];
+    float WetGainLF[max_sends];
     ALeffectslot* send_slot = nullptr;
     int i;
 
@@ -290,14 +290,14 @@ static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *p
     /* Calculate gains */
     DryGain  = 1.0F;
     DryGain *= props->direct.gain;
-    DryGain  = std::min(DryGain, GAIN_MIX_MAX);
+    DryGain  = std::min(DryGain, max_mix_gain);
     DryGainHF = props->direct.gain_hf;
     DryGainLF = props->direct.gain_lf;
     for(i = 0;i < device->num_aux_sends;i++)
     {
         WetGain[i]  = 1.0F;
         WetGain[i] *= props->send.gain;
-        WetGain[i]  = std::min(WetGain[i], GAIN_MIX_MAX);
+        WetGain[i]  = std::min(WetGain[i], max_mix_gain);
         WetGainHF[i] = props->send.gain_hf;
         WetGainLF[i] = props->send.gain_lf;
     }
@@ -349,7 +349,7 @@ void aluMixData(ALCdevice *device, void *OutBuffer, int NumSamples, const float*
 
     for(SamplesDone = 0;SamplesDone < NumSamples;)
     {
-        SamplesToDo = std::min(NumSamples-SamplesDone, BUFFERSIZE);
+        SamplesToDo = std::min(NumSamples-SamplesDone, max_sample_buffer_size);
 
         for(c = 0;c < device->dry.num_channels;c++)
         {

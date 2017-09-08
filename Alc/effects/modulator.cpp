@@ -49,7 +49,7 @@ protected:
         index_ = 0;
         step_ = 1;
 
-        for (int i = 0; i < MAX_EFFECT_CHANNELS; ++i)
+        for (int i = 0; i < max_effect_channels; ++i)
         {
             ALfilterState_clear(&filters_[i]);
         }
@@ -83,7 +83,7 @@ protected:
             process_func_ = modulate_square;
         }
 
-        step_ = fastf2i(props->modulator.frequency * WAVEFORM_FRACONE / device->frequency);
+        step_ = fastf2i(props->modulator.frequency * waveform_frac_one / device->frequency);
 
         if (step_ == 0)
         {
@@ -91,10 +91,10 @@ protected:
         }
 
         // Custom filter coeffs, which match the old version instead of a low-shelf.
-        const auto cw = std::cos(F_TAU * props->modulator.high_pass_cutoff / device->frequency);
+        const auto cw = std::cos(tau * props->modulator.high_pass_cutoff / device->frequency);
         const auto a = (2.0F - cw) - std::sqrt(std::pow(2.0F - cw, 2.0F) - 1.0F);
 
-        for (int i = 0; i < MAX_EFFECT_CHANNELS; ++i)
+        for (int i = 0; i < max_effect_channels; ++i)
         {
             filters_[i].b0 = a;
             filters_[i].b1 = -a;
@@ -106,7 +106,7 @@ protected:
         out_buffer = device->foa_out.buffers;
         out_channels = device->foa_out.num_channels;
 
-        for (int i = 0; i < MAX_EFFECT_CHANNELS; ++i)
+        for (int i = 0; i < max_effect_channels; ++i)
         {
             ComputeFirstOrderGains(device->foa_out, IdentityMatrixf.m[i], 1.0F, gains_[i].data());
         }
@@ -123,7 +123,7 @@ protected:
             float temps[2][128];
             const auto td = std::min(128, sample_count - base);
 
-            for (int j = 0; j < MAX_EFFECT_CHANNELS; ++j)
+            for (int j = 0; j < max_effect_channels; ++j)
             {
                 ALfilterState_processC(&filters_[j], temps[0], &src_samples[j][base], td);
                 process_func_(temps[1], temps[0], index_, step_, td);
@@ -132,7 +132,7 @@ protected:
                 {
                     const auto gain = gains_[j][k];
 
-                    if (!(std::abs(gain) > GAIN_SILENCE_THRESHOLD))
+                    if (!(std::abs(gain) > silence_threshold_gain))
                     {
                         continue;
                     }
@@ -147,7 +147,7 @@ protected:
             for (int i = 0; i < td; ++i)
             {
                 index_ += step_;
-                index_ &= WAVEFORM_FRACMASK;
+                index_ &= waveform_frac_mask;
             }
 
             base += td;
@@ -156,13 +156,13 @@ protected:
 
 
 private:
-    static constexpr auto WAVEFORM_FRACBITS = 24;
-    static constexpr auto WAVEFORM_FRACONE = 1 << WAVEFORM_FRACBITS;
-    static constexpr auto WAVEFORM_FRACMASK = WAVEFORM_FRACONE - 1;
+    static constexpr auto waveform_frac_bits = 24;
+    static constexpr auto waveform_frac_one = 1 << waveform_frac_bits;
+    static constexpr auto waveform_frac_mask = waveform_frac_one - 1;
 
 
-    using Gains = MdArray<float, MAX_EFFECT_CHANNELS, MAX_OUTPUT_CHANNELS>;
-    using Filters = std::array<ALfilterState, MAX_EFFECT_CHANNELS>;
+    using Gains = MdArray<float, max_effect_channels, max_output_channels>;
+    using Filters = std::array<ALfilterState, max_effect_channels>;
 
     using ModulateFunc = float (*)(
         const int index);
@@ -185,19 +185,19 @@ private:
     static float sin_func(
         const int index)
     {
-        return std::sin(index * (F_TAU / WAVEFORM_FRACONE) - F_PI) * 0.5F + 0.5F;
+        return std::sin(index * (tau / waveform_frac_one) - pi) * 0.5F + 0.5F;
     }
 
     static float saw_func(
         const int index)
     {
-        return static_cast<float>(index) / WAVEFORM_FRACONE;
+        return static_cast<float>(index) / waveform_frac_one;
     }
 
     static float square_func(
         const int index)
     {
-        return static_cast<float>((index >> (WAVEFORM_FRACBITS - 1)) & 1);
+        return static_cast<float>((index >> (waveform_frac_bits - 1)) & 1);
     }
 
     static void modulate(
@@ -211,7 +211,7 @@ private:
         for (int i = 0; i < todo; ++i)
         {
             index += step;
-            index &= WAVEFORM_FRACMASK;
+            index &= waveform_frac_mask;
             dst[i] = src[i] * func(index);
         }
     }

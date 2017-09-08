@@ -140,7 +140,7 @@ protected:
 
         for (int i = 0; i < 4; ++i)
         {
-            for (int j = 0; j < MAX_OUTPUT_CHANNELS; ++j)
+            for (int j = 0; j < max_output_channels; ++j)
             {
                 early_.current_gains[i][j] = 0.0F;
                 early_.pan_gains[i][j] = 0.0F;
@@ -278,8 +278,8 @@ protected:
             lf_decay_time,
             props->reverb.decay_time,
             hf_decay_time,
-            F_TAU * lf_scale,
-            F_TAU * hf_scale,
+            tau * lf_scale,
+            tau * hf_scale,
             props->reverb.echo_time,
             props->reverb.echo_depth,
             frequency);
@@ -341,7 +341,7 @@ protected:
                     a_format_samples_[c].data(),
                     b2a.m[c],
                     src_samples,
-                    MAX_EFFECT_CHANNELS,
+                    max_effect_channels,
                     base,
                     todo);
             }
@@ -475,7 +475,7 @@ private:
     {
         using Offsets = MdArray<int, 4, 2>;
         using Coeffs = std::array<float, 4>;
-        using Gains = MdArray<float, 4, MAX_OUTPUT_CHANNELS>;
+        using Gains = MdArray<float, 4, max_output_channels>;
 
         // A Gerzon vector all-pass filter is used to simulate initial
         // diffusion.  The spread from this filter also helps smooth out the
@@ -527,7 +527,7 @@ private:
 
         using Filters = std::array<Filter, 4>;
         using Offsets = MdArray<int, 4, 2>;
-        using Gains = MdArray<float, 4, MAX_OUTPUT_CHANNELS>;
+        using Gains = MdArray<float, 4, max_output_channels>;
 
 
         // Attenuation to compensate for the modal density and decay rate of
@@ -834,7 +834,7 @@ private:
         const float length,
         const float decayTime)
     {
-        return std::pow(REVERB_DECAY_GAIN, length / decayTime);
+        return std::pow(reverb_decay_gain, length / decayTime);
     }
 
     // Calculate a decay length from a coefficient and the time until the decay
@@ -843,7 +843,7 @@ private:
         const float coeff,
         const float decay_time)
     {
-        return std::log10(coeff) * decay_time / std::log10(REVERB_DECAY_GAIN);
+        return std::log10(coeff) * decay_time / std::log10(reverb_decay_gain);
     }
 
     // Calculate an attenuation to be applied to the input of any echo models to
@@ -896,7 +896,7 @@ private:
         // equation, solve for HF ratio.  The delay length is cancelled out of
         // the equation, so it can be calculated once for all lines.
         const auto limit_ratio = 1.0F / (calc_decay_length(air_absorption_gain_hf, decay_time) *
-            SPEEDOFSOUNDMETRESPERSEC);
+            speed_of_sound_mps);
 
         // Using the limit calculated above, apply the upper bound to the HF
         // ratio. Also need to limit the result to a minimum of 0.1, just like
@@ -1057,8 +1057,8 @@ private:
         }
 
         const auto g = std::max(0.001F, gain);
-        const auto rw = F_PI - w;
-        const auto p = std::sin((0.5F * rw) - (0.25F * F_PI)) / std::sin((0.5F * rw) + (0.25F * F_PI));
+        const auto rw = pi - w;
+        const auto p = std::sin((0.5F * rw) - (0.25F * pi)) / std::sin((0.5F * rw) + (0.25F * pi));
         const auto n = (g + 1.0F) / (g - 1.0F);
         const auto alpha = n + std::sqrt((n * n) - 1.0F);
         const auto beta0 = (1.0F + g + (1.0F - g) * alpha) / 2.0F;
@@ -1129,7 +1129,7 @@ private:
         }
 
         const auto g = std::max(0.001F, gain);
-        const auto p = std::sin((0.5F * w) - (0.25F * F_PI)) / std::sin((0.5F * w) + (0.25F * F_PI));
+        const auto p = std::sin((0.5F * w) - (0.25F * pi)) / std::sin((0.5F * w) + (0.25F * pi));
         const auto n = (g + 1.0F) / (g - 1.0F);
         const auto alpha = n + std::sqrt((n * n) - 1.0F);
         const auto beta0 = (1.0F + g + (1.0F - g) * alpha) / 2.0F;
@@ -1372,14 +1372,14 @@ private:
 
         band_weights[0] = lf_w;
         band_weights[1] = hf_w - lf_w;
-        band_weights[2] = F_TAU - hf_w;
+        band_weights[2] = tau - hf_w;
 
         late_.density_gain = calc_density_gain(
             calc_decay_coeff(
                 length,
                 ((band_weights[0] * lf_decay_time) +
                     (band_weights[1] * mf_decay_time) +
-                    (band_weights[2] * hf_decay_time)) / F_TAU)
+                    (band_weights[2] * hf_decay_time)) / tau)
         );
 
         for (int i = 0; i < 4; ++i)
@@ -1460,7 +1460,7 @@ private:
 
         // Define a Z-focus (X in Ambisonics) transform, given the panning vector
         // length.
-        const auto sa = std::sin(std::min(length, 1.0F) * (F_PI / 4.0F));
+        const auto sa = std::sin(std::min(length, 1.0F) * (pi / 4.0F));
 
         aluMatrixfSet(
             &zfocus,
@@ -1544,7 +1544,7 @@ private:
         matrix_mult_t(transform, rot, a2b);
         memset(&early_.pan_gains, 0, sizeof(early_.pan_gains));
 
-        for (int i = 0; i < MAX_EFFECT_CHANNELS; ++i)
+        for (int i = 0; i < max_effect_channels; ++i)
         {
             ComputeFirstOrderGains(device->foa_out, transform.m[i], gain*early_gain, early_.pan_gains[i].data());
         }
@@ -1553,7 +1553,7 @@ private:
         matrix_mult_t(transform, rot, a2b);
         memset(&late_.pan_gains, 0, sizeof(late_.pan_gains));
 
-        for (int i = 0; i < MAX_EFFECT_CHANNELS; ++i)
+        for (int i = 0; i < max_effect_channels; ++i)
         {
             ComputeFirstOrderGains(device->foa_out, transform.m[i], gain*late_gain, late_.pan_gains[i].data());
         }
@@ -1661,7 +1661,7 @@ private:
         {
             // Calculate the sinus rhythm (dependent on modulation time and the
             // sampling rate).
-            const auto sinus = std::sin(F_TAU * index / mod_.range);
+            const auto sinus = std::sin(tau * index / mod_.range);
 
             // Step the modulation index forward, keeping it bound to its range.
             index = (index + 1) % mod_.range;

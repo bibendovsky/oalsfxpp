@@ -92,7 +92,7 @@ protected:
             }
             else
             {
-                float coeffs[MAX_AMBI_COEFFS];
+                float coeffs[max_ambi_coeffs];
 
                 CalcAngleCoeffs(0.0F, 0.0F, 0.0F, coeffs);
 
@@ -114,7 +114,7 @@ protected:
         {
             const auto gain = gains_[c];
 
-            if (!(std::abs(gain) > GAIN_SILENCE_THRESHOLD))
+            if (!(std::abs(gain) > silence_threshold_gain))
             {
                 continue;
             }
@@ -128,7 +128,7 @@ protected:
 
 
 private:
-    using Gains = std::array<float, MAX_OUTPUT_CHANNELS>;
+    using Gains = std::array<float, max_output_channels>;
 
     Gains gains_;
 }; // DedicatedEffect

@@ -6,8 +6,8 @@
 #include "alu.h"
 
 
-constexpr auto MAX_SENDS = 1;
-constexpr auto DEFAULT_SENDS = 1;
+constexpr auto max_sends = 1;
+constexpr auto default_sends = 1;
 
 
 struct ALsource

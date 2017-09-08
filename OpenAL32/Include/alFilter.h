@@ -6,8 +6,8 @@
 #include "math_defs.h"
 
 
-constexpr auto LOWPASSFREQREF = 5000.0F;
-constexpr auto HIGHPASSFREQREF = 250.0F;
+constexpr auto lp_frequency_reference = 5000.0F;
+constexpr auto hp_frequency_reference = 250.0F;
 
 
 /* Filters implementation is based on the "Cookbook formulae for audio
@@ -67,7 +67,7 @@ inline float calc_rcpQ_from_slope(float gain, float slope)
  */
 inline float calc_rcpQ_from_bandwidth(float freq_mult, float bandwidth)
 {
-    float w0 = F_TAU * freq_mult;
+    float w0 = tau * freq_mult;
     return 2.0f*std::sinh(std::log(2.0f)/2.0f*bandwidth*w0/std::sin(w0));
 }
 

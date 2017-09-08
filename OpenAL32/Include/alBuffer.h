@@ -21,7 +21,7 @@ enum FmtChannels
 }; // FmtChannels
 
 
-constexpr auto MAX_INPUT_CHANNELS = 8;
+constexpr auto max_input_channels = 8;
 
 
 #endif

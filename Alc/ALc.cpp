@@ -60,7 +60,7 @@ void SetDefaultWFXChannelOrder(ALCdevice *device)
 {
     int i;
 
-    for(i = 0;i < MAX_OUTPUT_CHANNELS;i++)
+    for(i = 0;i < max_output_channels;i++)
         device->real_out.channel_name[i] = InvalidChannel;
 
     switch(device->fmt_chans)
@@ -116,7 +116,7 @@ void SetDefaultWFXChannelOrder(ALCdevice *device)
     }
 }
 
-extern inline int GetChannelIndex(const enum Channel names[MAX_OUTPUT_CHANNELS], enum Channel chan);
+extern inline int GetChannelIndex(const enum Channel names[max_output_channels], enum Channel chan);
 
 
 /* UpdateDeviceParams
@@ -273,11 +273,11 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     device->real_out.num_channels = 0;
 
     device->auxiliary_effect_slot_max = 64;
-    device->num_aux_sends = DEFAULT_SENDS;
+    device->num_aux_sends = default_sends;
 
     //Set output format
     device->fmt_chans = DevFmtChannelsDefault;
-    device->frequency = DEFAULT_OUTPUT_RATE;
+    device->frequency = default_output_rate;
     device->update_size = clamp(1024, 64, 8192);
 
     if(device->auxiliary_effect_slot_max == 0) device->auxiliary_effect_slot_max = 64;

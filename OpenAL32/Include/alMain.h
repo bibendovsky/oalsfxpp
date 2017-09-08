@@ -22,7 +22,20 @@
 #define COUNTOF(x) (sizeof(x) / sizeof(0[x]))
 
 
-constexpr auto DEFAULT_OUTPUT_RATE = 44100;
+constexpr auto default_output_rate = 44100;
+constexpr auto max_output_channels = 16;
+
+// The maximum number of Ambisonics coefficients. For a given order (o), the
+// size needed will be (o+1)**2, thus zero-order has 1, first-order has 4,
+// second-order has 9, third-order has 16, and fourth-order has 25.
+constexpr auto max_ambi_order = 3;
+constexpr auto max_ambi_coeffs = (max_ambi_order + 1) * (max_ambi_order + 1);
+
+// Size for temporary storage of buffer data, in ALfloats. Larger values need
+// more memory, while smaller values may need more iterations. The value needs
+// to be a sensible size, however, as it constrains the max stepping value used
+// for mixing, as well as the maximum number of samples per mixing iteration.
+constexpr auto max_sample_buffer_size = 2048;
 
 
 namespace detail
@@ -135,18 +148,9 @@ enum DevFmtChannels {
 
     DevFmtChannelsDefault = DevFmtMono
 };
-constexpr auto MAX_OUTPUT_CHANNELS = 16;
 
 
-/* The maximum number of Ambisonics coefficients. For a given order (o), the
- * size needed will be (o+1)**2, thus zero-order has 1, first-order has 4,
- * second-order has 9, third-order has 16, and fourth-order has 25.
- */
-constexpr auto MAX_AMBI_ORDER = 3;
-constexpr auto MAX_AMBI_COEFFS = (MAX_AMBI_ORDER + 1) * (MAX_AMBI_ORDER + 1);
-
-
-using ChannelConfig = std::array<float, MAX_AMBI_COEFFS>;
+using ChannelConfig = std::array<float, max_ambi_coeffs>;
 
 struct BFChannelConfig
 {
@@ -156,8 +160,8 @@ struct BFChannelConfig
 
 union AmbiConfig
 {
-    using Coeffs = std::array<ChannelConfig, MAX_OUTPUT_CHANNELS>;
-    using Map = std::array<BFChannelConfig, MAX_OUTPUT_CHANNELS>;
+    using Coeffs = std::array<ChannelConfig, max_output_channels>;
+    using Map = std::array<BFChannelConfig, max_output_channels>;
 
 
     // Ambisonic coefficients for mixing to the dry buffer.
@@ -168,24 +172,18 @@ union AmbiConfig
 }; // AmbiConfig
 
 
-// Size for temporary storage of buffer data, in ALfloats. Larger values need
-// more memory, while smaller values may need more iterations. The value needs
-// to be a sensible size, however, as it constrains the max stepping value used
-// for mixing, as well as the maximum number of samples per mixing iteration.
-constexpr auto BUFFERSIZE = 2048;
-
-using SampleBuffer = std::array<float, BUFFERSIZE>;
+using SampleBuffer = std::array<float, max_sample_buffer_size>;
 using SampleBuffers = std::vector<SampleBuffer>;
 
 struct ALCdevice_struct
 {
-    using ChannelNames = std::array<Channel, MAX_OUTPUT_CHANNELS>;
+    using ChannelNames = std::array<Channel, max_output_channels>;
 
 
     // The "dry" path corresponds to the main output.
     struct Dry
     {
-        using ChannelsPerOrder = std::array<int, MAX_AMBI_ORDER + 1>;
+        using ChannelsPerOrder = std::array<int, max_ambi_order + 1>;
 
 
         AmbiConfig ambi;
@@ -263,7 +261,7 @@ void SetDefaultWFXChannelOrder(ALCdevice* device);
 inline int GetChannelIndex(const ALCdevice::ChannelNames& names, const Channel chan)
 {
     int i;
-    for(i = 0;i < MAX_OUTPUT_CHANNELS;i++)
+    for(i = 0;i < max_output_channels;i++)
     {
         if(names[i] == chan)
             return i;
@@ -272,13 +270,6 @@ inline int GetChannelIndex(const ALCdevice::ChannelNames& names, const Channel c
 }
 
 #define GetChannelIdxByName(x, c) GetChannelIndex((x).channel_name, (c))
-
-
-
-/* Small hack to use a pointer-to-array types as a normal argument type.
- * Shouldn't be used directly.
- */
-using ALfloatBUFFERSIZE = float[BUFFERSIZE];
 
 
 #endif

@@ -94,7 +94,7 @@ protected:
         const struct ALeffectslot* slot,
         const union ALeffectProps* props) final
     {
-        float coeffs[MAX_AMBI_COEFFS];
+        float coeffs[max_ambi_coeffs];
         float effect_gain, lrpan, spread;
 
         const auto frequency = device->frequency;
@@ -126,17 +126,17 @@ protected:
             &filter_,
             ALfilterType_HighShelf,
             effect_gain,
-            LOWPASSFREQREF / frequency,
+            lp_frequency_reference / frequency,
             calc_rcpQ_from_slope(effect_gain, 1.0F));
 
         effect_gain = 1.0F;
 
         // First tap panning
-        CalcAngleCoeffs(-F_PI_2 * lrpan, 0.0F, spread, coeffs);
+        CalcAngleCoeffs(-pi_2 * lrpan, 0.0F, spread, coeffs);
         ComputePanningGains(device->dry, coeffs, effect_gain, gains_[0].data());
 
         // Second tap panning
-        CalcAngleCoeffs(F_PI_2 * lrpan, 0.0F, spread, coeffs);
+        CalcAngleCoeffs(pi_2 * lrpan, 0.0F, spread, coeffs);
         ComputePanningGains(device->dry, coeffs, effect_gain, gains_[1].data());
     }
 
@@ -189,7 +189,7 @@ protected:
             {
                 auto channel_gain = gains_[0][k];
 
-                if (std::abs(channel_gain) > GAIN_SILENCE_THRESHOLD)
+                if (std::abs(channel_gain) > silence_threshold_gain)
                 {
                     for (int i = 0; i < td; ++i)
                     {
@@ -199,7 +199,7 @@ protected:
 
                 channel_gain = gains_[1][k];
 
-                if (std::abs(channel_gain) > GAIN_SILENCE_THRESHOLD)
+                if (std::abs(channel_gain) > silence_threshold_gain)
                 {
                     for (int i = 0; i < td; ++i)
                     {
@@ -220,7 +220,7 @@ protected:
 
 private:
     using Taps = std::array<Tap, 2>;
-    using Gains = MdArray<float, 2, MAX_OUTPUT_CHANNELS>;
+    using Gains = MdArray<float, 2, max_output_channels>;
 
 
     EffectSampleBuffer sample_buffer_;

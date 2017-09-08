@@ -73,7 +73,7 @@ protected:
         attenuation_ = props->distortion.gain;
 
         // Store waveshaper edge settings.
-        auto edge = std::sin(props->distortion.edge * (F_PI_2));
+        auto edge = std::sin(props->distortion.edge * (pi_2));
         edge = std::min(edge, 0.99F);
         edge_coeff_ = 2.0F * edge / (1.0F - edge);
 
@@ -167,7 +167,7 @@ protected:
 
                 const auto gain = gains_[kt] * attenuation_;
 
-                if (!(std::abs(gain) > GAIN_SILENCE_THRESHOLD))
+                if (!(std::abs(gain) > silence_threshold_gain))
                 {
                     continue;
                 }
@@ -184,7 +184,7 @@ protected:
 
 
 private:
-    using Gains = std::array<float, MAX_OUTPUT_CHANNELS>;
+    using Gains = std::array<float, max_output_channels>;
 
 
     // Effect gains for each channel

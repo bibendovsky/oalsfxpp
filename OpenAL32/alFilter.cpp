@@ -40,7 +40,7 @@ void ALfilterState_setParams(ALfilterState *filter, ALfilterType type, float gai
     // Limit gain to -100dB
     assert(gain > 0.00001f);
 
-    w0 = F_TAU * freq_mult;
+    w0 = tau * freq_mult;
     sin_w0 = std::sin(w0);
     cos_w0 = std::cos(w0);
     alpha = sin_w0/2.0f * rcpQ;

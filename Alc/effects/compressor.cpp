@@ -170,7 +170,7 @@ protected:
                 {
                     const auto channel_gain = gains_[j][k];
 
-                    if (!(std::abs(channel_gain) > GAIN_SILENCE_THRESHOLD))
+                    if (!(std::abs(channel_gain) > silence_threshold_gain))
                     {
                         continue;
                     }
@@ -188,7 +188,7 @@ protected:
 
 
 private:
-    using Gains = MdArray<float, MAX_EFFECT_CHANNELS, MAX_OUTPUT_CHANNELS>;
+    using Gains = MdArray<float, max_effect_channels, max_output_channels>;
 
 
     // Effect gains for each channel

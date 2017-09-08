@@ -228,16 +228,16 @@ void InitSourceParams(ALsource *Source, int num_sends)
 {
     Source->direct.gain = 1.0f;
     Source->direct.gain_hf = 1.0f;
-    Source->direct.hf_reference = LOWPASSFREQREF;
+    Source->direct.hf_reference = lp_frequency_reference;
     Source->direct.gain_lf = 1.0f;
-    Source->direct.lf_reference = HIGHPASSFREQREF;
+    Source->direct.lf_reference = hp_frequency_reference;
     Source->send = std::make_unique<ALsource::Send>();
     Source->send->slot = nullptr;
     Source->send->gain = 1.0f;
     Source->send->gain_hf = 1.0f;
-    Source->send->hf_reference = LOWPASSFREQREF;
+    Source->send->hf_reference = lp_frequency_reference;
     Source->send->gain_lf = 1.0f;
-    Source->send->lf_reference = HIGHPASSFREQREF;
+    Source->send->lf_reference = hp_frequency_reference;
     Source->state = AL_INITIAL;
 }
 

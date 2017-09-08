@@ -90,7 +90,7 @@ protected:
         // sound clicks if filter settings were changed in runtime.
         for (int it = 0; it < 4; ++it)
         {
-            for (int ft = 0; ft < MAX_EFFECT_CHANNELS; ++ft)
+            for (int ft = 0; ft < max_effect_channels; ++ft)
             {
                 ALfilterState_clear(&filter_[it][ft]);
             }
@@ -119,7 +119,7 @@ protected:
         out_buffer = device->foa_out.buffers;
         out_channels = device->foa_out.num_channels;
 
-        for (int i = 0; i < MAX_EFFECT_CHANNELS; ++i)
+        for (int i = 0; i < max_effect_channels; ++i)
         {
             ComputeFirstOrderGains(device->foa_out, IdentityMatrixf.m[i], 1.0F, gains_[i].data());
         }
@@ -138,7 +138,7 @@ protected:
             calc_rcpQ_from_slope(gain, 0.75F));
 
         // Copy the filter coefficients for the other input channels.
-        for (int i = 1; i < MAX_EFFECT_CHANNELS; ++i)
+        for (int i = 1; i < max_effect_channels; ++i)
         {
             ALfilterState_copyParams(&filter_[0][i], &filter_[0][0]);
         }
@@ -153,7 +153,7 @@ protected:
             freq_mult,
             calc_rcpQ_from_bandwidth(freq_mult, props->equalizer.mid1_width));
 
-        for (int i = 1; i < MAX_EFFECT_CHANNELS; ++i)
+        for (int i = 1; i < max_effect_channels; ++i)
         {
             ALfilterState_copyParams(&filter_[1][i], &filter_[1][0]);
         }
@@ -168,7 +168,7 @@ protected:
             freq_mult,
             calc_rcpQ_from_bandwidth(freq_mult, props->equalizer.mid2_width));
 
-        for (int i = 1; i < MAX_EFFECT_CHANNELS; ++i)
+        for (int i = 1; i < max_effect_channels; ++i)
         {
             ALfilterState_copyParams(&filter_[2][i], &filter_[2][0]);
         }
@@ -183,7 +183,7 @@ protected:
             freq_mult,
             calc_rcpQ_from_slope(gain, 0.75F));
 
-        for (int i = 1; i < MAX_EFFECT_CHANNELS; ++i)
+        for (int i = 1; i < max_effect_channels; ++i)
         {
             ALfilterState_copyParams(&filter_[3][i], &filter_[3][0]);
         }
@@ -201,33 +201,33 @@ protected:
         {
             const auto td = std::min(max_update_samples, sample_count - base);
 
-            for (int ft = 0; ft < MAX_EFFECT_CHANNELS; ++ft)
+            for (int ft = 0; ft < max_effect_channels; ++ft)
             {
                 ALfilterState_processC(&filter_[0][ft], samples[0][ft].data(), &src_samples[ft][base], td);
             }
 
-            for (int ft = 0; ft < MAX_EFFECT_CHANNELS; ++ft)
+            for (int ft = 0; ft < max_effect_channels; ++ft)
             {
                 ALfilterState_processC(&filter_[1][ft], samples[1][ft].data(), samples[0][ft].data(), td);
             }
 
-            for (int ft = 0; ft < MAX_EFFECT_CHANNELS; ++ft)
+            for (int ft = 0; ft < max_effect_channels; ++ft)
             {
                 ALfilterState_processC(&filter_[2][ft], samples[2][ft].data(), samples[1][ft].data(), td);
             }
 
-            for (int ft = 0; ft < MAX_EFFECT_CHANNELS; ++ft)
+            for (int ft = 0; ft < max_effect_channels; ++ft)
             {
                 ALfilterState_processC(&filter_[3][ft], samples[3][ft].data(), samples[2][ft].data(), td);
             }
 
-            for (int ft = 0; ft < MAX_EFFECT_CHANNELS; ++ft)
+            for (int ft = 0; ft < max_effect_channels; ++ft)
             {
                 for (int kt = 0; kt < channel_count; ++kt)
                 {
                     const auto gain = gains_[ft][kt];
 
-                    if (!(std::abs(gain) > GAIN_SILENCE_THRESHOLD))
+                    if (!(std::abs(gain) > silence_threshold_gain))
                     {
                         continue;
                     }
@@ -248,9 +248,9 @@ private:
     // The maximum number of sample frames per update.
     static constexpr auto max_update_samples = 256;
 
-    using Gains = MdArray<float, MAX_EFFECT_CHANNELS, MAX_OUTPUT_CHANNELS>;
-    using Filters = MdArray<ALfilterState, 4, MAX_EFFECT_CHANNELS>;
-    using SampleBuffers = MdArray<float, 4, MAX_EFFECT_CHANNELS, max_update_samples>;
+    using Gains = MdArray<float, max_effect_channels, max_output_channels>;
+    using Filters = MdArray<ALfilterState, 4, max_effect_channels>;
+    using SampleBuffers = MdArray<float, 4, max_effect_channels, max_update_samples>;
 
 
     // Effect gains for each channel

@@ -71,7 +71,7 @@ void Mix_C(const float *data, int OutChans, SampleBuffers& OutBuffer,
             CurrentGains[c] = gain;
         }
 
-        if(!(fabsf(gain) > GAIN_SILENCE_THRESHOLD))
+        if(!(fabsf(gain) > silence_threshold_gain))
             continue;
         for(;pos < BufferSize;pos++)
             OutBuffer[c][OutPos+pos] += data[pos]*gain;
@@ -91,7 +91,7 @@ void MixRow_C(float *OutBuffer, const float *Gains, const SampleBuffers& data, i
     for(c = 0;c < InChans;c++)
     {
         float gain = Gains[c];
-        if(!(fabsf(gain) > GAIN_SILENCE_THRESHOLD))
+        if(!(fabsf(gain) > silence_threshold_gain))
             continue;
 
         for(i = 0;i < BufferSize;i++)

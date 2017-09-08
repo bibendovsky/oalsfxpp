@@ -121,12 +121,12 @@ protected:
         // The LFO depth is scaled to be relative to the sample delay.
         depth_ = props->chorus.depth * delay_;
 
-        float coeffs[MAX_AMBI_COEFFS];
+        float coeffs[max_ambi_coeffs];
 
         // Gains for left and right sides
-        CalcAngleCoeffs(-F_PI_2, 0.0F, 0.0F, coeffs);
+        CalcAngleCoeffs(-pi_2, 0.0F, 0.0F, coeffs);
         ComputePanningGains(device->dry, coeffs, 1.0F, gains_[0].data());
-        CalcAngleCoeffs(F_PI_2, 0.0F, 0.0F, coeffs);
+        CalcAngleCoeffs(pi_2, 0.0F, 0.0F, coeffs);
         ComputePanningGains(device->dry, coeffs, 1.0F, gains_[1].data());
 
         const auto phase = props->chorus.phase;
@@ -150,7 +150,7 @@ protected:
                 break;
 
             case Waveform::sinusoid:
-                lfo_scale_ = F_TAU / lfo_range_;
+                lfo_scale_ = tau / lfo_range_;
                 break;
             }
 
@@ -244,7 +244,7 @@ protected:
             {
                 auto channel_gain = gains_[0][c];
 
-                if (std::abs(channel_gain) > GAIN_SILENCE_THRESHOLD)
+                if (std::abs(channel_gain) > silence_threshold_gain)
                 {
                     for (int i = 0; i < todo; ++i)
                     {
@@ -254,7 +254,7 @@ protected:
 
                 channel_gain = gains_[1][c];
 
-                if (std::abs(channel_gain) > GAIN_SILENCE_THRESHOLD)
+                if (std::abs(channel_gain) > silence_threshold_gain)
                 {
                     for (int i = 0; i < todo; ++i)
                     {
@@ -279,7 +279,7 @@ private:
     using SampleBuffer = EffectSampleBuffer;
     using SampleBuffers = std::array<SampleBuffer, 2>;
 
-    using Gains = MdArray<float, 2, MAX_OUTPUT_CHANNELS>;
+    using Gains = MdArray<float, 2, max_output_channels>;
 
 
     SampleBuffers sample_buffers_;
