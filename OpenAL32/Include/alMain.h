@@ -269,7 +269,12 @@ inline int get_channel_index(const ALCdevice::ChannelNames& names, const Channel
     return -1;
 }
 
-#define get_channel_index_by_name(x, c) get_channel_index((x).channel_name, (c))
+inline int get_channel_index_by_name(
+    const ALCdevice::RealOut& real_out,
+    const Channel channel)
+{
+    return get_channel_index(real_out.channel_name, channel);
+}
 
 
 #endif
