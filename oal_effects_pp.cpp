@@ -59,9 +59,6 @@ int main()
     int is_succeed = 1;
     ALCdevice* oal_device = NULL;
     ALCcontext* oal_context = NULL;
-    ALuint oal_effect_slot = AL_EFFECTSLOT_NULL;
-    ALuint oal_effect = AL_EFFECT_NULL;
-    ALuint oal_source = 0;
 
 
     if (is_succeed)
@@ -361,7 +358,7 @@ int main()
 
     if (is_succeed)
     {
-        alSourcePlay(oal_source);
+        alSourcePlay(0);
     }
 
     if (is_succeed)
@@ -409,7 +406,7 @@ int main()
         }
     }
 
-    alSourceStop(oal_source);
+    alSourceStop(0);
 
     alcDestroyContext(oal_context);
     alcCloseDevice(oal_device);

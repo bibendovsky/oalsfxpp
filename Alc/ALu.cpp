@@ -35,17 +35,13 @@ extern inline float minf(float a, float b);
 extern inline float maxf(float a, float b);
 extern inline float clampf(float val, float min, float max);
 
-extern inline ALuint minu(ALuint a, ALuint b);
-extern inline ALuint maxu(ALuint a, ALuint b);
-extern inline ALuint clampu(ALuint val, ALuint min, ALuint max);
-
 extern inline ALint mini(ALint a, ALint b);
 extern inline ALint maxi(ALint a, ALint b);
 extern inline ALint clampi(ALint val, ALint min, ALint max);
 
 extern inline float lerp(float val1, float val2, float mu);
 
-extern inline void aluMatrixfSetRow(aluMatrixf *matrix, ALuint row,
+extern inline void aluMatrixfSetRow(aluMatrixf *matrix, int row,
                                     float m0, float m1, float m2, float m3);
 extern inline void aluMatrixfSet(aluMatrixf *matrix,
                                  float m00, float m01, float m02, float m03,
@@ -139,7 +135,7 @@ static void CalcPanningAndFilters(ALvoice *voice, const float Distance, const fl
     };
     bool DirectChannels = AL_FALSE;
     const int NumSends = Device->num_aux_sends;
-    const ALuint Frequency = Device->frequency;
+    const int Frequency = Device->frequency;
     const struct ChanMap *chans = NULL;
     int num_channels = 0;
     bool isbformat = false;

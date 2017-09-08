@@ -51,7 +51,7 @@ using MdArray = typename detail::MdArray<T, TExtents...>::Type;
 
 
 /* Find the next power-of-2 for non-power-of-2 numbers. */
-inline ALuint NextPowerOf2(ALuint value)
+inline int NextPowerOf2(int value)
 {
     if(value > 0)
     {
@@ -213,12 +213,12 @@ struct ALCdevice_struct
     }; // RealOut
 
 
-    ALuint frequency;
-    ALuint update_size;
+    int frequency;
+    int update_size;
     DevFmtChannels fmt_chans;
 
     // Maximum number of slots that can be created
-    ALuint auxiliary_effect_slot_max;
+    int auxiliary_effect_slot_max;
 
     int num_aux_sends;
 

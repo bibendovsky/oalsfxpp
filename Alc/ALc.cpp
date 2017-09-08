@@ -412,7 +412,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     //Set output format
     device->fmt_chans = DevFmtChannelsDefault;
     device->frequency = DEFAULT_OUTPUT_RATE;
-    device->update_size = clampu(1024, 64, 8192);
+    device->update_size = clampi(1024, 64, 8192);
 
     if(device->auxiliary_effect_slot_max == 0) device->auxiliary_effect_slot_max = 64;
 

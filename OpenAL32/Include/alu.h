@@ -19,7 +19,7 @@ union aluMatrixf
 
 extern const aluMatrixf IdentityMatrixf;
 
-inline void aluMatrixfSetRow(aluMatrixf *matrix, ALuint row,
+inline void aluMatrixfSetRow(aluMatrixf *matrix, int row,
                              float m0, float m1, float m2, float m3)
 {
     matrix->m[row][0] = m0;
@@ -168,13 +168,6 @@ inline float maxf(float a, float b)
 { return ((a > b) ? a : b); }
 inline float clampf(float val, float min, float max)
 { return minf(max, maxf(min, val)); }
-
-inline ALuint minu(ALuint a, ALuint b)
-{ return ((a > b) ? b : a); }
-inline ALuint maxu(ALuint a, ALuint b)
-{ return ((a > b) ? a : b); }
-inline ALuint clampu(ALuint val, ALuint min, ALuint max)
-{ return minu(max, maxu(min, val)); }
 
 inline ALint mini(ALint a, ALint b)
 { return ((a > b) ? b : a); }
