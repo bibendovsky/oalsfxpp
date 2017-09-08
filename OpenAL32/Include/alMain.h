@@ -6,6 +6,7 @@
 #include <cmath>
 
 #include <array>
+#include <type_traits>
 #include <vector>
 
 #include "AL/al.h"
@@ -19,7 +20,12 @@
  */
 #define FAM_SIZE(T, M, N)  (offsetof(T, M) + sizeof(((T*)NULL)->M[0])*(N))
 
-#define COUNTOF(x) (sizeof(x) / sizeof(0[x]))
+template<typename T>
+constexpr int count_of(const T&)
+{
+    static_assert(std::rank_v<T> == 1, "Expected an one-dimensional array.");
+    return static_cast<int>(std::extent_v<T>);
+}
 
 
 constexpr auto default_output_rate = 44100;
