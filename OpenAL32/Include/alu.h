@@ -1,6 +1,7 @@
 #ifndef _ALU_H_
 #define _ALU_H_
 
+
 #include "alMain.h"
 #include "alBuffer.h"
 #include "alFilter.h"
@@ -12,9 +13,11 @@ struct ALvoice;
 struct ALeffectslot;
 
 
-union aluMatrixf
+struct aluMatrixf
 {
-    float m[4][4];
+    using Items = float[4][4];
+
+    Items m;
 }; // aluMatrixf
 
 extern const aluMatrixf IdentityMatrixf;
@@ -208,9 +211,9 @@ void CalcDirectionCoeffs(const float dir[3], float spread, float coeffs[MAX_AMBI
 inline void CalcAngleCoeffs(float azimuth, float elevation, float spread, float coeffs[MAX_AMBI_COEFFS])
 {
     float dir[3] = {
-        sinf(azimuth) * cosf(elevation),
-        sinf(elevation),
-        -cosf(azimuth) * cosf(elevation)
+        std::sin(azimuth) * std::cos(elevation),
+        std::sin(elevation),
+        -std::cos(azimuth) * std::cos(elevation)
     };
     CalcDirectionCoeffs(dir, spread, coeffs);
 }

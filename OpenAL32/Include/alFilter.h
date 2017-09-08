@@ -68,7 +68,7 @@ inline float calc_rcpQ_from_slope(float gain, float slope)
 inline float calc_rcpQ_from_bandwidth(float freq_mult, float bandwidth)
 {
     float w0 = F_TAU * freq_mult;
-    return 2.0f*sinhf(logf(2.0f)/2.0f*bandwidth*w0/sinf(w0));
+    return 2.0f*std::sinh(std::log(2.0f)/2.0f*bandwidth*w0/std::sin(w0));
 }
 
 inline void ALfilterState_clear(ALfilterState *filter)
