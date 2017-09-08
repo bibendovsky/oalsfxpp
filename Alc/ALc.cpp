@@ -23,8 +23,8 @@
 #include "alSource.h"
 
 
-void init_source_params(ALsource *source, int num_sends);
-void deinit_source(ALsource *source, int num_sends);
+void init_source_params(ALsource* source, int num_sends);
+void deinit_source(ALsource* source, int num_sends);
 
 
 /************************************************
@@ -38,32 +38,30 @@ ALCdevice* g_device = nullptr;
  * Miscellaneous ALC helpers
  ************************************************/
 
-/* SetDefaultWFXChannelOrder
- *
- * Sets the default channel order used by WaveFormatEx.
- */
-void set_default_wfx_channel_order(ALCdevice *device)
+// Sets the default channel order used by WaveFormatEx.
+void set_default_wfx_channel_order(
+    ALCdevice* device)
 {
-    int i;
+    device->real_out.channel_name.fill(InvalidChannel);
 
-    for(i = 0;i < max_output_channels;i++)
-        device->real_out.channel_name[i] = InvalidChannel;
-
-    switch(device->fmt_chans)
+    switch (device->fmt_chans)
     {
     case DevFmtMono:
         device->real_out.channel_name[0] = FrontCenter;
         break;
+
     case DevFmtStereo:
         device->real_out.channel_name[0] = FrontLeft;
         device->real_out.channel_name[1] = FrontRight;
         break;
+
     case DevFmtQuad:
         device->real_out.channel_name[0] = FrontLeft;
         device->real_out.channel_name[1] = FrontRight;
         device->real_out.channel_name[2] = BackLeft;
         device->real_out.channel_name[3] = BackRight;
         break;
+
     case DevFmtX51:
         device->real_out.channel_name[0] = FrontLeft;
         device->real_out.channel_name[1] = FrontRight;
@@ -72,6 +70,7 @@ void set_default_wfx_channel_order(ALCdevice *device)
         device->real_out.channel_name[4] = SideLeft;
         device->real_out.channel_name[5] = SideRight;
         break;
+
     case DevFmtX51Rear:
         device->real_out.channel_name[0] = FrontLeft;
         device->real_out.channel_name[1] = FrontRight;
@@ -80,6 +79,7 @@ void set_default_wfx_channel_order(ALCdevice *device)
         device->real_out.channel_name[4] = BackLeft;
         device->real_out.channel_name[5] = BackRight;
         break;
+
     case DevFmtX61:
         device->real_out.channel_name[0] = FrontLeft;
         device->real_out.channel_name[1] = FrontRight;
@@ -89,6 +89,7 @@ void set_default_wfx_channel_order(ALCdevice *device)
         device->real_out.channel_name[5] = SideLeft;
         device->real_out.channel_name[6] = SideRight;
         break;
+
     case DevFmtX71:
         device->real_out.channel_name[0] = FrontLeft;
         device->real_out.channel_name[1] = FrontRight;
@@ -102,17 +103,11 @@ void set_default_wfx_channel_order(ALCdevice *device)
     }
 }
 
-/* UpdateDeviceParams
- *
- * Updates device parameters according to the attribute list (caller is
- * responsible for holding the list lock).
- */
+// Updates device parameters according to the attribute list (caller is
+// responsible for holding the list lock).
 static void update_device_params(
     ALCdevice* device)
 {
-    const auto old_sends = device->num_aux_sends;
-    const auto new_sends = device->num_aux_sends;
-
     device->dry.buffers = SampleBuffers{};
     device->dry.num_channels = 0;
     device->foa_out.buffers = nullptr;
@@ -130,8 +125,6 @@ static void update_device_params(
     device->foa_out.buffers = &device->dry.buffers;
     device->foa_out.num_channels = device->dry.num_channels;
 
-    device->num_aux_sends = new_sends;
-
     auto slot = device->effect_slot;
     auto state = slot->effect.state;
 
@@ -141,11 +134,11 @@ static void update_device_params(
     state->update_device(device);
     update_effect_slot_props(slot);
 
-    allocate_voices(device, 1, old_sends);
+    allocate_voices(device);
 
     for (int pos = 0; pos < device->voice_count; ++pos)
     {
-        auto voice = device->voice;
+        const auto voice = device->voice;
 
         if (!voice->source)
         {
@@ -156,12 +149,10 @@ static void update_device_params(
     update_all_source_props(device);
 }
 
-/* FreeDevice
- *
- * Frees the device structure, and destroys any objects the app failed to
- * delete. Called once there's no more references on the device.
- */
-static ALCvoid free_device(ALCdevice *device)
+// Frees the device structure, and destroys any objects the app failed to
+// delete. Called once there's no more references on the device.
+static void free_device(
+    ALCdevice* device)
 {
     delete device->effect;
 
@@ -181,12 +172,9 @@ static ALCvoid free_device(ALCdevice *device)
     delete device;
 }
 
-/* FreeContext
- *
- * Cleans up the context, and destroys any remaining objects the app failed to
- * delete. Called once there's no more references on the context.
- */
-static void free_context(ALCcontext *context)
+// Cleans up the context, and destroys any remaining objects the app failed to
+// delete. Called once there's no more references on the context.
+static void free_context()
 {
     auto device = g_device;
 
@@ -200,18 +188,16 @@ static void free_context(ALCcontext *context)
     device->voice_count = 0;
 }
 
-/* ReleaseContext
- *
- * Removes the context reference from the given device and removes it from
- * being current on the running thread or globally. Returns true if other
- * contexts still exist on the device.
- */
-static void release_context(ALCdevice *device)
+// Removes the context reference from the given device and removes it from
+// being current on the running thread or globally. Returns true if other
+// contexts still exist on the device.
+static void release_context()
 {
-    free_context(nullptr);
+    free_context();
 }
 
-void allocate_voices(ALCdevice* device, int num_voices, int old_sends)
+void allocate_voices(
+    ALCdevice* device)
 {
     if (device->voice)
     {
@@ -232,38 +218,40 @@ void allocate_voices(ALCdevice* device, int num_voices, int old_sends)
  *
  * Opens the named device.
  */
-ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
+ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(
+    const ALCchar* device_name)
 {
-    ALCdevice *device;
-
     if (g_device)
     {
         return nullptr;
     }
 
-    device = new ALCdevice{};
+    auto device = new ALCdevice{};
 
     if(!device)
     {
-        return NULL;
+        return nullptr;
     }
 
     device->dry.buffers = SampleBuffers{};
     device->dry.num_channels = 0;
-    device->foa_out.buffers = NULL;
+    device->foa_out.buffers = nullptr;
     device->foa_out.num_channels = 0;
-    device->real_out.buffers = NULL;
+    device->real_out.buffers = nullptr;
     device->real_out.num_channels = 0;
 
     device->auxiliary_effect_slot_max = 64;
     device->num_aux_sends = default_sends;
 
-    //Set output format
+    // Set output format
     device->fmt_chans = DevFmtChannelsDefault;
     device->frequency = default_output_rate;
     device->update_size = clamp(1024, 64, 8192);
 
-    if(device->auxiliary_effect_slot_max == 0) device->auxiliary_effect_slot_max = 64;
+    if (device->auxiliary_effect_slot_max == 0)
+    {
+        device->auxiliary_effect_slot_max = 64;
+    }
 
     device->source = new ALsource{};
     init_source_params(device->source, device->num_aux_sends);
@@ -279,7 +267,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     device->voice_count = 0;
 
     update_device_params(device);
-    allocate_voices(device, 1, device->num_aux_sends);
+    allocate_voices(device);
 
     g_device = device;
 
@@ -292,6 +280,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
  */
 ALC_API ALCboolean ALC_APIENTRY alcCloseDevice(ALCdevice *device)
 {
-    release_context(device);
+    release_context();
     return ALC_TRUE;
 }

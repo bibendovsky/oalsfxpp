@@ -63,37 +63,34 @@ template<typename T, std::size_t... TExtents>
 using MdArray = typename detail::MdArray<T, TExtents...>::Type;
 
 
-/* Find the next power-of-2 for non-power-of-2 numbers. */
-inline int next_power_of_2(int value)
+// Find the next power-of-2 for non-power-of-2 numbers.
+inline int next_power_of_2(
+    int value)
 {
-    if(value > 0)
+    if (value > 0)
     {
-        value--;
-        value |= value>>1;
-        value |= value>>2;
-        value |= value>>4;
-        value |= value>>8;
-        value |= value>>16;
+        value -= 1;
+        value |= value >> 1;
+        value |= value >> 2;
+        value |= value >> 4;
+        value |= value >> 8;
+        value |= value >> 16;
     }
-    return value+1;
+
+    return value + 1;
 }
 
-/** Round up a value to the next multiple. */
-inline size_t round_up(size_t value, size_t r)
+
+// Fast float-to-int conversion. Assumes the FPU is already in round-to-zero
+// mode.
+inline int fastf2i(
+    const float f)
 {
-    value += r-1;
-    return value - (value%r);
+    return std::lrint(f);
 }
 
-/* Fast float-to-int conversion. Assumes the FPU is already in round-to-zero
- * mode. */
-inline int fastf2i(float f)
+enum Channel
 {
-    return lrintf(f);
-}
-
-
-enum Channel {
     FrontLeft = 0,
     FrontRight,
     FrontCenter,
@@ -131,11 +128,11 @@ enum Channel {
     Aux15,
 
     InvalidChannel
-};
+}; // Channel
 
-
-/* Device formats */
-enum DevFmtChannels {
+// Device formats
+enum DevFmtChannels
+{
     DevFmtMono   = ALC_MONO_SOFT,
     DevFmtStereo = ALC_STEREO_SOFT,
     DevFmtQuad   = ALC_QUAD_SOFT,
@@ -143,11 +140,11 @@ enum DevFmtChannels {
     DevFmtX61    = ALC_6POINT1_SOFT,
     DevFmtX71    = ALC_7POINT1_SOFT,
 
-    /* Similar to 5.1, except using rear channels instead of sides */
+    // Similar to 5.1, except using rear channels instead of sides
     DevFmtX51Rear = 0x80000000,
 
     DevFmtChannelsDefault = DevFmtMono
-};
+}; // DevFmtChannels
 
 
 using ChannelConfig = std::array<float, max_ambi_coeffs>;
@@ -248,24 +245,28 @@ struct ALCdevice_struct
 
 
 extern ALCdevice* g_device;
-void allocate_voices(ALCdevice* device, int num_voices, int old_sends);
+void allocate_voices(ALCdevice* device);
 void set_default_wfx_channel_order(ALCdevice* device);
 
 
-/**
- * GetChannelIdxByName
- *
- * Returns the index for the given channel name (e.g. FrontCenter), or -1 if it
- * doesn't exist.
- */
-inline int get_channel_index(const ALCdevice::ChannelNames& names, const Channel chan)
+// Returns the index for the given channel name (e.g. FrontCenter), or -1 if it
+// doesn't exist.
+inline int get_channel_index(
+    const ALCdevice::ChannelNames& names,
+    const Channel chan)
 {
-    int i;
-    for(i = 0;i < max_output_channels;i++)
+    auto i = 0;
+
+    for (const auto& name : names)
     {
-        if(names[i] == chan)
+        if(name == chan)
+        {
             return i;
+        }
+
+        i += 1;
     }
+
     return -1;
 }
 
