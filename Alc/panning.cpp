@@ -81,7 +81,7 @@ void CalcDirectionCoeffs(const float dir[3], float spread, float coeffs[max_ambi
          */
         float ca = std::cos(spread * 0.5f);
         /* Increase the source volume by up to +3dB for a full spread. */
-        float scale = sqrtf(1.0f + spread/tau);
+        float scale = std::sqrt(1.0f + spread/tau);
 
         float ZH0_norm = scale;
         float ZH1_norm = 0.5f * (ca+1.f) * scale;

@@ -49,7 +49,7 @@ void ALfilterState_setParams(ALfilterState *filter, ALfilterType type, float gai
     switch(type)
     {
         case ALfilterType_HighShelf:
-            sqrtgain_alpha_2 = 2.0f * sqrtf(gain) * alpha;
+            sqrtgain_alpha_2 = 2.0f * std::sqrt(gain) * alpha;
             b[0] =       gain*((gain+1.0f) + (gain-1.0f)*cos_w0 + sqrtgain_alpha_2);
             b[1] = -2.0f*gain*((gain-1.0f) + (gain+1.0f)*cos_w0                   );
             b[2] =       gain*((gain+1.0f) + (gain-1.0f)*cos_w0 - sqrtgain_alpha_2);
@@ -58,7 +58,7 @@ void ALfilterState_setParams(ALfilterState *filter, ALfilterType type, float gai
             a[2] =             (gain+1.0f) - (gain-1.0f)*cos_w0 - sqrtgain_alpha_2;
             break;
         case ALfilterType_LowShelf:
-            sqrtgain_alpha_2 = 2.0f * sqrtf(gain) * alpha;
+            sqrtgain_alpha_2 = 2.0f * std::sqrt(gain) * alpha;
             b[0] =       gain*((gain+1.0f) - (gain-1.0f)*cos_w0 + sqrtgain_alpha_2);
             b[1] =  2.0f*gain*((gain-1.0f) - (gain+1.0f)*cos_w0                   );
             b[2] =       gain*((gain+1.0f) - (gain-1.0f)*cos_w0 - sqrtgain_alpha_2);
@@ -67,7 +67,7 @@ void ALfilterState_setParams(ALfilterState *filter, ALfilterType type, float gai
             a[2] =             (gain+1.0f) + (gain-1.0f)*cos_w0 - sqrtgain_alpha_2;
             break;
         case ALfilterType_Peaking:
-            gain = sqrtf(gain);
+            gain = std::sqrt(gain);
             b[0] =  1.0f + alpha * gain;
             b[1] = -2.0f * cos_w0;
             b[2] =  1.0f - alpha * gain;

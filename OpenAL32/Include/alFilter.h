@@ -59,7 +59,7 @@ struct ALfilterState
  */
 inline float calc_rcpQ_from_slope(float gain, float slope)
 {
-    return sqrtf((gain + 1.0f/gain)*(1.0f/slope - 1.0f) + 2.0f);
+    return std::sqrt((gain + 1.0f/gain)*(1.0f/slope - 1.0f) + 2.0f);
 }
 /* Calculates the rcpQ (i.e. 1/Q) coefficient for filters, using the frequency
  * multiple (i.e. ref_freq / sampling_freq) and bandwidth.
