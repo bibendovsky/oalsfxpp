@@ -229,13 +229,13 @@ void ComputeAmbientGains(
     const float g,
     float* const o)
 {
-    if(b.coeff_count > 0)
+    if (b.coeff_count > 0)
     {
-        ComputeAmbientGainsMC(b.ambi.coeffs, b.num_channels, g, o);
+        ComputeAmbientGainsMC(b.ambi.coeffs.data(), b.num_channels, g, o);
     }
     else
     {
-        ComputeAmbientGainsBF(b.ambi.map, b.num_channels, g, o);
+        ComputeAmbientGainsBF(b.ambi.map.data(), b.num_channels, g, o);
     }
 }
 
@@ -257,11 +257,11 @@ void ComputePanningGains(
 {
     if (b.coeff_count > 0)
     {
-        ComputePanningGainsMC(b.ambi.coeffs, b.num_channels, b.coeff_count, c, g, o);
+        ComputePanningGainsMC(b.ambi.coeffs.data(), b.num_channels, b.coeff_count, c, g, o);
     }
     else
     {
-        ComputePanningGainsBF(b.ambi.map, b.num_channels, c, g, o);
+        ComputePanningGainsBF(b.ambi.map.data(), b.num_channels, c, g, o);
     }
 }
 
@@ -284,11 +284,11 @@ void ComputeFirstOrderGains(
 {
     if (b.coeff_count > 0)
     {
-        ComputeFirstOrderGainsMC(b.ambi.coeffs, b.num_channels, m, g, o);
+        ComputeFirstOrderGainsMC(b.ambi.coeffs.data(), b.num_channels, m, g, o);
     }
     else
     {
-        ComputeFirstOrderGainsBF(b.ambi.map, b.num_channels, m, g, o);
+        ComputeFirstOrderGainsBF(b.ambi.map.data(), b.num_channels, m, g, o);
     }
 }
 

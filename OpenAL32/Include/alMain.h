@@ -143,10 +143,10 @@ constexpr auto MAX_OUTPUT_CHANNELS = 16;
  * second-order has 9, third-order has 16, and fourth-order has 25.
  */
 constexpr auto MAX_AMBI_ORDER = 3;
-constexpr auto MAX_AMBI_COEFFS = (MAX_AMBI_ORDER+1) * (MAX_AMBI_ORDER+1);
+constexpr auto MAX_AMBI_COEFFS = (MAX_AMBI_ORDER + 1) * (MAX_AMBI_ORDER + 1);
 
 
-using ChannelConfig = float[MAX_AMBI_COEFFS];
+using ChannelConfig = std::array<float, MAX_AMBI_COEFFS>;
 
 struct BFChannelConfig
 {
@@ -156,19 +156,22 @@ struct BFChannelConfig
 
 union AmbiConfig
 {
+    using Coeffs = std::array<ChannelConfig, MAX_OUTPUT_CHANNELS>;
+    using Map = std::array<BFChannelConfig, MAX_OUTPUT_CHANNELS>;
+
+
     // Ambisonic coefficients for mixing to the dry buffer.
-    ChannelConfig coeffs[MAX_OUTPUT_CHANNELS];
+    Coeffs coeffs;
 
     // Coefficient channel mapping for mixing to the dry buffer.
-    BFChannelConfig map[MAX_OUTPUT_CHANNELS];
+    Map map;
 }; // AmbiConfig
 
 
-/* Size for temporary storage of buffer data, in ALfloats. Larger values need
- * more memory, while smaller values may need more iterations. The value needs
- * to be a sensible size, however, as it constrains the max stepping value used
- * for mixing, as well as the maximum number of samples per mixing iteration.
- */
+// Size for temporary storage of buffer data, in ALfloats. Larger values need
+// more memory, while smaller values may need more iterations. The value needs
+// to be a sensible size, however, as it constrains the max stepping value used
+// for mixing, as well as the maximum number of samples per mixing iteration.
 constexpr auto BUFFERSIZE = 2048;
 
 using SampleBuffer = std::array<float, BUFFERSIZE>;
@@ -176,9 +179,15 @@ using SampleBuffers = std::vector<SampleBuffer>;
 
 struct ALCdevice_struct
 {
+    using ChannelNames = std::array<Channel, MAX_OUTPUT_CHANNELS>;
+
+
     // The "dry" path corresponds to the main output.
     struct Dry
     {
+        using ChannelsPerOrder = std::array<int, MAX_AMBI_ORDER + 1>;
+
+
         AmbiConfig ambi;
 
         // Number of coefficients in each Ambi.Coeffs to mix together (4 for
@@ -188,7 +197,7 @@ struct ALCdevice_struct
 
         SampleBuffers buffer;
         int num_channels;
-        int num_channels_per_order[MAX_AMBI_ORDER + 1];
+        ChannelsPerOrder num_channels_per_order;
     }; // Dry
 
     // First-order ambisonics output, to be upsampled to the dry buffer if different. */
@@ -207,8 +216,8 @@ struct ALCdevice_struct
     // dry buffer.
     struct RealOut
     {
-        Channel channel_name[MAX_OUTPUT_CHANNELS];
-        SampleBuffers *buffer;
+        ChannelNames channel_name;
+        SampleBuffers* buffer;
         int num_channels;
     }; // RealOut
 
@@ -222,10 +231,10 @@ struct ALCdevice_struct
 
     int num_aux_sends;
 
-    /* Temp storage used for each source when mixing. */
-    float source_data[BUFFERSIZE];
-    float resampled_data[BUFFERSIZE];
-    float filtered_data[BUFFERSIZE];
+    // Temp storage used for each source when mixing.
+    SampleBuffer source_data;
+    SampleBuffer resampled_data;
+    SampleBuffer filtered_data;
 
     Dry dry;
     FOAOut foa_out;
@@ -241,8 +250,8 @@ struct ALCdevice_struct
 
 
 extern ALCdevice* g_device;
-void AllocateVoices(ALCdevice *device, int num_voices, int old_sends);
-void SetDefaultWFXChannelOrder(ALCdevice *device);
+void AllocateVoices(ALCdevice* device, int num_voices, int old_sends);
+void SetDefaultWFXChannelOrder(ALCdevice* device);
 
 
 /**
@@ -251,7 +260,7 @@ void SetDefaultWFXChannelOrder(ALCdevice *device);
  * Returns the index for the given channel name (e.g. FrontCenter), or -1 if it
  * doesn't exist.
  */
-inline ALint GetChannelIndex(const enum Channel names[MAX_OUTPUT_CHANNELS], enum Channel chan)
+inline ALint GetChannelIndex(const ALCdevice::ChannelNames& names, const Channel chan)
 {
     ALint i;
     for(i = 0;i < MAX_OUTPUT_CHANNELS;i++)

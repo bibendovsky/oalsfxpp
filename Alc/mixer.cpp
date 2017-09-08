@@ -77,18 +77,19 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, int Sam
 
         /* Load what's left to play from the source buffer, and
             * clear the rest of the temp buffer */
-        memcpy(Device->source_data, Device->source_samples, NumChannels * 4 * SamplesToDo);
+        std::uninitialized_copy_n(Device->source_samples, NumChannels * SamplesToDo, Device->source_data.begin());
 
         /* Now resample, then filter and mix to the appropriate outputs. */
-        memcpy(Device->resampled_data, Device->source_data, SamplesToDo*sizeof(float));
+        std::uninitialized_copy_n(Device->source_data.cbegin(), SamplesToDo, Device->resampled_data.begin());
+
 
         parms = &voice->direct.params[chan];
 
         samples = DoFilters(
             &parms->low_pass,
             &parms->high_pass,
-            Device->filtered_data,
-            Device->resampled_data,
+            Device->filtered_data.data(),
+            Device->resampled_data.data(),
             SamplesToDo,
             voice->direct.filter_type);
 
@@ -116,8 +117,8 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, int Sam
             samples = DoFilters(
                 &parms->low_pass,
                 &parms->high_pass,
-                Device->filtered_data,
-                Device->resampled_data,
+                Device->filtered_data.data(),
+                Device->resampled_data.data(),
                 SamplesToDo,
                 voice->send.filter_type);
 

@@ -314,7 +314,7 @@ static void InitPanning(ALCdevice *device)
     {
         float w_scale, xyz_scale;
 
-        SetChannelMap(device->real_out.channel_name, device->dry.ambi.coeffs,
+        SetChannelMap(device->real_out.channel_name.data(), device->dry.ambi.coeffs.data(),
                       chanmap, count, &device->dry.num_channels);
         device->dry.coeff_count = coeffcount;
 
