@@ -6,12 +6,12 @@
 
 
 /* C mixers */
-void Mix_C(const ALfloat *data, ALsizei OutChans, SampleBuffers& OutBuffer,
-           ALfloat *CurrentGains, const ALfloat *TargetGains, ALsizei Counter, ALsizei OutPos,
-           ALsizei BufferSize);
-void MixRow_C(ALfloat *OutBuffer, const ALfloat *Gains,
-              const SampleBuffers& data, ALsizei InChans,
-              ALsizei InPos, ALsizei BufferSize);
+void Mix_C(const float *data, int OutChans, SampleBuffers& OutBuffer,
+           float *CurrentGains, const float *TargetGains, int Counter, int OutPos,
+           int BufferSize);
+void MixRow_C(float *OutBuffer, const float *Gains,
+              const SampleBuffers& data, int InChans,
+              int InPos, int BufferSize);
 
 
 #endif /* MIXER_DEFS_H */

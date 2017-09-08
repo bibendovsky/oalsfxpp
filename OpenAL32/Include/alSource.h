@@ -16,21 +16,21 @@ struct ALsource
 
     struct Direct
     {
-        ALfloat gain;
-        ALfloat gain_hf;
-        ALfloat hf_reference;
-        ALfloat gain_lf;
-        ALfloat lf_reference;
+        float gain;
+        float gain_hf;
+        float hf_reference;
+        float gain_lf;
+        float lf_reference;
     }; // Direct
 
     struct Send
     {
         struct ALeffectslot *slot;
-        ALfloat gain;
-        ALfloat gain_hf;
-        ALfloat hf_reference;
-        ALfloat gain_lf;
-        ALfloat lf_reference;
+        float gain;
+        float gain_hf;
+        float hf_reference;
+        float gain_lf;
+        float lf_reference;
     }; // Send
 
     using SendUPtr = std::unique_ptr<Send>;
@@ -39,7 +39,7 @@ struct ALsource
     SendUPtr send;
 
     // Source state (initial, playing, paused, or stopped)
-    ALenum state;
+    int state;
 }; // ALsource
 
 

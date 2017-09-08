@@ -31,7 +31,7 @@ class EchoEffect :
 public:
     struct Tap
     {
-        ALsizei delay;
+        int delay;
     };
 
 
@@ -96,8 +96,8 @@ protected:
         const struct ALeffectslot* slot,
         const union ALeffectProps* props) final
     {
-        ALfloat coeffs[MAX_AMBI_COEFFS];
-        ALfloat effect_gain, lrpan, spread;
+        float coeffs[MAX_AMBI_COEFFS];
+        float effect_gain, lrpan, spread;
 
         const auto frequency = device->frequency;
 
@@ -143,10 +143,10 @@ protected:
     }
 
     void EchoEffect::do_process(
-        const ALsizei sample_count,
+        const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
-        const ALsizei channel_count) final
+        const int channel_count) final
     {
         const auto mask = buffer_length_ - 1;
         const auto tap1 = taps_[0].delay;
@@ -156,7 +156,7 @@ protected:
 
         for (int base = 0; base < sample_count; )
         {
-            ALfloat temps[128][2];
+            float temps[128][2];
 
             const auto td = std::min(128, sample_count - base);
 
@@ -226,13 +226,13 @@ private:
 
 
     EffectSampleBuffer sample_buffer_;
-    ALsizei buffer_length_;
+    int buffer_length_;
 
     // The echo is two tap. The delay is the number of samples from before the
     // current offset
     Taps taps_;
 
-    ALsizei offset_;
+    int offset_;
 
     // The panning gains for the two taps
     Gains gains_;

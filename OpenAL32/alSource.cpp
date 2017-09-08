@@ -23,9 +23,9 @@
 #include "alSource.h"
 
 
-void InitSourceParams(ALsource *Source, ALsizei num_sends);
-void DeinitSource(ALsource *source, ALsizei num_sends);
-void UpdateSourceProps(ALsource *source, ALvoice *voice, ALsizei num_sends);
+void InitSourceParams(ALsource *Source, int num_sends);
+void DeinitSource(ALsource *source, int num_sends);
+void UpdateSourceProps(ALsource *source, ALvoice *voice, int num_sends);
 
 enum SourceProp
 {
@@ -107,7 +107,7 @@ static inline ALvoice *GetSourceVoice(const ALsource *source, const ALCcontext *
  */
 static inline bool IsPlayingOrPaused(ALsource *source)
 {
-    ALenum state = source->state;
+    int state = source->state;
     return state == AL_PLAYING || state == AL_PAUSED;
 }
 
@@ -115,11 +115,11 @@ static inline bool IsPlayingOrPaused(ALsource *source)
  * Returns an updated source state using the matching voice's status (or lack
  * thereof).
  */
-static inline ALenum GetSourceState(ALsource *source, ALvoice *voice)
+static inline int GetSourceState(ALsource *source, ALvoice *voice)
 {
     if(!voice)
     {
-        ALenum state = AL_PLAYING;
+        int state = AL_PLAYING;
         if(source->state == state ? (source->state = AL_STOPPED, true) : (state = source->state, false))
             return AL_STOPPED;
         return state; 
@@ -136,17 +136,17 @@ static inline bool SourceShouldUpdate(ALsource *source, ALCcontext *context)
     return IsPlayingOrPaused(source);
 }
 
-AL_API ALvoid AL_APIENTRY alSourcePlay(ALuint source)
+AL_API void AL_APIENTRY alSourcePlay(ALuint source)
 {
     alSourcePlayv(1, &source);
 }
-AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
+AL_API void AL_APIENTRY alSourcePlayv(int n, const ALuint *sources)
 {
     ALCcontext *context;
     ALCdevice *device;
     ALsource *source;
     ALvoice *voice;
-    ALsizei i, j;
+    int i, j;
 
     context = GetContextRef();
     if(!context) return;
@@ -212,17 +212,17 @@ AL_API ALvoid AL_APIENTRY alSourcePlayv(ALsizei n, const ALuint *sources)
 }
 
 
-AL_API ALvoid AL_APIENTRY alSourceStop(ALuint source)
+AL_API void AL_APIENTRY alSourceStop(ALuint source)
 {
     alSourceStopv(1, &source);
 }
-AL_API ALvoid AL_APIENTRY alSourceStopv(ALsizei n, const ALuint *sources)
+AL_API void AL_APIENTRY alSourceStopv(int n, const ALuint *sources)
 {
     ALCcontext *context;
     ALCdevice *device;
     ALsource *source;
     ALvoice *voice;
-    ALsizei i;
+    int i;
 
     context = GetContextRef();
     if(!context) return;
@@ -244,7 +244,7 @@ AL_API ALvoid AL_APIENTRY alSourceStopv(ALsizei n, const ALuint *sources)
     }
 }
 
-void InitSourceParams(ALsource *Source, ALsizei num_sends)
+void InitSourceParams(ALsource *Source, int num_sends)
 {
     Source->direct.gain = 1.0f;
     Source->direct.gain_hf = 1.0f;
@@ -261,7 +261,7 @@ void InitSourceParams(ALsource *Source, ALsizei num_sends)
     Source->state = AL_INITIAL;
 }
 
-void DeinitSource(ALsource *source, ALsizei num_sends)
+void DeinitSource(ALsource *source, int num_sends)
 {
     if (source->send)
     {
@@ -270,7 +270,7 @@ void DeinitSource(ALsource *source, ALsizei num_sends)
     }
 }
 
-void UpdateSourceProps(ALsource *source, ALvoice *voice, ALsizei num_sends)
+void UpdateSourceProps(ALsource *source, ALvoice *voice, int num_sends)
 {
     // Get an unused property container, or allocate a new one as needed.
     auto& props = voice->props;
@@ -295,8 +295,8 @@ void UpdateSourceProps(ALsource *source, ALvoice *voice, ALsizei num_sends)
 
 void UpdateAllSourceProps(ALCcontext *context)
 {
-    ALsizei num_sends = context->device->num_aux_sends;
-    ALsizei pos;
+    int num_sends = context->device->num_aux_sends;
+    int pos;
 
     for(pos = 0;pos < context->voice_count;pos++)
     {

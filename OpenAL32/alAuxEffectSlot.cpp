@@ -37,7 +37,7 @@ IEffect* create_reverb_effect();
 
 
 static IEffect* createByType(
-    const ALenum type)
+    const int type)
 {
     switch (type)
     {
@@ -82,9 +82,9 @@ static IEffect* createByType(
     }
 }
 
-ALenum InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *effect)
+int InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *effect)
 {
-    ALenum newtype = (effect ? effect->type : AL_EFFECT_NULL);
+    int newtype = (effect ? effect->type : AL_EFFECT_NULL);
     struct ALeffectslotProps *props;
     IEffect *State;
 
@@ -128,7 +128,7 @@ ALenum InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *e
 }
 
 
-ALenum InitEffectSlot(ALeffectslot *slot)
+int InitEffectSlot(ALeffectslot *slot)
 {
     slot->effect.type = AL_EFFECT_NULL;
 

@@ -25,17 +25,17 @@
 
 extern inline void ALfilterState_clear(ALfilterState *filter);
 extern inline void ALfilterState_copyParams(ALfilterState *dst, const ALfilterState *src);
-extern inline void ALfilterState_processPassthru(ALfilterState *filter, const ALfloat *src, ALsizei numsamples);
-extern inline ALfloat calc_rcpQ_from_slope(ALfloat gain, ALfloat slope);
-extern inline ALfloat calc_rcpQ_from_bandwidth(ALfloat freq_mult, ALfloat bandwidth);
+extern inline void ALfilterState_processPassthru(ALfilterState *filter, const float *src, int numsamples);
+extern inline float calc_rcpQ_from_slope(float gain, float slope);
+extern inline float calc_rcpQ_from_bandwidth(float freq_mult, float bandwidth);
 
 
-void ALfilterState_setParams(ALfilterState *filter, ALfilterType type, ALfloat gain, ALfloat freq_mult, ALfloat rcpQ)
+void ALfilterState_setParams(ALfilterState *filter, ALfilterType type, float gain, float freq_mult, float rcpQ)
 {
-    ALfloat alpha, sqrtgain_alpha_2;
-    ALfloat w0, sin_w0, cos_w0;
-    ALfloat a[3] = { 1.0f, 0.0f, 0.0f };
-    ALfloat b[3] = { 1.0f, 0.0f, 0.0f };
+    float alpha, sqrtgain_alpha_2;
+    float w0, sin_w0, cos_w0;
+    float a[3] = { 1.0f, 0.0f, 0.0f };
+    float b[3] = { 1.0f, 0.0f, 0.0f };
 
     // Limit gain to -100dB
     assert(gain > 0.00001f);

@@ -14,13 +14,13 @@ struct ALeffectslot;
 
 union aluMatrixf
 {
-    ALfloat m[4][4];
+    float m[4][4];
 }; // aluMatrixf
 
 extern const aluMatrixf IdentityMatrixf;
 
 inline void aluMatrixfSetRow(aluMatrixf *matrix, ALuint row,
-                             ALfloat m0, ALfloat m1, ALfloat m2, ALfloat m3)
+                             float m0, float m1, float m2, float m3)
 {
     matrix->m[row][0] = m0;
     matrix->m[row][1] = m1;
@@ -28,10 +28,10 @@ inline void aluMatrixfSetRow(aluMatrixf *matrix, ALuint row,
     matrix->m[row][3] = m3;
 }
 
-inline void aluMatrixfSet(aluMatrixf *matrix, ALfloat m00, ALfloat m01, ALfloat m02, ALfloat m03,
-                                              ALfloat m10, ALfloat m11, ALfloat m12, ALfloat m13,
-                                              ALfloat m20, ALfloat m21, ALfloat m22, ALfloat m23,
-                                              ALfloat m30, ALfloat m31, ALfloat m32, ALfloat m33)
+inline void aluMatrixfSet(aluMatrixf *matrix, float m00, float m01, float m02, float m03,
+                                              float m10, float m11, float m12, float m13,
+                                              float m20, float m21, float m22, float m23,
+                                              float m30, float m31, float m32, float m33)
 {
     aluMatrixfSetRow(matrix, 0, m00, m01, m02, m03);
     aluMatrixfSetRow(matrix, 1, m10, m11, m12, m13);
@@ -52,8 +52,8 @@ struct DirectParams
 {
     struct Gains
     {
-        ALfloat current[MAX_OUTPUT_CHANNELS];
-        ALfloat target[MAX_OUTPUT_CHANNELS];
+        float current[MAX_OUTPUT_CHANNELS];
+        float target[MAX_OUTPUT_CHANNELS];
     }; // Gains
 
 
@@ -66,8 +66,8 @@ struct SendParams
 {
     struct Gains
     {
-        ALfloat current[MAX_OUTPUT_CHANNELS];
-        ALfloat target[MAX_OUTPUT_CHANNELS];
+        float current[MAX_OUTPUT_CHANNELS];
+        float target[MAX_OUTPUT_CHANNELS];
     }; // Gains
 
 
@@ -81,26 +81,26 @@ struct ALvoiceProps
 {
     struct Direct
     {
-        ALfloat gain;
-        ALfloat gain_hf;
-        ALfloat hf_reference;
-        ALfloat gain_lf;
-        ALfloat lf_reference;
+        float gain;
+        float gain_hf;
+        float hf_reference;
+        float gain_lf;
+        float lf_reference;
     }; // Direct
 
     struct Send
     {
         struct ALeffectslot *slot;
-        ALfloat gain;
-        ALfloat gain_hf;
-        ALfloat hf_reference;
-        ALfloat gain_lf;
-        ALfloat lf_reference;
+        float gain;
+        float gain_hf;
+        float hf_reference;
+        float gain_lf;
+        float lf_reference;
     }; // Send
 
     struct ALvoiceProps* next;
-    ALfloat stereo_pan[2];
-    ALfloat radius;
+    float stereo_pan[2];
+    float radius;
 
     // Direct filter and auxiliary send info.
     Direct direct;
@@ -114,8 +114,8 @@ struct ALvoice
         ActiveFilters filter_type;
         DirectParams params[MAX_INPUT_CHANNELS];
         SampleBuffers* buffer;
-        ALsizei channels;
-        ALsizei channels_per_order[MAX_AMBI_ORDER + 1];
+        int channels;
+        int channels_per_order[MAX_AMBI_ORDER + 1];
     }; // Direct
 
     struct Send
@@ -123,7 +123,7 @@ struct ALvoice
         ActiveFilters filter_type;
         SendParams params[MAX_INPUT_CHANNELS];
         SampleBuffers* buffer;
-        ALsizei channels;
+        int channels;
     }; // Send
 
 
@@ -133,7 +133,7 @@ struct ALvoice
 
     // Number of channels and bytes-per-sample for the attached source's
     // buffer(s).
-    ALsizei num_channels;
+    int num_channels;
 
     Direct direct;
     Send send;
@@ -142,14 +142,14 @@ struct ALvoice
 void DeinitVoice(ALvoice *voice);
 
 
-using MixerFunc = void (*)(const ALfloat *data, ALsizei OutChans,
-                          SampleBuffers& OutBuffer, ALfloat *CurrentGains,
-                          const ALfloat *TargetGains, ALsizei Counter, ALsizei OutPos,
-                          ALsizei BufferSize);
+using MixerFunc = void (*)(const float *data, int OutChans,
+                          SampleBuffers& OutBuffer, float *CurrentGains,
+                          const float *TargetGains, int Counter, int OutPos,
+                          int BufferSize);
 
-using RowMixerFunc = void (*)(ALfloat *OutBuffer, const ALfloat *gains,
-                             const SampleBuffers& data, ALsizei InChans,
-                             ALsizei InPos, ALsizei BufferSize);
+using RowMixerFunc = void (*)(float *OutBuffer, const float *gains,
+                             const SampleBuffers& data, int InChans,
+                             int InPos, int BufferSize);
 
 
 constexpr auto GAIN_MIX_MAX = 16.0F; /* +24dB */
@@ -162,11 +162,11 @@ constexpr auto SPEEDOFSOUNDMETRESPERSEC = 343.3F;
 constexpr auto REVERB_DECAY_GAIN = 0.001F; /* -60 dB */
 
 
-inline ALfloat minf(ALfloat a, ALfloat b)
+inline float minf(float a, float b)
 { return ((a > b) ? b : a); }
-inline ALfloat maxf(ALfloat a, ALfloat b)
+inline float maxf(float a, float b)
 { return ((a > b) ? a : b); }
-inline ALfloat clampf(ALfloat val, ALfloat min, ALfloat max)
+inline float clampf(float val, float min, float max)
 { return minf(max, maxf(min, val)); }
 
 inline ALuint minu(ALuint a, ALuint b)
@@ -184,7 +184,7 @@ inline ALint clampi(ALint val, ALint min, ALint max)
 { return mini(max, maxi(min, val)); }
 
 
-inline ALfloat lerp(ALfloat val1, ALfloat val2, ALfloat mu)
+inline float lerp(float val1, float val2, float mu)
 {
     return val1 + (val2-val1)*mu;
 }
@@ -206,7 +206,7 @@ void aluInitEffectPanning(struct ALeffectslot *slot);
  * must be normalized (unit length), and the spread is the angular width of the
  * sound (0...tau).
  */
-void CalcDirectionCoeffs(const ALfloat dir[3], ALfloat spread, ALfloat coeffs[MAX_AMBI_COEFFS]);
+void CalcDirectionCoeffs(const float dir[3], float spread, float coeffs[MAX_AMBI_COEFFS]);
 
 /**
  * CalcAngleCoeffs
@@ -215,9 +215,9 @@ void CalcDirectionCoeffs(const ALfloat dir[3], ALfloat spread, ALfloat coeffs[MA
  * azimuth and elevation parameters are in radians, going right and up
  * respectively.
  */
-inline void CalcAngleCoeffs(ALfloat azimuth, ALfloat elevation, ALfloat spread, ALfloat coeffs[MAX_AMBI_COEFFS])
+inline void CalcAngleCoeffs(float azimuth, float elevation, float spread, float coeffs[MAX_AMBI_COEFFS])
 {
-    ALfloat dir[3] = {
+    float dir[3] = {
         sinf(azimuth) * cosf(elevation),
         sinf(elevation),
         -cosf(azimuth) * cosf(elevation)
@@ -233,8 +233,8 @@ inline void CalcAngleCoeffs(ALfloat azimuth, ALfloat elevation, ALfloat spread, 
 template<typename T>
 void ComputeAmbientGains(
     const T& b,
-    const ALfloat g,
-    ALfloat* const o)
+    const float g,
+    float* const o)
 {
     if(b.coeff_count > 0)
     {
@@ -246,8 +246,8 @@ void ComputeAmbientGains(
     }
 }
 
-void ComputeAmbientGainsMC(const ChannelConfig *chancoeffs, ALsizei numchans, ALfloat ingain, ALfloat gains[MAX_OUTPUT_CHANNELS]);
-void ComputeAmbientGainsBF(const BFChannelConfig *chanmap, ALsizei numchans, ALfloat ingain, ALfloat gains[MAX_OUTPUT_CHANNELS]);
+void ComputeAmbientGainsMC(const ChannelConfig *chancoeffs, int numchans, float ingain, float gains[MAX_OUTPUT_CHANNELS]);
+void ComputeAmbientGainsBF(const BFChannelConfig *chanmap, int numchans, float ingain, float gains[MAX_OUTPUT_CHANNELS]);
 
 /**
  * ComputePanningGains
@@ -258,9 +258,9 @@ void ComputeAmbientGainsBF(const BFChannelConfig *chanmap, ALsizei numchans, ALf
 template<typename T>
 void ComputePanningGains(
     const T& b,
-    const ALfloat* const c,
-    const ALfloat g,
-    ALfloat* const o)
+    const float* const c,
+    const float g,
+    float* const o)
 {
     if (b.coeff_count > 0)
     {
@@ -272,8 +272,8 @@ void ComputePanningGains(
     }
 }
 
-void ComputePanningGainsMC(const ChannelConfig *chancoeffs, ALsizei numchans, ALsizei numcoeffs, const ALfloat coeffs[MAX_AMBI_COEFFS], ALfloat ingain, ALfloat gains[MAX_OUTPUT_CHANNELS]);
-void ComputePanningGainsBF(const BFChannelConfig *chanmap, ALsizei numchans, const ALfloat coeffs[MAX_AMBI_COEFFS], ALfloat ingain, ALfloat gains[MAX_OUTPUT_CHANNELS]);
+void ComputePanningGainsMC(const ChannelConfig *chancoeffs, int numchans, int numcoeffs, const float coeffs[MAX_AMBI_COEFFS], float ingain, float gains[MAX_OUTPUT_CHANNELS]);
+void ComputePanningGainsBF(const BFChannelConfig *chanmap, int numchans, const float coeffs[MAX_AMBI_COEFFS], float ingain, float gains[MAX_OUTPUT_CHANNELS]);
 
 /**
  * ComputeFirstOrderGains
@@ -285,9 +285,9 @@ void ComputePanningGainsBF(const BFChannelConfig *chanmap, ALsizei numchans, con
 template<typename T>
 void ComputeFirstOrderGains(
     const T& b,
-    const ALfloat* const m,
-    const ALfloat g,
-    ALfloat* const o)
+    const float* const m,
+    const float g,
+    float* const o)
 {
     if (b.coeff_count > 0)
     {
@@ -299,13 +299,13 @@ void ComputeFirstOrderGains(
     }
 }
 
-void ComputeFirstOrderGainsMC(const ChannelConfig *chancoeffs, ALsizei numchans, const ALfloat mtx[4], ALfloat ingain, ALfloat gains[MAX_OUTPUT_CHANNELS]);
-void ComputeFirstOrderGainsBF(const BFChannelConfig *chanmap, ALsizei numchans, const ALfloat mtx[4], ALfloat ingain, ALfloat gains[MAX_OUTPUT_CHANNELS]);
+void ComputeFirstOrderGainsMC(const ChannelConfig *chancoeffs, int numchans, const float mtx[4], float ingain, float gains[MAX_OUTPUT_CHANNELS]);
+void ComputeFirstOrderGainsBF(const BFChannelConfig *chanmap, int numchans, const float mtx[4], float ingain, float gains[MAX_OUTPUT_CHANNELS]);
 
 
-ALboolean MixSource(struct ALvoice *voice, struct ALsource *Source, ALCdevice *Device, ALsizei SamplesToDo);
+ALboolean MixSource(struct ALvoice *voice, struct ALsource *Source, ALCdevice *Device, int SamplesToDo);
 
-void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const ALfloat* src_samples);
+void aluMixData(ALCdevice *device, void *OutBuffer, int NumSamples, const float* src_samples);
 /* Caller must lock the device. */
 void aluHandleDisconnect(ALCdevice *device);
 

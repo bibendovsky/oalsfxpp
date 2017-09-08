@@ -104,8 +104,8 @@ protected:
         const struct ALeffectslot* slot,
         const union ALeffectProps* props) final
     {
-        const auto frequency = static_cast<ALfloat>(device->frequency);
-        ALfloat coeffs[MAX_AMBI_COEFFS];
+        const auto frequency = static_cast<float>(device->frequency);
+        float coeffs[MAX_AMBI_COEFFS];
 
         switch (props->flanger.waveform)
         {
@@ -168,10 +168,10 @@ protected:
     }
 
     void FlangerEffect::do_process(
-        const ALsizei sample_count,
+        const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
-        const ALsizei channel_count) final
+        const int channel_count) final
     {
         auto& left_buf = sample_buffers_[0];
         auto& right_buf = sample_buffers_[1];
@@ -179,7 +179,7 @@ protected:
 
         for (int base = 0; base < sample_count; )
         {
-            ALfloat temps[128][2];
+            float temps[128][2];
             ALint mod_delays[2][128];
 
             const auto todo = std::min(128, sample_count - base);

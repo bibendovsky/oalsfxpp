@@ -27,13 +27,13 @@
 
 struct ChanMap {
     enum Channel channel;
-    ALfloat angle;
-    ALfloat elevation;
+    float angle;
+    float elevation;
 };
 
-extern inline ALfloat minf(ALfloat a, ALfloat b);
-extern inline ALfloat maxf(ALfloat a, ALfloat b);
-extern inline ALfloat clampf(ALfloat val, ALfloat min, ALfloat max);
+extern inline float minf(float a, float b);
+extern inline float maxf(float a, float b);
+extern inline float clampf(float val, float min, float max);
 
 extern inline ALuint minu(ALuint a, ALuint b);
 extern inline ALuint maxu(ALuint a, ALuint b);
@@ -43,15 +43,15 @@ extern inline ALint mini(ALint a, ALint b);
 extern inline ALint maxi(ALint a, ALint b);
 extern inline ALint clampi(ALint val, ALint min, ALint max);
 
-extern inline ALfloat lerp(ALfloat val1, ALfloat val2, ALfloat mu);
+extern inline float lerp(float val1, float val2, float mu);
 
 extern inline void aluMatrixfSetRow(aluMatrixf *matrix, ALuint row,
-                                    ALfloat m0, ALfloat m1, ALfloat m2, ALfloat m3);
+                                    float m0, float m1, float m2, float m3);
 extern inline void aluMatrixfSet(aluMatrixf *matrix,
-                                 ALfloat m00, ALfloat m01, ALfloat m02, ALfloat m03,
-                                 ALfloat m10, ALfloat m11, ALfloat m12, ALfloat m13,
-                                 ALfloat m20, ALfloat m21, ALfloat m22, ALfloat m23,
-                                 ALfloat m30, ALfloat m31, ALfloat m32, ALfloat m33);
+                                 float m00, float m01, float m02, float m03,
+                                 float m10, float m11, float m12, float m13,
+                                 float m20, float m21, float m22, float m23,
+                                 float m30, float m31, float m32, float m33);
 
 const aluMatrixf IdentityMatrixf = {{
     { 1.0f, 0.0f, 0.0f, 0.0f },
@@ -125,11 +125,11 @@ static const struct ChanMap MonoMap[1] = {
     { SideRight,   DEG2RAD(  90.0f), DEG2RAD(0.0f) }
 };
 
-static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const ALfloat *Dir,
-                                  const ALfloat Spread, const ALfloat DryGain,
-                                  const ALfloat DryGainHF, const ALfloat DryGainLF,
-                                  const ALfloat *WetGain, const ALfloat *WetGainLF,
-                                  const ALfloat *WetGainHF, ALeffectslot* send_slot,
+static void CalcPanningAndFilters(ALvoice *voice, const float Distance, const float *Dir,
+                                  const float Spread, const float DryGain,
+                                  const float DryGainHF, const float DryGainLF,
+                                  const float *WetGain, const float *WetGainLF,
+                                  const float *WetGainHF, ALeffectslot* send_slot,
                                   const struct ALvoiceProps *props,
                                   const ALCdevice *Device)
 {
@@ -138,13 +138,13 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
         { FrontRight, DEG2RAD( 30.0f), DEG2RAD(0.0f) }
     };
     bool DirectChannels = AL_FALSE;
-    const ALsizei NumSends = Device->num_aux_sends;
+    const int NumSends = Device->num_aux_sends;
     const ALuint Frequency = Device->frequency;
     const struct ChanMap *chans = NULL;
-    ALsizei num_channels = 0;
+    int num_channels = 0;
     bool isbformat = false;
-    ALfloat downmix_gain = 1.0f;
-    ALsizei c, j;
+    float downmix_gain = 1.0f;
+    int c, j;
 
     switch(Device->fmt_chans)
     {
@@ -169,11 +169,11 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
     /* Non-HRTF rendering. Use normal panning to the output. */
 
     {
-        ALfloat w0 = 0.0f;
+        float w0 = 0.0f;
 
         for(c = 0;c < num_channels;c++)
         {
-            ALfloat coeffs[MAX_AMBI_COEFFS];
+            float coeffs[MAX_AMBI_COEFFS];
 
             /* Special-case LFE */
             if(chans[c].channel == LFE)
@@ -220,10 +220,10 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
     }
 
     {
-        ALfloat hfScale = props->direct.hf_reference / Frequency;
-        ALfloat lfScale = props->direct.lf_reference / Frequency;
-        ALfloat gainHF = maxf(DryGainHF, 0.001f); /* Limit -60dB */
-        ALfloat gainLF = maxf(DryGainLF, 0.001f);
+        float hfScale = props->direct.hf_reference / Frequency;
+        float lfScale = props->direct.lf_reference / Frequency;
+        float gainHF = maxf(DryGainHF, 0.001f); /* Limit -60dB */
+        float gainLF = maxf(DryGainLF, 0.001f);
 
         voice->direct.filter_type = AF_None;
         if(gainHF != 1.0f) voice->direct.filter_type = static_cast<ActiveFilters>(voice->direct.filter_type | AF_LowPass);
@@ -246,10 +246,10 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
     }
     if(NumSends > 0)
     {
-        ALfloat hfScale = props->send.hf_reference / Frequency;
-        ALfloat lfScale = props->send.lf_reference / Frequency;
-        ALfloat gainHF = maxf(WetGainHF[0], 0.001f);
-        ALfloat gainLF = maxf(WetGainLF[0], 0.001f);
+        float hfScale = props->send.hf_reference / Frequency;
+        float lfScale = props->send.lf_reference / Frequency;
+        float gainHF = maxf(WetGainHF[0], 0.001f);
+        float gainLF = maxf(WetGainLF[0], 0.001f);
 
         voice->send.filter_type = AF_None;
         if(gainHF != 1.0f) voice->send.filter_type = static_cast<ActiveFilters>(voice->send.filter_type | AF_LowPass);
@@ -274,14 +274,14 @@ static void CalcPanningAndFilters(ALvoice *voice, const ALfloat Distance, const 
 
 static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *props, const ALCcontext *ALContext)
 {
-    static const ALfloat dir[3] = { 0.0f, 0.0f, -1.0f };
+    static const float dir[3] = { 0.0f, 0.0f, -1.0f };
     ALCdevice *Device = ALContext->device;
-    ALfloat DryGain, DryGainHF, DryGainLF;
-    ALfloat WetGain[MAX_SENDS];
-    ALfloat WetGainHF[MAX_SENDS];
-    ALfloat WetGainLF[MAX_SENDS];
+    float DryGain, DryGainHF, DryGainLF;
+    float WetGain[MAX_SENDS];
+    float WetGainHF[MAX_SENDS];
+    float WetGainLF[MAX_SENDS];
     ALeffectslot* send_slot = nullptr;
-    ALsizei i;
+    int i;
 
     voice->direct.buffer = &Device->dry.buffer;
     voice->direct.channels = Device->dry.num_channels;
@@ -338,26 +338,26 @@ static void UpdateContextSources(ALCcontext *ctx)
     }
 }
 
-static void WriteF32(const SampleBuffers* InBuffer, ALvoid *OutBuffer,
-                     ALsizei Offset, ALsizei SamplesToDo, ALsizei numchans)
+static void WriteF32(const SampleBuffers* InBuffer, void *OutBuffer,
+                     int Offset, int SamplesToDo, int numchans)
 {
-    ALsizei i, j;
+    int i, j;
     for(j = 0;j < numchans;j++)
     {
-        const ALfloat *in = (*InBuffer)[j].data();
-        auto *out = (ALfloat*)OutBuffer + Offset*numchans + j;
+        const float *in = (*InBuffer)[j].data();
+        auto *out = (float*)OutBuffer + Offset*numchans + j;
 
         for(i = 0;i < SamplesToDo;i++)
             out[i*numchans] = in[i];
     }
 }
 
-void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const ALfloat* src_samples)
+void aluMixData(ALCdevice *device, void *OutBuffer, int NumSamples, const float* src_samples)
 {
-    ALsizei SamplesToDo;
-    ALsizei SamplesDone;
+    int SamplesToDo;
+    int SamplesDone;
     ALCcontext *ctx;
-    ALsizei i, c;
+    int i, c;
 
     device->source_samples = src_samples;
 
@@ -406,7 +406,7 @@ void aluMixData(ALCdevice *device, ALvoid *OutBuffer, ALsizei NumSamples, const 
         if(OutBuffer)
         {
             auto Buffer = device->real_out.buffer;
-            ALsizei Channels = device->real_out.num_channels;
+            int Channels = device->real_out.num_channels;
             WriteF32(Buffer, OutBuffer, SamplesDone, SamplesToDo, Channels);
         }
 
@@ -421,7 +421,7 @@ void aluHandleDisconnect(ALCdevice *device)
     ctx = device->context;
     if(ctx)
     {
-        ALsizei i;
+        int i;
         for(i = 0;i < ctx->voice_count;i++)
         {
             ALvoice *voice = ctx->voice;

@@ -312,10 +312,10 @@ protected:
     }
 
     void ReverbEffect::do_process(
-        const ALsizei sample_count,
+        const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
-        const ALsizei channel_count) final
+        const int channel_count) final
     {
         const auto reverb_func = (is_eax_ ? &ReverbEffect::eax_verb_pass : &ReverbEffect::verb_pass);
         auto fade = static_cast<float>(fade_count_) / fade_samples;

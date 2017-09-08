@@ -26,11 +26,11 @@
 static MixerFunc MixSamples = Mix_C;
 
 
-static const ALfloat *DoFilters(ALfilterState *lpfilter, ALfilterState *hpfilter,
-                                ALfloat *dst, const ALfloat *src,
-                                ALsizei numsamples, enum ActiveFilters type)
+static const float *DoFilters(ALfilterState *lpfilter, ALfilterState *hpfilter,
+                                float *dst, const float *src,
+                                int numsamples, enum ActiveFilters type)
 {
-    ALsizei i;
+    int i;
     switch(type)
     {
         case AF_None:
@@ -50,8 +50,8 @@ static const ALfloat *DoFilters(ALfilterState *lpfilter, ALfilterState *hpfilter
         case AF_BandPass:
             for(i = 0;i < numsamples;)
             {
-                ALfloat temp[256];
-                ALsizei todo = mini(256, numsamples-i);
+                float temp[256];
+                int todo = mini(256, numsamples-i);
 
                 ALfilterState_processC(lpfilter, temp, src+i, todo);
                 ALfilterState_processC(hpfilter, dst+i, temp, todo);
@@ -62,10 +62,10 @@ static const ALfloat *DoFilters(ALfilterState *lpfilter, ALfilterState *hpfilter
     return src;
 }
 
-ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei SamplesToDo)
+ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, int SamplesToDo)
 {
-    ALsizei NumChannels;
-    ALsizei chan;
+    int NumChannels;
+    int chan;
 
     /* Get source info */
     NumChannels = voice->num_channels;
@@ -73,14 +73,14 @@ ALboolean MixSource(ALvoice *voice, ALsource *Source, ALCdevice *Device, ALsizei
     for (chan = 0; chan < NumChannels; ++chan)
     {
         DirectParams* parms;
-        const ALfloat* samples;
+        const float* samples;
 
         /* Load what's left to play from the source buffer, and
             * clear the rest of the temp buffer */
         memcpy(Device->source_data, Device->source_samples, NumChannels * 4 * SamplesToDo);
 
         /* Now resample, then filter and mix to the appropriate outputs. */
-        memcpy(Device->resampled_data, Device->source_data, SamplesToDo*sizeof(ALfloat));
+        memcpy(Device->resampled_data, Device->source_data, SamplesToDo*sizeof(float));
 
         parms = &voice->direct.params[chan];
 

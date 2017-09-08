@@ -9,23 +9,23 @@ constexpr auto MAX_EFFECT_CHANNELS = 4;
 
 
 struct ALeffectslotProps {
-    ALenum type;
+    int type;
     ALeffectProps props;
-    IEffect *state;
+    IEffect* state;
 }; // ALeffectslotProps
 
 
 struct ALeffectslot
 {
     struct Effect {
-        ALenum type;
+        int type;
         ALeffectProps props;
-        IEffect *state;
+        IEffect* state;
     }; // Effect
 
     struct Params {
-        ALenum effect_type;
-        IEffect *effect_state;
+        int effect_type;
+        IEffect* effect_state;
     }; // Params
 
 
@@ -34,7 +34,7 @@ struct ALeffectslot
     ALeffectslotProps* props;
     Params params;
 
-    ALsizei num_channels;
+    int num_channels;
     BFChannelConfig chan_map[MAX_EFFECT_CHANNELS];
 
     /* Wet buffer configuration is ACN channel order with N3D scaling:
@@ -58,11 +58,11 @@ struct ALeffectslot
 }; // ALeffectslot
 
 
-ALenum InitEffectSlot(ALeffectslot *slot);
-void DeinitEffectSlot(ALeffectslot *slot);
-void UpdateEffectSlotProps(ALeffectslot *slot);
-void UpdateAllEffectSlotProps(ALCcontext *context);
-ALenum InitializeEffect(ALCdevice *Device, ALeffectslot *EffectSlot, ALeffect *effect);
+int InitEffectSlot(ALeffectslot* slot);
+void DeinitEffectSlot(ALeffectslot* slot);
+void UpdateEffectSlotProps(ALeffectslot* slot);
+void UpdateAllEffectSlotProps(ALCcontext* context);
+int InitializeEffect(ALCdevice* Device, ALeffectslot* EffectSlot, ALeffect* effect);
 
 
 template<typename T>

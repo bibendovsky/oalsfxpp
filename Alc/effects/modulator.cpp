@@ -114,10 +114,10 @@ protected:
     }
 
     void ModulatorEffect::do_process(
-        const ALsizei sample_count,
+        const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
-        const ALsizei channel_count) final
+        const int channel_count) final
     {
         for (int base = 0; base < sample_count; )
         {
@@ -177,8 +177,8 @@ private:
 
 
     ProcessFunc process_func_;
-    ALsizei index_;
-    ALsizei step_;
+    int index_;
+    int step_;
     Gains gains_;
     Filters filters_;
 

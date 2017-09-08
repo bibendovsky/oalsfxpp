@@ -39,17 +39,17 @@ enum ALfilterType
 
 struct ALfilterState
 {
-    ALfloat x[2]; // History of two last input samples
-    ALfloat y[2]; // History of two last output samples
+    float x[2]; // History of two last input samples
+    float y[2]; // History of two last output samples
 
     // Transfer function coefficients "b"
-    ALfloat b0;
-    ALfloat b1;
-    ALfloat b2;
+    float b0;
+    float b1;
+    float b2;
 
     // Transfer function coefficients "a" (a0 is pre-applied)
-    ALfloat a1;
-    ALfloat a2;
+    float a1;
+    float a2;
 }; // ALfilterState
 
 /* Calculates the rcpQ (i.e. 1/Q) coefficient for shelving filters, using the
@@ -57,7 +57,7 @@ struct ALfilterState
  * 0 < gain
  * 0 < slope <= 1
  */
-inline ALfloat calc_rcpQ_from_slope(ALfloat gain, ALfloat slope)
+inline float calc_rcpQ_from_slope(float gain, float slope)
 {
     return sqrtf((gain + 1.0f/gain)*(1.0f/slope - 1.0f) + 2.0f);
 }
@@ -65,9 +65,9 @@ inline ALfloat calc_rcpQ_from_slope(ALfloat gain, ALfloat slope)
  * multiple (i.e. ref_freq / sampling_freq) and bandwidth.
  * 0 < freq_mult < 0.5.
  */
-inline ALfloat calc_rcpQ_from_bandwidth(ALfloat freq_mult, ALfloat bandwidth)
+inline float calc_rcpQ_from_bandwidth(float freq_mult, float bandwidth)
 {
-    ALfloat w0 = F_TAU * freq_mult;
+    float w0 = F_TAU * freq_mult;
     return 2.0f*sinhf(logf(2.0f)/2.0f*bandwidth*w0/sinf(w0));
 }
 
@@ -79,7 +79,7 @@ inline void ALfilterState_clear(ALfilterState *filter)
     filter->y[1] = 0.0f;
 }
 
-void ALfilterState_setParams(ALfilterState *filter, ALfilterType type, ALfloat gain, ALfloat freq_mult, ALfloat rcpQ);
+void ALfilterState_setParams(ALfilterState *filter, ALfilterType type, float gain, float freq_mult, float rcpQ);
 
 inline void ALfilterState_copyParams(ALfilterState *dst, const ALfilterState *src)
 {
@@ -90,9 +90,9 @@ inline void ALfilterState_copyParams(ALfilterState *dst, const ALfilterState *sr
     dst->a2 = src->a2;
 }
 
-void ALfilterState_processC(ALfilterState *filter, ALfloat *dst, const ALfloat *src, ALsizei numsamples);
+void ALfilterState_processC(ALfilterState *filter, float *dst, const float *src, int numsamples);
 
-inline void ALfilterState_processPassthru(ALfilterState *filter, const ALfloat *src, ALsizei numsamples)
+inline void ALfilterState_processPassthru(ALfilterState *filter, const float *src, int numsamples)
 {
     if(numsamples >= 2)
     {

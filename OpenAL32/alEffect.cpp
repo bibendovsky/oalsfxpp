@@ -62,10 +62,10 @@ void IEffect::update(
 }
 
 void IEffect::process(
-    ALsizei sample_count,
+    int sample_count,
     const SampleBuffers& src_samples,
     SampleBuffers& dst_samples,
-    const ALsizei channel_count)
+    const int channel_count)
 {
     do_process(sample_count, src_samples, dst_samples, channel_count);
 }
@@ -74,16 +74,16 @@ void IEffect::process(
 // ==========================================================================
 
 
-void InitEffectParams(ALeffect *effect, ALenum type);
+void InitEffectParams(ALeffect *effect, int type);
 
 
-ALenum InitEffect(ALeffect *effect)
+int InitEffect(ALeffect *effect)
 {
     InitEffectParams(effect, AL_EFFECT_NULL);
     return AL_NO_ERROR;
 }
 
-void InitEffectParams(ALeffect *effect, ALenum type)
+void InitEffectParams(ALeffect *effect, int type)
 {
     switch(type)
     {

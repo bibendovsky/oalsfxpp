@@ -23,13 +23,13 @@ void InitEffectParams(
 void UpdateSourceProps(
     ALsource* source,
     ALvoice* voice,
-    ALsizei num_sends);
+    int num_sends);
 
 void aluMixData(
     ALCdevice* device,
-    ALvoid* OutBuffer,
-    ALsizei NumSamples,
-    const ALfloat* src_samples);
+    void* OutBuffer,
+    int NumSamples,
+    const float* src_samples);
 
 
 int main()
@@ -164,7 +164,7 @@ int main()
         }
     }
 
-#if 0
+#if 1
     if (is_succeed)
     {
         InitEffectParams(oal_device->effect, AL_EFFECT_EAXREVERB);
@@ -331,7 +331,7 @@ int main()
     }
 #endif
 
-#if 1
+#if 0
     if (is_succeed)
     {
         InitEffectParams(oal_device->effect, AL_EFFECT_RING_MODULATOR);

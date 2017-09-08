@@ -74,7 +74,7 @@ inline size_t RoundUp(size_t value, size_t r)
 
 /* Fast float-to-int conversion. Assumes the FPU is already in round-to-zero
  * mode. */
-inline ALint fastf2i(ALfloat f)
+inline ALint fastf2i(float f)
 {
     return lrintf(f);
 }
@@ -146,12 +146,12 @@ constexpr auto MAX_AMBI_ORDER = 3;
 constexpr auto MAX_AMBI_COEFFS = (MAX_AMBI_ORDER+1) * (MAX_AMBI_ORDER+1);
 
 
-using ChannelConfig = ALfloat[MAX_AMBI_COEFFS];
+using ChannelConfig = float[MAX_AMBI_COEFFS];
 
 struct BFChannelConfig
 {
-    ALfloat scale;
-    ALsizei index;
+    float scale;
+    int index;
 }; // BFChannelConfig
 
 union AmbiConfig
@@ -171,7 +171,7 @@ union AmbiConfig
  */
 constexpr auto BUFFERSIZE = 2048;
 
-using SampleBuffer = std::array<ALfloat, BUFFERSIZE>;
+using SampleBuffer = std::array<float, BUFFERSIZE>;
 using SampleBuffers = std::vector<SampleBuffer>;
 
 struct ALCdevice_struct
@@ -184,11 +184,11 @@ struct ALCdevice_struct
         // Number of coefficients in each Ambi.Coeffs to mix together (4 for
         // first-order, 9 for second-order, etc). If the count is 0, Ambi.Map
         // is used instead to map each output to a coefficient index.
-        ALsizei coeff_count;
+        int coeff_count;
 
         SampleBuffers buffer;
-        ALsizei num_channels;
-        ALsizei num_channels_per_order[MAX_AMBI_ORDER + 1];
+        int num_channels;
+        int num_channels_per_order[MAX_AMBI_ORDER + 1];
     }; // Dry
 
     // First-order ambisonics output, to be upsampled to the dry buffer if different. */
@@ -197,10 +197,10 @@ struct ALCdevice_struct
         AmbiConfig ambi;
 
         // Will only be 4 or 0.
-        ALsizei coeff_count;
+        int coeff_count;
 
         SampleBuffers* buffer;
-        ALsizei num_channels;
+        int num_channels;
     }; // FOAOut
 
     // "Real" output, which will be written to the device buffer. May alias the
@@ -209,7 +209,7 @@ struct ALCdevice_struct
     {
         Channel channel_name[MAX_OUTPUT_CHANNELS];
         SampleBuffers *buffer;
-        ALsizei num_channels;
+        int num_channels;
     }; // RealOut
 
 
@@ -220,12 +220,12 @@ struct ALCdevice_struct
     // Maximum number of slots that can be created
     ALuint auxiliary_effect_slot_max;
 
-    ALsizei num_aux_sends;
+    int num_aux_sends;
 
     /* Temp storage used for each source when mixing. */
-    ALfloat source_data[BUFFERSIZE];
-    ALfloat resampled_data[BUFFERSIZE];
-    ALfloat filtered_data[BUFFERSIZE];
+    float source_data[BUFFERSIZE];
+    float resampled_data[BUFFERSIZE];
+    float filtered_data[BUFFERSIZE];
 
     Dry dry;
     FOAOut foa_out;
@@ -234,7 +234,7 @@ struct ALCdevice_struct
     ALCcontext* context;
 
     struct ALsource* source;
-    const ALfloat* source_samples;
+    const float* source_samples;
     struct ALeffectslot* effect_slot;
     struct ALeffect* effect;
 }; // ALCdevice_struct
@@ -243,13 +243,13 @@ struct ALCdevice_struct
 struct ALCcontext_struct
 {
     struct ALvoice* voice;
-    ALsizei voice_count;
+    int voice_count;
     ALCdevice* device;
 }; // ALCcontext_struct
 
 
 ALCcontext* GetContextRef();
-void AllocateVoices(ALCcontext *context, ALsizei num_voices, ALsizei old_sends);
+void AllocateVoices(ALCcontext *context, int num_voices, int old_sends);
 void SetDefaultWFXChannelOrder(ALCdevice *device);
 
 
@@ -277,7 +277,7 @@ inline ALint GetChannelIndex(const enum Channel names[MAX_OUTPUT_CHANNELS], enum
 /* Small hack to use a pointer-to-array types as a normal argument type.
  * Shouldn't be used directly.
  */
-using ALfloatBUFFERSIZE = ALfloat[BUFFERSIZE];
+using ALfloatBUFFERSIZE = float[BUFFERSIZE];
 
 
 #endif

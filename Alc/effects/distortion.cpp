@@ -107,10 +107,10 @@ protected:
     }
 
     void DistortionEffect::do_process(
-        const ALsizei sample_count,
+        const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
-        const ALsizei channel_count) final
+        const int channel_count) final
     {
         const auto fc = edge_coeff_;
 
@@ -194,8 +194,8 @@ private:
     // Effect parameters
     ALfilterState low_pass_;
     ALfilterState band_pass_;
-    ALfloat attenuation_;
-    ALfloat edge_coeff_;
+    float attenuation_;
+    float edge_coeff_;
 }; // DistortionEffect
 
 

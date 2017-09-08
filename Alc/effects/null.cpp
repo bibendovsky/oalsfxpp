@@ -31,10 +31,10 @@ protected:
         const union ALeffectProps *props) final;
 
     void do_process(
-        ALsizei sample_count,
+        int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
-        const ALsizei channel_count) final;
+        const int channel_count) final;
 }; // NullEffect
 
 
@@ -64,10 +64,10 @@ void NullEffect::do_update(
 }
 
 void NullEffect::do_process(
-    ALsizei sample_count,
+    int sample_count,
     const SampleBuffers& src_samples,
     SampleBuffers& dst_samples,
-    const ALsizei channel_count)
+    const int channel_count)
 {
     static_cast<void>(sample_count);
     static_cast<void>(src_samples);

@@ -191,10 +191,10 @@ protected:
     }
 
     void EqualizerEffect::do_process(
-        const ALsizei sample_count,
+        const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
-        const ALsizei channel_count)
+        const int channel_count)
     {
         auto& samples = sample_buffer_;
 

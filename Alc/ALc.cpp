@@ -23,8 +23,8 @@
 #include "alSource.h"
 
 
-void InitSourceParams(ALsource *Source, ALsizei num_sends);
-void DeinitSource(ALsource *source, ALsizei num_sends);
+void InitSourceParams(ALsource *Source, int num_sends);
+void DeinitSource(ALsource *source, int num_sends);
 
 
 /************************************************
@@ -64,7 +64,7 @@ static ALCdevice* DeviceList = NULL;
  */
 void SetDefaultWFXChannelOrder(ALCdevice *device)
 {
-    ALsizei i;
+    int i;
 
     for(i = 0;i < MAX_OUTPUT_CHANNELS;i++)
         device->real_out.channel_name[i] = InvalidChannel;
@@ -181,7 +181,7 @@ static ALCenum UpdateDeviceParams(
 
         AllocateVoices(context, 1, old_sends);
 
-        for (ALsizei pos = 0; pos < context->voice_count; ++pos)
+        for (int pos = 0; pos < context->voice_count; ++pos)
         {
             auto voice = context->voice;
 
@@ -257,7 +257,7 @@ static ALCboolean VerifyDevice(ALCdevice **device)
 static void FreeContext(ALCcontext *context)
 {
     size_t count;
-    ALsizei i;
+    int i;
 
     for(i = 0;i < context->voice_count;i++)
         DeinitVoice(context->voice);
@@ -296,7 +296,7 @@ ALCcontext* GetContextRef()
     return GlobalContext;
 }
 
-void AllocateVoices(ALCcontext *context, ALsizei num_voices, ALsizei old_sends)
+void AllocateVoices(ALCcontext *context, int num_voices, int old_sends)
 {
     if (context->voice)
     {

@@ -5,7 +5,7 @@
 #include "alMain.h"
 
 
-using EffectSampleBuffer = std::vector<ALfloat>;
+using EffectSampleBuffer = std::vector<float>;
 
 
 union ALeffectProps
@@ -13,41 +13,41 @@ union ALeffectProps
     struct Reverb
     {
         // Shared Reverb Properties
-        ALfloat density;
-        ALfloat diffusion;
-        ALfloat gain;
-        ALfloat gain_hf;
-        ALfloat decay_time;
-        ALfloat decay_hf_ratio;
-        ALfloat reflections_gain;
-        ALfloat reflections_delay;
-        ALfloat late_reverb_gain;
-        ALfloat late_reverb_delay;
-        ALfloat air_absorption_gain_hf;
-        ALfloat room_rolloff_factor;
+        float density;
+        float diffusion;
+        float gain;
+        float gain_hf;
+        float decay_time;
+        float decay_hf_ratio;
+        float reflections_gain;
+        float reflections_delay;
+        float late_reverb_gain;
+        float late_reverb_delay;
+        float air_absorption_gain_hf;
+        float room_rolloff_factor;
         ALboolean decay_hf_limit;
 
         // Additional EAX Reverb Properties
-        ALfloat gain_lf;
-        ALfloat decay_lf_ratio;
-        ALfloat reflections_pan[3];
-        ALfloat late_reverb_pan[3];
-        ALfloat echo_time;
-        ALfloat echo_depth;
-        ALfloat modulation_time;
-        ALfloat modulation_depth;
-        ALfloat hf_reference;
-        ALfloat lf_reference;
+        float gain_lf;
+        float decay_lf_ratio;
+        float reflections_pan[3];
+        float late_reverb_pan[3];
+        float echo_time;
+        float echo_depth;
+        float modulation_time;
+        float modulation_depth;
+        float hf_reference;
+        float lf_reference;
     }; // Reverb
 
     struct Chorus
     {
         ALint waveform;
         ALint phase;
-        ALfloat rate;
-        ALfloat depth;
-        ALfloat feedback;
-        ALfloat delay;
+        float rate;
+        float depth;
+        float feedback;
+        float delay;
     }; // Chorus
 
     struct Compressor
@@ -57,58 +57,58 @@ union ALeffectProps
 
     struct Distortion
     {
-        ALfloat edge;
-        ALfloat gain;
-        ALfloat lowpass_cutoff;
-        ALfloat eq_center;
-        ALfloat eq_bandwidth;
+        float edge;
+        float gain;
+        float lowpass_cutoff;
+        float eq_center;
+        float eq_bandwidth;
     }; // Distortion
 
     struct Echo
     {
-        ALfloat delay;
-        ALfloat lr_delay;
+        float delay;
+        float lr_delay;
 
-        ALfloat damping;
-        ALfloat feedback;
+        float damping;
+        float feedback;
 
-        ALfloat spread;
+        float spread;
     }; // Echo
 
     struct Equalizer
     {
-        ALfloat low_cutoff;
-        ALfloat low_gain;
-        ALfloat mid1_center;
-        ALfloat mid1_gain;
-        ALfloat mid1_width;
-        ALfloat mid2_center;
-        ALfloat mid2_gain;
-        ALfloat mid2_width;
-        ALfloat high_cutoff;
-        ALfloat high_gain;
+        float low_cutoff;
+        float low_gain;
+        float mid1_center;
+        float mid1_gain;
+        float mid1_width;
+        float mid2_center;
+        float mid2_gain;
+        float mid2_width;
+        float high_cutoff;
+        float high_gain;
     }; // Equalizer
 
     struct Flanger
     {
         ALint waveform;
         ALint phase;
-        ALfloat rate;
-        ALfloat depth;
-        ALfloat feedback;
-        ALfloat delay;
+        float rate;
+        float depth;
+        float feedback;
+        float delay;
     }; // Flanger
 
     struct Modulator
     {
-        ALfloat frequency;
-        ALfloat high_pass_cutoff;
+        float frequency;
+        float high_pass_cutoff;
         ALint waveform;
     }; // Modulator
 
     struct Dedicated
     {
-        ALfloat gain;
+        float gain;
     }; // Dedicated
 
 
@@ -127,7 +127,7 @@ union ALeffectProps
 struct ALeffect
 {
     // Effect type (AL_EFFECT_NULL, ...)
-    ALenum type;
+    int type;
 
     ALeffectProps props;
 }; // ALeffect
@@ -146,7 +146,7 @@ public:
 
 
     SampleBuffers* out_buffer;
-    ALsizei out_channels;
+    int out_channels;
 
 
     void construct();
@@ -162,10 +162,10 @@ public:
         const union ALeffectProps *props);
 
     void process(
-        const ALsizei sample_count,
+        const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
-        const ALsizei channel_count);
+        const int channel_count);
 
 
 protected:
@@ -185,14 +185,14 @@ protected:
         const union ALeffectProps *props) = 0;
 
     virtual void do_process(
-        const ALsizei sample_count,
+        const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
-        const ALsizei channel_count) = 0;
+        const int channel_count) = 0;
 }; // IEffect
 
 
-ALenum InitEffect(ALeffect *effect);
+int InitEffect(ALeffect *effect);
 
 
 #endif

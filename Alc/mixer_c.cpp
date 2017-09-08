@@ -3,9 +3,9 @@
 #include "alu.h"
 
 
-void ALfilterState_processC(ALfilterState *filter, ALfloat *dst, const ALfloat *src, ALsizei numsamples)
+void ALfilterState_processC(ALfilterState *filter, float *dst, const float *src, int numsamples)
 {
-    ALsizei i;
+    int i;
     if(numsamples > 1)
     {
         dst[0] = filter->b0 * src[0] +
@@ -44,23 +44,23 @@ void ALfilterState_processC(ALfilterState *filter, ALfloat *dst, const ALfloat *
 }
 
 
-void Mix_C(const ALfloat *data, ALsizei OutChans, SampleBuffers& OutBuffer,
-           ALfloat *CurrentGains, const ALfloat *TargetGains, ALsizei Counter, ALsizei OutPos,
-           ALsizei BufferSize)
+void Mix_C(const float *data, int OutChans, SampleBuffers& OutBuffer,
+           float *CurrentGains, const float *TargetGains, int Counter, int OutPos,
+           int BufferSize)
 {
-    ALfloat gain, delta, step;
-    ALsizei c;
+    float gain, delta, step;
+    int c;
 
-    delta = (Counter > 0) ? 1.0f/(ALfloat)Counter : 0.0f;
+    delta = (Counter > 0) ? 1.0f/(float)Counter : 0.0f;
 
     for(c = 0;c < OutChans;c++)
     {
-        ALsizei pos = 0;
+        int pos = 0;
         gain = CurrentGains[c];
         step = (TargetGains[c] - gain) * delta;
         if(fabsf(step) > FLT_EPSILON)
         {
-            ALsizei minsize = mini(BufferSize, Counter);
+            int minsize = mini(BufferSize, Counter);
             for(;pos < minsize;pos++)
             {
                 OutBuffer[c][OutPos+pos] += data[pos]*gain;
@@ -84,13 +84,13 @@ void Mix_C(const ALfloat *data, ALsizei OutChans, SampleBuffers& OutBuffer,
  * transform. And as the matrices are more or less static once set up, no
  * stepping is necessary.
  */
-void MixRow_C(ALfloat *OutBuffer, const ALfloat *Gains, const SampleBuffers& data, ALsizei InChans, ALsizei InPos, ALsizei BufferSize)
+void MixRow_C(float *OutBuffer, const float *Gains, const SampleBuffers& data, int InChans, int InPos, int BufferSize)
 {
-    ALsizei c, i;
+    int c, i;
 
     for(c = 0;c < InChans;c++)
     {
-        ALfloat gain = Gains[c];
+        float gain = Gains[c];
         if(!(fabsf(gain) > GAIN_SILENCE_THRESHOLD))
             continue;
 
