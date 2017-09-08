@@ -162,24 +162,21 @@ constexpr auto SPEEDOFSOUNDMETRESPERSEC = 343.3F;
 constexpr auto REVERB_DECAY_GAIN = 0.001F; /* -60 dB */
 
 
-inline float minf(float a, float b)
-{ return ((a > b) ? b : a); }
-inline float maxf(float a, float b)
-{ return ((a > b) ? a : b); }
-inline float clampf(float val, float min, float max)
-{ return minf(max, maxf(min, val)); }
-
-inline ALint mini(ALint a, ALint b)
-{ return ((a > b) ? b : a); }
-inline ALint maxi(ALint a, ALint b)
-{ return ((a > b) ? a : b); }
-inline ALint clampi(ALint val, ALint min, ALint max)
-{ return mini(max, maxi(min, val)); }
-
-
-inline float lerp(float val1, float val2, float mu)
+template<typename T>
+inline T clamp(
+    const T value,
+    const T min_value,
+    const T max_value)
 {
-    return val1 + (val2-val1)*mu;
+    return std::min(max_value, std::max(min_value, value));
+}
+
+inline float lerp(
+    const float val1,
+    const float val2,
+    const float mu)
+{
+    return val1 + ((val2 - val1) * mu);
 }
 
 

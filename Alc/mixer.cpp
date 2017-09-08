@@ -51,7 +51,7 @@ static const float *DoFilters(ALfilterState *lpfilter, ALfilterState *hpfilter,
             for(i = 0;i < numsamples;)
             {
                 float temp[256];
-                int todo = mini(256, numsamples-i);
+                int todo = std::min(256, numsamples-i);
 
                 ALfilterState_processC(lpfilter, temp, src+i, todo);
                 ALfilterState_processC(hpfilter, dst+i, temp, todo);

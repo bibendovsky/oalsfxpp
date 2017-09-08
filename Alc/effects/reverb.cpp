@@ -260,12 +260,12 @@ protected:
         }
 
         // Calculate the LF/HF decay times.
-        const auto lf_decay_time = clampf(
+        const auto lf_decay_time = clamp(
             props->reverb.decay_time * props->reverb.decay_lf_ratio,
             AL_EAXREVERB_MIN_DECAY_TIME,
             AL_EAXREVERB_MAX_DECAY_TIME);
 
-        const auto hf_decay_time = clampf(
+        const auto hf_decay_time = clamp(
             props->reverb.decay_time * hf_ratio,
             AL_EAXREVERB_MIN_DECAY_TIME,
             AL_EAXREVERB_MAX_DECAY_TIME);
@@ -903,7 +903,7 @@ private:
         // Using the limit calculated above, apply the upper bound to the HF
         // ratio. Also need to limit the result to a minimum of 0.1, just like
         // the HF ratio parameter.
-        return clampf(limit_ratio, 0.1F, hf_ratio);
+        return clamp(limit_ratio, 0.1F, hf_ratio);
     }
 
     // Calculates the first-order high-pass coefficients following the I3DL2
@@ -1194,7 +1194,7 @@ private:
 
                 calc_high_shelf_coeffs(hg, lf_w, lfcoeffs);
                 calc_low_shelf_coeffs(lg, hf_w, hfcoeffs);
-                *midcoeff = maxf(lf_gain, hf_gain) / maxf(hg, lg);
+                *midcoeff = std::max(lf_gain, hf_gain) / std::max(hg, lg);
             }
             else if (mf_gain > hf_gain)
             {
@@ -2049,7 +2049,7 @@ private:
 
             // Generate late reverb.
             late_reverb_faded(todo, fade, late);
-            fade = minf(1.0F, fade + todo*fade_step);
+            fade = std::min(1.0F, fade + (todo * fade_step));
         }
         else
         {

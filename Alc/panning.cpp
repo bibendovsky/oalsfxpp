@@ -145,7 +145,7 @@ void ComputePanningGainsMC(const ChannelConfig *chancoeffs, int numchans, int nu
         float gain = 0.0f;
         for(j = 0;j < numcoeffs;j++)
             gain += chancoeffs[i][j]*coeffs[j];
-        gains[i] = clampf(gain, 0.0f, 1.0f) * ingain;
+        gains[i] = clamp(gain, 0.0F, 1.0F) * ingain;
     }
     for(;i < MAX_OUTPUT_CHANNELS;i++)
         gains[i] = 0.0f;
@@ -170,7 +170,7 @@ void ComputeFirstOrderGainsMC(const ChannelConfig *chancoeffs, int numchans, con
         float gain = 0.0f;
         for(j = 0;j < 4;j++)
             gain += chancoeffs[i][j] * mtx[j];
-        gains[i] = clampf(gain, 0.0f, 1.0f) * ingain;
+        gains[i] = clamp(gain, 0.0F, 1.0F) * ingain;
     }
     for(;i < MAX_OUTPUT_CHANNELS;i++)
         gains[i] = 0.0f;

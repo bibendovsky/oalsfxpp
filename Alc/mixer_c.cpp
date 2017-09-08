@@ -60,7 +60,7 @@ void Mix_C(const float *data, int OutChans, SampleBuffers& OutBuffer,
         step = (TargetGains[c] - gain) * delta;
         if(fabsf(step) > FLT_EPSILON)
         {
-            int minsize = mini(BufferSize, Counter);
+            int minsize = std::min(BufferSize, Counter);
             for(;pos < minsize;pos++)
             {
                 OutBuffer[c][OutPos+pos] += data[pos]*gain;

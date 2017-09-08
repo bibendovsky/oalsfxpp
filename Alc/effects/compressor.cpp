@@ -129,7 +129,7 @@ protected:
 
                     // Apply the inverse of the gain control to normalize/compress
                     // the volume.
-                    const auto output = 1.0F / clampf(gain_control_, 0.5F, 2.0F);
+                    const auto output = 1.0F / clamp(gain_control_, 0.5F, 2.0F);
 
                     for (int j = 0; j < 4; ++j)
                     {
@@ -156,7 +156,7 @@ protected:
                         gain_control_ = std::max(gain_control_ - release_rate_, amplitude);
                     }
 
-                    const auto output = 1.0f / clampf(gain_control_, 0.5F, 2.0F);
+                    const auto output = 1.0F / clamp(gain_control_, 0.5F, 2.0F);
 
                     for (int j = 0; j < 4; ++j)
                     {

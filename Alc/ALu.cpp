@@ -31,14 +31,6 @@ struct ChanMap {
     float elevation;
 };
 
-extern inline float minf(float a, float b);
-extern inline float maxf(float a, float b);
-extern inline float clampf(float val, float min, float max);
-
-extern inline ALint mini(ALint a, ALint b);
-extern inline ALint maxi(ALint a, ALint b);
-extern inline ALint clampi(ALint val, ALint min, ALint max);
-
 extern inline float lerp(float val1, float val2, float mu);
 
 extern inline void aluMatrixfSetRow(aluMatrixf *matrix, int row,
@@ -218,8 +210,8 @@ static void CalcPanningAndFilters(ALvoice *voice, const float Distance, const fl
     {
         float hfScale = props->direct.hf_reference / Frequency;
         float lfScale = props->direct.lf_reference / Frequency;
-        float gainHF = maxf(DryGainHF, 0.001f); /* Limit -60dB */
-        float gainLF = maxf(DryGainLF, 0.001f);
+        float gainHF = std::max(DryGainHF, 0.001f); /* Limit -60dB */
+        float gainLF = std::max(DryGainLF, 0.001f);
 
         voice->direct.filter_type = AF_None;
         if(gainHF != 1.0f) voice->direct.filter_type = static_cast<ActiveFilters>(voice->direct.filter_type | AF_LowPass);
@@ -244,8 +236,8 @@ static void CalcPanningAndFilters(ALvoice *voice, const float Distance, const fl
     {
         float hfScale = props->send.hf_reference / Frequency;
         float lfScale = props->send.lf_reference / Frequency;
-        float gainHF = maxf(WetGainHF[0], 0.001f);
-        float gainLF = maxf(WetGainLF[0], 0.001f);
+        float gainHF = std::max(WetGainHF[0], 0.001f);
+        float gainLF = std::max(WetGainLF[0], 0.001f);
 
         voice->send.filter_type = AF_None;
         if(gainHF != 1.0f) voice->send.filter_type = static_cast<ActiveFilters>(voice->send.filter_type | AF_LowPass);
@@ -298,14 +290,14 @@ static void CalcNonAttnSourceParams(ALvoice *voice, const struct ALvoiceProps *p
     /* Calculate gains */
     DryGain  = 1.0F;
     DryGain *= props->direct.gain;
-    DryGain  = minf(DryGain, GAIN_MIX_MAX);
+    DryGain  = std::min(DryGain, GAIN_MIX_MAX);
     DryGainHF = props->direct.gain_hf;
     DryGainLF = props->direct.gain_lf;
     for(i = 0;i < device->num_aux_sends;i++)
     {
         WetGain[i]  = 1.0F;
         WetGain[i] *= props->send.gain;
-        WetGain[i]  = minf(WetGain[i], GAIN_MIX_MAX);
+        WetGain[i]  = std::min(WetGain[i], GAIN_MIX_MAX);
         WetGainHF[i] = props->send.gain_hf;
         WetGainLF[i] = props->send.gain_lf;
     }
@@ -357,7 +349,7 @@ void aluMixData(ALCdevice *device, void *OutBuffer, int NumSamples, const float*
 
     for(SamplesDone = 0;SamplesDone < NumSamples;)
     {
-        SamplesToDo = mini(NumSamples-SamplesDone, BUFFERSIZE);
+        SamplesToDo = std::min(NumSamples-SamplesDone, BUFFERSIZE);
 
         for(c = 0;c < device->dry.num_channels;c++)
         {
