@@ -264,39 +264,6 @@ void AllocateVoices(ALCdevice* device, int num_voices, int old_sends)
  * Standard ALC functions
  ************************************************/
 
-/* alcCreateContext
- *
- * Create and attach a context to the given device.
- */
-ALC_API ALCcontext* ALC_APIENTRY alcCreateContext(ALCdevice *device, const ALCint *attrList)
-{
-    device->voice = nullptr;
-    device->voice_count = 0;
-
-    if(UpdateDeviceParams(device, attrList) != ALC_NO_ERROR)
-    {
-        return nullptr;
-    }
-
-    AllocateVoices(device, 1, device->num_aux_sends);
-
-    return nullptr;
-}
-
-/* alcDestroyContext
- *
- * Remove a context from its device
- */
-ALC_API ALCvoid ALC_APIENTRY alcDestroyContext(ALCcontext *context)
-{
-    auto device = g_device;
-
-    if(device)
-    {
-        ReleaseContext(device);
-    }
-}
-
 /* alcOpenDevice
  *
  * Opens the named device.
@@ -343,6 +310,12 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
 
     device->effect = new ALeffect{};
     InitEffect(device->effect);
+
+    device->voice = nullptr;
+    device->voice_count = 0;
+
+    UpdateDeviceParams(device, nullptr);
+    AllocateVoices(device, 1, device->num_aux_sends);
 
     g_device = device;
 

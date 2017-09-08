@@ -239,9 +239,6 @@ struct ALCdevice_struct
     int voice_count;
 }; // ALCdevice_struct
 
-struct ALCcontext_struct
-{
-};
 
 extern ALCdevice* g_device;
 void AllocateVoices(ALCdevice *device, int num_voices, int old_sends);

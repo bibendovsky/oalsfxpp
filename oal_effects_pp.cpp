@@ -142,11 +142,6 @@ int main()
         }
     }
 
-    if (is_succeed)
-    {
-        alcCreateContext(oal_device, nullptr);
-    }
-
 #if 1
     if (is_succeed)
     {
@@ -394,7 +389,6 @@ int main()
 
     alSourceStop(0);
 
-    alcDestroyContext(nullptr);
     alcCloseDevice(oal_device);
 
     free(dst_buffer);
