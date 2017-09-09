@@ -79,7 +79,7 @@ protected:
     void ChorusEffect::do_update_device(
         ALCdevice* device) final
     {
-        auto max_len = fastf2i(AL_CHORUS_MAX_DELAY * 2.0F * device->frequency) + 1;
+        auto max_len = static_cast<int>(AL_CHORUS_MAX_DELAY * 2.0F * device->frequency) + 1;
 
         max_len = next_power_of_2(max_len);
 
@@ -116,7 +116,7 @@ protected:
         }
 
         feedback_ = props->chorus.feedback;
-        delay_ = fastf2i(props->chorus.delay * frequency);
+        delay_ = static_cast<int>(props->chorus.delay * frequency);
 
         // The LFO depth is scaled to be relative to the sample delay.
         depth_ = props->chorus.depth * delay_;
@@ -141,7 +141,7 @@ protected:
         else
         {
             // Calculate LFO coefficient
-            lfo_range_ = fastf2i(frequency / rate + 0.5F);
+            lfo_range_ = static_cast<int>(frequency / rate + 0.5F);
 
             switch (waveform_)
             {
@@ -157,11 +157,11 @@ protected:
             // Calculate lfo phase displacement
             if (phase >= 0)
             {
-                lfo_disp_ = fastf2i(lfo_range_ * (phase / 360.0F));
+                lfo_disp_ = static_cast<int>(lfo_range_ * (phase / 360.0F));
             }
             else
             {
-                lfo_disp_ = fastf2i(lfo_range_ * ((360 + phase) / 360.0F));
+                lfo_disp_ = static_cast<int>(lfo_range_ * ((360 + phase) / 360.0F));
             }
         }
     }
@@ -310,7 +310,7 @@ private:
     {
         for (int i = 0; i < todo; ++i)
         {
-            delays[i] = fastf2i((1.0F - std::abs(2.0F - (lfo_scale * offset))) * depth) + delay;
+            delays[i] = static_cast<int>((1.0F - std::abs(2.0F - (lfo_scale * offset))) * depth) + delay;
             offset = (offset + 1) % lfo_range;
         }
     }
@@ -326,7 +326,7 @@ private:
     {
         for (int i = 0; i < todo; ++i)
         {
-            delays[i] = fastf2i(std::sin(lfo_scale * offset) * depth) + delay;
+            delays[i] = static_cast<int>(std::sin(lfo_scale * offset) * depth) + delay;
             offset = (offset + 1) % lfo_range;
         }
     }

@@ -80,15 +80,6 @@ inline int next_power_of_2(
     return value + 1;
 }
 
-
-// Fast float-to-int conversion. Assumes the FPU is already in round-to-zero
-// mode.
-inline int fastf2i(
-    const float f)
-{
-    return std::lrint(f);
-}
-
 enum Channel
 {
     FrontLeft = 0,

@@ -176,7 +176,7 @@ protected:
         // The late feed taps are set a fixed position past the latest delay tap.
         for (int i = 0; i < 4; ++i)
         {
-            late_feed_tap_ = fastf2i(
+            late_feed_tap_ = static_cast<int>(
                 (AL_EAXREVERB_MAX_REFLECTIONS_DELAY + (early_tap_lengths[3] * multiplier)) * frequency);
         }
     }
@@ -771,7 +771,7 @@ private:
 
         // All line lengths are powers of 2, calculated from their lengths in
         // seconds, rounded up.
-        sample_count = fastf2i(std::ceil(length * frequency));
+        sample_count = static_cast<int>(std::ceil(length * frequency));
         sample_count = next_power_of_2(sample_count + extra);
 
         delay.initialize(sample_count);
@@ -1251,7 +1251,7 @@ private:
         // (1 sample) and when the timing changes, the index is rescaled to the new
         // range to keep the sinus consistent.
         //
-        const auto range = std::max(fastf2i(mod_time * frequency), 1);
+        const auto range = std::max(static_cast<int>(mod_time * frequency), 1);
 
         mod_.index = static_cast<int>(mod_.index * static_cast<int64_t>(range) / mod_.range);
         mod_.range = range;
@@ -1292,13 +1292,13 @@ private:
             auto length = float{};
 
             length = early_delay + (early_tap_lengths[i] * multiplier);
-            early_delay_taps_[i][1] = fastf2i(length * frequency);
+            early_delay_taps_[i][1] = static_cast<int>(length * frequency);
 
             length = early_tap_lengths[i] * multiplier;
             early_delay_coeffs_[i] = calc_decay_coeff(length, decay_time);
 
             length = late_delay + (late_line_lengths[i] - late_line_lengths[0]) * 0.25F * multiplier;
-            late_delay_taps_[i][1] = late_feed_tap_ + fastf2i(length * frequency);
+            late_delay_taps_[i][1] = late_feed_tap_ + static_cast<int>(length * frequency);
         }
     }
 
@@ -1318,13 +1318,13 @@ private:
             length = early_allpass_lengths[i] * multiplier;
 
             // Calculate the delay offset for each all-pass line.
-            early_.vec_ap.offsets[i][1] = fastf2i(length * frequency);
+            early_.vec_ap.offsets[i][1] = static_cast<int>(length * frequency);
 
             // Calculate the length (in seconds) of each delay line.
             length = early_line_lengths[i] * multiplier;
 
             // Calculate the delay offset for each delay line.
-            early_.offsets[i][1] = fastf2i(length * frequency);
+            early_.offsets[i][1] = static_cast<int>(length * frequency);
 
             /* Calculate the gain (coefficient) for each line. */
             early_.coeffs[i] = calc_decay_coeff(length, decay_time);
@@ -1388,7 +1388,7 @@ private:
             length = late_allpass_lengths[i] * multiplier;
 
             // Calculate the delay offset for each all-pass line.
-            late_.vec_ap.offsets[i][1] = fastf2i(length * frequency);
+            late_.vec_ap.offsets[i][1] = static_cast<int>(length * frequency);
 
             // Calculate the length (in seconds) of each delay line.  This also
             // applies the echo transformation.  As the EAX echo depth approaches
@@ -1397,7 +1397,7 @@ private:
             length = lerp(late_line_lengths[i] * multiplier, echo_time, echo_depth);
 
             // Calculate the delay offset for each delay line.
-            late_.offsets[i][1] = fastf2i(length * frequency);
+            late_.offsets[i][1] = static_cast<int>(length * frequency);
 
             // Approximate the absorption that the vector all-pass would exhibit
             // given the current diffusion so we don't have to process a full T60

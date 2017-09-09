@@ -83,7 +83,7 @@ protected:
             process_func_ = modulate_square;
         }
 
-        step_ = fastf2i(props->modulator.frequency * waveform_frac_one / device->frequency);
+        step_ = static_cast<int>(props->modulator.frequency * waveform_frac_one / device->frequency);
 
         if (step_ == 0)
         {

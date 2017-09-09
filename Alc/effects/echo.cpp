@@ -76,8 +76,8 @@ protected:
     {
         // Use the next power of 2 for the buffer length, so the tap offsets can be
         // wrapped using a mask instead of a modulo
-        auto maxlen = fastf2i(AL_ECHO_MAX_DELAY * device->frequency) + 1;
-        maxlen += fastf2i(AL_ECHO_MAX_LRDELAY * device->frequency) + 1;
+        auto maxlen = static_cast<int>(AL_ECHO_MAX_DELAY * device->frequency) + 1;
+        maxlen += static_cast<int>(AL_ECHO_MAX_LRDELAY * device->frequency) + 1;
         maxlen = next_power_of_2(maxlen);
 
         if (maxlen != buffer_length_)
@@ -99,8 +99,8 @@ protected:
 
         const auto frequency = device->frequency;
 
-        taps_[0].delay = fastf2i(props->echo.delay * frequency) + 1;
-        taps_[1].delay = fastf2i(props->echo.lr_delay * frequency);
+        taps_[0].delay = static_cast<int>(props->echo.delay * frequency) + 1;
+        taps_[1].delay = static_cast<int>(props->echo.lr_delay * frequency);
         taps_[1].delay += taps_[0].delay;
 
         spread = props->echo.spread;
