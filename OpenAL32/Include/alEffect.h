@@ -192,7 +192,8 @@ protected:
 }; // IEffect
 
 
-int init_effect(ALeffect *effect);
+void init_effect(
+    ALeffect* effect);
 
 
 #endif
