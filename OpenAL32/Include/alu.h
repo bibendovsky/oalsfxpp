@@ -205,26 +205,17 @@ void alu_init_effect_panning(
 // sound (0...tau).
 void calc_direction_coeffs(
     const float dir[3],
-    float spread,
+    const float spread,
     float coeffs[max_ambi_coeffs]);
 
 // Calculates ambisonic coefficients based on azimuth and elevation. The
 // azimuth and elevation parameters are in radians, going right and up
 // respectively.
-inline void calc_angle_coeffs(
-    float azimuth,
-    float elevation,
-    float spread,
-    float coeffs[max_ambi_coeffs])
-{
-    float dir[3] = {
-        std::sin(azimuth) * std::cos(elevation),
-        std::sin(elevation),
-        -std::cos(azimuth) * std::cos(elevation)
-    };
-
-    calc_direction_coeffs(dir, spread, coeffs);
-}
+void calc_angle_coeffs(
+    const float azimuth,
+    const float elevation,
+    const float spread,
+    float coeffs[max_ambi_coeffs]);
 
 // Computes channel gains for ambient, omni-directional sounds.
 template<typename T>
@@ -244,15 +235,15 @@ void compute_ambient_gains(
 }
 
 void compute_ambient_gains_mc(
-    const ChannelConfig* chancoeffs,
-    int numchans,
-    float ingain,
+    const ChannelConfig* channel_coeffs,
+    const int num_channels,
+    const float in_gain,
     float gains[max_output_channels]);
 
 void compute_ambient_gains_bf(
-    const BFChannelConfig* chanmap,
-    int numchans,
-    float ingain,
+    const BFChannelConfig* channel_map,
+    const int num_channels,
+    const float in_gain,
     float gains[max_output_channels]);
 
 // Computes panning gains using the given channel decoder coefficients and the
@@ -276,17 +267,17 @@ void compute_panning_gains(
 
 void compute_panning_gains_mc(
     const ChannelConfig* chan_coeffs,
-    int num_chans,
-    int num_coeffs,
+    const int num_chans,
+    const int num_coeffs,
     const float coeffs[max_ambi_coeffs],
-    float in_gain,
+    const float in_gain,
     float gains[max_output_channels]);
 
 void compute_panning_gains_bf(
-    const BFChannelConfig* chan_map,
-    int num_chans,
+    const BFChannelConfig* channel_map,
+    const int num_channels,
     const float coeffs[max_ambi_coeffs],
-    float in_gain,
+    const float in_gain,
     float gains[max_output_channels]);
 
 // Sets channel gains for a first-order ambisonics input channel. The matrix is
@@ -310,17 +301,17 @@ void compute_first_order_gains(
 }
 
 void compute_first_order_gains_mc(
-    const ChannelConfig* chan_coeffs,
-    int num_chans,
+    const ChannelConfig* channel_coeffs,
+    const int num_channels,
     const float mtx[4],
-    float in_gain,
+    const float in_gain,
     float gains[max_output_channels]);
 
 void compute_first_order_gains_bf(
-    const BFChannelConfig* chan_map,
-    int num_chans,
+    const BFChannelConfig* channel_map,
+    const int num_channels,
     const float mtx[4],
-    float in_gain,
+    const float in_gain,
     float gains[max_output_channels]);
 
 bool mix_source(

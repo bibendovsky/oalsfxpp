@@ -27,16 +27,27 @@ void init_source_params(ALsource* source, const int num_sends);
 void deinit_source(ALsource* source, const int num_sends);
 
 
-/************************************************
- * Global variables
- ************************************************/
-
 ALCdevice* g_device = nullptr;
 
 
-/************************************************
- * Miscellaneous ALC helpers
- ************************************************/
+void AmbiConfig::reset()
+{
+    for (auto& coeff : coeffs)
+    {
+        coeff.fill(0.0F);
+    }
+
+    for (auto& map_item : map)
+    {
+        map_item.reset();
+    }
+}
+
+void BFChannelConfig::reset()
+{
+    scale = 0.0F;
+    index = 0;
+}
 
 // Sets the default channel order used by WaveFormatEx.
 void set_default_wfx_channel_order(

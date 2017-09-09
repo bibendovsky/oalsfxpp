@@ -144,6 +144,9 @@ struct BFChannelConfig
 {
     float scale;
     int index;
+
+
+    void reset();
 }; // BFChannelConfig
 
 union AmbiConfig
@@ -157,6 +160,9 @@ union AmbiConfig
 
     // Coefficient channel mapping for mixing to the dry buffer.
     Map map;
+
+
+    void reset();
 }; // AmbiConfig
 
 

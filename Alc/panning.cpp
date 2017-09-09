@@ -22,222 +22,318 @@
 #include "alu.h"
 
 
-extern inline void calc_angle_coeffs(float azimuth, float elevation, float spread, float coeffs[max_ambi_coeffs]);
-
-
-void calc_direction_coeffs(const float dir[3], float spread, float coeffs[max_ambi_coeffs])
+void calc_direction_coeffs(
+    const float dir[3],
+    const float spread,
+    float coeffs[max_ambi_coeffs])
 {
-    /* Convert from OpenAL coords to Ambisonics. */
-    float x = -dir[2];
-    float y = -dir[0];
-    float z =  dir[1];
+    // Convert from OpenAL coords to Ambisonics.
+    const auto x = -dir[2];
+    const auto y = -dir[0];
+    const auto z = dir[1];
 
-    /* Zeroth-order */
-    coeffs[0]  = 1.0f; /* ACN 0 = 1 */
-    /* First-order */
-    coeffs[1]  = 1.732050808f * y; /* ACN 1 = sqrt(3) * Y */
-    coeffs[2]  = 1.732050808f * z; /* ACN 2 = sqrt(3) * Z */
-    coeffs[3]  = 1.732050808f * x; /* ACN 3 = sqrt(3) * X */
-    /* Second-order */
-    coeffs[4]  = 3.872983346f * x * y;             /* ACN 4 = sqrt(15) * X * Y */
-    coeffs[5]  = 3.872983346f * y * z;             /* ACN 5 = sqrt(15) * Y * Z */
-    coeffs[6]  = 1.118033989f * (3.0f*z*z - 1.0f); /* ACN 6 = sqrt(5)/2 * (3*Z*Z - 1) */
-    coeffs[7]  = 3.872983346f * x * z;             /* ACN 7 = sqrt(15) * X * Z */
-    coeffs[8]  = 1.936491673f * (x*x - y*y);       /* ACN 8 = sqrt(15)/2 * (X*X - Y*Y) */
-    /* Third-order */
-    coeffs[9]  =  2.091650066f * y * (3.0f*x*x - y*y);  /* ACN  9 = sqrt(35/8) * Y * (3*X*X - Y*Y) */
-    coeffs[10] = 10.246950766f * z * x * y;             /* ACN 10 = sqrt(105) * Z * X * Y */
-    coeffs[11] =  1.620185175f * y * (5.0f*z*z - 1.0f); /* ACN 11 = sqrt(21/8) * Y * (5*Z*Z - 1) */
-    coeffs[12] =  1.322875656f * z * (5.0f*z*z - 3.0f); /* ACN 12 = sqrt(7)/2 * Z * (5*Z*Z - 3) */
-    coeffs[13] =  1.620185175f * x * (5.0f*z*z - 1.0f); /* ACN 13 = sqrt(21/8) * X * (5*Z*Z - 1) */
-    coeffs[14] =  5.123475383f * z * (x*x - y*y);       /* ACN 14 = sqrt(105)/2 * Z * (X*X - Y*Y) */
-    coeffs[15] =  2.091650066f * x * (x*x - 3.0f*y*y);  /* ACN 15 = sqrt(35/8) * X * (X*X - 3*Y*Y) */
+    // Zeroth-order
+    coeffs[0] = 1.0F; // ACN 0 = 1
 
-    if(spread > 0.0f)
+    // First-order
+    coeffs[1] = 1.732050808F * y; // ACN 1 = sqrt(3) * Y
+    coeffs[2] = 1.732050808F * z; // ACN 2 = sqrt(3) * Z
+    coeffs[3] = 1.732050808F * x; // ACN 3 = sqrt(3) * X
+
+    // Second-order
+    coeffs[4] = 3.872983346F * x * y; // ACN 4 = sqrt(15) * X * Y
+    coeffs[5] = 3.872983346F * y * z; // ACN 5 = sqrt(15) * Y * Z
+    coeffs[6] = 1.118033989F * ((3.0F * z * z) - 1.0F); // ACN 6 = sqrt(5)/2 * (3*Z*Z - 1)
+    coeffs[7] = 3.872983346F * x * z; // ACN 7 = sqrt(15) * X * Z
+    coeffs[8] = 1.936491673F * ((x * x) - (y * y)); // ACN 8 = sqrt(15)/2 * (X*X - Y*Y)
+
+    // Third-order
+    coeffs[9] = 2.091650066F * y * ((3.0F * x * x) - (y * y)); // ACN  9 = sqrt(35/8) * Y * (3*X*X - Y*Y)
+    coeffs[10] = 10.246950766F * z * x * y; // ACN 10 = sqrt(105) * Z * X * Y
+    coeffs[11] = 1.620185175F * y * ((5.0F * z * z) - 1.0F); // ACN 11 = sqrt(21/8) * Y * (5*Z*Z - 1)
+    coeffs[12] = 1.322875656F * z * ((5.0F * z * z) - 3.0F); // ACN 12 = sqrt(7)/2 * Z * (5*Z*Z - 3)
+    coeffs[13] = 1.620185175F * x * ((5.0F * z * z) - 1.0F); // ACN 13 = sqrt(21/8) * X * (5*Z*Z - 1)
+    coeffs[14] = 5.123475383F * z * ((x * x) - (y * y)); // ACN 14 = sqrt(105)/2 * Z * (X*X - Y*Y)
+    coeffs[15] = 2.091650066F * x * ((x * x) - (3.0F * y * y)); // ACN 15 = sqrt(35/8) * X * (X*X - 3*Y*Y)
+
+    if (spread > 0.0F)
     {
-        /* Implement the spread by using a spherical source that subtends the
-         * angle spread. See:
-         * http://www.ppsloan.org/publications/StupidSH36.pdf - Appendix A3
-         *
-         * When adjusted for N3D normalization instead of SN3D, these
-         * calculations are:
-         *
-         * ZH0 = -sqrt(pi) * (-1+ca);
-         * ZH1 =  0.5*sqrt(pi) * sa*sa;
-         * ZH2 = -0.5*sqrt(pi) * ca*(-1+ca)*(ca+1);
-         * ZH3 = -0.125*sqrt(pi) * (-1+ca)*(ca+1)*(5*ca*ca - 1);
-         * ZH4 = -0.125*sqrt(pi) * ca*(-1+ca)*(ca+1)*(7*ca*ca - 3);
-         * ZH5 = -0.0625*sqrt(pi) * (-1+ca)*(ca+1)*(21*ca*ca*ca*ca - 14*ca*ca + 1);
-         *
-         * The gain of the source is compensated for size, so that the
-         * loundness doesn't depend on the spread. Thus:
-         *
-         * ZH0 = 1.0f;
-         * ZH1 = 0.5f * (ca+1.0f);
-         * ZH2 = 0.5f * (ca+1.0f)*ca;
-         * ZH3 = 0.125f * (ca+1.0f)*(5.0f*ca*ca - 1.0f);
-         * ZH4 = 0.125f * (ca+1.0f)*(7.0f*ca*ca - 3.0f)*ca;
-         * ZH5 = 0.0625f * (ca+1.0f)*(21.0f*ca*ca*ca*ca - 14.0f*ca*ca + 1.0f);
-         */
-        float ca = std::cos(spread * 0.5f);
-        /* Increase the source volume by up to +3dB for a full spread. */
-        float scale = std::sqrt(1.0f + spread/tau);
+        // Implement the spread by using a spherical source that subtends the
+        // angle spread. See:
+        // http://www.ppsloan.org/publications/StupidSH36.pdf - Appendix A3
+        //
+        // When adjusted for N3D normalization instead of SN3D, these
+        // calculations are:
+        //
+        // ZH0 = -sqrt(pi) * (-1+ca);
+        // ZH1 =  0.5*sqrt(pi) * sa*sa;
+        // ZH2 = -0.5*sqrt(pi) * ca*(-1+ca)*(ca+1);
+        // ZH3 = -0.125*sqrt(pi) * (-1+ca)*(ca+1)*(5*ca*ca - 1);
+        // ZH4 = -0.125*sqrt(pi) * ca*(-1+ca)*(ca+1)*(7*ca*ca - 3);
+        // ZH5 = -0.0625*sqrt(pi) * (-1+ca)*(ca+1)*(21*ca*ca*ca*ca - 14*ca*ca + 1);
+        //
+        // The gain of the source is compensated for size, so that the
+        // loundness doesn't depend on the spread. Thus:
+        //
+        // ZH0 = 1.0f;
+        // ZH1 = 0.5f * (ca+1.0f);
+        // ZH2 = 0.5f * (ca+1.0f)*ca;
+        // ZH3 = 0.125f * (ca+1.0f)*(5.0f*ca*ca - 1.0f);
+        // ZH4 = 0.125f * (ca+1.0f)*(7.0f*ca*ca - 3.0f)*ca;
+        // ZH5 = 0.0625f * (ca+1.0f)*(21.0f*ca*ca*ca*ca - 14.0f*ca*ca + 1.0f);
 
-        float ZH0_norm = scale;
-        float ZH1_norm = 0.5f * (ca+1.f) * scale;
-        float ZH2_norm = 0.5f * (ca+1.f)*ca * scale;
-        float ZH3_norm = 0.125f * (ca+1.f)*(5.f*ca*ca-1.f) * scale;
+        const auto ca = std::cos(spread * 0.5F);
 
-        /* Zeroth-order */
-        coeffs[0]  *= ZH0_norm;
-        /* First-order */
-        coeffs[1]  *= ZH1_norm;
-        coeffs[2]  *= ZH1_norm;
-        coeffs[3]  *= ZH1_norm;
-        /* Second-order */
-        coeffs[4]  *= ZH2_norm;
-        coeffs[5]  *= ZH2_norm;
-        coeffs[6]  *= ZH2_norm;
-        coeffs[7]  *= ZH2_norm;
-        coeffs[8]  *= ZH2_norm;
-        /* Third-order */
-        coeffs[9]  *= ZH3_norm;
-        coeffs[10] *= ZH3_norm;
-        coeffs[11] *= ZH3_norm;
-        coeffs[12] *= ZH3_norm;
-        coeffs[13] *= ZH3_norm;
-        coeffs[14] *= ZH3_norm;
-        coeffs[15] *= ZH3_norm;
+        // Increase the source volume by up to +3dB for a full spread.
+        const auto scale = std::sqrt(1.0F + (spread / tau));
+
+        const auto zh0_norm = scale;
+        const auto zh1_norm = 0.5F * (ca + 1.0F) * scale;
+        const auto zh2_norm = 0.5F * (ca + 1.0F) * ca * scale;
+        const auto zh3_norm = 0.125F * (ca + 1.0F) * ((5.0F * ca * ca) - 1.0F) * scale;
+
+        // Zeroth-order
+        coeffs[0] *= zh0_norm;
+
+        // First-order
+        coeffs[1] *= zh1_norm;
+        coeffs[2] *= zh1_norm;
+        coeffs[3] *= zh1_norm;
+
+        // Second-order
+        coeffs[4] *= zh2_norm;
+        coeffs[5] *= zh2_norm;
+        coeffs[6] *= zh2_norm;
+        coeffs[7] *= zh2_norm;
+        coeffs[8] *= zh2_norm;
+
+        // Third-order
+        coeffs[9] *= zh3_norm;
+        coeffs[10] *= zh3_norm;
+        coeffs[11] *= zh3_norm;
+        coeffs[12] *= zh3_norm;
+        coeffs[13] *= zh3_norm;
+        coeffs[14] *= zh3_norm;
+        coeffs[15] *= zh3_norm;
     }
 }
 
-void compute_ambient_gains_mc(const ChannelConfig *chancoeffs, int numchans, float ingain, float gains[max_output_channels])
+void calc_angle_coeffs(
+    const float azimuth,
+    const float elevation,
+    const float spread,
+    float coeffs[max_ambi_coeffs])
 {
-    int i;
+    float dir[3] = {
+        std::sin(azimuth) * std::cos(elevation),
+        std::sin(elevation),
+        -std::cos(azimuth) * std::cos(elevation)
+    };
 
-    for(i = 0;i < numchans;i++)
-        gains[i] = chancoeffs[i][0] * 1.414213562f * ingain;
-    for(;i < max_output_channels;i++)
-        gains[i] = 0.0f;
+    calc_direction_coeffs(dir, spread, coeffs);
 }
 
-void compute_ambient_gains_bf(const BFChannelConfig *chanmap, int numchans, float ingain, float gains[max_output_channels])
+void compute_ambient_gains_mc(
+    const ChannelConfig* channel_coeffs,
+    const int num_channels,
+    const float in_gain,
+    float gains[max_output_channels])
 {
-    float gain = 0.0f;
-    int i;
-
-    for(i = 0;i < numchans;i++)
+    for (int i = 0; i < max_output_channels; ++i)
     {
-        if(chanmap[i].index == 0)
-            gain += chanmap[i].scale;
+        if (i < num_channels)
+        {
+            gains[i] = channel_coeffs[i][0] * 1.414213562F * in_gain;
+        }
+        else
+        {
+            gains[i] = 0.0F;
+        }
     }
-    gains[0] = gain * 1.414213562f * ingain;
-    for(i = 1;i < max_output_channels;i++)
-        gains[i] = 0.0f;
 }
 
-void compute_panning_gains_mc(const ChannelConfig *chancoeffs, int numchans, int numcoeffs, const float coeffs[max_ambi_coeffs], float ingain, float gains[max_output_channels])
+void compute_ambient_gains_bf(
+    const BFChannelConfig* channel_map,
+    const int num_channels,
+    const float in_gain,
+    float gains[max_output_channels])
 {
-    int i, j;
+    auto gain = 0.0F;
 
-    for(i = 0;i < numchans;i++)
+    for (int i = 0; i < num_channels; ++i)
     {
-        float gain = 0.0f;
-        for(j = 0;j < numcoeffs;j++)
-            gain += chancoeffs[i][j]*coeffs[j];
-        gains[i] = clamp(gain, 0.0F, 1.0F) * ingain;
+        if (channel_map[i].index == 0)
+        {
+            gain += channel_map[i].scale;
+        }
     }
-    for(;i < max_output_channels;i++)
-        gains[i] = 0.0f;
-}
 
-void compute_panning_gains_bf(const BFChannelConfig *chanmap, int numchans, const float coeffs[max_ambi_coeffs], float ingain, float gains[max_output_channels])
-{
-    int i;
+    gains[0] = gain * 1.414213562F * in_gain;
 
-    for(i = 0;i < numchans;i++)
-        gains[i] = chanmap[i].scale * coeffs[chanmap[i].index] * ingain;
-    for(;i < max_output_channels;i++)
-        gains[i] = 0.0f;
-}
-
-void compute_first_order_gains_mc(const ChannelConfig *chancoeffs, int numchans, const float mtx[4], float ingain, float gains[max_output_channels])
-{
-    int i, j;
-
-    for(i = 0;i < numchans;i++)
+    for (int i = 1; i < max_output_channels; i++)
     {
-        float gain = 0.0f;
-        for(j = 0;j < 4;j++)
-            gain += chancoeffs[i][j] * mtx[j];
-        gains[i] = clamp(gain, 0.0F, 1.0F) * ingain;
+        gains[i] = 0.0F;
     }
-    for(;i < max_output_channels;i++)
-        gains[i] = 0.0f;
 }
 
-void compute_first_order_gains_bf(const BFChannelConfig *chanmap, int numchans, const float mtx[4], float ingain, float gains[max_output_channels])
+void compute_panning_gains_mc(
+    const ChannelConfig* channel_coeffs,
+    const int num_channels,
+    const int num_coeffs,
+    const float coeffs[max_ambi_coeffs],
+    const float in_gain,
+    float gains[max_output_channels])
 {
-    int i;
+    for (int i = 0; i < max_output_channels; ++i)
+    {
+        if (i < num_channels)
+        {
+            auto gain = 0.0F;
 
-    for(i = 0;i < numchans;i++)
-        gains[i] = chanmap[i].scale * mtx[chanmap[i].index] * ingain;
-    for(;i < max_output_channels;i++)
-        gains[i] = 0.0f;
+            for (int j = 0; j < num_coeffs; ++j)
+            {
+                gain += channel_coeffs[i][j] * coeffs[j];
+            }
+
+            gains[i] = clamp(gain, 0.0F, 1.0F) * in_gain;
+        }
+        else
+        {
+            gains[i] = 0.0F;
+        }
+    }
 }
 
+void compute_panning_gains_bf(
+    const BFChannelConfig* channel_map,
+    const int num_channels,
+    const float coeffs[max_ambi_coeffs],
+    const float in_gain,
+    float gains[max_output_channels])
+{
+    for (int i = 0; i < max_output_channels; ++i)
+    {
+        if (i < num_channels)
+        {
+            gains[i] = channel_map[i].scale * coeffs[channel_map[i].index] * in_gain;
+        }
+        else
+        {
+            gains[i] = 0.0F;
+        }
+    }
+}
+
+void compute_first_order_gains_mc(
+    const ChannelConfig* channel_coeffs,
+    int num_channels,
+    const float mtx[4],
+    float in_gain,
+    float gains[max_output_channels])
+{
+    for (int i = 0; i < num_channels; ++i)
+    {
+        if (i < num_channels)
+        {
+            auto gain = 0.0F;
+
+            for (int j = 0; j < 4; ++j)
+            {
+                gain += channel_coeffs[i][j] * mtx[j];
+            }
+
+            gains[i] = clamp(gain, 0.0F, 1.0F) * in_gain;
+        }
+        else
+        {
+            gains[i] = 0.0F;
+        }
+    }
+}
+
+void compute_first_order_gains_bf(
+    const BFChannelConfig* channel_map,
+    const int num_channels,
+    const float mtx[4],
+    const float in_gain,
+    float gains[max_output_channels])
+{
+    for (int i = 0; i < max_output_channels; ++i)
+    {
+        if (i < num_channels)
+        {
+            gains[i] = channel_map[i].scale * mtx[channel_map[i].index] * in_gain;
+        }
+        else
+        {
+            gains[i] = 0.0F;
+        }
+    }
+}
 
 struct ChannelMap
 {
-    enum Channel ChanName;
-    ChannelConfig Config;
+    Channel name;
+    ChannelConfig config;
 }; // ChannelMap
 
-static void SetChannelMap(const enum Channel *devchans, ChannelConfig *ambicoeffs,
-                          const ChannelMap *chanmap, size_t count, int *outcount)
+static void set_channel_map(
+    const Channel* device_channels,
+    ChannelConfig* ambi_coeffs,
+    const ChannelMap* channel_map,
+    const int count,
+    int* out_count)
 {
-    size_t j, k;
     int i;
 
-    for(i = 0;i < max_output_channels && devchans[i] != InvalidChannel;i++)
+    for (i = 0; i < max_output_channels && device_channels[i] != InvalidChannel; ++i)
     {
-        if(devchans[i] == LFE)
+        if (device_channels[i] == LFE)
         {
-            for(j = 0;j < max_ambi_coeffs;j++)
-                ambicoeffs[i][j] = 0.0f;
+            for (int j = 0; j < max_ambi_coeffs; ++j)
+            {
+                ambi_coeffs[i][j] = 0.0F;
+            }
+
             continue;
         }
 
-        for(j = 0;j < count;j++)
+        for (int j = 0; j < count; ++j)
         {
-            if(devchans[i] != chanmap[j].ChanName)
+            if (device_channels[i] != channel_map[j].name)
+            {
                 continue;
+            }
 
-            for(k = 0;k < max_ambi_coeffs;++k)
-                ambicoeffs[i][k] = chanmap[j].Config[k];
+            for (int k = 0; k < max_ambi_coeffs; ++k)
+            {
+                ambi_coeffs[i][k] = channel_map[j].config[k];
+            }
+
             break;
         }
     }
-    *outcount = i;
+
+    *out_count = i;
 }
 
-static const ChannelMap MonoCfg[1] = {
+static const ChannelMap mono_cfg[1] = {
     {FrontCenter, {1.0F}},
 };
 
-static const ChannelMap StereoCfg[2] = {
+static const ChannelMap stereo_cfg[2] = {
     {FrontLeft, {5.00000000E-1F, 2.88675135E-1F, 0.0F, 1.19573156E-1F}},
     {FrontRight, {5.00000000E-1F, -2.88675135E-1F, 0.0F, 1.19573156E-1F}},
 };
 
-static const ChannelMap QuadCfg[4] = {
+static const ChannelMap quad_cfg[4] = {
     {BackLeft, {3.53553391E-1F, 2.04124145E-1F, 0.0F, -2.04124145E-1F}},
     {FrontLeft, {3.53553391E-1F, 2.04124145E-1F, 0.0F, 2.04124145E-1F}},
     {FrontRight, {3.53553391E-1F, -2.04124145E-1F, 0.0F, 2.04124145E-1F}},
     {BackRight, {3.53553391E-1F, -2.04124145E-1F, 0.0F, -2.04124145E-1F}},
 };
 
-static const ChannelMap X51SideCfg[5] = {
+static const ChannelMap x5_1_side_cfg[5] = {
     {SideLeft, {3.33001372E-1F, 1.89085671E-1F, 0.0F, -2.00041334E-1F, -2.12309737E-2F, 0.0F, 0.0F, 0.0F, -1.14573483E-2F}},
     {FrontLeft, {1.47751298E-1F, 1.28994110E-1F, 0.0F, 1.15190495E-1F, 7.44949143E-2F, 0.0F, 0.0F, 0.0F, -6.47739980E-3F}},
     {FrontCenter, {7.73595729E-2F, 0.00000000E+0F, 0.0F, 9.71390298E-2F, 0.00000000E+0F, 0.0F, 0.0F, 0.0F, 5.18625335E-2F}},
@@ -245,7 +341,7 @@ static const ChannelMap X51SideCfg[5] = {
     {SideRight, {3.33001372E-1F, -1.89085671E-1F, 0.0F, -2.00041334E-1F, 2.12309737E-2F, 0.0F, 0.0F, 0.0F, -1.14573483E-2F}},
 };
 
-static const ChannelMap X51RearCfg[5] = {
+static const ChannelMap x5_1_rear_cfg[5] = {
     {BackLeft, {3.33001372E-1F, 1.89085671E-1F, 0.0F, -2.00041334E-1F, -2.12309737E-2F, 0.0F, 0.0F, 0.0F, -1.14573483E-2F}},
     {FrontLeft, {1.47751298E-1F, 1.28994110E-1F, 0.0F, 1.15190495E-1F, 7.44949143E-2F, 0.0F, 0.0F, 0.0F, -6.47739980E-3F}},
     {FrontCenter, {7.73595729E-2F, 0.00000000E+0F, 0.0F, 9.71390298E-2F, 0.00000000E+0F, 0.0F, 0.0F, 0.0F, 5.18625335E-2F}},
@@ -253,7 +349,7 @@ static const ChannelMap X51RearCfg[5] = {
     {BackRight, {3.33001372E-1F, -1.89085671E-1F, 0.0F, -2.00041334E-1F, 2.12309737E-2F, 0.0F, 0.0F, 0.0F, -1.14573483E-2F}},
 };
 
-static const ChannelMap X61Cfg[6] = {
+static const ChannelMap x6_1_cfg[6] = {
     {SideLeft, {2.04462744E-1F, 2.17178497E-1F, 0.0F, -4.39990188E-2F, -2.60787329E-2F, 0.0F, 0.0F, 0.0F, -6.87238843E-2F}},
     {FrontLeft, {1.18130342E-1F, 9.34633906E-2F, 0.0F, 1.08553749E-1F, 6.80658795E-2F, 0.0F, 0.0F, 0.0F, 1.08999485E-2F}},
     {FrontCenter, {7.73595729E-2F, 0.00000000E+0F, 0.0F, 9.71390298E-2F, 0.00000000E+0F, 0.0F, 0.0F, 0.0F, 5.18625335E-2F}},
@@ -262,7 +358,7 @@ static const ChannelMap X61Cfg[6] = {
     {BackCenter, {2.50001688E-1F, 0.00000000E+0F, 0.0F, -2.50000094E-1F, 0.00000000E+0F, 0.0F, 0.0F, 0.0F, 6.05133395E-2F}},
 };
 
-static const ChannelMap X71Cfg[6] = {
+static const ChannelMap x7_1_cfg[6] = {
     {BackLeft, {2.04124145E-1F, 1.08880247E-1F, 0.0F, -1.88586120E-1F, -1.29099444E-1F, 0.0F, 0.0F, 0.0F, 7.45355993E-2F, 3.73460789E-2F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.00000000E+0F}},
     {SideLeft, {2.04124145E-1F, 2.17760495E-1F, 0.0F, 0.00000000E+0F, 0.00000000E+0F, 0.0F, 0.0F, 0.0F, -1.49071198E-1F, -3.73460789E-2F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.00000000E+0F}},
     {FrontLeft, {2.04124145E-1F, 1.08880247E-1F, 0.0F, 1.88586120E-1F, 1.29099444E-1F, 0.0F, 0.0F, 0.0F, 7.45355993E-2F, 3.73460789E-2F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.00000000E+0F}},
@@ -271,90 +367,95 @@ static const ChannelMap X71Cfg[6] = {
     {BackRight, {2.04124145E-1F, -1.08880247E-1F, 0.0F, -1.88586120E-1F, 1.29099444E-1F, 0.0F, 0.0F, 0.0F, 7.45355993E-2F, -3.73460789E-2F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.00000000E+0F}},
 };
 
-static void init_panning(ALCdevice *device)
+static void init_panning(
+    ALCdevice* device)
 {
-    const ChannelMap *chanmap = NULL;
-    int coeffcount = 0;
-    int count = 0;
-    int i, j;
+    const ChannelMap *channel_map = nullptr;
+    auto coeff_count = 0;
+    auto count = 0;
 
-    switch(device->fmt_chans)
+    switch (device->fmt_chans)
     {
-        case DevFmtMono:
-            count = count_of(MonoCfg);
-            chanmap = MonoCfg;
-            coeffcount = 1;
-            break;
+    case DevFmtMono:
+        count = count_of(mono_cfg);
+        channel_map = mono_cfg;
+        coeff_count = 1;
+        break;
 
-        case DevFmtStereo:
-            count = count_of(StereoCfg);
-            chanmap = StereoCfg;
-            coeffcount = 4;
-            break;
+    case DevFmtStereo:
+        count = count_of(stereo_cfg);
+        channel_map = stereo_cfg;
+        coeff_count = 4;
+        break;
 
-        case DevFmtQuad:
-            count = count_of(QuadCfg);
-            chanmap = QuadCfg;
-            coeffcount = 4;
-            break;
+    case DevFmtQuad:
+        count = count_of(quad_cfg);
+        channel_map = quad_cfg;
+        coeff_count = 4;
+        break;
 
-        case DevFmtX51:
-            count = count_of(X51SideCfg);
-            chanmap = X51SideCfg;
-            coeffcount = 9;
-            break;
+    case DevFmtX51:
+        count = count_of(x5_1_side_cfg);
+        channel_map = x5_1_side_cfg;
+        coeff_count = 9;
+        break;
 
-        case DevFmtX51Rear:
-            count = count_of(X51RearCfg);
-            chanmap = X51RearCfg;
-            coeffcount = 9;
-            break;
+    case DevFmtX51Rear:
+        count = count_of(x5_1_rear_cfg);
+        channel_map = x5_1_rear_cfg;
+        coeff_count = 9;
+        break;
 
-        case DevFmtX61:
-            count = count_of(X61Cfg);
-            chanmap = X61Cfg;
-            coeffcount = 9;
-            break;
+    case DevFmtX61:
+        count = count_of(x6_1_cfg);
+        channel_map = x6_1_cfg;
+        coeff_count = 9;
+        break;
 
-        case DevFmtX71:
-            count = count_of(X71Cfg);
-            chanmap = X71Cfg;
-            coeffcount = 16;
-            break;
+    case DevFmtX71:
+        count = count_of(x7_1_cfg);
+        channel_map = x7_1_cfg;
+        coeff_count = 16;
+        break;
     }
 
+    set_channel_map(
+        device->real_out.channel_name.data(),
+        device->dry.ambi.coeffs.data(),
+        channel_map,
+        count,
+        &device->dry.num_channels);
+
+    device->dry.coeff_count = coeff_count;
+
+    device->foa_out.ambi.reset();
+
+    for (int i = 0; i < device->dry.num_channels; ++i)
     {
-        float w_scale, xyz_scale;
+        device->foa_out.ambi.coeffs[i][0] = device->dry.ambi.coeffs[i][0];
 
-        SetChannelMap(device->real_out.channel_name.data(), device->dry.ambi.coeffs.data(),
-                      chanmap, count, &device->dry.num_channels);
-        device->dry.coeff_count = coeffcount;
-
-        w_scale = 1.0f;
-        xyz_scale = 1.0f;
-
-        memset(&device->foa_out.ambi, 0, sizeof(device->foa_out.ambi));
-        for(i = 0;i < device->dry.num_channels;i++)
+        for (int j = 1; j < 4; ++j)
         {
-            device->foa_out.ambi.coeffs[i][0] = device->dry.ambi.coeffs[i][0] * w_scale;
-            for(j = 1;j < 4;j++)
-                device->foa_out.ambi.coeffs[i][j] = device->dry.ambi.coeffs[i][j] * xyz_scale;
+            device->foa_out.ambi.coeffs[i][j] = device->dry.ambi.coeffs[i][j];
         }
-        device->foa_out.coeff_count = 4;
-        device->foa_out.num_channels = 0;
     }
+
+    device->foa_out.coeff_count = 4;
+    device->foa_out.num_channels = 0;
     device->real_out.num_channels = 0;
 }
 
-void alu_init_renderer(ALCdevice *device)
+void alu_init_renderer(
+    ALCdevice* device)
 {
-    size_t i;
-
-    memset(&device->dry.ambi, 0, sizeof(device->dry.ambi));
+    device->dry.ambi.reset();
     device->dry.coeff_count = 0;
     device->dry.num_channels = 0;
-    for(i = 0;i < max_ambi_order+1;i++)
+
+    for (int i = 0; i < (max_ambi_order + 1); ++i)
+    {
         device->dry.num_channels_per_order[i] = 0;
+    }
 
     set_default_wfx_channel_order(device);
 
@@ -367,18 +468,21 @@ void alu_init_renderer(ALCdevice *device)
     init_panning(device);
 }
 
-
-void alu_init_effect_panning(ALeffectslot *slot)
+void alu_init_effect_panning(
+    ALeffectslot* slot)
 {
-    int i;
+    for (int i = 0; i < max_effect_channels; ++i)
+    {
+        slot->chan_map[i].reset();
+    }
 
-    memset(slot->chan_map, 0, sizeof(slot->chan_map));
     slot->num_channels = 0;
 
-    for(i = 0;i < max_effect_channels;i++)
+    for (int i = 0; i < max_effect_channels; ++i)
     {
-        slot->chan_map[i].scale = 1.0f;
+        slot->chan_map[i].scale = 1.0F;
         slot->chan_map[i].index = i;
+
+        slot->num_channels += 1;
     }
-    slot->num_channels = i;
 }
