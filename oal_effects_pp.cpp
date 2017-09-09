@@ -1,6 +1,7 @@
 #define NOMINMAX
 
 
+#include <cfenv>
 #include <malloc.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -34,6 +35,8 @@ void alu_mix_data(
 
 int main()
 {
+    const auto fem = fegetround();
+
     const char* src_file_name = "f:\\temp\\rev\\in.raw";
     const char* dst_file_name = "f:\\temp\\rev\\out.raw";
     const int sample_count = 1024;
@@ -187,8 +190,8 @@ int main()
 #if 0
     if (is_succeed)
     {
-        InitEffectParams(oal_device->effect, AL_EFFECT_CHORUS);
-        UpdateEffectSlotProps(oal_device->effect_slot);
+        init_effect_params(oal_device->effect, AL_EFFECT_CHORUS);
+        update_effect_slot_props(oal_device->effect_slot);
     }
 
     if (is_succeed)
@@ -206,8 +209,8 @@ int main()
 #if 0
     if (is_succeed)
     {
-        InitEffectParams(oal_device->effect, AL_EFFECT_COMPRESSOR);
-        UpdateEffectSlotProps(oal_device->effect_slot);
+        init_effect_params(oal_device->effect, AL_EFFECT_COMPRESSOR);
+        update_effect_slot_props(oal_device->effect_slot);
     }
 
     if (is_succeed)
@@ -220,8 +223,8 @@ int main()
 #if 0
     if (is_succeed)
     {
-        InitEffectParams(oal_device->effect, AL_EFFECT_DEDICATED_DIALOGUE);
-        UpdateEffectSlotProps(oal_device->effect_slot);
+        init_effect_params(oal_device->effect, AL_EFFECT_DEDICATED_DIALOGUE);
+        update_effect_slot_props(oal_device->effect_slot);
     }
 
     if (is_succeed)
@@ -234,8 +237,8 @@ int main()
 #if 0
     if (is_succeed)
     {
-        InitEffectParams(oal_device->effect, AL_EFFECT_DISTORTION);
-        UpdateEffectSlotProps(oal_device->effect_slot);
+        init_effect_params(oal_device->effect, AL_EFFECT_DISTORTION);
+        update_effect_slot_props(oal_device->effect_slot);
     }
 
     if (is_succeed)
@@ -252,8 +255,8 @@ int main()
 #if 0
     if (is_succeed)
     {
-        InitEffectParams(oal_device->effect, AL_EFFECT_ECHO);
-        UpdateEffectSlotProps(oal_device->effect_slot);
+        init_effect_params(oal_device->effect, AL_EFFECT_ECHO);
+        update_effect_slot_props(oal_device->effect_slot);
     }
 
     if (is_succeed)
@@ -270,8 +273,8 @@ int main()
 #if 0
     if (is_succeed)
     {
-        InitEffectParams(oal_device->effect, AL_EFFECT_EQUALIZER);
-        UpdateEffectSlotProps(oal_device->effect_slot);
+        init_effect_params(oal_device->effect, AL_EFFECT_EQUALIZER);
+        update_effect_slot_props(oal_device->effect_slot);
     }
 
     if (is_succeed)
@@ -293,8 +296,8 @@ int main()
 #if 0
     if (is_succeed)
     {
-        InitEffectParams(oal_device->effect, AL_EFFECT_FLANGER);
-        UpdateEffectSlotProps(oal_device->effect_slot);
+        init_effect_params(oal_device->effect, AL_EFFECT_FLANGER);
+        update_effect_slot_props(oal_device->effect_slot);
     }
 
     if (is_succeed)
@@ -312,8 +315,8 @@ int main()
 #if 0
     if (is_succeed)
     {
-        InitEffectParams(oal_device->effect, AL_EFFECT_RING_MODULATOR);
-        UpdateEffectSlotProps(oal_device->effect_slot);
+        init_effect_params(oal_device->effect, AL_EFFECT_RING_MODULATOR);
+        update_effect_slot_props(oal_device->effect_slot);
     }
 
     if (is_succeed)
