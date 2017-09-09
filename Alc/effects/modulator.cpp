@@ -162,7 +162,7 @@ private:
 
 
     using Gains = MdArray<float, max_effect_channels, max_output_channels>;
-    using Filters = std::array<ALfilterState, max_effect_channels>;
+    using Filters = std::array<FilterState, max_effect_channels>;
 
     using ModulateFunc = float (*)(
         const int index);

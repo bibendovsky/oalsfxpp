@@ -124,7 +124,7 @@ protected:
 
         al_filter_state_set_params(
             &filter_,
-            ALfilterType_HighShelf,
+            FilterType::high_shelf,
             effect_gain,
             lp_frequency_reference / frequency,
             calc_rcp_q_from_slope(effect_gain, 1.0F));
@@ -237,7 +237,7 @@ private:
 
     float feed_gain_;
 
-    ALfilterState filter_;
+    FilterState filter_;
 }; // EchoEffect
 
 

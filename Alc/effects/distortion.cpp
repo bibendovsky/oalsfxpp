@@ -86,7 +86,8 @@ protected:
         // processing.
         al_filter_state_set_params(
             &low_pass_,
-            ALfilterType_LowPass, 1.0F,
+            FilterType::low_pass,
+            1.0F,
             cutoff / (frequency * 4.0F),
             calc_rcp_q_from_bandwidth(cutoff / (frequency * 4.0F), bandwidth));
 
@@ -97,7 +98,7 @@ protected:
 
         al_filter_state_set_params(
             &band_pass_,
-            ALfilterType_BandPass,
+            FilterType::band_pass,
             1.0F,
             cutoff / (frequency * 4.0F),
             calc_rcp_q_from_bandwidth(cutoff / (frequency * 4.0F), bandwidth));
@@ -191,8 +192,8 @@ private:
     Gains gains_;
 
     // Effect parameters
-    ALfilterState low_pass_;
-    ALfilterState band_pass_;
+    FilterState low_pass_;
+    FilterState band_pass_;
     float attenuation_;
     float edge_coeff_;
 }; // DistortionEffect

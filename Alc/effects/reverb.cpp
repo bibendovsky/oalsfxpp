@@ -206,7 +206,7 @@ protected:
 
         al_filter_state_set_params(
             &filters_[0].lp,
-            ALfilterType_HighShelf,
+            FilterType::high_shelf,
             gain_hf,
             hf_scale,
             calc_rcp_q_from_slope(gain_hf, 1.0F));
@@ -217,7 +217,7 @@ protected:
 
         al_filter_state_set_params(
             &filters_[0].hp,
-            ALfilterType_LowShelf,
+            FilterType::low_shelf,
             gain_lf,
             lf_scale,
             calc_rcp_q_from_slope(gain_lf, 1.0F));
@@ -465,8 +465,8 @@ private:
 
     struct Filter
     {
-        ALfilterState lp;
-        ALfilterState hp; // EAX only
+        FilterState lp;
+        FilterState hp; // EAX only
     }; // Filter
 
     using Filters = std::array<Filter, 4>;

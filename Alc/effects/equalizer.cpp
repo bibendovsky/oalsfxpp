@@ -132,7 +132,7 @@ protected:
 
         al_filter_state_set_params(
             &filter_[0][0],
-            ALfilterType_LowShelf,
+            FilterType::low_shelf,
             gain,
             freq_mult,
             calc_rcp_q_from_slope(gain, 0.75F));
@@ -148,7 +148,7 @@ protected:
 
         al_filter_state_set_params(
             &filter_[1][0],
-            ALfilterType_Peaking,
+            FilterType::peaking,
             gain,
             freq_mult,
             calc_rcp_q_from_bandwidth(freq_mult, props->equalizer.mid1_width));
@@ -163,7 +163,7 @@ protected:
 
         al_filter_state_set_params(
             &filter_[2][0],
-            ALfilterType_Peaking,
+            FilterType::peaking,
             gain,
             freq_mult,
             calc_rcp_q_from_bandwidth(freq_mult, props->equalizer.mid2_width));
@@ -178,7 +178,7 @@ protected:
 
         al_filter_state_set_params(
             &filter_[3][0],
-            ALfilterType_HighShelf,
+            FilterType::high_shelf,
             gain,
             freq_mult,
             calc_rcp_q_from_slope(gain, 0.75F));
@@ -249,7 +249,7 @@ private:
     static constexpr auto max_update_samples = 256;
 
     using Gains = MdArray<float, max_effect_channels, max_output_channels>;
-    using Filters = MdArray<ALfilterState, 4, max_effect_channels>;
+    using Filters = MdArray<FilterState, 4, max_effect_channels>;
     using SampleBuffers = MdArray<float, 4, max_effect_channels, max_update_samples>;
 
 

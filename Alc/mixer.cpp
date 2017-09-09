@@ -27,8 +27,8 @@ static MixerFunc mix_samples = mix_c;
 
 
 static const float *do_filters(
-    ALfilterState* lp_filter,
-    ALfilterState* hp_filter,
+    FilterState* lp_filter,
+    FilterState* hp_filter,
     float* dst,
     const float* src,
     int num_samples,

@@ -3,7 +3,7 @@
 #include "alu.h"
 
 
-void al_filter_state_process_c(ALfilterState* filter, float* dst, const float* src, int num_samples)
+void al_filter_state_process_c(FilterState* filter, float* dst, const float* src, int num_samples)
 {
     int i;
     if(num_samples > 1)

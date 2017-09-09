@@ -10,34 +10,37 @@ constexpr auto lp_frequency_reference = 5000.0F;
 constexpr auto hp_frequency_reference = 250.0F;
 
 
-/* Filters implementation is based on the "Cookbook formulae for audio
- * EQ biquad filter coefficients" by Robert Bristow-Johnson
- * http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt
- */
-/* Implementation note: For the shelf filters, the specified gain is for the
- * reference frequency, which is the centerpoint of the transition band. This
- * better matches EFX filter design. To set the gain for the shelf itself, use
- * the square root of the desired linear gain (or halve the dB gain).
- */
+// Filters implementation is based on the "Cookbook formulae for audio
+// EQ biquad filter coefficients" by Robert Bristow-Johnson
+// http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt
+//
+// Implementation note: For the shelf filters, the specified gain is for the
+// reference frequency, which is the centerpoint of the transition band. This
+// better matches EFX filter design. To set the gain for the shelf itself, use
+// the square root of the desired linear gain (or halve the dB gain).
 
-enum ALfilterType
+enum class FilterType
 {
-    /** EFX-style low-pass filter, specifying a gain and reference frequency. */
-    ALfilterType_HighShelf,
-    /** EFX-style high-pass filter, specifying a gain and reference frequency. */
-    ALfilterType_LowShelf,
-    /** Peaking filter, specifying a gain and reference frequency. */
-    ALfilterType_Peaking,
+    // EFX-style low-pass filter, specifying a gain and reference frequency.
+    high_shelf,
 
-    /** Low-pass cut-off filter, specifying a cut-off frequency. */
-    ALfilterType_LowPass,
-    /** High-pass cut-off filter, specifying a cut-off frequency. */
-    ALfilterType_HighPass,
-    /** Band-pass filter, specifying a center frequency. */
-    ALfilterType_BandPass,
-}; // ALfilterType
+    // EFX-style high-pass filter, specifying a gain and reference frequency.
+    low_shelf,
 
-struct ALfilterState
+    // Peaking filter, specifying a gain and reference frequency.
+    peaking,
+
+    // Low-pass cut-off filter, specifying a cut-off frequency.
+    low_pass,
+
+    // High-pass cut-off filter, specifying a cut-off frequency.
+    high_pass,
+
+    // Band-pass filter, specifying a center frequency.
+    band_pass,
+}; // FilterType
+
+struct FilterState
 {
     float x[2]; // History of two last input samples
     float y[2]; // History of two last output samples
@@ -50,65 +53,48 @@ struct ALfilterState
     // Transfer function coefficients "a" (a0 is pre-applied)
     float a1;
     float a2;
-}; // ALfilterState
+}; // FilterState
 
-/* Calculates the rcpQ (i.e. 1/Q) coefficient for shelving filters, using the
- * reference gain and shelf slope parameter.
- * 0 < gain
- * 0 < slope <= 1
- */
-inline float calc_rcp_q_from_slope(float gain, float slope)
-{
-    return std::sqrt((gain + 1.0f/gain)*(1.0f/slope - 1.0f) + 2.0f);
-}
-/* Calculates the rcpQ (i.e. 1/Q) coefficient for filters, using the frequency
- * multiple (i.e. ref_freq / sampling_freq) and bandwidth.
- * 0 < freq_mult < 0.5.
- */
-inline float calc_rcp_q_from_bandwidth(float freq_mult, float bandwidth)
-{
-    float w0 = tau * freq_mult;
-    return 2.0f*std::sinh(std::log(2.0f)/2.0f*bandwidth*w0/std::sin(w0));
-}
 
-inline void al_filter_state_clear(ALfilterState* filter)
-{
-    filter->x[0] = 0.0f;
-    filter->x[1] = 0.0f;
-    filter->y[0] = 0.0f;
-    filter->y[1] = 0.0f;
-}
+// Calculates the rcpQ (i.e. 1/Q) coefficient for shelving filters, using the
+// reference gain and shelf slope parameter.
+// 0 < gain
+// 0 < slope <= 1
+float calc_rcp_q_from_slope(
+    const float gain,
+    const float slope);
 
-void al_filter_state_set_params(ALfilterState *filter, ALfilterType type, float gain, float freq_mult, float rcp_q);
+// Calculates the rcpQ (i.e. 1/Q) coefficient for filters, using the frequency
+// multiple (i.e. ref_freq / sampling_freq) and bandwidth.
+// 0 < freq_mult < 0.5.
+float calc_rcp_q_from_bandwidth(
+    const float freq_mult,
+    const float bandwidth);
 
-inline void al_filter_state_copy_params(ALfilterState *dst, const ALfilterState *src)
-{
-    dst->b0 = src->b0;
-    dst->b1 = src->b1;
-    dst->b2 = src->b2;
-    dst->a1 = src->a1;
-    dst->a2 = src->a2;
-}
+void al_filter_state_clear(
+    FilterState* filter);
 
-void al_filter_state_process_c(ALfilterState *filter, float *dst, const float *src, int num_samples);
+void al_filter_state_set_params(
+    FilterState* filter,
+    const FilterType type,
+    const float gain,
+    const float freq_mult,
+    const float rcp_q);
 
-inline void al_filter_state_process_pass_through(ALfilterState *filter, const float *src, int num_samples)
-{
-    if (num_samples >= 2)
-    {
-        filter->x[1] = src[num_samples - 2];
-        filter->x[0] = src[num_samples - 1];
-        filter->y[1] = src[num_samples - 2];
-        filter->y[0] = src[num_samples - 1];
-    }
-    else if (num_samples == 1)
-    {
-        filter->x[1] = filter->x[0];
-        filter->x[0] = src[0];
-        filter->y[1] = filter->y[0];
-        filter->y[0] = src[0];
-    }
-}
+void al_filter_state_copy_params(
+    FilterState* dst,
+    const FilterState* src);
+
+void al_filter_state_process_c(
+    FilterState* filter,
+    float* dst,
+    const float* src,
+    const int num_samples);
+
+void al_filter_state_process_pass_through(
+    FilterState* filter,
+    const float* src,
+    const int num_samples);
 
 
 #endif

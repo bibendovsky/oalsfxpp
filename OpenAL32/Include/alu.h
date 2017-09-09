@@ -60,8 +60,8 @@ struct DirectParams
     }; // Gains
 
 
-    ALfilterState low_pass;
-    ALfilterState high_pass;
+    FilterState low_pass;
+    FilterState high_pass;
     Gains gains;
 }; // DirectParams
 
@@ -74,8 +74,8 @@ struct SendParams
     }; // Gains
 
 
-    ALfilterState low_pass;
-    ALfilterState high_pass;
+    FilterState low_pass;
+    FilterState high_pass;
     Gains gains;
 }; // SendParams
 
