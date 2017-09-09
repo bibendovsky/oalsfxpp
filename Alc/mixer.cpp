@@ -37,21 +37,21 @@ static const float *do_filters(
     int i;
     switch(type)
     {
-        case AF_None:
+        case ActiveFilters::none:
             al_filter_state_process_pass_through(lp_filter, src, num_samples);
             al_filter_state_process_pass_through(hp_filter, src, num_samples);
             break;
 
-        case AF_LowPass:
+        case ActiveFilters::low_pass:
             al_filter_state_process_c(lp_filter, dst, src, num_samples);
             al_filter_state_process_pass_through(hp_filter, dst, num_samples);
             return dst;
-        case AF_HighPass:
+        case ActiveFilters::high_pass:
             al_filter_state_process_pass_through(lp_filter, src, num_samples);
             al_filter_state_process_c(hp_filter, dst, src, num_samples);
             return dst;
 
-        case AF_BandPass:
+        case ActiveFilters::band_pass:
             for(i = 0;i < num_samples;)
             {
                 float temp[256];

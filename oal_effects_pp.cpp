@@ -29,7 +29,7 @@ void update_source_props(
 void alu_mix_data(
     ALCdevice* device,
     void* OutBuffer,
-    int NumSamples,
+    const int NumSamples,
     const float* src_samples);
 
 

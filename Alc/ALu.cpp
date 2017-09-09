@@ -25,21 +25,59 @@
 #include "alu.h"
 
 
-struct ChanMap {
+struct ChannelMap {
     enum Channel channel;
     float angle;
     float elevation;
 };
 
-extern inline float lerp(float val1, float val2, float mu);
+float lerp(
+    const float val1,
+    const float val2,
+    const float mu)
+{
+    return val1 + ((val2 - val1) * mu);
+}
 
-extern inline void alu_matrix_f_set_row(aluMatrixf *matrix, int row,
-                                    float m0, float m1, float m2, float m3);
-extern inline void alu_matrix_f_set(aluMatrixf *matrix,
-                                 float m00, float m01, float m02, float m03,
-                                 float m10, float m11, float m12, float m13,
-                                 float m20, float m21, float m22, float m23,
-                                 float m30, float m31, float m32, float m33);
+
+void alu_matrix_f_set_row(
+    aluMatrixf* matrix,
+    const int row,
+    const float m0,
+    const float m1,
+    const float m2,
+    const float m3)
+{
+    matrix->m[row][0] = m0;
+    matrix->m[row][1] = m1;
+    matrix->m[row][2] = m2;
+    matrix->m[row][3] = m3;
+}
+
+void alu_matrix_f_set(
+    aluMatrixf* matrix,
+    const float m00,
+    const float m01,
+    const float m02,
+    const float m03,
+    const float m10,
+    const float m11,
+    const float m12,
+    const float m13,
+    const float m20,
+    const float m21,
+    const float m22,
+    const float m23,
+    const float m30,
+    const float m31,
+    const float m32,
+    const float m33)
+{
+    alu_matrix_f_set_row(matrix, 0, m00, m01, m02, m03);
+    alu_matrix_f_set_row(matrix, 1, m10, m11, m12, m13);
+    alu_matrix_f_set_row(matrix, 2, m20, m21, m22, m23);
+    alu_matrix_f_set_row(matrix, 3, m30, m31, m32, m33);
+}
 
 const aluMatrixf identity_matrix_f = {{
     { 1.0f, 0.0f, 0.0f, 0.0f },
@@ -47,7 +85,6 @@ const aluMatrixf identity_matrix_f = {{
     { 0.0f, 0.0f, 1.0f, 0.0f },
     { 0.0f, 0.0f, 0.0f, 1.0f },
 }};
-
 
 void ParamsBase::Gains::reset()
 {
@@ -62,25 +99,28 @@ void ParamsBase::reset()
     gains.reset();
 }
 
-void deinit_voice(ALvoice* voice)
+void deinit_voice(
+    ALvoice* voice)
 {
 }
 
-static bool calc_effect_slot_params(ALeffectslot* slot, ALCdevice* device)
+static bool calc_effect_slot_params(
+    ALeffectslot* slot,
+    ALCdevice* device)
 {
-    struct ALeffectslotProps *props;
-    IEffect *state;
+    auto props = slot->update;
+    slot->update = nullptr;
 
-    props = slot->update;
-    slot->update = NULL;
-    if(!props) return false;
+    if (!props)
+    {
+        return false;
+    }
 
     slot->params.effect_type = props->type;
 
-    /* Swap effect states. No need to play with the ref counts since they keep
-     * the same number of refs.
-     */
-    state = props->state;
+    // Swap effect states. No need to play with the ref counts since they keep
+    // the same number of refs.
+    auto state = props->state;
     props->state = slot->params.effect_state;
     slot->params.effect_state = state;
 
@@ -90,40 +130,50 @@ static bool calc_effect_slot_params(ALeffectslot* slot, ALCdevice* device)
 }
 
 
-static const struct ChanMap mono_map[1] = {
-    { FrontCenter, 0.0f, 0.0f }
-}, rear_map[2] = {
-    { BackLeft,  deg_to_rad(-150.0f), deg_to_rad(0.0f) },
-    { BackRight, deg_to_rad( 150.0f), deg_to_rad(0.0f) }
-}, quad_map[4] = {
-    { FrontLeft,  deg_to_rad( -45.0f), deg_to_rad(0.0f) },
-    { FrontRight, deg_to_rad(  45.0f), deg_to_rad(0.0f) },
-    { BackLeft,   deg_to_rad(-135.0f), deg_to_rad(0.0f) },
-    { BackRight,  deg_to_rad( 135.0f), deg_to_rad(0.0f) }
-}, x5_1_map[6] = {
-    { FrontLeft,   deg_to_rad( -30.0f), deg_to_rad(0.0f) },
-    { FrontRight,  deg_to_rad(  30.0f), deg_to_rad(0.0f) },
-    { FrontCenter, deg_to_rad(   0.0f), deg_to_rad(0.0f) },
-    { LFE, 0.0f, 0.0f },
-    { SideLeft,    deg_to_rad(-110.0f), deg_to_rad(0.0f) },
-    { SideRight,   deg_to_rad( 110.0f), deg_to_rad(0.0f) }
-}, x6_1_map[7] = {
-    { FrontLeft,    deg_to_rad(-30.0f), deg_to_rad(0.0f) },
-    { FrontRight,   deg_to_rad( 30.0f), deg_to_rad(0.0f) },
-    { FrontCenter,  deg_to_rad(  0.0f), deg_to_rad(0.0f) },
-    { LFE, 0.0f, 0.0f },
-    { BackCenter,   deg_to_rad(180.0f), deg_to_rad(0.0f) },
-    { SideLeft,     deg_to_rad(-90.0f), deg_to_rad(0.0f) },
-    { SideRight,    deg_to_rad( 90.0f), deg_to_rad(0.0f) }
-}, x7_1_map[8] = {
-    { FrontLeft,   deg_to_rad( -30.0f), deg_to_rad(0.0f) },
-    { FrontRight,  deg_to_rad(  30.0f), deg_to_rad(0.0f) },
-    { FrontCenter, deg_to_rad(   0.0f), deg_to_rad(0.0f) },
-    { LFE, 0.0f, 0.0f },
-    { BackLeft,    deg_to_rad(-150.0f), deg_to_rad(0.0f) },
-    { BackRight,   deg_to_rad( 150.0f), deg_to_rad(0.0f) },
-    { SideLeft,    deg_to_rad( -90.0f), deg_to_rad(0.0f) },
-    { SideRight,   deg_to_rad(  90.0f), deg_to_rad(0.0f) }
+static const ChannelMap mono_map[1] = {
+    {FrontCenter, 0.0F, 0.0F}
+};
+
+static const ChannelMap rear_map[2] = {
+    {BackLeft, deg_to_rad(-150.0F), deg_to_rad(0.0F)},
+    {BackRight, deg_to_rad(150.0F), deg_to_rad(0.0F)}
+};
+
+static const ChannelMap quad_map[4] = {
+    {FrontLeft, deg_to_rad(-45.0F), deg_to_rad(0.0F)},
+    {FrontRight, deg_to_rad(45.0F), deg_to_rad(0.0F)},
+    {BackLeft, deg_to_rad(-135.0F), deg_to_rad(0.0F)},
+    {BackRight, deg_to_rad(135.0F), deg_to_rad(0.0F)}
+};
+
+static const ChannelMap x5_1_map[6] = {
+    {FrontLeft, deg_to_rad(-30.0F), deg_to_rad(0.0F)},
+    {FrontRight, deg_to_rad(30.0F), deg_to_rad(0.0F)},
+    {FrontCenter, deg_to_rad(0.0F), deg_to_rad(0.0F)},
+    {LFE, 0.0F, 0.0F},
+    {SideLeft, deg_to_rad(-110.0F), deg_to_rad(0.0F)},
+    {SideRight, deg_to_rad(110.0F), deg_to_rad(0.0F)}
+};
+
+static const ChannelMap x6_1_map[7] = {
+    {FrontLeft, deg_to_rad(-30.0F), deg_to_rad(0.0F)},
+    {FrontRight, deg_to_rad(30.0F), deg_to_rad(0.0F)},
+    {FrontCenter, deg_to_rad(0.0F), deg_to_rad(0.0F)},
+    {LFE, 0.0F, 0.0F},
+    {BackCenter, deg_to_rad(180.0F), deg_to_rad(0.0F)},
+    {SideLeft, deg_to_rad(-90.0F), deg_to_rad(0.0F)},
+    {SideRight, deg_to_rad(90.0F), deg_to_rad(0.0F)}
+};
+
+static const ChannelMap x7_1_map[8] = {
+    {FrontLeft, deg_to_rad(-30.0F), deg_to_rad(0.0F)},
+    {FrontRight, deg_to_rad(30.0F), deg_to_rad(0.0F)},
+    {FrontCenter, deg_to_rad(0.0F), deg_to_rad(0.0F)},
+    {LFE, 0.0F, 0.0F},
+    {BackLeft, deg_to_rad(-150.0F), deg_to_rad(0.0F)},
+    {BackRight, deg_to_rad(150.0F), deg_to_rad(0.0F)},
+    {SideLeft, deg_to_rad(-90.0F), deg_to_rad(0.0F)},
+    {SideRight, deg_to_rad(90.0F), deg_to_rad(0.0F)}
 };
 
 static void calc_panning_and_filters(
@@ -141,87 +191,92 @@ static void calc_panning_and_filters(
     const struct ALvoiceProps* props,
     const ALCdevice* device)
 {
-    struct ChanMap stereo_map[2] = {
-        { FrontLeft,  deg_to_rad(-30.0f), deg_to_rad(0.0f) },
-        { FrontRight, deg_to_rad( 30.0f), deg_to_rad(0.0f) }
+    ChannelMap stereo_map[2] = {
+        {FrontLeft, deg_to_rad(-30.0F), deg_to_rad(0.0F)},
+        {FrontRight, deg_to_rad(30.0F), deg_to_rad(0.0F)}
     };
 
-    bool DirectChannels = AL_FALSE;
-    const int NumSends = device->num_aux_sends;
-    const int Frequency = device->frequency;
-    const struct ChanMap *chans = NULL;
-    int num_channels = 0;
-    bool isbformat = false;
-    float downmix_gain = 1.0f;
-    int c, j;
+    const auto num_sends = device->num_aux_sends;
+    const auto frequency = device->frequency;
+    const ChannelMap* chans = nullptr;
+    auto num_channels = 0;
+    auto downmix_gain = 1.0F;
 
-    switch(device->fmt_chans)
+    switch (device->fmt_chans)
     {
     case FmtMono:
         chans = mono_map;
         num_channels = 1;
-        /* Mono buffers are never played direct. */
-        DirectChannels = false;
         break;
 
     case FmtStereo:
-        /* Convert counter-clockwise to clockwise. */
+        // Convert counter-clockwise to clockwise.
         stereo_map[0].angle = -props->stereo_pan[0];
         stereo_map[1].angle = -props->stereo_pan[1];
 
         chans = stereo_map;
         num_channels = 2;
-        downmix_gain = 1.0f / 2.0f;
+        downmix_gain = 1.0F / 2.0F;
         break;
     }
 
-    /* Non-HRTF rendering. Use normal panning to the output. */
-
+    // Non-HRTF rendering. Use normal panning to the output.
     {
-        float w0 = 0.0f;
-
-        for(c = 0;c < num_channels;c++)
+        for (int c = 0; c < num_channels; ++c)
         {
             float coeffs[max_ambi_coeffs];
 
-            /* Special-case LFE */
-            if(chans[c].channel == LFE)
+            // Special-case LFE
+            if (chans[c].channel == LFE)
             {
-                for(j = 0;j < max_output_channels;j++)
-                    voice->direct.params[c].gains.target[j] = 0.0f;
-                if(&device->dry.buffers == device->real_out.buffers)
+                for (int j = 0; j < max_output_channels; ++j)
                 {
-                    int idx = get_channel_index_by_name(device->real_out, chans[c].channel);
-                    if(idx != -1) voice->direct.params[c].gains.target[idx] = dry_gain;
+                    voice->direct.params[c].gains.target[j] = 0.0F;
                 }
 
-                if (NumSends > 0)
+                if (&device->dry.buffers == device->real_out.buffers)
                 {
-                    for(j = 0;j < max_effect_channels;j++)
-                        voice->send.params[c].gains.target[j] = 0.0f;
+                    const auto idx = get_channel_index_by_name(device->real_out, chans[c].channel);
+
+                    if (idx != -1)
+                    {
+                        voice->direct.params[c].gains.target[idx] = dry_gain;
+                    }
                 }
+
+                if (num_sends > 0)
+                {
+                    for (int j = 0; j < max_effect_channels; ++j)
+                    {
+                        voice->send.params[c].gains.target[j] = 0.0F;
+                    }
+                }
+
                 continue;
             }
 
             calc_angle_coeffs(chans[c].angle, chans[c].elevation, spread, coeffs);
-            compute_panning_gains(device->dry,
-                coeffs, dry_gain, voice->direct.params[c].gains.target
-            );
 
-            if (NumSends > 0)
+            compute_panning_gains(device->dry, coeffs, dry_gain, voice->direct.params[c].gains.target);
+
+            if (num_sends > 0)
             {
-                const ALeffectslot *Slot = send_slot;
-                if(Slot)
+                const auto slot = send_slot;
+
+                if (slot)
                 {
-                    compute_panning_gains_bf(Slot->chan_map, Slot->num_channels,
-                        coeffs, wet_gain[0], voice->send.params[c].gains.target
-                    );
+                    compute_panning_gains_bf(
+                        slot->chan_map,
+                        slot->num_channels,
+                        coeffs,
+                        wet_gain[0],
+                        voice->send.params[c].gains.target);
                 }
                 else
                 {
-                    for(j = 0;j < max_effect_channels;j++)
+                    for (int j = 0; j < max_effect_channels; ++j)
                     {
-                        voice->send.params[c].gains.target[j] = 0.0f;
+                        voice->send.params[c].gains.target[j] = 0.0F;
                     }
                 }
             }
@@ -229,74 +284,104 @@ static void calc_panning_and_filters(
     }
 
     {
-        float hfScale = props->direct.hf_reference / Frequency;
-        float lfScale = props->direct.lf_reference / Frequency;
-        float gainHF = std::max(dry_gain_hf, 0.001f); /* Limit -60dB */
-        float gainLF = std::max(dry_gain_lf, 0.001f);
+        const auto hf_scale = props->direct.hf_reference / frequency;
+        const auto lf_scale = props->direct.lf_reference / frequency;
+        const auto gain_hf = std::max(dry_gain_hf, 0.001F); // Limit -60dB
+        const auto gain_lf = std::max(dry_gain_lf, 0.001F);
 
-        voice->direct.filter_type = AF_None;
-        if(gainHF != 1.0f) voice->direct.filter_type = static_cast<ActiveFilters>(voice->direct.filter_type | AF_LowPass);
-        if(gainLF != 1.0f) voice->direct.filter_type = static_cast<ActiveFilters>(voice->direct.filter_type | AF_HighPass);
-        al_filter_state_set_params(
-            &voice->direct.params[0].low_pass, FilterType::high_shelf,
-            gainHF, hfScale, calc_rcp_q_from_slope(gainHF, 1.0f)
-        );
-        al_filter_state_set_params(
-            &voice->direct.params[0].high_pass, FilterType::low_shelf,
-            gainLF, lfScale, calc_rcp_q_from_slope(gainLF, 1.0f)
-        );
-        for(c = 1;c < num_channels;c++)
+        voice->direct.filter_type = ActiveFilters::none;
+
+        if (gain_hf != 1.0F)
         {
-            al_filter_state_copy_params(&voice->direct.params[c].low_pass,
-                                     &voice->direct.params[0].low_pass);
-            al_filter_state_copy_params(&voice->direct.params[c].high_pass,
-                                     &voice->direct.params[0].high_pass);
+            voice->direct.filter_type = static_cast<ActiveFilters>(
+                static_cast<int>(voice->direct.filter_type) | static_cast<int>(ActiveFilters::low_pass));
+        }
+
+        if (gain_lf != 1.0F)
+        {
+            voice->direct.filter_type = static_cast<ActiveFilters>(
+                static_cast<int>(voice->direct.filter_type) | static_cast<int>(ActiveFilters::high_pass));
+        }
+
+        al_filter_state_set_params(
+            &voice->direct.params[0].low_pass,
+            FilterType::high_shelf,
+            gain_hf,
+            hf_scale,
+            calc_rcp_q_from_slope(gain_hf, 1.0F));
+
+        al_filter_state_set_params(
+            &voice->direct.params[0].high_pass,
+            FilterType::low_shelf,
+            gain_lf,
+            lf_scale,
+            calc_rcp_q_from_slope(gain_lf, 1.0F));
+
+        for (int c = 1; c < num_channels; ++c)
+        {
+            al_filter_state_copy_params(&voice->direct.params[c].low_pass, &voice->direct.params[0].low_pass);
+            al_filter_state_copy_params(&voice->direct.params[c].high_pass, &voice->direct.params[0].high_pass);
         }
     }
-    if(NumSends > 0)
-    {
-        float hfScale = props->send.hf_reference / Frequency;
-        float lfScale = props->send.lf_reference / Frequency;
-        float gainHF = std::max(wet_gain_hf[0], 0.001f);
-        float gainLF = std::max(wet_gain_lf[0], 0.001f);
 
-        voice->send.filter_type = AF_None;
-        if(gainHF != 1.0f) voice->send.filter_type = static_cast<ActiveFilters>(voice->send.filter_type | AF_LowPass);
-        if(gainLF != 1.0f) voice->send.filter_type = static_cast<ActiveFilters>(voice->send.filter_type | AF_HighPass);
-        al_filter_state_set_params(
-            &voice->send.params[0].low_pass, FilterType::high_shelf,
-            gainHF, hfScale, calc_rcp_q_from_slope(gainHF, 1.0f)
-        );
-        al_filter_state_set_params(
-            &voice->send.params[0].high_pass, FilterType::low_shelf,
-            gainLF, lfScale, calc_rcp_q_from_slope(gainLF, 1.0f)
-        );
-        for(c = 1;c < num_channels;c++)
+    if (num_sends > 0)
+    {
+        const auto hf_scale = props->send.hf_reference / frequency;
+        const auto lf_scale = props->send.lf_reference / frequency;
+        const auto gain_hf = std::max(wet_gain_hf[0], 0.001F);
+        const auto gain_lf = std::max(wet_gain_lf[0], 0.001F);
+
+        voice->send.filter_type = ActiveFilters::none;
+
+        if (gain_hf != 1.0F)
         {
-            al_filter_state_copy_params(&voice->send.params[c].low_pass,
-                                     &voice->send.params[0].low_pass);
-            al_filter_state_copy_params(&voice->send.params[c].high_pass,
-                                     &voice->send.params[0].high_pass);
+            voice->send.filter_type = static_cast<ActiveFilters>(
+                static_cast<int>(voice->send.filter_type) | static_cast<int>(ActiveFilters::low_pass));
+        }
+
+        if (gain_lf != 1.0F)
+        {
+            voice->send.filter_type = static_cast<ActiveFilters>(
+                static_cast<int>(voice->send.filter_type) | static_cast<int>(ActiveFilters::high_pass));
+        }
+
+        al_filter_state_set_params(
+            &voice->send.params[0].low_pass,
+            FilterType::high_shelf,
+            gain_hf,
+            hf_scale,
+            calc_rcp_q_from_slope(gain_hf, 1.0F));
+
+        al_filter_state_set_params(
+            &voice->send.params[0].high_pass,
+            FilterType::low_shelf,
+            gain_lf,
+            lf_scale,
+            calc_rcp_q_from_slope(gain_lf, 1.0F));
+
+        for (int c = 1; c < num_channels; ++c)
+        {
+            al_filter_state_copy_params(&voice->send.params[c].low_pass, &voice->send.params[0].low_pass);
+            al_filter_state_copy_params(&voice->send.params[c].high_pass, &voice->send.params[0].high_pass);
         }
     }
 }
 
-static void calc_non_attn_source_params(ALvoice* voice, const struct ALvoiceProps* props, ALCdevice* device)
+static void calc_non_attn_source_params(
+    ALvoice* voice,
+    const ALvoiceProps* props,
+    ALCdevice* device)
 {
-    static const float dir[3] = { 0.0f, 0.0f, -1.0f };
-    float DryGain, DryGainHF, DryGainLF;
-    float WetGain[max_sends];
-    float WetGainHF[max_sends];
-    float WetGainLF[max_sends];
-    ALeffectslot* send_slot = nullptr;
-    int i;
-
     voice->direct.buffer = &device->dry.buffers;
     voice->direct.channels = device->dry.num_channels;
-    if(device->num_aux_sends > 0)
+
+    ALeffectslot* send_slot = nullptr;
+
+    if (device->num_aux_sends > 0)
     {
         send_slot = props->send.slot;
-        if(!send_slot || send_slot->params.effect_type == AL_EFFECT_NULL)
+
+        if (!send_slot || send_slot->params.effect_type == AL_EFFECT_NULL)
         {
             voice->send.buffer = nullptr;
             voice->send.channels = 0;
@@ -308,109 +393,134 @@ static void calc_non_attn_source_params(ALvoice* voice, const struct ALvoiceProp
         }
     }
 
-    /* Calculate gains */
-    DryGain  = 1.0F;
-    DryGain *= props->direct.gain;
-    DryGain  = std::min(DryGain, max_mix_gain);
-    DryGainHF = props->direct.gain_hf;
-    DryGainLF = props->direct.gain_lf;
-    for(i = 0;i < device->num_aux_sends;i++)
+    // Calculate gains
+    auto dry_gain = 1.0F;
+    dry_gain *= props->direct.gain;
+    dry_gain = std::min(dry_gain, max_mix_gain);
+
+    const auto dry_gain_hf = props->direct.gain_hf;
+    const auto dry_gain_lf = props->direct.gain_lf;
+
+    static const float dir[3] = {0.0F, 0.0F, -1.0F};
+
+    float wet_gain[max_sends];
+    float wet_gain_hf[max_sends];
+    float wet_gain_lf[max_sends];
+
+    for (int i = 0; i < device->num_aux_sends; ++i)
     {
-        WetGain[i]  = 1.0F;
-        WetGain[i] *= props->send.gain;
-        WetGain[i]  = std::min(WetGain[i], max_mix_gain);
-        WetGainHF[i] = props->send.gain_hf;
-        WetGainLF[i] = props->send.gain_lf;
+        wet_gain[i] = 1.0F;
+        wet_gain[i] *= props->send.gain;
+        wet_gain[i] = std::min(wet_gain[i], max_mix_gain);
+        wet_gain_hf[i] = props->send.gain_hf;
+        wet_gain_lf[i] = props->send.gain_lf;
     }
 
-    calc_panning_and_filters(voice, 0.0f, dir, 0.0f, DryGain, DryGainHF, DryGainLF, WetGain,
-                          WetGainLF, WetGainHF, send_slot, props, device);
+    calc_panning_and_filters(
+        voice,
+        0.0F,
+        dir,
+        0.0F,
+        dry_gain,
+        dry_gain_hf,
+        dry_gain_lf,
+        wet_gain,
+        wet_gain_lf,
+        wet_gain_hf,
+        send_slot,
+        props,
+        device);
 }
 
-static void calc_source_params(ALvoice* voice, ALCdevice* device, bool force)
-{
-    calc_non_attn_source_params(voice, &voice->props, device);
-}
-
-static void update_context_sources(ALCdevice* device)
+static void update_context_sources(
+    ALCdevice* device)
 {
     auto slot = device->effect_slot;
-    auto force = calc_effect_slot_params(slot, device);
     auto voice = device->voice;
     auto source = voice->source;
 
-    if(source)
+    calc_effect_slot_params(slot, device);
+
+    if (source)
     {
-        calc_source_params(voice, device, force);
+        calc_non_attn_source_params(voice, &voice->props, device);
     }
 }
 
-static void write_f32(const SampleBuffers* in_buffer, void *out_buffer,
-                     int offset, int samples_to_do, int num_chans)
+static void write_f32(
+    const SampleBuffers* in_buffer,
+    void* out_buffer,
+    const int offset,
+    const int samples_to_do,
+    const int num_chans)
 {
-    int i, j;
-    for(j = 0;j < num_chans;j++)
+    for (int j = 0; j < num_chans; ++j)
     {
-        const float *in = (*in_buffer)[j].data();
-        auto *out = (float*)out_buffer + offset*num_chans + j;
+        const auto in = (*in_buffer)[j].data();
+        auto out = static_cast<float*>(out_buffer) + (offset * num_chans) + j;
 
-        for(i = 0;i < samples_to_do;i++)
+        for (int i = 0; i < samples_to_do; ++i)
+        {
             out[i*num_chans] = in[i];
+        }
     }
 }
 
-void alu_mix_data(ALCdevice* device, void* out_buffer, int num_samples, const float* src_samples)
+void alu_mix_data(
+    ALCdevice* device,
+    void* out_buffer,
+    const int num_samples,
+    const float* src_samples)
 {
-    int SamplesToDo;
-    int SamplesDone;
-    int i, c;
-
     device->source_samples = src_samples;
 
-    for(SamplesDone = 0;SamplesDone < num_samples;)
+    for (int samples_done = 0; samples_done < num_samples; )
     {
-        SamplesToDo = std::min(num_samples-SamplesDone, max_sample_buffer_size);
+        const auto samples_to_do = std::min(num_samples - samples_done, max_sample_buffer_size);
 
-        for(c = 0;c < device->dry.num_channels;c++)
+        for (int c = 0; c < device->dry.num_channels; ++c)
         {
-            std::fill_n(device->dry.buffers[c].begin(), SamplesToDo, 0.0F);
+            std::fill_n(device->dry.buffers[c].begin(), samples_to_do, 0.0F);
         }
 
         update_context_sources(device);
 
         auto slot = device->effect_slot;
 
-        for(c = 0;c < slot->num_channels;c++)
+        for (int c = 0; c < slot->num_channels; ++c)
         {
-            std::fill_n(slot->wet_buffer[c].begin(), SamplesToDo, 0.0F);
+            std::fill_n(slot->wet_buffer[c].begin(), samples_to_do, 0.0F);
         }
 
-        /* source processing */
-        for(i = 0;i < device->voice_count;i++)
+        // source processing
+        for (int i = 0; i < device->voice_count; ++i)
         {
-            ALvoice *voice = device->voice;
-            ALsource *source = voice->source;
-            if(source && voice->playing)
+            auto voice = device->voice;
+            auto source = voice->source;
+
+            if (source && voice->playing)
             {
-                if(!mix_source(voice, source, device, SamplesToDo))
+                if (!mix_source(voice, source, device, samples_to_do))
                 {
-                    voice->source = NULL;
+                    voice->source = nullptr;
                     voice->playing = false;
                 }
             }
         }
 
-        /* effect slot processing */
-        IEffect *state = slot->params.effect_state;
-        state->process(SamplesToDo, slot->wet_buffer, *state->out_buffer, state->out_channels);
+        // effect slot processing
+        auto state = slot->params.effect_state;
 
-        if(out_buffer)
+        state->process(samples_to_do, slot->wet_buffer, *state->out_buffer, state->out_channels);
+
+        if (out_buffer)
         {
-            auto Buffer = device->real_out.buffers;
-            int Channels = device->real_out.num_channels;
-            write_f32(Buffer, out_buffer, SamplesDone, SamplesToDo, Channels);
+            auto buffer = device->real_out.buffers;
+            const auto channels = device->real_out.num_channels;
+
+            write_f32(buffer, out_buffer, samples_done, samples_to_do, channels);
         }
 
-        SamplesDone += SamplesToDo;
+        samples_done += samples_to_do;
     }
 }

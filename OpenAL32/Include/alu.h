@@ -22,33 +22,40 @@ struct aluMatrixf
 
 extern const aluMatrixf identity_matrix_f;
 
-inline void alu_matrix_f_set_row(aluMatrixf *matrix, int row,
-                             float m0, float m1, float m2, float m3)
+void alu_matrix_f_set_row(
+    aluMatrixf* matrix,
+    const int row,
+    const float m0,
+    const float m1,
+    const float m2,
+    const float m3);
+
+void alu_matrix_f_set(
+    aluMatrixf* matrix,
+    const float m00,
+    const float m01,
+    const float m02,
+    const float m03,
+    const float m10,
+    const float m11,
+    const float m12,
+    const float m13,
+    const float m20,
+    const float m21,
+    const float m22,
+    const float m23,
+    const float m30,
+    const float m31,
+    const float m32,
+    const float m33);
+
+enum class ActiveFilters
 {
-    matrix->m[row][0] = m0;
-    matrix->m[row][1] = m1;
-    matrix->m[row][2] = m2;
-    matrix->m[row][3] = m3;
-}
-
-inline void alu_matrix_f_set(aluMatrixf *matrix, float m00, float m01, float m02, float m03,
-                                              float m10, float m11, float m12, float m13,
-                                              float m20, float m21, float m22, float m23,
-                                              float m30, float m31, float m32, float m33)
-{
-    alu_matrix_f_set_row(matrix, 0, m00, m01, m02, m03);
-    alu_matrix_f_set_row(matrix, 1, m10, m11, m12, m13);
-    alu_matrix_f_set_row(matrix, 2, m20, m21, m22, m23);
-    alu_matrix_f_set_row(matrix, 3, m30, m31, m32, m33);
-}
-
-
-enum ActiveFilters {
-    AF_None = 0,
-    AF_LowPass = 1,
-    AF_HighPass = 2,
-    AF_BandPass = AF_LowPass | AF_HighPass
-};
+    none = 0,
+    low_pass = 1,
+    high_pass = 2,
+    band_pass = low_pass | high_pass
+}; // ActiveFilters
 
 
 struct ParamsBase
@@ -136,7 +143,9 @@ struct ALvoice
     Send send;
 }; // ALvoice
 
-void deinit_voice(ALvoice* voice);
+
+void deinit_voice(
+    ALvoice* voice);
 
 
 using MixerFunc = void (*)(
@@ -177,55 +186,47 @@ inline T clamp(
     return std::min(max_value, std::max(min_value, value));
 }
 
-inline float lerp(
+float lerp(
     const float val1,
     const float val2,
-    const float mu)
-{
-    return val1 + ((val2 - val1) * mu);
-}
+    const float mu);
 
 
-/* aluInitRenderer
- *
- * Set up the appropriate panning method and mixing method given the device
- * properties.
- */
-void alu_init_renderer(ALCdevice* device);
+// Set up the appropriate panning method and mixing method given the device
+// properties.
+void alu_init_renderer(
+    ALCdevice* device);
 
-void alu_init_effect_panning(struct ALeffectslot* slot);
+void alu_init_effect_panning(
+    ALeffectslot* slot);
 
-/**
- * CalcDirectionCoeffs
- *
- * Calculates ambisonic coefficients based on a direction vector. The vector
- * must be normalized (unit length), and the spread is the angular width of the
- * sound (0...tau).
- */
-void calc_direction_coeffs(const float dir[3], float spread, float coeffs[max_ambi_coeffs]);
+// Calculates ambisonic coefficients based on a direction vector. The vector
+// must be normalized (unit length), and the spread is the angular width of the
+// sound (0...tau).
+void calc_direction_coeffs(
+    const float dir[3],
+    float spread,
+    float coeffs[max_ambi_coeffs]);
 
-/**
- * CalcAngleCoeffs
- *
- * Calculates ambisonic coefficients based on azimuth and elevation. The
- * azimuth and elevation parameters are in radians, going right and up
- * respectively.
- */
-inline void calc_angle_coeffs(float azimuth, float elevation, float spread, float coeffs[max_ambi_coeffs])
+// Calculates ambisonic coefficients based on azimuth and elevation. The
+// azimuth and elevation parameters are in radians, going right and up
+// respectively.
+inline void calc_angle_coeffs(
+    float azimuth,
+    float elevation,
+    float spread,
+    float coeffs[max_ambi_coeffs])
 {
     float dir[3] = {
         std::sin(azimuth) * std::cos(elevation),
         std::sin(elevation),
         -std::cos(azimuth) * std::cos(elevation)
     };
+
     calc_direction_coeffs(dir, spread, coeffs);
 }
 
-/**
- * ComputeAmbientGains
- *
- * Computes channel gains for ambient, omni-directional sounds.
- */
+// Computes channel gains for ambient, omni-directional sounds.
 template<typename T>
 void compute_ambient_gains(
     const T& b,
@@ -242,15 +243,20 @@ void compute_ambient_gains(
     }
 }
 
-void compute_ambient_gains_mc(const ChannelConfig *chancoeffs, int numchans, float ingain, float gains[max_output_channels]);
-void compute_ambient_gains_bf(const BFChannelConfig *chanmap, int numchans, float ingain, float gains[max_output_channels]);
+void compute_ambient_gains_mc(
+    const ChannelConfig* chancoeffs,
+    int numchans,
+    float ingain,
+    float gains[max_output_channels]);
 
-/**
- * ComputePanningGains
- *
- * Computes panning gains using the given channel decoder coefficients and the
- * pre-calculated direction or angle coefficients.
- */
+void compute_ambient_gains_bf(
+    const BFChannelConfig* chanmap,
+    int numchans,
+    float ingain,
+    float gains[max_output_channels]);
+
+// Computes panning gains using the given channel decoder coefficients and the
+// pre-calculated direction or angle coefficients.
 template<typename T>
 void compute_panning_gains(
     const T& b,
@@ -283,13 +289,9 @@ void compute_panning_gains_bf(
     float in_gain,
     float gains[max_output_channels]);
 
-/**
- * ComputeFirstOrderGains
- *
- * Sets channel gains for a first-order ambisonics input channel. The matrix is
- * a 1x4 'slice' of a transform matrix for the input channel, used to scale and
- * orient the sound samples.
- */
+// Sets channel gains for a first-order ambisonics input channel. The matrix is
+// a 1x4 'slice' of a transform matrix for the input channel, used to scale and
+// orient the sound samples.
 template<typename T>
 void compute_first_order_gains(
     const T& b,
@@ -321,10 +323,17 @@ void compute_first_order_gains_bf(
     float in_gain,
     float gains[max_output_channels]);
 
+bool mix_source(
+    ALvoice* voice,
+    ALsource* source,
+    ALCdevice* device,
+    int samples_to_do);
 
-bool mix_source(struct ALvoice* voice, struct ALsource* source, ALCdevice* device, int samples_to_do);
-
-void alu_mix_data(ALCdevice* device, void* out_buffer, int num_samples, const float* src_samples);
+void alu_mix_data(
+    ALCdevice* device,
+    void* out_buffer,
+    const int num_samples,
+    const float* src_samples);
 
 
 #endif
