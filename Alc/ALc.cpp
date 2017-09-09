@@ -23,8 +23,8 @@
 #include "alSource.h"
 
 
-void init_source_params(ALsource* source, int num_sends);
-void deinit_source(ALsource* source, int num_sends);
+void init_source_params(ALsource* source, const int num_sends);
+void deinit_source(ALsource* source, const int num_sends);
 
 
 /************************************************

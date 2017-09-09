@@ -53,6 +53,8 @@ struct FilterState
     // Transfer function coefficients "a" (a0 is pre-applied)
     float a1;
     float a2;
+
+    void reset();
 }; // FilterState
 
 

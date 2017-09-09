@@ -24,7 +24,7 @@ void init_effect_params(
 void update_source_props(
     ALsource* source,
     ALvoice* voice,
-    int num_sends);
+    const int num_sends);
 
 void alu_mix_data(
     ALCdevice* device,

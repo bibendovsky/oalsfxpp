@@ -23,6 +23,23 @@
 #include "alFilter.h"
 
 
+void FilterState::reset()
+{
+    x[0] = 0.0F;
+    x[1] = 0.0F;
+
+    y[0] = 0.0F;
+    y[1] = 0.0F;
+
+    b0 = 0.0F;
+    b1 = 0.0F;
+    b2 = 0.0F;
+
+    a1 = 0.0F;
+    a2 = 0.0F;
+}
+
+
 void al_filter_state_clear(
     FilterState* filter)
 {

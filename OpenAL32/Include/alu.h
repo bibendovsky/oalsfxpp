@@ -51,33 +51,27 @@ enum ActiveFilters {
 };
 
 
-struct DirectParams
+struct ParamsBase
 {
     struct Gains
     {
         float current[max_output_channels];
         float target[max_output_channels];
+
+        void reset();
     }; // Gains
 
 
     FilterState low_pass;
     FilterState high_pass;
     Gains gains;
-}; // DirectParams
 
-struct SendParams
-{
-    struct Gains
-    {
-        float current[max_output_channels];
-        float target[max_output_channels];
-    }; // Gains
+    void reset();
+}; // ParamsBase
 
 
-    FilterState low_pass;
-    FilterState high_pass;
-    Gains gains;
-}; // SendParams
+using DirectParams = ParamsBase;
+using SendParams = ParamsBase;
 
 
 struct ALvoiceProps

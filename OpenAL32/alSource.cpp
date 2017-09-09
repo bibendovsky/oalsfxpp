@@ -18,228 +18,37 @@
  * Or go to http://www.gnu.org/copyleft/lgpl.html
  */
 
+
 #include "config.h"
 #include "AL/al.h"
 #include "alSource.h"
 
 
-void init_source_params(ALsource* source, int num_sends);
-void deinit_source(ALsource *source, int num_sends);
-void update_source_props(ALsource* source, ALvoice* voice, int num_sends);
-
-enum SourceProp
+// Returns an updated source state using the matching voice's status (or lack
+// thereof).
+static int get_source_state(
+    ALsource* source,
+    ALvoice* voice)
 {
-    srcPitch = AL_PITCH,
-    srcGain = AL_GAIN,
-    srcMinGain = AL_MIN_GAIN,
-    srcMaxGain = AL_MAX_GAIN,
-    srcMaxDistance = AL_MAX_DISTANCE,
-    srcRolloffFactor = AL_ROLLOFF_FACTOR,
-    srcDopplerFactor = AL_DOPPLER_FACTOR,
-    srcConeOuterGain = AL_CONE_OUTER_GAIN,
-    srcSecOffset = AL_SEC_OFFSET,
-    srcSampleOffset = AL_SAMPLE_OFFSET,
-    srcByteOffset = AL_BYTE_OFFSET,
-    srcConeInnerAngle = AL_CONE_INNER_ANGLE,
-    srcConeOuterAngle = AL_CONE_OUTER_ANGLE,
-    srcRefDistance = AL_REFERENCE_DISTANCE,
-
-    srcPosition = AL_POSITION,
-    srcVelocity = AL_VELOCITY,
-    srcDirection = AL_DIRECTION,
-
-    srcSourceRelative = AL_SOURCE_RELATIVE,
-    srcLooping = AL_LOOPING,
-    srcBuffer = AL_BUFFER,
-    srcSourceState = AL_SOURCE_STATE,
-    srcBuffersQueued = AL_BUFFERS_QUEUED,
-    srcBuffersProcessed = AL_BUFFERS_PROCESSED,
-    srcSourceType = AL_SOURCE_TYPE,
-
-    /* ALC_EXT_EFX */
-    srcConeOuterGainHF = AL_CONE_OUTER_GAINHF,
-    srcAirAbsorptionFactor = AL_AIR_ABSORPTION_FACTOR,
-    srcRoomRolloffFactor =  AL_ROOM_ROLLOFF_FACTOR,
-    srcDirectFilterGainHFAuto = AL_DIRECT_FILTER_GAINHF_AUTO,
-    srcAuxSendFilterGainAuto = AL_AUXILIARY_SEND_FILTER_GAIN_AUTO,
-    srcAuxSendFilterGainHFAuto = AL_AUXILIARY_SEND_FILTER_GAINHF_AUTO,
-    srcDirectFilter = AL_DIRECT_FILTER,
-    srcAuxSendFilter = AL_AUXILIARY_SEND_FILTER,
-
-    /* AL_SOFT_direct_channels */
-    srcDirectChannelsSOFT = AL_DIRECT_CHANNELS_SOFT,
-
-    /* AL_EXT_source_distance_model */
-    srcDistanceModel = AL_DISTANCE_MODEL,
-
-    srcByteLengthSOFT = AL_BYTE_LENGTH_SOFT,
-    srcSampleLengthSOFT = AL_SAMPLE_LENGTH_SOFT,
-    srcSecLengthSOFT = AL_SEC_LENGTH_SOFT,
-
-    /* AL_SOFT_source_latency */
-    srcSampleOffsetLatencySOFT = AL_SAMPLE_OFFSET_LATENCY_SOFT,
-    srcSecOffsetLatencySOFT = AL_SEC_OFFSET_LATENCY_SOFT,
-
-    /* AL_EXT_STEREO_ANGLES */
-    srcAngles = AL_STEREO_ANGLES,
-
-    /* AL_EXT_SOURCE_RADIUS */
-    srcRadius = AL_SOURCE_RADIUS,
-
-    /* AL_EXT_BFORMAT */
-    srcOrientation = AL_ORIENTATION,
-
-    /* AL_SOFT_source_resampler */
-    srcResampler = AL_SOURCE_RESAMPLER_SOFT,
-
-    /* AL_SOFT_source_spatialize */
-    srcSpatialize = AL_SOURCE_SPATIALIZE_SOFT,
-}; // SourceProp
-
-/**
- * Returns an updated source state using the matching voice's status (or lack
- * thereof).
- */
-static inline int get_source_state(ALsource* source, ALvoice* voice)
-{
-    if(!voice)
+    if (!voice)
     {
         int state = AL_PLAYING;
-        if(source->state == state ? (source->state = AL_STOPPED, true) : (state = source->state, false))
+
+        if (source->state == state ? (source->state = AL_STOPPED, true) : (state = source->state, false))
+        {
             return AL_STOPPED;
-        return state; 
+        }
+
+        return state;
     }
+
     return source->state;
 }
 
-AL_API void AL_APIENTRY alSourcePlay(ALuint source)
-{
-    alSourcePlayv(1, &source);
-}
-AL_API void AL_APIENTRY alSourcePlayv(int n, const ALuint *sources)
-{
-    ALCdevice *device;
-    ALsource *source;
-    ALvoice *voice;
-    int i, j;
-
-    device = g_device;
-
-    if(!(n == 1))
-        return;
-
-    for(i = 0;i < n;i++)
-    {
-        bool start_fading = false;
-
-        source = device->source;
-        voice = device->voice;
-
-        switch(get_source_state(source, voice))
-        {
-            case AL_PLAYING:
-                assert(voice != NULL);
-                /* A source that's already playing is restarted from the beginning. */
-                return;
-
-            case AL_PAUSED:
-                assert(voice != NULL);
-                /* A source that's paused simply resumes. */
-                voice->playing = true;
-                source->state = AL_PLAYING;
-                return;
-
-            default:
-                break;
-        }
-
-        /* Make sure this source isn't already active, and if not, look for an
-         * unused voice to put it in.
-         */
-        for(j = 0;j < device->voice_count;j++)
-        {
-            if(device->voice->source == NULL)
-            {
-                voice = device->voice;
-                break;
-            }
-        }
-        voice->playing = false;
-
-        update_source_props(source, voice, device->num_aux_sends);
-
-        voice->num_channels = device->dry.num_channels;
-
-        memset(voice->direct.params, 0, sizeof(voice->direct.params[0])*voice->num_channels);
-
-        if(device->num_aux_sends > 0)
-        {
-            memset(voice->send.params, 0, sizeof(SendParams)*voice->num_channels);
-        }
-
-        voice->source = source;
-        voice->playing = true;
-        source->state = AL_PLAYING;
-    }
-}
-
-
-AL_API void AL_APIENTRY alSourceStop(ALuint source)
-{
-    alSourceStopv(1, &source);
-}
-AL_API void AL_APIENTRY alSourceStopv(int n, const ALuint *sources)
-{
-    ALCdevice *device;
-    ALsource *source;
-    ALvoice *voice;
-    int i;
-
-    if(!(n == 1))
-        return;
-
-    device = g_device;
-
-    for(i = 0;i < n;i++)
-    {
-        source = device->source;
-        if((voice=device->voice) != NULL)
-        {
-            voice->source = NULL;
-            voice->playing = false;
-        }
-        if(source->state != AL_INITIAL)
-            source->state = AL_STOPPED;
-    }
-}
-
-void init_source_params(ALsource* source, int num_sends)
-{
-    source->direct.gain = 1.0f;
-    source->direct.gain_hf = 1.0f;
-    source->direct.hf_reference = lp_frequency_reference;
-    source->direct.gain_lf = 1.0f;
-    source->direct.lf_reference = hp_frequency_reference;
-    source->send = std::make_unique<ALsource::Send>();
-    source->send->slot = nullptr;
-    source->send->gain = 1.0f;
-    source->send->gain_hf = 1.0f;
-    source->send->hf_reference = lp_frequency_reference;
-    source->send->gain_lf = 1.0f;
-    source->send->lf_reference = hp_frequency_reference;
-    source->state = AL_INITIAL;
-}
-
-void deinit_source(ALsource* source, int num_sends)
-{
-    if (source->send)
-    {
-        source->send->slot = nullptr;
-        source->send = nullptr;
-    }
-}
-
-void update_source_props(ALsource* source, ALvoice* voice, int num_sends)
+void update_source_props(
+    ALsource* source,
+    ALvoice* voice,
+    const int num_sends)
 {
     // Get an unused property container, or allocate a new one as needed.
     auto& props = voice->props;
@@ -262,16 +71,153 @@ void update_source_props(ALsource* source, ALvoice* voice, int num_sends)
     }
 }
 
-void update_all_source_props(ALCdevice* device)
+AL_API void AL_APIENTRY alSourcePlay(
+    ALuint source)
+{
+    alSourcePlayv(1, &source);
+}
+
+AL_API void AL_APIENTRY alSourcePlayv(
+    int n,
+    const ALuint* sources)
+{
+    assert(n == 1);
+
+    ALsource* source;
+    ALvoice* voice;
+
+    auto device = g_device;
+
+    bool start_fading = false;
+
+    source = device->source;
+    voice = device->voice;
+
+    switch (get_source_state(source, voice))
+    {
+        case AL_PLAYING:
+            assert(voice != nullptr);
+            // A source that's already playing is restarted from the beginning.
+            return;
+
+        case AL_PAUSED:
+            assert(voice != nullptr);
+
+            // A source that's paused simply resumes.
+            voice->playing = true;
+            source->state = AL_PLAYING;
+            return;
+
+        default:
+            break;
+    }
+
+    // Make sure this source isn't already active, and if not, look for an
+    // unused voice to put it in.
+    for (int j = 0; j < device->voice_count; ++j)
+    {
+        if (!device->voice->source)
+        {
+            voice = device->voice;
+            break;
+        }
+    }
+
+    voice->playing = false;
+
+    update_source_props(source, voice, device->num_aux_sends);
+
+    voice->num_channels = device->dry.num_channels;
+
+    for (int i = 0; i < voice->num_channels; ++i)
+    {
+        voice->direct.params[i].reset();
+    }
+
+    if (device->num_aux_sends > 0)
+    {
+        for (int i = 0; i < voice->num_channels; ++i)
+        {
+            voice->send.params[i].reset();
+        }
+    }
+
+    voice->source = source;
+    voice->playing = true;
+    source->state = AL_PLAYING;
+}
+
+AL_API void AL_APIENTRY alSourceStop(
+    ALuint source)
+{
+    alSourceStopv(1, &source);
+}
+
+AL_API void AL_APIENTRY alSourceStopv(
+    int n,
+    const ALuint* sources)
+{
+    assert(n == 1);
+
+    auto device = g_device;
+    auto source = device->source;
+    auto voice = device->voice;
+
+    if (voice)
+    {
+        voice->source = nullptr;
+        voice->playing = false;
+    }
+
+    if (source->state != AL_INITIAL)
+    {
+        source->state = AL_STOPPED;
+    }
+}
+
+void init_source_params(
+    ALsource* source,
+    const int num_sends)
+{
+    source->direct.gain = 1.0F;
+    source->direct.gain_hf = 1.0F;
+    source->direct.hf_reference = lp_frequency_reference;
+    source->direct.gain_lf = 1.0F;
+    source->direct.lf_reference = hp_frequency_reference;
+    source->send = std::make_unique<ALsource::Send>();
+    source->send->slot = nullptr;
+    source->send->gain = 1.0F;
+    source->send->gain_hf = 1.0F;
+    source->send->hf_reference = lp_frequency_reference;
+    source->send->gain_lf = 1.0F;
+    source->send->lf_reference = hp_frequency_reference;
+    source->state = AL_INITIAL;
+}
+
+void deinit_source(
+    ALsource* source,
+    const int num_sends)
+{
+    if (source->send)
+    {
+        source->send->slot = nullptr;
+        source->send = nullptr;
+    }
+}
+
+void update_all_source_props(
+    ALCdevice* device)
 {
     int num_sends = device->num_aux_sends;
-    int pos;
 
-    for(pos = 0;pos < device->voice_count;pos++)
+    for (int pos = 0; pos < device->voice_count; ++pos)
     {
-        ALvoice *voice = device->voice;
-        ALsource *source = voice->source;
-        if(source)
+        auto source = device->source;
+
+        if (source)
+        {
+            auto voice = device->voice;
             update_source_props(source, voice, num_sends);
+        }
     }
 }

@@ -49,6 +49,19 @@ const aluMatrixf identity_matrix_f = {{
 }};
 
 
+void ParamsBase::Gains::reset()
+{
+    std::uninitialized_fill_n(current, max_output_channels, 0.0F);
+    std::uninitialized_fill_n(target, max_output_channels, 0.0F);
+}
+
+void ParamsBase::reset()
+{
+    low_pass.reset();
+    high_pass.reset();
+    gains.reset();
+}
+
 void deinit_voice(ALvoice* voice)
 {
 }
