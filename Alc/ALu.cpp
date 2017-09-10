@@ -371,7 +371,7 @@ static void calc_non_attn_source_params(
     {
         send_slot = props->send.slot;
 
-        if (!send_slot || send_slot->effect_.type_ == AL_EFFECT_NULL)
+        if (!send_slot || send_slot->effect_.type_ == EffectType::null)
         {
             voice->send.buffer = nullptr;
             voice->send.channels = 0;

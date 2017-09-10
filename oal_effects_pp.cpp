@@ -144,7 +144,7 @@ int main()
 #if 1
     if (is_succeed)
     {
-        oal_device->effect->initialize(AL_EFFECT_EAXREVERB);
+        oal_device->effect->initialize(EffectType::eax_reverb);
 
         EFXEAXREVERBPROPERTIES props = EFX_REVERB_PRESET_BATHROOM;
         auto oal_props = &oal_device->effect->props_;

@@ -132,8 +132,7 @@ union EffectProps
 
 struct Effect
 {
-    // Effect type (AL_EFFECT_NULL, ...)
-    int type_;
+    EffectType type_;
 
     EffectProps props_;
 
@@ -141,7 +140,7 @@ struct Effect
     Effect();
 
     void initialize(
-        const int type = AL_EFFECT_NULL);
+        const EffectType type = EffectType::null);
 }; // Effect
 
 
@@ -219,7 +218,7 @@ class EffectStateFactory
 {
 public:
     static EffectState* create_by_type(
-        const int type);
+        const EffectType type);
 
 
 private:

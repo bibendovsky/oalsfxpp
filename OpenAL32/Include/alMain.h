@@ -14,6 +14,23 @@
 #include "AL/alext.h"
 
 
+enum class EffectType
+{
+    null,
+    chorus,
+    compressor,
+    dedicated_dialog,
+    dedicated_low_frequency,
+    distortion,
+    echo,
+    equalizer,
+    flanger,
+    ring_modulator,
+    reverb,
+    eax_reverb,
+}; // EffectType
+
+
 template<typename T>
 constexpr int count_of(const T&)
 {

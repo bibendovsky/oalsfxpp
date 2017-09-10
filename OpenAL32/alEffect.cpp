@@ -28,17 +28,17 @@
 
 Effect::Effect()
     :
-    type_{AL_EFFECT_NULL},
+    type_{},
     props_{}
 {
 }
 
 void Effect::initialize(
-    const int type)
+    const EffectType type)
 {
     switch (type)
     {
-    case AL_EFFECT_EAXREVERB:
+    case EffectType::eax_reverb:
         props_.reverb.density = AL_EAXREVERB_DEFAULT_DENSITY;
         props_.reverb.diffusion = AL_EAXREVERB_DEFAULT_DIFFUSION;
         props_.reverb.gain = AL_EAXREVERB_DEFAULT_GAIN;
@@ -68,7 +68,7 @@ void Effect::initialize(
         props_.reverb.decay_hf_limit = AL_EAXREVERB_DEFAULT_DECAY_HFLIMIT;
         break;
 
-    case AL_EFFECT_REVERB:
+    case EffectType::reverb:
         props_.reverb.density = AL_REVERB_DEFAULT_DENSITY;
         props_.reverb.diffusion = AL_REVERB_DEFAULT_DIFFUSION;
         props_.reverb.gain = AL_REVERB_DEFAULT_GAIN;
@@ -98,7 +98,7 @@ void Effect::initialize(
         props_.reverb.decay_hf_limit = AL_REVERB_DEFAULT_DECAY_HFLIMIT;
         break;
 
-    case AL_EFFECT_CHORUS:
+    case EffectType::chorus:
         props_.chorus.waveform = AL_CHORUS_DEFAULT_WAVEFORM;
         props_.chorus.phase = AL_CHORUS_DEFAULT_PHASE;
         props_.chorus.rate = AL_CHORUS_DEFAULT_RATE;
@@ -107,11 +107,11 @@ void Effect::initialize(
         props_.chorus.delay = AL_CHORUS_DEFAULT_DELAY;
         break;
 
-    case AL_EFFECT_COMPRESSOR:
+    case EffectType::compressor:
         props_.compressor.on_off = AL_COMPRESSOR_DEFAULT_ONOFF;
         break;
 
-    case AL_EFFECT_DISTORTION:
+    case EffectType::distortion:
         props_.distortion.edge = AL_DISTORTION_DEFAULT_EDGE;
         props_.distortion.gain = AL_DISTORTION_DEFAULT_GAIN;
         props_.distortion.lowpass_cutoff = AL_DISTORTION_DEFAULT_LOWPASS_CUTOFF;
@@ -119,7 +119,7 @@ void Effect::initialize(
         props_.distortion.eq_bandwidth = AL_DISTORTION_DEFAULT_EQBANDWIDTH;
         break;
 
-    case AL_EFFECT_ECHO:
+    case EffectType::echo:
         props_.echo.delay = AL_ECHO_DEFAULT_DELAY;
         props_.echo.lr_delay = AL_ECHO_DEFAULT_LRDELAY;
         props_.echo.damping = AL_ECHO_DEFAULT_DAMPING;
@@ -127,7 +127,7 @@ void Effect::initialize(
         props_.echo.spread = AL_ECHO_DEFAULT_SPREAD;
         break;
 
-    case AL_EFFECT_EQUALIZER:
+    case EffectType::equalizer:
         props_.equalizer.low_cutoff = AL_EQUALIZER_DEFAULT_LOW_CUTOFF;
         props_.equalizer.low_gain = AL_EQUALIZER_DEFAULT_LOW_GAIN;
         props_.equalizer.mid1_center = AL_EQUALIZER_DEFAULT_MID1_CENTER;
@@ -140,7 +140,7 @@ void Effect::initialize(
         props_.equalizer.high_gain = AL_EQUALIZER_DEFAULT_HIGH_GAIN;
         break;
 
-    case AL_EFFECT_FLANGER:
+    case EffectType::flanger:
         props_.flanger.waveform = AL_FLANGER_DEFAULT_WAVEFORM;
         props_.flanger.phase = AL_FLANGER_DEFAULT_PHASE;
         props_.flanger.rate = AL_FLANGER_DEFAULT_RATE;
@@ -149,14 +149,14 @@ void Effect::initialize(
         props_.flanger.delay = AL_FLANGER_DEFAULT_DELAY;
         break;
 
-    case AL_EFFECT_RING_MODULATOR:
+    case EffectType::ring_modulator:
         props_.modulator.frequency = AL_RING_MODULATOR_DEFAULT_FREQUENCY;
         props_.modulator.high_pass_cutoff = AL_RING_MODULATOR_DEFAULT_HIGHPASS_CUTOFF;
         props_.modulator.waveform = AL_RING_MODULATOR_DEFAULT_WAVEFORM;
         break;
 
-    case AL_EFFECT_DEDICATED_LOW_FREQUENCY_EFFECT:
-    case AL_EFFECT_DEDICATED_DIALOGUE:
+    case EffectType::dedicated_dialog:
+    case EffectType::dedicated_low_frequency:
         props_.dedicated.gain = 1.0F;
         break;
 
@@ -258,44 +258,42 @@ void EffectStateDeleter::operator()(
 // EffectStateFactory
 
 EffectState* EffectStateFactory::create_by_type(
-    const int type)
+    const EffectType type)
 {
     switch (type)
     {
-    case AL_EFFECT_NULL:
+    case EffectType::null:
         return create_null();
 
-    case AL_EFFECT_EAXREVERB:
+    case EffectType::eax_reverb:
         return create_reverb();
 
-    case AL_EFFECT_REVERB:
+    case EffectType::reverb:
         return create_reverb();
 
-    case AL_EFFECT_CHORUS:
+    case EffectType::chorus:
         return create_chorus();
 
-    case AL_EFFECT_COMPRESSOR:
+    case EffectType::compressor:
         return create_compressor();
 
-    case AL_EFFECT_DISTORTION:
+    case EffectType::distortion:
         return create_distortion();
 
-    case AL_EFFECT_ECHO:
+    case EffectType::echo:
         return create_echo();
 
-    case AL_EFFECT_EQUALIZER:
+    case EffectType::equalizer:
         return create_equalizer();
 
-    case AL_EFFECT_FLANGER:
+    case EffectType::flanger:
         return create_flanger();
 
-    case AL_EFFECT_RING_MODULATOR:
+    case EffectType::ring_modulator:
         return create_modulator();
 
-    case AL_EFFECT_DEDICATED_DIALOGUE:
-        return create_dedicated();
-
-    case AL_EFFECT_DEDICATED_LOW_FREQUENCY_EFFECT:
+    case EffectType::dedicated_dialog:
+    case EffectType::dedicated_low_frequency:
         return create_dedicated();
 
     default:

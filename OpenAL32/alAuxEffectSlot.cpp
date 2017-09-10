@@ -44,8 +44,8 @@ void EffectSlot::initialize()
 {
     uninitialize();
 
-    effect_.type_ = AL_EFFECT_NULL;
-    effect_state_.reset(EffectStateFactory::create_by_type(AL_EFFECT_NULL));
+    effect_.type_ = EffectType::null;
+    effect_state_.reset(EffectStateFactory::create_by_type(EffectType::null));
     is_props_updated_ = true;
 }
 

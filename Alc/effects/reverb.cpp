@@ -186,11 +186,11 @@ protected:
         const EffectSlot* slot,
         const EffectProps* props) final
     {
-        if (slot->effect_.type_ == AL_EFFECT_EAXREVERB)
+        if (slot->effect_.type_ == EffectType::eax_reverb)
         {
             is_eax_ = true;
         }
-        else if (slot->effect_.type_ == AL_EFFECT_REVERB)
+        else if (slot->effect_.type_ == EffectType::reverb)
         {
             is_eax_ = false;
         }
