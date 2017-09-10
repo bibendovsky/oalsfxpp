@@ -23,21 +23,14 @@
 #include "alAuxEffectSlot.h"
 
 
-EffectSlot::Effect::Effect()
-    :
-    type{AL_EFFECT_NULL},
-    props{},
-    state{}
-{
-}
-
 EffectSlot::EffectSlot()
     :
-    effect{},
-    is_props_updated{},
-    channel_count{},
-    channel_map{},
-    wet_buffer{SampleBuffers::size_type{max_effect_channels}}
+    effect_{},
+    effect_state_{},
+    is_props_updated_{},
+    channel_count_{},
+    channel_map_{},
+    wet_buffer_{SampleBuffers::size_type{max_effect_channels}}
 {
     initialize();
 }
@@ -51,36 +44,36 @@ void EffectSlot::initialize()
 {
     uninitialize();
 
-    effect.type = AL_EFFECT_NULL;
-    effect.state = EffectStateFactory::create_by_type(AL_EFFECT_NULL);
-    is_props_updated = true;
+    effect_.type_ = AL_EFFECT_NULL;
+    effect_state_ = EffectStateFactory::create_by_type(AL_EFFECT_NULL);
+    is_props_updated_ = true;
 }
 
 void EffectSlot::uninitialize()
 {
-    EffectState::destroy(effect.state);
+    EffectState::destroy(effect_state_);
 }
 
 void EffectSlot::initialize_effect(
     ALCdevice* device)
 {
-    if (effect.type != device->effect->type_)
+    if (effect_.type_ != device->effect->type_)
     {
         auto state = EffectStateFactory::create_by_type(device->effect->type_);
         state->out_buffer = &device->dry.buffers;
         state->out_channels = device->dry.num_channels;
         state->update_device(device);
 
-        effect.type = device->effect->type_;
-        effect.props = device->effect->props_;
+        effect_.type_ = device->effect->type_;
+        effect_.props_ = device->effect->props_;
 
-        EffectState::destroy(effect.state);
-        effect.state = state;
+        EffectState::destroy(effect_state_);
+        effect_state_ = state;
     }
     else
     {
-        effect.props = device->effect->props_;
+        effect_.props_ = device->effect->props_;
     }
 
-    is_props_updated = true;
+    is_props_updated_ = true;
 }

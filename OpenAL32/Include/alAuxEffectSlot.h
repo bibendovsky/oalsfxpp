@@ -11,22 +11,12 @@ constexpr auto max_effect_channels = 4;
 
 struct EffectSlot
 {
-    struct Effect
-    {
-        int type;
-        EffectProps props;
-        EffectState* state;
+    Effect effect_;
+    EffectState* effect_state_;
+    bool is_props_updated_;
 
-
-        Effect();
-    }; // Effect
-
-
-    Effect effect;
-    bool is_props_updated;
-
-    int channel_count;
-    BFChannelConfig channel_map[max_effect_channels];
+    int channel_count_;
+    BFChannelConfig channel_map_[max_effect_channels];
 
     // Wet buffer configuration is ACN channel order with N3D scaling:
     // * Channel 0 is the unattenuated mono signal.
@@ -37,7 +27,7 @@ struct EffectSlot
     // channel 0 by itself. Effects that want multichannel can process the
     // ambisonics signal and make a B-Format pan (ComputeFirstOrderGains) for
     // first-order device output (FOAOut).
-    SampleBuffers wet_buffer;
+    SampleBuffers wet_buffer_;
 
 
     EffectSlot();

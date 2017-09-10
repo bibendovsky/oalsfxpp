@@ -66,7 +66,7 @@ protected:
 
         const auto gain = props->dedicated.gain;
 
-        if (slot->effect.type == AL_EFFECT_DEDICATED_LOW_FREQUENCY_EFFECT)
+        if (slot->effect_.type_ == AL_EFFECT_DEDICATED_LOW_FREQUENCY_EFFECT)
         {
             const auto idx = get_channel_index_by_name(device->real_out, LFE);
 
@@ -77,7 +77,7 @@ protected:
                 gains_[idx] = gain;
             }
         }
-        else if (slot->effect.type == AL_EFFECT_DEDICATED_DIALOGUE)
+        else if (slot->effect_.type_ == AL_EFFECT_DEDICATED_DIALOGUE)
         {
             const auto idx = get_channel_index_by_name(device->real_out, FrontCenter);
 

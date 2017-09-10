@@ -108,16 +108,13 @@ static bool calc_effect_slot_params(
     EffectSlot* slot,
     ALCdevice* device)
 {
-    if (!slot->is_props_updated)
+    if (!slot->is_props_updated_)
     {
         return false;
     }
 
-    slot->is_props_updated = false;
-
-    auto& effect = slot->effect;
-
-    effect.state->update(device, slot, &effect.props);
+    slot->is_props_updated_ = false;
+    slot->effect_state_->update(device, slot, &slot->effect_.props_);
 
     return true;
 }
@@ -259,8 +256,8 @@ static void calc_panning_and_filters(
                 if (slot)
                 {
                     compute_panning_gains_bf(
-                        slot->channel_map,
-                        slot->channel_count,
+                        slot->channel_map_,
+                        slot->channel_count_,
                         coeffs,
                         wet_gain[0],
                         voice->send.params[c].gains.target);
@@ -374,15 +371,15 @@ static void calc_non_attn_source_params(
     {
         send_slot = props->send.slot;
 
-        if (!send_slot || send_slot->effect.type == AL_EFFECT_NULL)
+        if (!send_slot || send_slot->effect_.type_ == AL_EFFECT_NULL)
         {
             voice->send.buffer = nullptr;
             voice->send.channels = 0;
         }
         else
         {
-            voice->send.buffer = &send_slot->wet_buffer;
-            voice->send.channels = send_slot->channel_count;
+            voice->send.buffer = &send_slot->wet_buffer_;
+            voice->send.channels = send_slot->channel_count_;
         }
     }
 
@@ -480,9 +477,9 @@ void alu_mix_data(
 
         auto slot = device->effect_slot;
 
-        for (int c = 0; c < slot->channel_count; ++c)
+        for (int c = 0; c < slot->channel_count_; ++c)
         {
-            std::fill_n(slot->wet_buffer[c].begin(), samples_to_do, 0.0F);
+            std::fill_n(slot->wet_buffer_[c].begin(), samples_to_do, 0.0F);
         }
 
         // source processing
@@ -502,9 +499,9 @@ void alu_mix_data(
         }
 
         // effect slot processing
-        auto state = slot->effect.state;
+        auto state = slot->effect_state_;
 
-        state->process(samples_to_do, slot->wet_buffer, *state->out_buffer, state->out_channels);
+        state->process(samples_to_do, slot->wet_buffer_, *state->out_buffer, state->out_channels);
 
         if (out_buffer)
         {

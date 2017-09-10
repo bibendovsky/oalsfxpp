@@ -137,13 +137,13 @@ static void update_device_params(
     device->foa_out.num_channels = device->dry.num_channels;
 
     auto slot = device->effect_slot;
-    auto state = slot->effect.state;
+    auto state = slot->effect_state_;
 
     state->out_buffer = &device->dry.buffers;
     state->out_channels = device->dry.num_channels;
 
     state->update_device(device);
-    slot->is_props_updated = true;
+    slot->is_props_updated_ = true;
 
     allocate_voices(device);
 
