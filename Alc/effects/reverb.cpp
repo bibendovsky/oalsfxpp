@@ -287,8 +287,8 @@ protected:
         // Update early and late 3D panning.
         update_3d_panning(
             device,
-            props->reverb.reflections_pan,
-            props->reverb.late_reverb_pan,
+            props->reverb.reflections_pan.data(),
+            props->reverb.late_reverb_pan.data(),
             props->reverb.gain,
             props->reverb.reflections_gain,
             props->reverb.late_reverb_gain);

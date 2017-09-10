@@ -1,6 +1,8 @@
 #ifndef _AL_EFFECT_H_
 #define _AL_EFFECT_H_
 
+
+#include <array>
 #include <new>
 #include <vector>
 #include "alMain.h"
@@ -11,7 +13,7 @@ using EffectSampleBuffer = std::vector<float>;
 
 union EffectProps
 {
-    using Pan = float[3];
+    using Pan = std::array<float, 3>;
 
 
     struct Reverb
