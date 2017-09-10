@@ -91,7 +91,7 @@ protected:
 
     void EchoEffect::do_update(
         ALCdevice* device,
-        const struct ALeffectslot* slot,
+        const struct EffectSlot* slot,
         const union ALeffectProps* props) final
     {
         float coeffs[max_ambi_coeffs];

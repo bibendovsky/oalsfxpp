@@ -55,7 +55,7 @@ void IEffect::update_device(
 
 void IEffect::update(
     ALCdevice* device,
-    const struct ALeffectslot* slot,
+    const struct EffectSlot* slot,
     const union ALeffectProps *props)
 {
     do_update(device, slot, props);

@@ -143,7 +143,7 @@ static void update_device_params(
     state->out_channels = device->dry.num_channels;
 
     state->update_device(device);
-    update_effect_slot_props(slot);
+    slot->is_props_updated = true;
 
     allocate_voices(device);
 
@@ -166,8 +166,6 @@ static void free_device(
     ALCdevice* device)
 {
     delete device->effect;
-
-    deinit_effect_slot(device->effect_slot);
     delete device->effect_slot;
 
     deinit_source(device->source, device->num_aux_sends);
@@ -267,8 +265,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(
     device->source = new ALsource{};
     init_source_params(device->source, device->num_aux_sends);
 
-    device->effect_slot = new ALeffectslot{};
-    init_effect_slot(device->effect_slot);
+    device->effect_slot = new EffectSlot{};
     alu_init_effect_panning(device->effect_slot);
 
     device->effect = new ALeffect{};

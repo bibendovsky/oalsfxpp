@@ -2,43 +2,31 @@
 #define _AL_AUXEFFECTSLOT_H_
 
 
+#include <memory>
 #include "alEffect.h"
 
 
 constexpr auto max_effect_channels = 4;
 
 
-struct ALeffectslotProps
-{
-    int type;
-    ALeffectProps props;
-    IEffect* state;
-}; // ALeffectslotProps
-
-
-struct ALeffectslot
+struct EffectSlot
 {
     struct Effect
     {
         int type;
         ALeffectProps props;
         IEffect* state;
-    }; // Effect
 
-    struct Params
-    {
-        int effect_type;
-        IEffect* effect_state;
-    }; // Params
+
+        Effect();
+    }; // Effect
 
 
     Effect effect;
-    ALeffectslotProps* update;
-    ALeffectslotProps* props;
-    Params params;
+    bool is_props_updated;
 
-    int num_channels;
-    BFChannelConfig chan_map[max_effect_channels];
+    int channel_count;
+    BFChannelConfig channel_map[max_effect_channels];
 
     // Wet buffer configuration is ACN channel order with N3D scaling:
     // * Channel 0 is the unattenuated mono signal.
@@ -52,19 +40,28 @@ struct ALeffectslot
     SampleBuffers wet_buffer;
 
 
-    ALeffectslot()
-        :
-        wet_buffer{SampleBuffers::size_type{max_effect_channels}}
-    {
-    }
-}; // ALeffectslot
+    EffectSlot();
+
+    EffectSlot(
+        const EffectSlot& that) = delete;
+
+    EffectSlot& operator=(
+        const EffectSlot& that) = delete;
+
+    ~EffectSlot();
+
+    void initialize();
+
+    void uninitialize();
+
+    void initialize_effect(
+        ALCdevice* device);
 
 
-void init_effect_slot(ALeffectslot* slot);
-void deinit_effect_slot(ALeffectslot* slot);
-void update_effect_slot_props(ALeffectslot* slot);
-void update_all_effect_slot_props(ALCdevice* device);
-void initialize_effect(ALCdevice* device, ALeffectslot* effect_slot, ALeffect* effect);
+private:
+    IEffect* create_effect_state_by_type(
+        const int type);
+}; // EffectSlot
 
 
 template<typename T>

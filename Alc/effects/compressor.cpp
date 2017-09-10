@@ -69,7 +69,7 @@ protected:
 
     void CompressorEffect::do_update(
         ALCdevice* device,
-        const struct ALeffectslot* slot,
+        const struct EffectSlot* slot,
         const union ALeffectProps* props) final
     {
         is_enabled_ = props->compressor.on_off;

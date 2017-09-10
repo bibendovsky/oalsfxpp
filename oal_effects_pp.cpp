@@ -149,11 +149,7 @@ int main()
     if (is_succeed)
     {
         init_effect_params(oal_device->effect, AL_EFFECT_EAXREVERB);
-        update_effect_slot_props(oal_device->effect_slot);
-    }
 
-    if (is_succeed)
-    {
         EFXEAXREVERBPROPERTIES props = EFX_REVERB_PRESET_BATHROOM;
         auto oal_props = &oal_device->effect->props;
 
@@ -191,11 +187,7 @@ int main()
     if (is_succeed)
     {
         init_effect_params(oal_device->effect, AL_EFFECT_CHORUS);
-        update_effect_slot_props(oal_device->effect_slot);
-    }
 
-    if (is_succeed)
-    {
         auto oal_props = &oal_device->effect->props;
         oal_props->chorus.delay = AL_CHORUS_DEFAULT_DELAY;
         oal_props->chorus.depth = AL_CHORUS_DEFAULT_DEPTH;
@@ -210,11 +202,7 @@ int main()
     if (is_succeed)
     {
         init_effect_params(oal_device->effect, AL_EFFECT_COMPRESSOR);
-        update_effect_slot_props(oal_device->effect_slot);
-    }
 
-    if (is_succeed)
-    {
         auto oal_props = &oal_device->effect->props;
         oal_props->compressor.on_off = AL_TRUE;
     }
@@ -224,11 +212,7 @@ int main()
     if (is_succeed)
     {
         init_effect_params(oal_device->effect, AL_EFFECT_DEDICATED_DIALOGUE);
-        update_effect_slot_props(oal_device->effect_slot);
-    }
 
-    if (is_succeed)
-    {
         auto oal_props = &oal_device->effect->props;
         oal_props->dedicated.gain = 1.0F;
     }
@@ -238,11 +222,7 @@ int main()
     if (is_succeed)
     {
         init_effect_params(oal_device->effect, AL_EFFECT_DISTORTION);
-        update_effect_slot_props(oal_device->effect_slot);
-    }
 
-    if (is_succeed)
-    {
         auto oal_props = &oal_device->effect->props;
         oal_props->distortion.edge = AL_DISTORTION_DEFAULT_EDGE;
         oal_props->distortion.eq_bandwidth = AL_DISTORTION_DEFAULT_EQBANDWIDTH;
@@ -256,11 +236,7 @@ int main()
     if (is_succeed)
     {
         init_effect_params(oal_device->effect, AL_EFFECT_ECHO);
-        update_effect_slot_props(oal_device->effect_slot);
-    }
 
-    if (is_succeed)
-    {
         auto oal_props = &oal_device->effect->props;
         oal_props->echo.damping = AL_ECHO_DEFAULT_DAMPING;
         oal_props->echo.delay = AL_ECHO_DEFAULT_DELAY;
@@ -274,11 +250,7 @@ int main()
     if (is_succeed)
     {
         init_effect_params(oal_device->effect, AL_EFFECT_EQUALIZER);
-        update_effect_slot_props(oal_device->effect_slot);
-    }
 
-    if (is_succeed)
-    {
         auto oal_props = &oal_device->effect->props;
         oal_props->equalizer.high_cutoff = AL_EQUALIZER_DEFAULT_HIGH_CUTOFF;
         oal_props->equalizer.high_gain = AL_EQUALIZER_DEFAULT_HIGH_GAIN;
@@ -297,11 +269,7 @@ int main()
     if (is_succeed)
     {
         init_effect_params(oal_device->effect, AL_EFFECT_FLANGER);
-        update_effect_slot_props(oal_device->effect_slot);
-    }
 
-    if (is_succeed)
-    {
         auto oal_props = &oal_device->effect->props;
         oal_props->flanger.delay = AL_FLANGER_DEFAULT_DELAY;
         oal_props->flanger.depth = AL_FLANGER_DEFAULT_DEPTH;
@@ -316,11 +284,7 @@ int main()
     if (is_succeed)
     {
         init_effect_params(oal_device->effect, AL_EFFECT_RING_MODULATOR);
-        update_effect_slot_props(oal_device->effect_slot);
-    }
 
-    if (is_succeed)
-    {
         auto oal_props = &oal_device->effect->props;
         oal_props->modulator.frequency = AL_RING_MODULATOR_DEFAULT_FREQUENCY;
         oal_props->modulator.high_pass_cutoff = AL_RING_MODULATOR_DEFAULT_HIGHPASS_CUTOFF;
@@ -330,8 +294,7 @@ int main()
 
     if (is_succeed)
     {
-        initialize_effect(oal_device, oal_device->effect_slot, oal_device->effect);
-        update_effect_slot_props(oal_device->effect_slot);
+        oal_device->effect_slot->initialize_effect(oal_device);
     }
 
     if (is_succeed)

@@ -105,26 +105,19 @@ void deinit_voice(
 }
 
 static bool calc_effect_slot_params(
-    ALeffectslot* slot,
+    EffectSlot* slot,
     ALCdevice* device)
 {
-    auto props = slot->update;
-    slot->update = nullptr;
-
-    if (!props)
+    if (!slot->is_props_updated)
     {
         return false;
     }
 
-    slot->params.effect_type = props->type;
+    slot->is_props_updated = false;
 
-    // Swap effect states. No need to play with the ref counts since they keep
-    // the same number of refs.
-    auto state = props->state;
-    props->state = slot->params.effect_state;
-    slot->params.effect_state = state;
+    auto& effect = slot->effect;
 
-    state->update(device, slot, &props->props);
+    effect.state->update(device, slot, &effect.props);
 
     return true;
 }
@@ -187,7 +180,7 @@ static void calc_panning_and_filters(
     const float* wet_gain,
     const float* wet_gain_lf,
     const float* wet_gain_hf,
-    ALeffectslot* send_slot,
+    EffectSlot* send_slot,
     const struct ALvoiceProps* props,
     const ALCdevice* device)
 {
@@ -266,8 +259,8 @@ static void calc_panning_and_filters(
                 if (slot)
                 {
                     compute_panning_gains_bf(
-                        slot->chan_map,
-                        slot->num_channels,
+                        slot->channel_map,
+                        slot->channel_count,
                         coeffs,
                         wet_gain[0],
                         voice->send.params[c].gains.target);
@@ -375,13 +368,13 @@ static void calc_non_attn_source_params(
     voice->direct.buffer = &device->dry.buffers;
     voice->direct.channels = device->dry.num_channels;
 
-    ALeffectslot* send_slot = nullptr;
+    EffectSlot* send_slot = nullptr;
 
     if (device->num_aux_sends > 0)
     {
         send_slot = props->send.slot;
 
-        if (!send_slot || send_slot->params.effect_type == AL_EFFECT_NULL)
+        if (!send_slot || send_slot->effect.type == AL_EFFECT_NULL)
         {
             voice->send.buffer = nullptr;
             voice->send.channels = 0;
@@ -389,7 +382,7 @@ static void calc_non_attn_source_params(
         else
         {
             voice->send.buffer = &send_slot->wet_buffer;
-            voice->send.channels = send_slot->num_channels;
+            voice->send.channels = send_slot->channel_count;
         }
     }
 
@@ -439,9 +432,9 @@ static void update_context_sources(
     auto voice = device->voice;
     auto source = voice->source;
 
-    calc_effect_slot_params(slot, device);
+    const auto is_props_updated = calc_effect_slot_params(slot, device);
 
-    if (source)
+    if (source && is_props_updated)
     {
         calc_non_attn_source_params(voice, &voice->props, device);
     }
@@ -461,7 +454,7 @@ static void write_f32(
 
         for (int i = 0; i < samples_to_do; ++i)
         {
-            out[i*num_chans] = in[i];
+            out[i * num_chans] = in[i];
         }
     }
 }
@@ -487,7 +480,7 @@ void alu_mix_data(
 
         auto slot = device->effect_slot;
 
-        for (int c = 0; c < slot->num_channels; ++c)
+        for (int c = 0; c < slot->channel_count; ++c)
         {
             std::fill_n(slot->wet_buffer[c].begin(), samples_to_do, 0.0F);
         }
@@ -509,7 +502,7 @@ void alu_mix_data(
         }
 
         // effect slot processing
-        auto state = slot->params.effect_state;
+        auto state = slot->effect.state;
 
         state->process(samples_to_do, slot->wet_buffer, *state->out_buffer, state->out_channels);
 

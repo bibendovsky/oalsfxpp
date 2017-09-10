@@ -158,7 +158,7 @@ public:
 
     void update(
         ALCdevice* device,
-        const struct ALeffectslot* slot,
+        const struct EffectSlot* slot,
         const union ALeffectProps *props);
 
     void process(
@@ -181,7 +181,7 @@ protected:
 
     virtual void do_update(
         ALCdevice* device,
-        const struct ALeffectslot* slot,
+        const struct EffectSlot* slot,
         const union ALeffectProps *props) = 0;
 
     virtual void do_process(

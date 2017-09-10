@@ -27,7 +27,7 @@ protected:
 
     void do_update(
         ALCdevice* device,
-        const struct ALeffectslot* slot,
+        const struct EffectSlot* slot,
         const union ALeffectProps* props) final;
 
     void do_process(
@@ -54,7 +54,7 @@ void NullEffect::do_update_device(
 
 void NullEffect::do_update(
     ALCdevice* device,
-    const struct ALeffectslot* slot,
+    const struct EffectSlot* slot,
     const union ALeffectProps* props)
 {
     static_cast<void>(device);

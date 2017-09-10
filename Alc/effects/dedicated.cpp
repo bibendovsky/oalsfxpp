@@ -59,14 +59,14 @@ protected:
 
     void DedicatedEffect::do_update(
         ALCdevice* device,
-        const struct ALeffectslot* slot,
+        const struct EffectSlot* slot,
         const union ALeffectProps* props)
     {
         gains_.fill(0.0F);
 
         const auto gain = props->dedicated.gain;
 
-        if (slot->params.effect_type == AL_EFFECT_DEDICATED_LOW_FREQUENCY_EFFECT)
+        if (slot->effect.type == AL_EFFECT_DEDICATED_LOW_FREQUENCY_EFFECT)
         {
             const auto idx = get_channel_index_by_name(device->real_out, LFE);
 
@@ -77,7 +77,7 @@ protected:
                 gains_[idx] = gain;
             }
         }
-        else if (slot->params.effect_type == AL_EFFECT_DEDICATED_DIALOGUE)
+        else if (slot->effect.type == AL_EFFECT_DEDICATED_DIALOGUE)
         {
             const auto idx = get_channel_index_by_name(device->real_out, FrontCenter);
 

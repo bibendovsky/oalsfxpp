@@ -64,7 +64,7 @@ protected:
 
     void DistortionEffect::do_update(
         ALCdevice* device,
-        const struct ALeffectslot* slot,
+        const struct EffectSlot* slot,
         const union ALeffectProps* props) final
     {
         const auto frequency = static_cast<float>(device->frequency);

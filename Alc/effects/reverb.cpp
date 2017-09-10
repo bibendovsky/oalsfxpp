@@ -183,14 +183,14 @@ protected:
 
     void ReverbEffect::do_update(
         ALCdevice* device,
-        const struct ALeffectslot* slot,
+        const struct EffectSlot* slot,
         const union ALeffectProps* props) final
     {
-        if (slot->params.effect_type == AL_EFFECT_EAXREVERB)
+        if (slot->effect.type == AL_EFFECT_EAXREVERB)
         {
             is_eax_ = true;
         }
-        else if (slot->params.effect_type == AL_EFFECT_REVERB)
+        else if (slot->effect.type == AL_EFFECT_REVERB)
         {
             is_eax_ = false;
         }

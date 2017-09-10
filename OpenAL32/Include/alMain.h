@@ -234,7 +234,7 @@ struct ALCdevice_struct
 
     struct ALsource* source;
     const float* source_samples;
-    struct ALeffectslot* effect_slot;
+    struct EffectSlot* effect_slot;
     struct ALeffect* effect;
     struct ALvoice* voice;
     int voice_count;

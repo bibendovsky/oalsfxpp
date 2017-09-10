@@ -10,7 +10,7 @@
 
 struct ALsource;
 struct ALvoice;
-struct ALeffectslot;
+struct EffectSlot;
 
 
 struct aluMatrixf
@@ -94,7 +94,7 @@ struct ALvoiceProps
 
     struct Send
     {
-        struct ALeffectslot *slot;
+        struct EffectSlot *slot;
         float gain;
         float gain_hf;
         float hf_reference;
@@ -198,7 +198,7 @@ void alu_init_renderer(
     ALCdevice* device);
 
 void alu_init_effect_panning(
-    ALeffectslot* slot);
+    EffectSlot* slot);
 
 // Calculates ambisonic coefficients based on a direction vector. The vector
 // must be normalized (unit length), and the spread is the angular width of the

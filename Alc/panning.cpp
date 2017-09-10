@@ -469,20 +469,20 @@ void alu_init_renderer(
 }
 
 void alu_init_effect_panning(
-    ALeffectslot* slot)
+    EffectSlot* slot)
 {
     for (int i = 0; i < max_effect_channels; ++i)
     {
-        slot->chan_map[i].reset();
+        slot->channel_map[i].reset();
     }
 
-    slot->num_channels = 0;
+    slot->channel_count = 0;
 
     for (int i = 0; i < max_effect_channels; ++i)
     {
-        slot->chan_map[i].scale = 1.0F;
-        slot->chan_map[i].index = i;
+        slot->channel_map[i].scale = 1.0F;
+        slot->channel_map[i].index = i;
 
-        slot->num_channels += 1;
+        slot->channel_count += 1;
     }
 }

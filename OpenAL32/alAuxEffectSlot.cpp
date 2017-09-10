@@ -36,7 +36,69 @@ IEffect* create_null_effect();
 IEffect* create_reverb_effect();
 
 
-static IEffect* createByType(
+EffectSlot::Effect::Effect()
+    :
+    type{AL_EFFECT_NULL},
+    props{},
+    state{}
+{
+}
+
+EffectSlot::EffectSlot()
+    :
+    effect{},
+    is_props_updated{},
+    channel_count{},
+    channel_map{},
+    wet_buffer{SampleBuffers::size_type{max_effect_channels}}
+{
+    initialize();
+}
+
+EffectSlot::~EffectSlot()
+{
+    uninitialize();
+}
+
+void EffectSlot::initialize()
+{
+    uninitialize();
+
+    effect.type = AL_EFFECT_NULL;
+    effect.state = create_effect_state_by_type(AL_EFFECT_NULL);
+    is_props_updated = true;
+}
+
+void EffectSlot::uninitialize()
+{
+    destroy_effect(effect.state);
+}
+
+void EffectSlot::initialize_effect(
+    ALCdevice* device)
+{
+    if (effect.type != device->effect->type)
+    {
+        auto state = create_effect_state_by_type(device->effect->type);
+        state->out_buffer = &device->dry.buffers;
+        state->out_channels = device->dry.num_channels;
+        state->update_device(device);
+
+        effect.type = device->effect->type;
+        effect.props = device->effect->props;
+
+        destroy_effect(effect.state);
+        effect.state = state;
+    }
+    else
+    {
+        effect.props = device->effect->props;
+    }
+
+    is_props_updated = true;
+}
+
+IEffect* EffectSlot::create_effect_state_by_type(
     const int type)
 {
     switch (type)
@@ -80,96 +142,4 @@ static IEffect* createByType(
     default:
         return nullptr;
     }
-}
-
-void initialize_effect(
-    ALCdevice* device,
-    ALeffectslot* effect_slot,
-    ALeffect* effect)
-{
-    if(effect->type != effect_slot->effect.type)
-    {
-        auto state = createByType(effect->type);
-        state->out_buffer = &device->dry.buffers;
-        state->out_channels = device->dry.num_channels;
-        state->update_device(device);
-
-        effect_slot->effect.type = effect->type;
-        effect_slot->effect.props = effect->props;
-
-        destroy_effect(effect_slot->effect.state);
-        effect_slot->effect.state = state;
-    }
-    else if (effect)
-    {
-        effect_slot->effect.props = effect->props;
-    }
-
-    // Remove state references from old effect slot property updates.
-    auto props = effect_slot->props;
-
-    if (props)
-    {
-        props->state = nullptr;
-    }
-}
-
-void init_effect_slot(
-    ALeffectslot* slot)
-{
-    slot->effect.type = AL_EFFECT_NULL;
-    slot->effect.state = createByType(AL_EFFECT_NULL);
-    slot->update = nullptr;
-    slot->props = nullptr;
-    slot->params.effect_state = slot->effect.state;
-}
-
-void deinit_effect_slot(
-    ALeffectslot* slot)
-{
-    auto props = slot->update;
-
-    if (props)
-    {
-        delete props;
-    }
-
-    props = slot->props;
-
-    if (props)
-    {
-        delete props;
-    }
-
-    destroy_effect(slot->effect.state);
-}
-
-void update_effect_slot_props(
-    ALeffectslot* slot)
-{
-    // Get an unused property container, or allocate a new one as needed.
-    auto props = slot->props;
-
-    if (!props)
-    {
-        props = new ALeffectslotProps{};
-    }
-
-    // Copy in current property values.
-    props->type = slot->effect.type;
-    props->props = slot->effect.props;
-
-    // Swap out any stale effect state object there may be in the container, to
-    // delete it.
-    props->state = slot->effect.state;
-
-    // Set the new container for updating internal parameters.
-    slot->update = props;
-}
-
-void update_all_effect_slot_props(
-    ALCdevice* device)
-{
-    auto slot = device->effect_slot;
-    update_effect_slot_props(slot);
 }

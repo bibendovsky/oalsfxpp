@@ -25,7 +25,7 @@ struct ALsource
 
     struct Send
     {
-        struct ALeffectslot *slot;
+        struct EffectSlot *slot;
         float gain;
         float gain_hf;
         float hf_reference;

@@ -67,7 +67,7 @@ protected:
 
     void ModulatorEffect::do_update(
         ALCdevice* device,
-        const struct ALeffectslot* slot,
+        const struct EffectSlot* slot,
         const union ALeffectProps* props) final
     {
         if (props->modulator.waveform == AL_RING_MODULATOR_SINUSOID)
