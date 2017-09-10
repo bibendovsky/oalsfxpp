@@ -45,13 +45,13 @@ void EffectSlot::initialize()
     uninitialize();
 
     effect_.type_ = AL_EFFECT_NULL;
-    effect_state_ = EffectStateFactory::create_by_type(AL_EFFECT_NULL);
+    effect_state_.reset(EffectStateFactory::create_by_type(AL_EFFECT_NULL));
     is_props_updated_ = true;
 }
 
 void EffectSlot::uninitialize()
 {
-    EffectState::destroy(effect_state_);
+    effect_state_.reset(nullptr);
 }
 
 void EffectSlot::initialize_effect(
@@ -59,16 +59,14 @@ void EffectSlot::initialize_effect(
 {
     if (effect_.type_ != device->effect->type_)
     {
-        auto state = EffectStateFactory::create_by_type(device->effect->type_);
-        state->out_buffer = &device->dry.buffers;
-        state->out_channels = device->dry.num_channels;
-        state->update_device(device);
+        effect_state_.reset(EffectStateFactory::create_by_type(device->effect->type_));
+
+        effect_state_->out_buffer = &device->dry.buffers;
+        effect_state_->out_channels = device->dry.num_channels;
+        effect_state_->update_device(device);
 
         effect_.type_ = device->effect->type_;
         effect_.props_ = device->effect->props_;
-
-        EffectState::destroy(effect_state_);
-        effect_state_ = state;
     }
     else
     {

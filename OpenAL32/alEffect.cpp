@@ -236,6 +236,25 @@ void EffectState::destroy(
 
 
 // ==========================================================================
+// EffectStateDeleter
+
+void EffectStateDeleter::operator()(
+    EffectState* effect_state)
+{
+    if (!effect_state)
+    {
+        return;
+    }
+
+    effect_state->destruct();
+    delete effect_state;
+}
+
+// EffectStateDeleter
+// ==========================================================================
+
+
+// ==========================================================================
 // EffectStateFactory
 
 EffectState* EffectStateFactory::create_by_type(

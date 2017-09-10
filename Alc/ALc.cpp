@@ -137,7 +137,7 @@ static void update_device_params(
     device->foa_out.num_channels = device->dry.num_channels;
 
     auto slot = device->effect_slot;
-    auto state = slot->effect_state_;
+    auto state = slot->effect_state_.get();
 
     state->out_buffer = &device->dry.buffers;
     state->out_channels = device->dry.num_channels;
@@ -289,5 +289,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(
 ALC_API ALCboolean ALC_APIENTRY alcCloseDevice(ALCdevice *device)
 {
     release_context();
+    free_device(g_device);
+
     return ALC_TRUE;
 }

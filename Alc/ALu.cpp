@@ -499,7 +499,7 @@ void alu_mix_data(
         }
 
         // effect slot processing
-        auto state = slot->effect_state_;
+        auto state = slot->effect_state_.get();
 
         state->process(samples_to_do, slot->wet_buffer_, *state->out_buffer, state->out_channels);
 

@@ -206,6 +206,13 @@ protected:
 }; // EffectState
 
 
+struct EffectStateDeleter
+{
+    void operator()(
+        EffectState* effect_state);
+};
+
+
 class EffectStateFactory
 {
 public:
