@@ -23,13 +23,13 @@
 #include "alu.h"
 
 
-class ModulatorEffect :
-    public IEffect
+class ModulatorEffectState :
+    public EffectState
 {
 public:
-    ModulatorEffect()
+    ModulatorEffectState()
         :
-        IEffect{},
+        EffectState{},
         process_func_{},
         index_{},
         step_{},
@@ -38,13 +38,13 @@ public:
     {
     }
 
-    virtual ~ModulatorEffect()
+    virtual ~ModulatorEffectState()
     {
     }
 
 
 protected:
-    void ModulatorEffect::do_construct() final
+    void ModulatorEffectState::do_construct() final
     {
         index_ = 0;
         step_ = 1;
@@ -55,20 +55,20 @@ protected:
         }
     }
 
-    void ModulatorEffect::do_destruct() final
+    void ModulatorEffectState::do_destruct() final
     {
     }
 
-    void ModulatorEffect::do_update_device(
+    void ModulatorEffectState::do_update_device(
         ALCdevice* device) final
     {
         static_cast<void>(device);
     }
 
-    void ModulatorEffect::do_update(
+    void ModulatorEffectState::do_update(
         ALCdevice* device,
-        const struct EffectSlot* slot,
-        const union ALeffectProps* props) final
+        const EffectSlot* slot,
+        const EffectProps* props) final
     {
         if (props->modulator.waveform == AL_RING_MODULATOR_SINUSOID)
         {
@@ -112,7 +112,7 @@ protected:
         }
     }
 
-    void ModulatorEffect::do_process(
+    void ModulatorEffectState::do_process(
         const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
@@ -245,10 +245,10 @@ private:
     {
         modulate(square_func, dst, src, index, step, todo);
     }
-}; // ModulatorEffect
+}; // ModulatorEffectState
 
 
-IEffect* create_modulator_effect()
+EffectState* EffectStateFactory::create_modulator()
 {
-    return create_effect<ModulatorEffect>();
+    return create<ModulatorEffectState>();
 }

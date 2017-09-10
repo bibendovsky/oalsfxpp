@@ -14,8 +14,8 @@ struct EffectSlot
     struct Effect
     {
         int type;
-        ALeffectProps props;
-        IEffect* state;
+        EffectProps props;
+        EffectState* state;
 
 
         Effect();
@@ -56,34 +56,7 @@ struct EffectSlot
 
     void initialize_effect(
         ALCdevice* device);
-
-
-private:
-    IEffect* create_effect_state_by_type(
-        const int type);
 }; // EffectSlot
-
-
-template<typename T>
-IEffect* create_effect()
-{
-    auto result = static_cast<IEffect*>(new T{});
-    result->construct();
-    return result;
-}
-
-inline void destroy_effect(
-    IEffect*& effect)
-{
-    if (!effect)
-    {
-        return;
-    }
-
-    effect->destruct();
-    delete effect;
-    effect = nullptr;
-}
 
 
 #endif

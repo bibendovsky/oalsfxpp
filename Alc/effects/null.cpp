@@ -2,17 +2,17 @@
 #include "alAuxEffectSlot.h"
 
 
-class NullEffect :
-    public IEffect
+class NullEffectState :
+    public EffectState
 {
 public:
-    NullEffect()
+    NullEffectState()
         :
-        IEffect{}
+        EffectState{}
     {
     }
 
-    virtual ~NullEffect()
+    virtual ~NullEffectState()
     {
     }
 
@@ -27,42 +27,42 @@ protected:
 
     void do_update(
         ALCdevice* device,
-        const struct EffectSlot* slot,
-        const union ALeffectProps* props) final;
+        const EffectSlot* slot,
+        const EffectProps* props) final;
 
     void do_process(
         int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
         const int channel_count) final;
-}; // NullEffect
+}; // NullEffectState
 
 
-void NullEffect::do_construct()
+void NullEffectState::do_construct()
 {
 }
 
-void NullEffect::do_destruct()
+void NullEffectState::do_destruct()
 {
 }
 
-void NullEffect::do_update_device(
+void NullEffectState::do_update_device(
     ALCdevice* device)
 {
     static_cast<void>(device);
 }
 
-void NullEffect::do_update(
+void NullEffectState::do_update(
     ALCdevice* device,
-    const struct EffectSlot* slot,
-    const union ALeffectProps* props)
+    const EffectSlot* slot,
+    const EffectProps* props)
 {
     static_cast<void>(device);
     static_cast<void>(slot);
     static_cast<void>(props);
 }
 
-void NullEffect::do_process(
+void NullEffectState::do_process(
     int sample_count,
     const SampleBuffers& src_samples,
     SampleBuffers& dst_samples,
@@ -74,7 +74,7 @@ void NullEffect::do_process(
     static_cast<void>(channel_count);
 }
 
-IEffect* create_null_effect()
+EffectState* EffectStateFactory::create_null()
 {
-    return create_effect<NullEffect>();
+    return create<NullEffectState>();
 }

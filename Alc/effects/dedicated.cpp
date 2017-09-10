@@ -25,42 +25,42 @@
 #include "alu.h"
 
 
-class DedicatedEffect :
-    public IEffect
+class DedicatedEffectState :
+    public EffectState
 {
 public:
-    DedicatedEffect()
+    DedicatedEffectState()
         :
-        IEffect{},
+        EffectState{},
         gains_{}
     {
     }
 
-    virtual ~DedicatedEffect()
+    virtual ~DedicatedEffectState()
     {
     }
 
 
 protected:
-    void DedicatedEffect::do_construct() final
+    void DedicatedEffectState::do_construct() final
     {
         gains_.fill(0.0F);
     }
 
-    void DedicatedEffect::do_destruct() final
+    void DedicatedEffectState::do_destruct() final
     {
     }
 
-    void DedicatedEffect::do_update_device(
+    void DedicatedEffectState::do_update_device(
         ALCdevice* device) final
     {
         static_cast<void>(device);
     }
 
-    void DedicatedEffect::do_update(
+    void DedicatedEffectState::do_update(
         ALCdevice* device,
-        const struct EffectSlot* slot,
-        const union ALeffectProps* props)
+        const EffectSlot* slot,
+        const EffectProps* props)
     {
         gains_.fill(0.0F);
 
@@ -104,7 +104,7 @@ protected:
         }
     }
 
-    void DedicatedEffect::do_process(
+    void DedicatedEffectState::do_process(
         const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
@@ -131,10 +131,10 @@ private:
     using Gains = std::array<float, max_output_channels>;
 
     Gains gains_;
-}; // DedicatedEffect
+}; // DedicatedEffectState
 
 
-IEffect* create_dedicated_effect()
+EffectState* EffectStateFactory::create_dedicated()
 {
-    return create_effect<DedicatedEffect>();
+    return create<DedicatedEffectState>();
 }

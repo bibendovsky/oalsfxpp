@@ -268,8 +268,8 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(
     device->effect_slot = new EffectSlot{};
     alu_init_effect_panning(device->effect_slot);
 
-    device->effect = new ALeffect{};
-    init_effect(device->effect);
+    device->effect = new Effect{};
+    device->effect->initialize();
 
     device->voice = nullptr;
     device->voice_count = 0;

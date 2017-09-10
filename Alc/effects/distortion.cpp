@@ -25,13 +25,13 @@
 #include "alu.h"
 
 
-class DistortionEffect :
-    public IEffect
+class DistortionEffectState :
+    public EffectState
 {
 public:
-    DistortionEffect()
+    DistortionEffectState()
         :
-        IEffect{},
+        EffectState{},
         gains_{},
         low_pass_{},
         band_pass_{},
@@ -40,32 +40,32 @@ public:
     {
     }
 
-    virtual ~DistortionEffect()
+    virtual ~DistortionEffectState()
     {
     }
 
 
 protected:
-    void DistortionEffect::do_construct() final
+    void DistortionEffectState::do_construct() final
     {
         al_filter_state_clear(&low_pass_);
         al_filter_state_clear(&band_pass_);
     }
 
-    void DistortionEffect::do_destruct() final
+    void DistortionEffectState::do_destruct() final
     {
     }
 
-    void DistortionEffect::do_update_device(
+    void DistortionEffectState::do_update_device(
         ALCdevice* device) final
     {
         static_cast<void>(device);
     }
 
-    void DistortionEffect::do_update(
+    void DistortionEffectState::do_update(
         ALCdevice* device,
-        const struct EffectSlot* slot,
-        const union ALeffectProps* props) final
+        const EffectSlot* slot,
+        const EffectProps* props) final
     {
         const auto frequency = static_cast<float>(device->frequency);
 
@@ -106,7 +106,7 @@ protected:
         compute_ambient_gains(device->dry, 1.0F, gains_.data());
     }
 
-    void DistortionEffect::do_process(
+    void DistortionEffectState::do_process(
         const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
@@ -196,10 +196,10 @@ private:
     FilterState band_pass_;
     float attenuation_;
     float edge_coeff_;
-}; // DistortionEffect
+}; // DistortionEffectState
 
 
-IEffect* create_distortion_effect()
+EffectState* EffectStateFactory::create_distortion()
 {
-    return create_effect<DistortionEffect>();
+    return create<DistortionEffectState>();
 }

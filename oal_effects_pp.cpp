@@ -17,10 +17,6 @@
 #include "alSource.h"
 
 
-void init_effect_params(
-    ALeffect* effect,
-    ALenum type);
-
 void update_source_props(
     ALsource* source,
     ALvoice* voice,
@@ -148,10 +144,10 @@ int main()
 #if 1
     if (is_succeed)
     {
-        init_effect_params(oal_device->effect, AL_EFFECT_EAXREVERB);
+        oal_device->effect->initialize(AL_EFFECT_EAXREVERB);
 
         EFXEAXREVERBPROPERTIES props = EFX_REVERB_PRESET_BATHROOM;
-        auto oal_props = &oal_device->effect->props;
+        auto oal_props = &oal_device->effect->props_;
 
         oal_props->reverb.density = props.flDensity;
         oal_props->reverb.diffusion = props.flDiffusion;
@@ -186,9 +182,9 @@ int main()
 #if 0
     if (is_succeed)
     {
-        init_effect_params(oal_device->effect, AL_EFFECT_CHORUS);
+        oal_device->effect->initialize(AL_EFFECT_CHORUS);
 
-        auto oal_props = &oal_device->effect->props;
+        auto oal_props = &oal_device->effect->props_;
         oal_props->chorus.delay = AL_CHORUS_DEFAULT_DELAY;
         oal_props->chorus.depth = AL_CHORUS_DEFAULT_DEPTH;
         oal_props->chorus.feedback = AL_CHORUS_DEFAULT_FEEDBACK;
@@ -201,9 +197,9 @@ int main()
 #if 0
     if (is_succeed)
     {
-        init_effect_params(oal_device->effect, AL_EFFECT_COMPRESSOR);
+        oal_device->effect->initialize(AL_EFFECT_COMPRESSOR);
 
-        auto oal_props = &oal_device->effect->props;
+        auto oal_props = &oal_device->effect->props_;
         oal_props->compressor.on_off = AL_TRUE;
     }
 #endif
@@ -211,9 +207,9 @@ int main()
 #if 0
     if (is_succeed)
     {
-        init_effect_params(oal_device->effect, AL_EFFECT_DEDICATED_DIALOGUE);
+        oal_device->effect->initialize(AL_EFFECT_DEDICATED_DIALOGUE);
 
-        auto oal_props = &oal_device->effect->props;
+        auto oal_props = &oal_device->effect->props_;
         oal_props->dedicated.gain = 1.0F;
     }
 #endif
@@ -221,9 +217,9 @@ int main()
 #if 0
     if (is_succeed)
     {
-        init_effect_params(oal_device->effect, AL_EFFECT_DISTORTION);
+        oal_device->effect->initialize(AL_EFFECT_DISTORTION);
 
-        auto oal_props = &oal_device->effect->props;
+        auto oal_props = &oal_device->effect->props_;
         oal_props->distortion.edge = AL_DISTORTION_DEFAULT_EDGE;
         oal_props->distortion.eq_bandwidth = AL_DISTORTION_DEFAULT_EQBANDWIDTH;
         oal_props->distortion.eq_center = AL_DISTORTION_DEFAULT_EQCENTER;
@@ -235,9 +231,9 @@ int main()
 #if 0
     if (is_succeed)
     {
-        init_effect_params(oal_device->effect, AL_EFFECT_ECHO);
+        oal_device->effect->initialize(AL_EFFECT_ECHO);
 
-        auto oal_props = &oal_device->effect->props;
+        auto oal_props = &oal_device->effect->props_;
         oal_props->echo.damping = AL_ECHO_DEFAULT_DAMPING;
         oal_props->echo.delay = AL_ECHO_DEFAULT_DELAY;
         oal_props->echo.feedback = AL_ECHO_DEFAULT_FEEDBACK;
@@ -249,9 +245,9 @@ int main()
 #if 0
     if (is_succeed)
     {
-        init_effect_params(oal_device->effect, AL_EFFECT_EQUALIZER);
+        oal_device->effect->initialize(AL_EFFECT_EQUALIZER);
 
-        auto oal_props = &oal_device->effect->props;
+        auto oal_props = &oal_device->effect->props_;
         oal_props->equalizer.high_cutoff = AL_EQUALIZER_DEFAULT_HIGH_CUTOFF;
         oal_props->equalizer.high_gain = AL_EQUALIZER_DEFAULT_HIGH_GAIN;
         oal_props->equalizer.low_cutoff = AL_EQUALIZER_DEFAULT_LOW_CUTOFF;
@@ -268,9 +264,9 @@ int main()
 #if 0
     if (is_succeed)
     {
-        init_effect_params(oal_device->effect, AL_EFFECT_FLANGER);
+        oal_device->effect->initialize(AL_EFFECT_FLANGER);
 
-        auto oal_props = &oal_device->effect->props;
+        auto oal_props = &oal_device->effect->props_;
         oal_props->flanger.delay = AL_FLANGER_DEFAULT_DELAY;
         oal_props->flanger.depth = AL_FLANGER_DEFAULT_DEPTH;
         oal_props->flanger.feedback = AL_FLANGER_DEFAULT_FEEDBACK;
@@ -283,9 +279,9 @@ int main()
 #if 0
     if (is_succeed)
     {
-        init_effect_params(oal_device->effect, AL_EFFECT_RING_MODULATOR);
+        oal_device->effect->initialize(AL_EFFECT_RING_MODULATOR);
 
-        auto oal_props = &oal_device->effect->props;
+        auto oal_props = &oal_device->effect->props_;
         oal_props->modulator.frequency = AL_RING_MODULATOR_DEFAULT_FREQUENCY;
         oal_props->modulator.high_pass_cutoff = AL_RING_MODULATOR_DEFAULT_HIGHPASS_CUTOFF;
         oal_props->modulator.waveform = AL_RING_MODULATOR_DEFAULT_WAVEFORM;

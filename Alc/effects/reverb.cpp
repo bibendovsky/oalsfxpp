@@ -28,13 +28,13 @@
 #include "mixer_defs.h"
 
 
-class ReverbEffect :
-    public IEffect
+class ReverbEffectState :
+    public EffectState
 {
 public:
-    ReverbEffect()
+    ReverbEffectState()
         :
-        IEffect{},
+        EffectState{},
         is_eax_{},
         filters_{},
         delay_{},
@@ -56,13 +56,13 @@ public:
     {
     }
 
-    virtual ~ReverbEffect()
+    virtual ~ReverbEffectState()
     {
     }
 
 
 protected:
-    void ReverbEffect::do_construct() final
+    void ReverbEffectState::do_construct() final
     {
         is_eax_ = false;
 
@@ -153,11 +153,11 @@ protected:
         offset_ = 0;
     }
 
-    void ReverbEffect::do_destruct() final
+    void ReverbEffectState::do_destruct() final
     {
     }
 
-    void ReverbEffect::do_update_device(
+    void ReverbEffectState::do_update_device(
         ALCdevice* device) final
     {
         const auto frequency = device->frequency;
@@ -181,10 +181,10 @@ protected:
         }
     }
 
-    void ReverbEffect::do_update(
+    void ReverbEffectState::do_update(
         ALCdevice* device,
-        const struct EffectSlot* slot,
-        const union ALeffectProps* props) final
+        const EffectSlot* slot,
+        const EffectProps* props) final
     {
         if (slot->effect.type == AL_EFFECT_EAXREVERB)
         {
@@ -309,13 +309,13 @@ protected:
         }
     }
 
-    void ReverbEffect::do_process(
+    void ReverbEffectState::do_process(
         const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
         const int channel_count) final
     {
-        const auto reverb_func = (is_eax_ ? &ReverbEffect::eax_verb_pass : &ReverbEffect::verb_pass);
+        const auto reverb_func = (is_eax_ ? &ReverbEffectState::eax_verb_pass : &ReverbEffectState::verb_pass);
         auto fade = static_cast<float>(fade_count_) / fade_samples;
 
         // Process reverb for these samples.
@@ -2110,10 +2110,10 @@ private:
 
         return fade;
     }
-}; // ReverbEffect
+}; // ReverbEffectState
 
 
-IEffect* create_reverb_effect()
+EffectState* EffectStateFactory::create_reverb()
 {
-    return create_effect<ReverbEffect>();
+    return create<ReverbEffectState>();
 }

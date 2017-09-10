@@ -65,26 +65,26 @@
  * http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt                   */
 
 
-class EqualizerEffect :
-    public IEffect
+class EqualizerEffectState :
+    public EffectState
 {
 public:
-    EqualizerEffect()
+    EqualizerEffectState()
         :
-        IEffect{},
+        EffectState{},
         gains_{},
         filter_{},
         sample_buffer_{}
     {
     }
 
-    virtual ~EqualizerEffect()
+    virtual ~EqualizerEffectState()
     {
     }
 
 
 protected:
-    void EqualizerEffect::do_construct()
+    void EqualizerEffectState::do_construct()
     {
         // Initialize sample history only on filter creation to avoid
         // sound clicks if filter settings were changed in runtime.
@@ -97,20 +97,20 @@ protected:
         }
     }
 
-    void EqualizerEffect::do_destruct()
+    void EqualizerEffectState::do_destruct()
     {
     }
 
-    void EqualizerEffect::do_update_device(
+    void EqualizerEffectState::do_update_device(
         ALCdevice* device)
     {
         static_cast<void>(device);
     }
 
-    void EqualizerEffect::do_update(
+    void EqualizerEffectState::do_update(
         ALCdevice* device,
-        const struct EffectSlot* slot,
-        const union ALeffectProps* props)
+        const EffectSlot* slot,
+        const EffectProps* props)
     {
         const auto frequency = static_cast<float>(device->frequency);
         float gain;
@@ -189,7 +189,7 @@ protected:
         }
     }
 
-    void EqualizerEffect::do_process(
+    void EqualizerEffectState::do_process(
         const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
@@ -260,10 +260,10 @@ private:
     Filters filter_;
 
     SampleBuffers sample_buffer_;
-}; // EqualizerEffect
+}; // EqualizerEffectState
 
 
-IEffect* create_equalizer_effect()
+EffectState* EffectStateFactory::create_equalizer()
 {
-    return create_effect<EqualizerEffect>();
+    return create<EqualizerEffectState>();
 }

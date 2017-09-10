@@ -27,13 +27,13 @@
 #include "alu.h"
 
 
-class ChorusEffect :
-    public IEffect
+class ChorusEffectState :
+    public EffectState
 {
 public:
-    ChorusEffect()
+    ChorusEffectState()
         :
-        IEffect{},
+        EffectState{},
         sample_buffers_{},
         buffer_length_{},
         offset_{},
@@ -48,13 +48,13 @@ public:
     {
     }
 
-    virtual ~ChorusEffect()
+    virtual ~ChorusEffectState()
     {
     }
 
 
 protected:
-    void ChorusEffect::do_construct() final
+    void ChorusEffectState::do_construct() final
     {
         buffer_length_ = 0;
 
@@ -68,7 +68,7 @@ protected:
         waveform_ = Waveform::triangle;
     }
 
-    void ChorusEffect::do_destruct() final
+    void ChorusEffectState::do_destruct() final
     {
         for (auto& buffer : sample_buffers_)
         {
@@ -76,7 +76,7 @@ protected:
         }
     }
 
-    void ChorusEffect::do_update_device(
+    void ChorusEffectState::do_update_device(
         ALCdevice* device) final
     {
         auto max_len = static_cast<int>(AL_CHORUS_MAX_DELAY * 2.0F * device->frequency) + 1;
@@ -97,10 +97,10 @@ protected:
         }
     }
 
-    void ChorusEffect::do_update(
+    void ChorusEffectState::do_update(
         ALCdevice* device,
-        const struct EffectSlot* slot,
-        const union ALeffectProps* props) final
+        const EffectSlot* slot,
+        const EffectProps* props) final
     {
         const auto frequency = static_cast<float>(device->frequency);
 
@@ -166,7 +166,7 @@ protected:
         }
     }
 
-    void ChorusEffect::do_process(
+    void ChorusEffectState::do_process(
         const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
@@ -330,10 +330,10 @@ private:
             offset = (offset + 1) % lfo_range;
         }
     }
-}; // ChorusEffect
+}; // ChorusEffectState
 
 
-IEffect* create_chorus_effect()
+EffectState* EffectStateFactory::create_chorus()
 {
-    return create_effect<ChorusEffect>();
+    return create<ChorusEffectState>();
 }

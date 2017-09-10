@@ -21,19 +21,6 @@
 
 #include "config.h"
 #include "alAuxEffectSlot.h"
-#include "alSource.h"
-
-
-IEffect* create_chorus_effect();
-IEffect* create_compressor_effect();
-IEffect* create_dedicated_effect();
-IEffect* create_distortion_effect();
-IEffect* create_echo_effect();
-IEffect* create_equalizer_effect();
-IEffect* create_flanger_effect();
-IEffect* create_modulator_effect();
-IEffect* create_null_effect();
-IEffect* create_reverb_effect();
 
 
 EffectSlot::Effect::Effect()
@@ -65,81 +52,35 @@ void EffectSlot::initialize()
     uninitialize();
 
     effect.type = AL_EFFECT_NULL;
-    effect.state = create_effect_state_by_type(AL_EFFECT_NULL);
+    effect.state = EffectStateFactory::create_by_type(AL_EFFECT_NULL);
     is_props_updated = true;
 }
 
 void EffectSlot::uninitialize()
 {
-    destroy_effect(effect.state);
+    EffectState::destroy(effect.state);
 }
 
 void EffectSlot::initialize_effect(
     ALCdevice* device)
 {
-    if (effect.type != device->effect->type)
+    if (effect.type != device->effect->type_)
     {
-        auto state = create_effect_state_by_type(device->effect->type);
+        auto state = EffectStateFactory::create_by_type(device->effect->type_);
         state->out_buffer = &device->dry.buffers;
         state->out_channels = device->dry.num_channels;
         state->update_device(device);
 
-        effect.type = device->effect->type;
-        effect.props = device->effect->props;
+        effect.type = device->effect->type_;
+        effect.props = device->effect->props_;
 
-        destroy_effect(effect.state);
+        EffectState::destroy(effect.state);
         effect.state = state;
     }
     else
     {
-        effect.props = device->effect->props;
+        effect.props = device->effect->props_;
     }
 
     is_props_updated = true;
-}
-
-IEffect* EffectSlot::create_effect_state_by_type(
-    const int type)
-{
-    switch (type)
-    {
-    case AL_EFFECT_NULL:
-        return create_null_effect();
-
-    case AL_EFFECT_EAXREVERB:
-        return create_reverb_effect();
-
-    case AL_EFFECT_REVERB:
-        return create_reverb_effect();
-
-    case AL_EFFECT_CHORUS:
-        return create_chorus_effect();
-
-    case AL_EFFECT_COMPRESSOR:
-        return create_compressor_effect();
-
-    case AL_EFFECT_DISTORTION:
-        return create_distortion_effect();
-
-    case AL_EFFECT_ECHO:
-        return create_echo_effect();
-
-    case AL_EFFECT_EQUALIZER:
-        return create_equalizer_effect();
-
-    case AL_EFFECT_FLANGER:
-        return create_flanger_effect();
-
-    case AL_EFFECT_RING_MODULATOR:
-        return create_modulator_effect();
-
-    case AL_EFFECT_DEDICATED_DIALOGUE:
-        return create_dedicated_effect();
-
-    case AL_EFFECT_DEDICATED_LOW_FREQUENCY_EFFECT:
-        return create_dedicated_effect();
-
-    default:
-        return nullptr;
-    }
 }

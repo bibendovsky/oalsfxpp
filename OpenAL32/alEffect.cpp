@@ -24,44 +24,192 @@
 
 
 // ==========================================================================
-// IEffect
+// Effect
 
-IEffect::IEffect()
+Effect::Effect()
+    :
+    type_{AL_EFFECT_NULL},
+    props_{}
+{
+}
+
+void Effect::initialize(
+    const int type)
+{
+    switch (type)
+    {
+    case AL_EFFECT_EAXREVERB:
+        props_.reverb.density = AL_EAXREVERB_DEFAULT_DENSITY;
+        props_.reverb.diffusion = AL_EAXREVERB_DEFAULT_DIFFUSION;
+        props_.reverb.gain = AL_EAXREVERB_DEFAULT_GAIN;
+        props_.reverb.gain_hf = AL_EAXREVERB_DEFAULT_GAINHF;
+        props_.reverb.gain_lf = AL_EAXREVERB_DEFAULT_GAINLF;
+        props_.reverb.decay_time = AL_EAXREVERB_DEFAULT_DECAY_TIME;
+        props_.reverb.decay_hf_ratio = AL_EAXREVERB_DEFAULT_DECAY_HFRATIO;
+        props_.reverb.decay_lf_ratio = AL_EAXREVERB_DEFAULT_DECAY_LFRATIO;
+        props_.reverb.reflections_gain = AL_EAXREVERB_DEFAULT_REFLECTIONS_GAIN;
+        props_.reverb.reflections_delay = AL_EAXREVERB_DEFAULT_REFLECTIONS_DELAY;
+        props_.reverb.reflections_pan[0] = AL_EAXREVERB_DEFAULT_REFLECTIONS_PAN_XYZ;
+        props_.reverb.reflections_pan[1] = AL_EAXREVERB_DEFAULT_REFLECTIONS_PAN_XYZ;
+        props_.reverb.reflections_pan[2] = AL_EAXREVERB_DEFAULT_REFLECTIONS_PAN_XYZ;
+        props_.reverb.late_reverb_gain = AL_EAXREVERB_DEFAULT_LATE_REVERB_GAIN;
+        props_.reverb.late_reverb_delay = AL_EAXREVERB_DEFAULT_LATE_REVERB_DELAY;
+        props_.reverb.late_reverb_pan[0] = AL_EAXREVERB_DEFAULT_LATE_REVERB_PAN_XYZ;
+        props_.reverb.late_reverb_pan[1] = AL_EAXREVERB_DEFAULT_LATE_REVERB_PAN_XYZ;
+        props_.reverb.late_reverb_pan[2] = AL_EAXREVERB_DEFAULT_LATE_REVERB_PAN_XYZ;
+        props_.reverb.echo_time = AL_EAXREVERB_DEFAULT_ECHO_TIME;
+        props_.reverb.echo_depth = AL_EAXREVERB_DEFAULT_ECHO_DEPTH;
+        props_.reverb.modulation_time = AL_EAXREVERB_DEFAULT_MODULATION_TIME;
+        props_.reverb.modulation_depth = AL_EAXREVERB_DEFAULT_MODULATION_DEPTH;
+        props_.reverb.air_absorption_gain_hf = AL_EAXREVERB_DEFAULT_AIR_ABSORPTION_GAINHF;
+        props_.reverb.hf_reference = AL_EAXREVERB_DEFAULT_HFREFERENCE;
+        props_.reverb.lf_reference = AL_EAXREVERB_DEFAULT_LFREFERENCE;
+        props_.reverb.room_rolloff_factor = AL_EAXREVERB_DEFAULT_ROOM_ROLLOFF_FACTOR;
+        props_.reverb.decay_hf_limit = AL_EAXREVERB_DEFAULT_DECAY_HFLIMIT;
+        break;
+
+    case AL_EFFECT_REVERB:
+        props_.reverb.density = AL_REVERB_DEFAULT_DENSITY;
+        props_.reverb.diffusion = AL_REVERB_DEFAULT_DIFFUSION;
+        props_.reverb.gain = AL_REVERB_DEFAULT_GAIN;
+        props_.reverb.gain_hf = AL_REVERB_DEFAULT_GAINHF;
+        props_.reverb.gain_lf = 1.0F;
+        props_.reverb.decay_time = AL_REVERB_DEFAULT_DECAY_TIME;
+        props_.reverb.decay_hf_ratio = AL_REVERB_DEFAULT_DECAY_HFRATIO;
+        props_.reverb.decay_lf_ratio = 1.0F;
+        props_.reverb.reflections_gain = AL_REVERB_DEFAULT_REFLECTIONS_GAIN;
+        props_.reverb.reflections_delay = AL_REVERB_DEFAULT_REFLECTIONS_DELAY;
+        props_.reverb.reflections_pan[0] = 0.0F;
+        props_.reverb.reflections_pan[1] = 0.0F;
+        props_.reverb.reflections_pan[2] = 0.0F;
+        props_.reverb.late_reverb_gain = AL_REVERB_DEFAULT_LATE_REVERB_GAIN;
+        props_.reverb.late_reverb_delay = AL_REVERB_DEFAULT_LATE_REVERB_DELAY;
+        props_.reverb.late_reverb_pan[0] = 0.0F;
+        props_.reverb.late_reverb_pan[1] = 0.0F;
+        props_.reverb.late_reverb_pan[2] = 0.0F;
+        props_.reverb.echo_time = 0.25F;
+        props_.reverb.echo_depth = 0.0F;
+        props_.reverb.modulation_time = 0.25F;
+        props_.reverb.modulation_depth = 0.0F;
+        props_.reverb.air_absorption_gain_hf = AL_REVERB_DEFAULT_AIR_ABSORPTION_GAINHF;
+        props_.reverb.hf_reference = 5000.0F;
+        props_.reverb.lf_reference = 250.0F;
+        props_.reverb.room_rolloff_factor = AL_REVERB_DEFAULT_ROOM_ROLLOFF_FACTOR;
+        props_.reverb.decay_hf_limit = AL_REVERB_DEFAULT_DECAY_HFLIMIT;
+        break;
+
+    case AL_EFFECT_CHORUS:
+        props_.chorus.waveform = AL_CHORUS_DEFAULT_WAVEFORM;
+        props_.chorus.phase = AL_CHORUS_DEFAULT_PHASE;
+        props_.chorus.rate = AL_CHORUS_DEFAULT_RATE;
+        props_.chorus.depth = AL_CHORUS_DEFAULT_DEPTH;
+        props_.chorus.feedback = AL_CHORUS_DEFAULT_FEEDBACK;
+        props_.chorus.delay = AL_CHORUS_DEFAULT_DELAY;
+        break;
+
+    case AL_EFFECT_COMPRESSOR:
+        props_.compressor.on_off = AL_COMPRESSOR_DEFAULT_ONOFF;
+        break;
+
+    case AL_EFFECT_DISTORTION:
+        props_.distortion.edge = AL_DISTORTION_DEFAULT_EDGE;
+        props_.distortion.gain = AL_DISTORTION_DEFAULT_GAIN;
+        props_.distortion.lowpass_cutoff = AL_DISTORTION_DEFAULT_LOWPASS_CUTOFF;
+        props_.distortion.eq_center = AL_DISTORTION_DEFAULT_EQCENTER;
+        props_.distortion.eq_bandwidth = AL_DISTORTION_DEFAULT_EQBANDWIDTH;
+        break;
+
+    case AL_EFFECT_ECHO:
+        props_.echo.delay = AL_ECHO_DEFAULT_DELAY;
+        props_.echo.lr_delay = AL_ECHO_DEFAULT_LRDELAY;
+        props_.echo.damping = AL_ECHO_DEFAULT_DAMPING;
+        props_.echo.feedback = AL_ECHO_DEFAULT_FEEDBACK;
+        props_.echo.spread = AL_ECHO_DEFAULT_SPREAD;
+        break;
+
+    case AL_EFFECT_EQUALIZER:
+        props_.equalizer.low_cutoff = AL_EQUALIZER_DEFAULT_LOW_CUTOFF;
+        props_.equalizer.low_gain = AL_EQUALIZER_DEFAULT_LOW_GAIN;
+        props_.equalizer.mid1_center = AL_EQUALIZER_DEFAULT_MID1_CENTER;
+        props_.equalizer.mid1_gain = AL_EQUALIZER_DEFAULT_MID1_GAIN;
+        props_.equalizer.mid1_width = AL_EQUALIZER_DEFAULT_MID1_WIDTH;
+        props_.equalizer.mid2_center = AL_EQUALIZER_DEFAULT_MID2_CENTER;
+        props_.equalizer.mid2_gain = AL_EQUALIZER_DEFAULT_MID2_GAIN;
+        props_.equalizer.mid2_width = AL_EQUALIZER_DEFAULT_MID2_WIDTH;
+        props_.equalizer.high_cutoff = AL_EQUALIZER_DEFAULT_HIGH_CUTOFF;
+        props_.equalizer.high_gain = AL_EQUALIZER_DEFAULT_HIGH_GAIN;
+        break;
+
+    case AL_EFFECT_FLANGER:
+        props_.flanger.waveform = AL_FLANGER_DEFAULT_WAVEFORM;
+        props_.flanger.phase = AL_FLANGER_DEFAULT_PHASE;
+        props_.flanger.rate = AL_FLANGER_DEFAULT_RATE;
+        props_.flanger.depth = AL_FLANGER_DEFAULT_DEPTH;
+        props_.flanger.feedback = AL_FLANGER_DEFAULT_FEEDBACK;
+        props_.flanger.delay = AL_FLANGER_DEFAULT_DELAY;
+        break;
+
+    case AL_EFFECT_RING_MODULATOR:
+        props_.modulator.frequency = AL_RING_MODULATOR_DEFAULT_FREQUENCY;
+        props_.modulator.high_pass_cutoff = AL_RING_MODULATOR_DEFAULT_HIGHPASS_CUTOFF;
+        props_.modulator.waveform = AL_RING_MODULATOR_DEFAULT_WAVEFORM;
+        break;
+
+    case AL_EFFECT_DEDICATED_LOW_FREQUENCY_EFFECT:
+    case AL_EFFECT_DEDICATED_DIALOGUE:
+        props_.dedicated.gain = 1.0F;
+        break;
+
+    default:
+        break;
+    }
+
+    type_ = type;
+}
+
+// Effect
+// ==========================================================================
+
+
+// ==========================================================================
+// EffectState
+
+EffectState::EffectState()
     :
     out_buffer{},
     out_channels{}
 {
 }
 
-IEffect::~IEffect()
+EffectState::~EffectState()
 {
 }
 
-void IEffect::construct()
+void EffectState::construct()
 {
     do_construct();
 }
 
-void IEffect::destruct()
+void EffectState::destruct()
 {
     do_destruct();
 }
 
-void IEffect::update_device(
+void EffectState::update_device(
     ALCdevice* device)
 {
     do_update_device(device);
 }
 
-void IEffect::update(
+void EffectState::update(
     ALCdevice* device,
-    const struct EffectSlot* slot,
-    const union ALeffectProps *props)
+    const EffectSlot* slot,
+    const EffectProps *props)
 {
     do_update(device, slot, props);
 }
 
-void IEffect::process(
+void EffectState::process(
     int sample_count,
     const SampleBuffers& src_samples,
     SampleBuffers& dst_samples,
@@ -70,147 +218,71 @@ void IEffect::process(
     do_process(sample_count, src_samples, dst_samples, channel_count);
 }
 
-// IEffect
+void EffectState::destroy(
+    EffectState*& effect_state)
+{
+    if (!effect_state)
+    {
+        return;
+    }
+
+    effect_state->destruct();
+    delete effect_state;
+    effect_state = nullptr;
+}
+
+// EffectState
 // ==========================================================================
 
 
-void init_effect_params(
-    ALeffect* effect,
+// ==========================================================================
+// EffectStateFactory
+
+EffectState* EffectStateFactory::create_by_type(
     const int type)
 {
     switch (type)
     {
+    case AL_EFFECT_NULL:
+        return create_null();
+
     case AL_EFFECT_EAXREVERB:
-        effect->props.reverb.density = AL_EAXREVERB_DEFAULT_DENSITY;
-        effect->props.reverb.diffusion = AL_EAXREVERB_DEFAULT_DIFFUSION;
-        effect->props.reverb.gain = AL_EAXREVERB_DEFAULT_GAIN;
-        effect->props.reverb.gain_hf = AL_EAXREVERB_DEFAULT_GAINHF;
-        effect->props.reverb.gain_lf = AL_EAXREVERB_DEFAULT_GAINLF;
-        effect->props.reverb.decay_time = AL_EAXREVERB_DEFAULT_DECAY_TIME;
-        effect->props.reverb.decay_hf_ratio = AL_EAXREVERB_DEFAULT_DECAY_HFRATIO;
-        effect->props.reverb.decay_lf_ratio = AL_EAXREVERB_DEFAULT_DECAY_LFRATIO;
-        effect->props.reverb.reflections_gain = AL_EAXREVERB_DEFAULT_REFLECTIONS_GAIN;
-        effect->props.reverb.reflections_delay = AL_EAXREVERB_DEFAULT_REFLECTIONS_DELAY;
-        effect->props.reverb.reflections_pan[0] = AL_EAXREVERB_DEFAULT_REFLECTIONS_PAN_XYZ;
-        effect->props.reverb.reflections_pan[1] = AL_EAXREVERB_DEFAULT_REFLECTIONS_PAN_XYZ;
-        effect->props.reverb.reflections_pan[2] = AL_EAXREVERB_DEFAULT_REFLECTIONS_PAN_XYZ;
-        effect->props.reverb.late_reverb_gain = AL_EAXREVERB_DEFAULT_LATE_REVERB_GAIN;
-        effect->props.reverb.late_reverb_delay = AL_EAXREVERB_DEFAULT_LATE_REVERB_DELAY;
-        effect->props.reverb.late_reverb_pan[0] = AL_EAXREVERB_DEFAULT_LATE_REVERB_PAN_XYZ;
-        effect->props.reverb.late_reverb_pan[1] = AL_EAXREVERB_DEFAULT_LATE_REVERB_PAN_XYZ;
-        effect->props.reverb.late_reverb_pan[2] = AL_EAXREVERB_DEFAULT_LATE_REVERB_PAN_XYZ;
-        effect->props.reverb.echo_time = AL_EAXREVERB_DEFAULT_ECHO_TIME;
-        effect->props.reverb.echo_depth = AL_EAXREVERB_DEFAULT_ECHO_DEPTH;
-        effect->props.reverb.modulation_time = AL_EAXREVERB_DEFAULT_MODULATION_TIME;
-        effect->props.reverb.modulation_depth = AL_EAXREVERB_DEFAULT_MODULATION_DEPTH;
-        effect->props.reverb.air_absorption_gain_hf = AL_EAXREVERB_DEFAULT_AIR_ABSORPTION_GAINHF;
-        effect->props.reverb.hf_reference = AL_EAXREVERB_DEFAULT_HFREFERENCE;
-        effect->props.reverb.lf_reference = AL_EAXREVERB_DEFAULT_LFREFERENCE;
-        effect->props.reverb.room_rolloff_factor = AL_EAXREVERB_DEFAULT_ROOM_ROLLOFF_FACTOR;
-        effect->props.reverb.decay_hf_limit = AL_EAXREVERB_DEFAULT_DECAY_HFLIMIT;
-        break;
+        return create_reverb();
 
     case AL_EFFECT_REVERB:
-        effect->props.reverb.density = AL_REVERB_DEFAULT_DENSITY;
-        effect->props.reverb.diffusion = AL_REVERB_DEFAULT_DIFFUSION;
-        effect->props.reverb.gain = AL_REVERB_DEFAULT_GAIN;
-        effect->props.reverb.gain_hf = AL_REVERB_DEFAULT_GAINHF;
-        effect->props.reverb.gain_lf = 1.0f;
-        effect->props.reverb.decay_time = AL_REVERB_DEFAULT_DECAY_TIME;
-        effect->props.reverb.decay_hf_ratio = AL_REVERB_DEFAULT_DECAY_HFRATIO;
-        effect->props.reverb.decay_lf_ratio = 1.0f;
-        effect->props.reverb.reflections_gain = AL_REVERB_DEFAULT_REFLECTIONS_GAIN;
-        effect->props.reverb.reflections_delay = AL_REVERB_DEFAULT_REFLECTIONS_DELAY;
-        effect->props.reverb.reflections_pan[0] = 0.0f;
-        effect->props.reverb.reflections_pan[1] = 0.0f;
-        effect->props.reverb.reflections_pan[2] = 0.0f;
-        effect->props.reverb.late_reverb_gain = AL_REVERB_DEFAULT_LATE_REVERB_GAIN;
-        effect->props.reverb.late_reverb_delay = AL_REVERB_DEFAULT_LATE_REVERB_DELAY;
-        effect->props.reverb.late_reverb_pan[0] = 0.0f;
-        effect->props.reverb.late_reverb_pan[1] = 0.0f;
-        effect->props.reverb.late_reverb_pan[2] = 0.0f;
-        effect->props.reverb.echo_time = 0.25f;
-        effect->props.reverb.echo_depth = 0.0f;
-        effect->props.reverb.modulation_time = 0.25f;
-        effect->props.reverb.modulation_depth = 0.0f;
-        effect->props.reverb.air_absorption_gain_hf = AL_REVERB_DEFAULT_AIR_ABSORPTION_GAINHF;
-        effect->props.reverb.hf_reference = 5000.0f;
-        effect->props.reverb.lf_reference = 250.0f;
-        effect->props.reverb.room_rolloff_factor = AL_REVERB_DEFAULT_ROOM_ROLLOFF_FACTOR;
-        effect->props.reverb.decay_hf_limit = AL_REVERB_DEFAULT_DECAY_HFLIMIT;
-        break;
+        return create_reverb();
 
     case AL_EFFECT_CHORUS:
-        effect->props.chorus.waveform = AL_CHORUS_DEFAULT_WAVEFORM;
-        effect->props.chorus.phase = AL_CHORUS_DEFAULT_PHASE;
-        effect->props.chorus.rate = AL_CHORUS_DEFAULT_RATE;
-        effect->props.chorus.depth = AL_CHORUS_DEFAULT_DEPTH;
-        effect->props.chorus.feedback = AL_CHORUS_DEFAULT_FEEDBACK;
-        effect->props.chorus.delay = AL_CHORUS_DEFAULT_DELAY;
-        break;
+        return create_chorus();
 
     case AL_EFFECT_COMPRESSOR:
-        effect->props.compressor.on_off = AL_COMPRESSOR_DEFAULT_ONOFF;
-        break;
+        return create_compressor();
 
     case AL_EFFECT_DISTORTION:
-        effect->props.distortion.edge = AL_DISTORTION_DEFAULT_EDGE;
-        effect->props.distortion.gain = AL_DISTORTION_DEFAULT_GAIN;
-        effect->props.distortion.lowpass_cutoff = AL_DISTORTION_DEFAULT_LOWPASS_CUTOFF;
-        effect->props.distortion.eq_center = AL_DISTORTION_DEFAULT_EQCENTER;
-        effect->props.distortion.eq_bandwidth = AL_DISTORTION_DEFAULT_EQBANDWIDTH;
-        break;
+        return create_distortion();
 
     case AL_EFFECT_ECHO:
-        effect->props.echo.delay = AL_ECHO_DEFAULT_DELAY;
-        effect->props.echo.lr_delay = AL_ECHO_DEFAULT_LRDELAY;
-        effect->props.echo.damping = AL_ECHO_DEFAULT_DAMPING;
-        effect->props.echo.feedback = AL_ECHO_DEFAULT_FEEDBACK;
-        effect->props.echo.spread = AL_ECHO_DEFAULT_SPREAD;
-        break;
+        return create_echo();
 
     case AL_EFFECT_EQUALIZER:
-        effect->props.equalizer.low_cutoff = AL_EQUALIZER_DEFAULT_LOW_CUTOFF;
-        effect->props.equalizer.low_gain = AL_EQUALIZER_DEFAULT_LOW_GAIN;
-        effect->props.equalizer.mid1_center = AL_EQUALIZER_DEFAULT_MID1_CENTER;
-        effect->props.equalizer.mid1_gain = AL_EQUALIZER_DEFAULT_MID1_GAIN;
-        effect->props.equalizer.mid1_width = AL_EQUALIZER_DEFAULT_MID1_WIDTH;
-        effect->props.equalizer.mid2_center = AL_EQUALIZER_DEFAULT_MID2_CENTER;
-        effect->props.equalizer.mid2_gain = AL_EQUALIZER_DEFAULT_MID2_GAIN;
-        effect->props.equalizer.mid2_width = AL_EQUALIZER_DEFAULT_MID2_WIDTH;
-        effect->props.equalizer.high_cutoff = AL_EQUALIZER_DEFAULT_HIGH_CUTOFF;
-        effect->props.equalizer.high_gain = AL_EQUALIZER_DEFAULT_HIGH_GAIN;
-        break;
+        return create_equalizer();
 
     case AL_EFFECT_FLANGER:
-        effect->props.flanger.waveform = AL_FLANGER_DEFAULT_WAVEFORM;
-        effect->props.flanger.phase = AL_FLANGER_DEFAULT_PHASE;
-        effect->props.flanger.rate = AL_FLANGER_DEFAULT_RATE;
-        effect->props.flanger.depth = AL_FLANGER_DEFAULT_DEPTH;
-        effect->props.flanger.feedback = AL_FLANGER_DEFAULT_FEEDBACK;
-        effect->props.flanger.delay = AL_FLANGER_DEFAULT_DELAY;
-        break;
+        return create_flanger();
 
     case AL_EFFECT_RING_MODULATOR:
-        effect->props.modulator.frequency = AL_RING_MODULATOR_DEFAULT_FREQUENCY;
-        effect->props.modulator.high_pass_cutoff = AL_RING_MODULATOR_DEFAULT_HIGHPASS_CUTOFF;
-        effect->props.modulator.waveform = AL_RING_MODULATOR_DEFAULT_WAVEFORM;
-        break;
+        return create_modulator();
+
+    case AL_EFFECT_DEDICATED_DIALOGUE:
+        return create_dedicated();
 
     case AL_EFFECT_DEDICATED_LOW_FREQUENCY_EFFECT:
-    case AL_EFFECT_DEDICATED_DIALOGUE:
-        effect->props.dedicated.gain = 1.0f;
-        break;
+        return create_dedicated();
 
     default:
-        break;
+        return nullptr;
     }
-
-    effect->type = type;
 }
 
-void init_effect(
-    ALeffect* effect)
-{
-    init_effect_params(effect, AL_EFFECT_NULL);
-}
+// EffectStateFactory
+// ==========================================================================

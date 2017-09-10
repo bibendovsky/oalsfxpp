@@ -24,13 +24,13 @@
 #include "alu.h"
 
 
-class CompressorEffect :
-    public IEffect
+class CompressorEffectState :
+    public EffectState
 {
 public:
-    CompressorEffect()
+    CompressorEffectState()
         :
-        IEffect{},
+        EffectState{},
         gains_{},
         is_enabled_{},
         attack_rate_{},
@@ -39,13 +39,13 @@ public:
     {
     }
 
-    virtual ~CompressorEffect()
+    virtual ~CompressorEffectState()
     {
     }
 
 
 protected:
-    void CompressorEffect::do_construct() final
+    void CompressorEffectState::do_construct() final
     {
         is_enabled_ = true;
         attack_rate_ = 0.0F;
@@ -53,11 +53,11 @@ protected:
         gain_control_ = 1.0F;
     }
 
-    void CompressorEffect::do_destruct() final
+    void CompressorEffectState::do_destruct() final
     {
     }
 
-    void CompressorEffect::do_update_device(
+    void CompressorEffectState::do_update_device(
         ALCdevice* device) final
     {
         const auto attackTime = device->frequency * 0.2F; // 200ms Attack
@@ -67,10 +67,10 @@ protected:
         release_rate_ = 1.0F / releaseTime;
     }
 
-    void CompressorEffect::do_update(
+    void CompressorEffectState::do_update(
         ALCdevice* device,
-        const struct EffectSlot* slot,
-        const union ALeffectProps* props) final
+        const EffectSlot* slot,
+        const EffectProps* props) final
     {
         is_enabled_ = props->compressor.on_off;
 
@@ -83,7 +83,7 @@ protected:
         }
     }
 
-    void CompressorEffect::do_process(
+    void CompressorEffectState::do_process(
         const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
@@ -199,10 +199,10 @@ private:
     float attack_rate_;
     float release_rate_;
     float gain_control_;
-}; // CompressorEffect
+}; // CompressorEffectState
 
 
-IEffect* create_compressor_effect()
+EffectState* EffectStateFactory::create_compressor()
 {
-    return create_effect<CompressorEffect>();
+    return create<CompressorEffectState>();
 }

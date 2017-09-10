@@ -1,6 +1,7 @@
 #ifndef _AL_EFFECT_H_
 #define _AL_EFFECT_H_
 
+#include <new>
 #include <vector>
 #include "alMain.h"
 
@@ -8,11 +9,14 @@
 using EffectSampleBuffer = std::vector<float>;
 
 
-union ALeffectProps
+union EffectProps
 {
+    using Pan = float[3];
+
+
     struct Reverb
     {
-        // Shared Reverb Properties
+        // Shared reverb properties
         float density;
         float diffusion;
         float gain;
@@ -27,11 +31,11 @@ union ALeffectProps
         float room_rolloff_factor;
         bool decay_hf_limit;
 
-        // Additional EAX Reverb Properties
+        // Additional EAX reverb properties
         float gain_lf;
         float decay_lf_ratio;
-        float reflections_pan[3];
-        float late_reverb_pan[3];
+        Pan reflections_pan;
+        Pan late_reverb_pan;
         float echo_time;
         float echo_depth;
         float modulation_time;
@@ -121,28 +125,34 @@ union ALeffectProps
     Flanger flanger;
     Modulator modulator;
     Dedicated dedicated;
-}; // ALeffectProps
+}; // EffectProps
 
 
-struct ALeffect
+struct Effect
 {
     // Effect type (AL_EFFECT_NULL, ...)
-    int type;
+    int type_;
 
-    ALeffectProps props;
-}; // ALeffect
+    EffectProps props_;
 
 
-class IEffect
+    Effect();
+
+    void initialize(
+        const int type = AL_EFFECT_NULL);
+}; // Effect
+
+
+class EffectState
 {
 public:
-    IEffect(
-        const IEffect& that) = delete;
+    EffectState(
+        const EffectState& that) = delete;
 
-    IEffect& operator=(
-        const IEffect& that) = delete;
+    EffectState& operator=(
+        const EffectState& that) = delete;
 
-    virtual ~IEffect();
+    virtual ~EffectState();
 
 
     SampleBuffers* out_buffer;
@@ -158,8 +168,8 @@ public:
 
     void update(
         ALCdevice* device,
-        const struct EffectSlot* slot,
-        const union ALeffectProps *props);
+        const EffectSlot* slot,
+        const EffectProps *props);
 
     void process(
         const int sample_count,
@@ -168,8 +178,12 @@ public:
         const int channel_count);
 
 
+    static void destroy(
+        EffectState*& effect_state);
+
+
 protected:
-    IEffect();
+    EffectState();
 
 
     virtual void do_construct() = 0;
@@ -181,19 +195,50 @@ protected:
 
     virtual void do_update(
         ALCdevice* device,
-        const struct EffectSlot* slot,
-        const union ALeffectProps *props) = 0;
+        const EffectSlot* slot,
+        const EffectProps *props) = 0;
 
     virtual void do_process(
         const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
         const int channel_count) = 0;
-}; // IEffect
+}; // EffectState
 
 
-void init_effect(
-    ALeffect* effect);
+class EffectStateFactory
+{
+public:
+    static EffectState* create_by_type(
+        const int type);
+
+
+private:
+    static EffectState* create_chorus();
+    static EffectState* create_compressor();
+    static EffectState* create_dedicated();
+    static EffectState* create_distortion();
+    static EffectState* create_echo();
+    static EffectState* create_equalizer();
+    static EffectState* create_flanger();
+    static EffectState* create_modulator();
+    static EffectState* create_null();
+    static EffectState* create_reverb();
+
+
+    template<typename T>
+    static EffectState* create()
+    {
+        auto result = static_cast<EffectState*>(new (std::nothrow) T{});
+
+        if (result)
+        {
+            result->construct();
+        }
+
+        return result;
+    }
+};
 
 
 #endif

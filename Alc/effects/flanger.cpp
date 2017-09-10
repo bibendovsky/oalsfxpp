@@ -26,13 +26,13 @@
 #include "alu.h"
 
 
-class FlangerEffect :
-    public IEffect
+class FlangerEffectState :
+    public EffectState
 {
 public:
-    FlangerEffect()
+    FlangerEffectState()
         :
-        IEffect{},
+        EffectState{},
         sample_buffers_{},
         buffer_length_{},
         offset_{},
@@ -47,13 +47,13 @@ public:
     {
     }
 
-    virtual ~FlangerEffect()
+    virtual ~FlangerEffectState()
     {
     }
 
 
 protected:
-    void FlangerEffect::do_construct() final
+    void FlangerEffectState::do_construct() final
     {
         buffer_length_ = 0;
 
@@ -67,7 +67,7 @@ protected:
         waveform_ = Waveform::triangle;
     }
 
-    void FlangerEffect::do_destruct() final
+    void FlangerEffectState::do_destruct() final
     {
         for (auto& buffer : sample_buffers_)
         {
@@ -75,7 +75,7 @@ protected:
         }
     }
 
-    void FlangerEffect::do_update_device(
+    void FlangerEffectState::do_update_device(
         ALCdevice* device) final
     {
         auto maxlen = static_cast<int>(AL_FLANGER_MAX_DELAY * 2.0F * device->frequency) + 1;
@@ -97,10 +97,10 @@ protected:
         }
     }
 
-    void FlangerEffect::do_update(
+    void FlangerEffectState::do_update(
         ALCdevice* device,
-        const struct EffectSlot* slot,
-        const union ALeffectProps* props) final
+        const EffectSlot* slot,
+        const EffectProps* props) final
     {
         const auto frequency = static_cast<float>(device->frequency);
         float coeffs[max_ambi_coeffs];
@@ -165,7 +165,7 @@ protected:
         }
     }
 
-    void FlangerEffect::do_process(
+    void FlangerEffectState::do_process(
         const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
@@ -328,10 +328,10 @@ private:
             offset = (offset + 1) % lfo_range;
         }
     }
-}; // FlangerEffect
+}; // FlangerEffectState
 
 
-IEffect* create_flanger_effect()
+EffectState* EffectStateFactory::create_flanger()
 {
-    return create_effect<FlangerEffect>();
+    return create<FlangerEffectState>();
 }

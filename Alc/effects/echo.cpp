@@ -25,8 +25,8 @@
 #include "alu.h"
 
 
-class EchoEffect :
-    public IEffect
+class EchoEffectState :
+    public EffectState
 {
 public:
     struct Tap
@@ -35,9 +35,9 @@ public:
     };
 
 
-    EchoEffect()
+    EchoEffectState()
         :
-        IEffect{},
+        EffectState{},
         sample_buffer_{},
         buffer_length_{},
         taps_{},
@@ -48,13 +48,13 @@ public:
     {
     }
 
-    virtual ~EchoEffect()
+    virtual ~EchoEffectState()
     {
     }
 
 
 protected:
-    void EchoEffect::do_construct() final
+    void EchoEffectState::do_construct() final
     {
         buffer_length_ = 0;
         sample_buffer_ = EffectSampleBuffer{};
@@ -66,12 +66,12 @@ protected:
         al_filter_state_clear(&filter_);
     }
 
-    void EchoEffect::do_destruct() final
+    void EchoEffectState::do_destruct() final
     {
         sample_buffer_ = EffectSampleBuffer{};
     }
 
-    void EchoEffect::do_update_device(
+    void EchoEffectState::do_update_device(
         ALCdevice* device) final
     {
         // Use the next power of 2 for the buffer length, so the tap offsets can be
@@ -89,10 +89,10 @@ protected:
         std::fill(sample_buffer_.begin(), sample_buffer_.end(), 0.0F);
     }
 
-    void EchoEffect::do_update(
+    void EchoEffectState::do_update(
         ALCdevice* device,
-        const struct EffectSlot* slot,
-        const union ALeffectProps* props) final
+        const EffectSlot* slot,
+        const EffectProps* props) final
     {
         float coeffs[max_ambi_coeffs];
         float effect_gain, lrpan, spread;
@@ -140,7 +140,7 @@ protected:
         compute_panning_gains(device->dry, coeffs, effect_gain, gains_[1].data());
     }
 
-    void EchoEffect::do_process(
+    void EchoEffectState::do_process(
         const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
@@ -238,10 +238,10 @@ private:
     float feed_gain_;
 
     FilterState filter_;
-}; // EchoEffect
+}; // EchoEffectState
 
 
-IEffect* create_echo_effect()
+EffectState* EffectStateFactory::create_echo()
 {
-    return create_effect<EchoEffect>();
+    return create<EchoEffectState>();
 }
