@@ -11,11 +11,11 @@ constexpr auto max_effect_channels = 4;
 
 struct EffectSlot
 {
-    using EffectSlotUPtr = std::unique_ptr<EffectState, EffectStateDeleter>;
+    using EffectStateUPtr = std::unique_ptr<EffectState, EffectStateDeleter>;
 
 
     Effect effect_;
-    EffectSlotUPtr effect_state_;
+    EffectStateUPtr effect_state_;
     bool is_props_updated_;
 
     int channel_count_;

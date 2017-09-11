@@ -67,17 +67,17 @@ protected:
         const EffectSlot* slot,
         const EffectProps* props) final
     {
-        const auto frequency = static_cast<float>(device->frequency);
+        const auto frequency = static_cast<float>(device->frequency_);
 
         // Store distorted signal attenuation settings.
-        attenuation_ = props->distortion.gain;
+        attenuation_ = props->distortion_.gain_;
 
         // Store waveshaper edge settings.
-        auto edge = std::sin(props->distortion.edge * (pi_2));
+        auto edge = std::sin(props->distortion_.edge_ * (pi_2));
         edge = std::min(edge, 0.99F);
         edge_coeff_ = 2.0F * edge / (1.0F - edge);
 
-        auto cutoff = props->distortion.low_pass_cutoff;
+        auto cutoff = props->distortion_.low_pass_cutoff_;
 
         // Bandwidth value is constant in octaves.
         auto bandwidth = (cutoff / 2.0F) / (cutoff * 0.67F);
@@ -91,10 +91,10 @@ protected:
             cutoff / (frequency * 4.0F),
             calc_rcp_q_from_bandwidth(cutoff / (frequency * 4.0F), bandwidth));
 
-        cutoff = props->distortion.eq_center;
+        cutoff = props->distortion_.eq_center_;
 
         // Convert bandwidth in Hz to octaves.
-        bandwidth = props->distortion.eq_bandwidth / (cutoff * 0.67F);
+        bandwidth = props->distortion_.eq_bandwidth_ / (cutoff * 0.67F);
 
         al_filter_state_set_params(
             &band_pass_,

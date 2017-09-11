@@ -228,18 +228,18 @@ int main()
             }
         }
 
-        oal_device->effect->initialize(effect_type);
+        oal_device->effect_->initialize(effect_type);
     }
 
     if (is_succeed)
     {
-        oal_device->effect_slot->initialize_effect(oal_device);
+        oal_device->effect_slot_->initialize_effect(oal_device);
     }
 
     if (is_succeed)
     {
-        oal_device->source->send->slot = oal_device->effect_slot;
-        update_source_props(oal_device->source, oal_device->voice);
+        oal_device->source_->send_->effect_slot_ = oal_device->effect_slot_;
+        update_source_props(oal_device->source_, oal_device->voice_);
     }
 
     if (is_succeed)

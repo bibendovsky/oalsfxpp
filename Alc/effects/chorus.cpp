@@ -79,7 +79,7 @@ protected:
     void ChorusEffectState::do_update_device(
         ALCdevice* device) final
     {
-        auto max_len = static_cast<int>(AL_CHORUS_MAX_DELAY * 2.0F * device->frequency) + 1;
+        auto max_len = static_cast<int>(AL_CHORUS_MAX_DELAY * 2.0F * device->frequency_) + 1;
 
         max_len = next_power_of_2(max_len);
 
@@ -102,9 +102,9 @@ protected:
         const EffectSlot* slot,
         const EffectProps* props) final
     {
-        const auto frequency = static_cast<float>(device->frequency);
+        const auto frequency = static_cast<float>(device->frequency_);
 
-        switch (props->chorus.waveform)
+        switch (props->chorus_.waveform_)
         {
         case AL_CHORUS_WAVEFORM_TRIANGLE:
             waveform_ = Waveform::triangle;
@@ -115,11 +115,11 @@ protected:
             break;
         }
 
-        feedback_ = props->chorus.feedback;
-        delay_ = static_cast<int>(props->chorus.delay * frequency);
+        feedback_ = props->chorus_.feedback_;
+        delay_ = static_cast<int>(props->chorus_.delay_ * frequency);
 
         // The LFO depth is scaled to be relative to the sample delay.
-        depth_ = props->chorus.depth * delay_;
+        depth_ = props->chorus_.depth_ * delay_;
 
         float coeffs[max_ambi_coeffs];
 
@@ -129,8 +129,8 @@ protected:
         calc_angle_coeffs(pi_2, 0.0F, 0.0F, coeffs);
         compute_panning_gains(device, coeffs, 1.0F, gains_[1].data());
 
-        const auto phase = props->chorus.phase;
-        const auto rate = props->chorus.rate;
+        const auto phase = props->chorus_.phase_;
+        const auto rate = props->chorus_.rate_;
 
         if (!(rate > 0.0F))
         {

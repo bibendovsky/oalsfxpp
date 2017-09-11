@@ -76,8 +76,8 @@ protected:
     {
         // Use the next power of 2 for the buffer length, so the tap offsets can be
         // wrapped using a mask instead of a modulo
-        auto maxlen = static_cast<int>(AL_ECHO_MAX_DELAY * device->frequency) + 1;
-        maxlen += static_cast<int>(AL_ECHO_MAX_LRDELAY * device->frequency) + 1;
+        auto maxlen = static_cast<int>(AL_ECHO_MAX_DELAY * device->frequency_) + 1;
+        maxlen += static_cast<int>(AL_ECHO_MAX_LRDELAY * device->frequency_) + 1;
         maxlen = next_power_of_2(maxlen);
 
         if (maxlen != buffer_length_)
@@ -97,13 +97,13 @@ protected:
         float coeffs[max_ambi_coeffs];
         float effect_gain, lrpan, spread;
 
-        const auto frequency = device->frequency;
+        const auto frequency = device->frequency_;
 
-        taps_[0].delay = static_cast<int>(props->echo.delay * frequency) + 1;
-        taps_[1].delay = static_cast<int>(props->echo.lr_delay * frequency);
+        taps_[0].delay = static_cast<int>(props->echo_.delay_ * frequency) + 1;
+        taps_[1].delay = static_cast<int>(props->echo_.lr_delay_ * frequency);
         taps_[1].delay += taps_[0].delay;
 
-        spread = props->echo.spread;
+        spread = props->echo_.spread_;
 
         if (spread < 0.0F)
         {
@@ -118,9 +118,9 @@ protected:
         // spread (where 0 = point, tau = omni).
         spread = std::asin(1.0F - std::abs(spread)) * 4.0F;
 
-        feed_gain_ = props->echo.feedback;
+        feed_gain_ = props->echo_.feedback_;
 
-        effect_gain = std::max(1.0F - props->echo.damping, 0.0625F); // Limit -24dB
+        effect_gain = std::max(1.0F - props->echo_.damping_, 0.0625F); // Limit -24dB
 
         al_filter_state_set_params(
             &filter_,
@@ -149,8 +149,8 @@ protected:
         const auto mask = buffer_length_ - 1;
         const auto tap1 = taps_[0].delay;
         const auto tap2 = taps_[1].delay;
-        float x[2] = {filter_.x[0], filter_.x[1],};
-        float y[2] = {filter_.y[0], filter_.y[1],};
+        float x[2] = {filter_.x_[0], filter_.x_[1],};
+        float y[2] = {filter_.y_[0], filter_.y_[1],};
 
         for (int base = 0; base < sample_count; )
         {
@@ -170,9 +170,9 @@ protected:
                 // new sample
                 auto in = temps[i][1] + src_samples[0][i + base];
 
-                auto out = (in * filter_.b0) +
-                    (x[0] * filter_.b1) + (x[1] * filter_.b2) -
-                    (y[0] * filter_.a1) - (y[1] * filter_.a2);
+                auto out = (in * filter_.b0_) +
+                    (x[0] * filter_.b1_) + (x[1] * filter_.b2_) -
+                    (y[0] * filter_.a1_) - (y[1] * filter_.a2_);
 
                 x[1] = x[0];
                 x[0] = in;
@@ -211,10 +211,10 @@ protected:
             base += td;
         }
 
-        filter_.x[0] = x[0];
-        filter_.x[1] = x[1];
-        filter_.y[0] = y[0];
-        filter_.y[1] = y[1];
+        filter_.x_[0] = x[0];
+        filter_.x_[1] = x[1];
+        filter_.y_[0] = y[0];
+        filter_.y_[1] = y[1];
     }
 
 

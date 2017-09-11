@@ -57,20 +57,20 @@ void EffectSlot::uninitialize()
 void EffectSlot::initialize_effect(
     ALCdevice* device)
 {
-    if (effect_.type_ != device->effect->type_)
+    if (effect_.type_ != device->effect_->type_)
     {
-        effect_state_.reset(EffectStateFactory::create_by_type(device->effect->type_));
+        effect_state_.reset(EffectStateFactory::create_by_type(device->effect_->type_));
 
-        effect_state_->out_buffer = &device->sample_buffers;
-        effect_state_->out_channels = device->channel_count;
+        effect_state_->dst_buffers_ = &device->sample_buffers_;
+        effect_state_->dst_channel_count_ = device->channel_count_;
         effect_state_->update_device(device);
 
-        effect_.type_ = device->effect->type_;
-        effect_.props_ = device->effect->props_;
+        effect_.type_ = device->effect_->type_;
+        effect_.props_ = device->effect_->props_;
     }
     else
     {
-        effect_.props_ = device->effect->props_;
+        effect_.props_ = device->effect_->props_;
     }
 
     is_props_updated_ = true;

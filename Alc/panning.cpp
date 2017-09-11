@@ -138,15 +138,15 @@ void compute_ambient_gains(
     const float in_gain,
     float* const out_gains)
 {
-    const auto& dry = device->dry;
+    const auto& dry = device->dry_;
 
-    if (dry.coeff_count > 0)
+    if (dry.coeff_count_ > 0)
     {
-        compute_ambient_gains_mc(dry.ambi.coeffs.data(), device->channel_count, in_gain, out_gains);
+        compute_ambient_gains_mc(dry.ambi_.coeffs_.data(), device->channel_count_, in_gain, out_gains);
     }
     else
     {
-        compute_ambient_gains_bf(dry.ambi.map.data(), device->channel_count, in_gain, out_gains);
+        compute_ambient_gains_bf(dry.ambi_.map_.data(), device->channel_count_, in_gain, out_gains);
     }
 }
 
@@ -179,9 +179,9 @@ void compute_ambient_gains_bf(
 
     for (int i = 0; i < num_channels; ++i)
     {
-        if (channel_map[i].index == 0)
+        if (channel_map[i].index_ == 0)
         {
-            gain += channel_map[i].scale;
+            gain += channel_map[i].scale_;
         }
     }
 
@@ -199,14 +199,14 @@ void compute_panning_gains(
     const float in_gain,
     float* const out_gains)
 {
-    const auto& dry = device->dry;
+    const auto& dry = device->dry_;
 
-    if (dry.coeff_count > 0)
+    if (dry.coeff_count_ > 0)
     {
         compute_panning_gains_mc(
-            dry.ambi.coeffs.data(),
-            device->channel_count,
-            dry.coeff_count,
+            dry.ambi_.coeffs_.data(),
+            device->channel_count_,
+            dry.coeff_count_,
             coeffs,
             in_gain,
             out_gains);
@@ -214,8 +214,8 @@ void compute_panning_gains(
     else
     {
         compute_panning_gains_bf(
-            dry.ambi.map.data(),
-            device->channel_count,
+            dry.ambi_.map_.data(),
+            device->channel_count_,
             coeffs,
             in_gain,
             out_gains);
@@ -261,7 +261,7 @@ void compute_panning_gains_bf(
     {
         if (i < num_channels)
         {
-            gains[i] = channel_map[i].scale * coeffs[channel_map[i].index] * in_gain;
+            gains[i] = channel_map[i].scale_ * coeffs[channel_map[i].index_] * in_gain;
         }
         else
         {
@@ -276,15 +276,15 @@ void compute_first_order_gains(
     const float in_gain,
     float* const out_gains)
 {
-    const auto& foa_out = device->foa_out;
+    const auto& foa_out = device->foa_;
 
-    if (foa_out.coeff_count > 0)
+    if (foa_out.coeff_count_ > 0)
     {
-        compute_first_order_gains_mc(foa_out.ambi.coeffs.data(), device->channel_count, matrix, in_gain, out_gains);
+        compute_first_order_gains_mc(foa_out.ambi_.coeffs_.data(), device->channel_count_, matrix, in_gain, out_gains);
     }
     else
     {
-        compute_first_order_gains_bf(foa_out.ambi.map.data(), device->channel_count, matrix, in_gain, out_gains);
+        compute_first_order_gains_bf(foa_out.ambi_.map_.data(), device->channel_count_, matrix, in_gain, out_gains);
     }
 }
 
@@ -326,7 +326,7 @@ void compute_first_order_gains_bf(
     {
         if (i < num_channels)
         {
-            gains[i] = channel_map[i].scale * mtx[channel_map[i].index] * in_gain;
+            gains[i] = channel_map[i].scale_ * mtx[channel_map[i].index_] * in_gain;
         }
         else
         {
@@ -438,7 +438,7 @@ static void init_panning(
     auto coeff_count = 0;
     auto count = 0;
 
-    switch (device->fmt_chans)
+    switch (device->channel_format_)
     {
     case DevFmtMono:
         count = count_of(mono_cfg);
@@ -484,35 +484,35 @@ static void init_panning(
     }
 
     set_channel_map(
-        device->channel_names.data(),
-        device->dry.ambi.coeffs.data(),
+        device->channel_names_.data(),
+        device->dry_.ambi_.coeffs_.data(),
         channel_map,
         count,
-        &device->channel_count);
+        &device->channel_count_);
 
-    device->dry.coeff_count = coeff_count;
+    device->dry_.coeff_count_ = coeff_count;
 
-    device->foa_out.ambi.reset();
+    device->foa_.ambi_.reset();
 
-    for (int i = 0; i < device->channel_count; ++i)
+    for (int i = 0; i < device->channel_count_; ++i)
     {
-        device->foa_out.ambi.coeffs[i][0] = device->dry.ambi.coeffs[i][0];
+        device->foa_.ambi_.coeffs_[i][0] = device->dry_.ambi_.coeffs_[i][0];
 
         for (int j = 1; j < 4; ++j)
         {
-            device->foa_out.ambi.coeffs[i][j] = device->dry.ambi.coeffs[i][j];
+            device->foa_.ambi_.coeffs_[i][j] = device->dry_.ambi_.coeffs_[i][j];
         }
     }
 
-    device->foa_out.coeff_count = 4;
+    device->foa_.coeff_count_ = 4;
 }
 
 void alu_init_renderer(
     ALCdevice* device)
 {
-    device->dry.ambi.reset();
-    device->dry.coeff_count = 0;
-    device->channel_count = 0;
+    device->dry_.ambi_.reset();
+    device->dry_.coeff_count_ = 0;
+    device->channel_count_ = 0;
 
     set_default_wfx_channel_order(device);
 
@@ -531,8 +531,8 @@ void alu_init_effect_panning(
 
     for (int i = 0; i < max_effect_channels; ++i)
     {
-        slot->channel_map_[i].scale = 1.0F;
-        slot->channel_map_[i].index = i;
+        slot->channel_map_[i].scale_ = 1.0F;
+        slot->channel_map_[i].index_ = i;
 
         slot->channel_count_ += 1;
     }

@@ -72,7 +72,7 @@ bool mix_source(ALvoice* voice, ALsource* source, ALCdevice* device, int samples
     int chan;
 
     /* Get source info */
-    NumChannels = voice->num_channels;
+    NumChannels = voice->channel_count_;
 
     for (chan = 0; chan < NumChannels; ++chan)
     {
@@ -81,57 +81,57 @@ bool mix_source(ALvoice* voice, ALsource* source, ALCdevice* device, int samples
 
         /* Load what's left to play from the source buffer, and
             * clear the rest of the temp buffer */
-        std::uninitialized_copy_n(device->source_samples, NumChannels * samples_to_do, device->source_data.begin());
+        std::uninitialized_copy_n(device->source_samples_, NumChannels * samples_to_do, device->source_data_.begin());
 
         /* Now resample, then filter and mix to the appropriate outputs. */
-        std::uninitialized_copy_n(device->source_data.cbegin(), samples_to_do, device->resampled_data.begin());
+        std::uninitialized_copy_n(device->source_data_.cbegin(), samples_to_do, device->resampled_data_.begin());
 
 
-        parms = &voice->direct.params[chan];
+        parms = &voice->direct_.params_[chan];
 
         samples = do_filters(
-            &parms->low_pass,
-            &parms->high_pass,
-            device->filtered_data.data(),
-            device->resampled_data.data(),
+            &parms->low_pass_,
+            &parms->high_pass_,
+            device->filtered_data_.data(),
+            device->resampled_data_.data(),
             samples_to_do,
-            voice->direct.filter_type);
+            voice->direct_.filter_type_);
 
-        memcpy(parms->gains.current, parms->gains.target, sizeof(parms->gains.current));
+        memcpy(parms->gains_.current_, parms->gains_.target_, sizeof(parms->gains_.current_));
 
         mix_samples(
             samples,
-            voice->direct.channels,
-            *voice->direct.buffer,
-            parms->gains.current,
-            parms->gains.target,
+            voice->direct_.channel_count_,
+            *voice->direct_.buffers_,
+            parms->gains_.current_,
+            parms->gains_.target_,
             0,
             0,
             samples_to_do);
 
-        if (!voice->send.buffer)
+        if (!voice->send_.buffers_)
         {
             continue;
         }
 
-        parms = &voice->send.params[chan];
+        parms = &voice->send_.params_[chan];
 
         samples = do_filters(
-            &parms->low_pass,
-            &parms->high_pass,
-            device->filtered_data.data(),
-            device->resampled_data.data(),
+            &parms->low_pass_,
+            &parms->high_pass_,
+            device->filtered_data_.data(),
+            device->resampled_data_.data(),
             samples_to_do,
-            voice->send.filter_type);
+            voice->send_.filter_type_);
 
-        memcpy(parms->gains.current, parms->gains.target, sizeof(parms->gains.current));
+        memcpy(parms->gains_.current_, parms->gains_.target_, sizeof(parms->gains_.current_));
 
         mix_samples(
             samples,
-            voice->send.channels,
-            *voice->send.buffer,
-            parms->gains.current,
-            parms->gains.target,
+            voice->send_.channel_count_,
+            *voice->send_.buffers_,
+            parms->gains_.current_,
+            parms->gains_.target_,
             0,
             0,
             samples_to_do);

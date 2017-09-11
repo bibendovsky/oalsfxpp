@@ -112,23 +112,23 @@ protected:
         const EffectSlot* slot,
         const EffectProps* props)
     {
-        const auto frequency = static_cast<float>(device->frequency);
+        const auto frequency = static_cast<float>(device->frequency_);
         float gain;
         float freq_mult;
 
-        out_buffer = &device->sample_buffers;
-        out_channels = device->channel_count;
+        dst_buffers_ = &device->sample_buffers_;
+        dst_channel_count_ = device->channel_count_;
 
         for (int i = 0; i < max_effect_channels; ++i)
         {
-            compute_first_order_gains(device, identity_matrix_f.m[i], 1.0F, gains_[i].data());
+            compute_first_order_gains(device, identity_matrix_f.m_[i], 1.0F, gains_[i].data());
         }
 
         // Calculate coefficients for the each type of filter. Note that the shelf
         // filters' gain is for the reference frequency, which is the centerpoint
         // of the transition band.
-        gain = std::max(std::sqrt(props->equalizer.low_gain), 0.0625F); // Limit -24dB
-        freq_mult = props->equalizer.low_cutoff / frequency;
+        gain = std::max(std::sqrt(props->equalizer_.low_gain_), 0.0625F); // Limit -24dB
+        freq_mult = props->equalizer_.low_cutoff_ / frequency;
 
         al_filter_state_set_params(
             &filter_[0][0],
@@ -143,38 +143,38 @@ protected:
             al_filter_state_copy_params(&filter_[0][i], &filter_[0][0]);
         }
 
-        gain = std::max(props->equalizer.mid1_gain, 0.0625F);
-        freq_mult = props->equalizer.mid1_center / frequency;
+        gain = std::max(props->equalizer_.mid1_gain_, 0.0625F);
+        freq_mult = props->equalizer_.mid1_center_ / frequency;
 
         al_filter_state_set_params(
             &filter_[1][0],
             FilterType::peaking,
             gain,
             freq_mult,
-            calc_rcp_q_from_bandwidth(freq_mult, props->equalizer.mid1_width));
+            calc_rcp_q_from_bandwidth(freq_mult, props->equalizer_.mid1_width_));
 
         for (int i = 1; i < max_effect_channels; ++i)
         {
             al_filter_state_copy_params(&filter_[1][i], &filter_[1][0]);
         }
 
-        gain = std::max(props->equalizer.mid2_gain, 0.0625F);
-        freq_mult = props->equalizer.mid2_center / frequency;
+        gain = std::max(props->equalizer_.mid2_gain_, 0.0625F);
+        freq_mult = props->equalizer_.mid2_center_ / frequency;
 
         al_filter_state_set_params(
             &filter_[2][0],
             FilterType::peaking,
             gain,
             freq_mult,
-            calc_rcp_q_from_bandwidth(freq_mult, props->equalizer.mid2_width));
+            calc_rcp_q_from_bandwidth(freq_mult, props->equalizer_.mid2_width_));
 
         for (int i = 1; i < max_effect_channels; ++i)
         {
             al_filter_state_copy_params(&filter_[2][i], &filter_[2][0]);
         }
 
-        gain = std::max(std::sqrt(props->equalizer.high_gain), 0.0625F);
-        freq_mult = props->equalizer.high_cutoff / frequency;
+        gain = std::max(std::sqrt(props->equalizer_.high_gain_), 0.0625F);
+        freq_mult = props->equalizer_.high_cutoff_ / frequency;
 
         al_filter_state_set_params(
             &filter_[3][0],

@@ -64,30 +64,30 @@ protected:
     {
         gains_.fill(0.0F);
 
-        const auto gain = props->dedicated.gain;
+        const auto gain = props->dedicated_.gain_;
 
         if (slot->effect_.type_ == EffectType::dedicated_low_frequency)
         {
-            const auto idx = get_channel_index(device->channel_names, LFE);
+            const auto idx = get_channel_index(device->channel_names_, LFE);
 
             if (idx != -1)
             {
-                out_buffer = &device->sample_buffers;
-                out_channels = device->channel_count;
+                dst_buffers_ = &device->sample_buffers_;
+                dst_channel_count_ = device->channel_count_;
                 gains_[idx] = gain;
             }
         }
         else if (slot->effect_.type_ == EffectType::dedicated_dialog)
         {
-            const auto idx = get_channel_index(device->channel_names, FrontCenter);
+            const auto idx = get_channel_index(device->channel_names_, FrontCenter);
 
             // Dialog goes to the front-center speaker if it exists, otherwise it
             // plays from the front-center location.
 
             if (idx != -1)
             {
-                out_buffer = &device->sample_buffers;
-                out_channels = device->channel_count;
+                dst_buffers_ = &device->sample_buffers_;
+                dst_channel_count_ = device->channel_count_;
                 gains_[idx] = gain;
             }
             else
@@ -96,8 +96,8 @@ protected:
 
                 calc_angle_coeffs(0.0F, 0.0F, 0.0F, coeffs);
 
-                out_buffer = &device->sample_buffers;
-                out_channels = device->channel_count;
+                dst_buffers_ = &device->sample_buffers_;
+                dst_channel_count_ = device->channel_count_;
 
                 compute_panning_gains(device, coeffs, gain, gains_.data());
             }

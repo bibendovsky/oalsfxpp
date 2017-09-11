@@ -17,7 +17,7 @@ struct aluMatrixf
 {
     using Items = float[4][4];
 
-    Items m;
+    Items m_;
 }; // aluMatrixf
 
 extern const aluMatrixf identity_matrix_f;
@@ -62,16 +62,17 @@ struct ParamsBase
 {
     struct Gains
     {
-        float current[max_output_channels];
-        float target[max_output_channels];
+        float current_[max_output_channels];
+        float target_[max_output_channels];
 
         void reset();
     }; // Gains
 
 
-    FilterState low_pass;
-    FilterState high_pass;
-    Gains gains;
+    FilterState low_pass_;
+    FilterState high_pass_;
+    Gains gains_;
+
 
     void reset();
 }; // ParamsBase
@@ -85,62 +86,62 @@ struct ALvoiceProps
 {
     struct Direct
     {
-        float gain;
-        float gain_hf;
-        float hf_reference;
-        float gain_lf;
-        float lf_reference;
+        float gain_;
+        float gain_hf_;
+        float hf_reference_;
+        float gain_lf_;
+        float lf_reference_;
     }; // Direct
 
     struct Send
     {
-        struct EffectSlot *slot;
-        float gain;
-        float gain_hf;
-        float hf_reference;
-        float gain_lf;
-        float lf_reference;
+        EffectSlot* effect_slot_;
+        float gain_;
+        float gain_hf_;
+        float hf_reference_;
+        float gain_lf_;
+        float lf_reference_;
     }; // Send
 
-    struct ALvoiceProps* next;
-    float stereo_pan[2];
-    float radius;
+    struct ALvoiceProps* next_;
+    float stereo_pan_[2];
+    float radius_;
 
     // Direct filter and auxiliary send info.
-    Direct direct;
-    Send send;
+    Direct direct_;
+    Send send_;
 };
 
 struct ALvoice
 {
     struct Direct
     {
-        ActiveFilters filter_type;
-        DirectParams params[max_input_channels];
-        SampleBuffers* buffer;
-        int channels;
-        int channels_per_order[max_ambi_order + 1];
+        ActiveFilters filter_type_;
+        DirectParams params_[max_input_channels];
+        SampleBuffers* buffers_;
+        int channel_count_;
+        int channels_per_order_[max_ambi_order + 1];
     }; // Direct
 
     struct Send
     {
-        ActiveFilters filter_type;
-        SendParams params[max_input_channels];
-        SampleBuffers* buffer;
-        int channels;
+        ActiveFilters filter_type_;
+        SendParams params_[max_input_channels];
+        SampleBuffers* buffers_;
+        int channel_count_;
     }; // Send
 
 
-    ALvoiceProps props;
-    struct ALsource* source;
-    bool playing;
+    ALvoiceProps props_;
+    ALsource* source_;
+    bool is_playing_;
 
     // Number of channels and bytes-per-sample for the attached source's
     // buffer(s).
-    int num_channels;
+    int channel_count_;
 
-    Direct direct;
-    Send send;
+    Direct direct_;
+    Send send_;
 }; // ALvoice
 
 

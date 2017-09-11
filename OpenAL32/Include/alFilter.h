@@ -42,17 +42,17 @@ enum class FilterType
 
 struct FilterState
 {
-    float x[2]; // History of two last input samples
-    float y[2]; // History of two last output samples
+    float x_[2]; // History of two last input samples
+    float y_[2]; // History of two last output samples
 
     // Transfer function coefficients "b"
-    float b0;
-    float b1;
-    float b2;
+    float b0_;
+    float b1_;
+    float b2_;
 
     // Transfer function coefficients "a" (a0 is pre-applied)
-    float a1;
-    float a2;
+    float a1_;
+    float a2_;
 
     void reset();
 }; // FilterState

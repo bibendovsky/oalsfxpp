@@ -12,34 +12,35 @@ struct ALsource
 
     struct Direct
     {
-        float gain;
-        float gain_hf;
-        float hf_reference;
-        float gain_lf;
-        float lf_reference;
+        float gain_;
+        float gain_hf_;
+        float hf_reference_;
+        float gain_lf_;
+        float lf_reference_;
     }; // Direct
 
     struct Send
     {
-        struct EffectSlot *slot;
-        float gain;
-        float gain_hf;
-        float hf_reference;
-        float gain_lf;
-        float lf_reference;
+        EffectSlot* effect_slot_;
+        float gain_;
+        float gain_hf_;
+        float hf_reference_;
+        float gain_lf_;
+        float lf_reference_;
     }; // Send
 
     using SendUPtr = std::unique_ptr<Send>;
 
-    Direct direct;
-    SendUPtr send;
+    Direct direct_;
+    SendUPtr send_;
 
     // Source state (initial, playing, paused, or stopped)
-    int state;
+    int state_;
 }; // ALsource
 
 
-void update_all_source_props(ALCdevice* device);
+void update_all_source_props(
+    ALCdevice* device);
 
 
 #endif

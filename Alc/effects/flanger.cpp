@@ -78,7 +78,7 @@ protected:
     void FlangerEffectState::do_update_device(
         ALCdevice* device) final
     {
-        auto maxlen = static_cast<int>(AL_FLANGER_MAX_DELAY * 2.0F * device->frequency) + 1;
+        auto maxlen = static_cast<int>(AL_FLANGER_MAX_DELAY * 2.0F * device->frequency_) + 1;
         maxlen = next_power_of_2(maxlen);
 
         if (maxlen != buffer_length_)
@@ -102,10 +102,10 @@ protected:
         const EffectSlot* slot,
         const EffectProps* props) final
     {
-        const auto frequency = static_cast<float>(device->frequency);
+        const auto frequency = static_cast<float>(device->frequency_);
         float coeffs[max_ambi_coeffs];
 
-        switch (props->flanger.waveform)
+        switch (props->flanger_.waveform_)
         {
         case AL_FLANGER_WAVEFORM_TRIANGLE:
             waveform_ = Waveform::triangle;
@@ -116,11 +116,11 @@ protected:
             break;
         }
 
-        feedback_ = props->flanger.feedback;
-        delay_ = static_cast<int>(props->flanger.delay * frequency);
+        feedback_ = props->flanger_.feedback_;
+        delay_ = static_cast<int>(props->flanger_.delay_ * frequency);
 
         // The LFO depth is scaled to be relative to the sample delay.
-        depth_ = props->flanger.depth * delay_;
+        depth_ = props->flanger_.depth_ * delay_;
 
         // Gains for left and right sides
         calc_angle_coeffs(-pi_2, 0.0F, 0.0F, coeffs);
@@ -128,8 +128,8 @@ protected:
         calc_angle_coeffs(pi_2, 0.0F, 0.0F, coeffs);
         compute_panning_gains(device, coeffs, 1.0F, gains_[1].data());
 
-        const auto phase = props->flanger.phase;
-        const auto rate = props->flanger.rate;
+        const auto phase = props->flanger_.phase_;
+        const auto rate = props->flanger_.rate_;
 
         if (!(rate > 0.0F))
         {

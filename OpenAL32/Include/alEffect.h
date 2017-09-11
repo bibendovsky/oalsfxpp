@@ -108,31 +108,31 @@ union EffectProps
 
 
         // Shared reverb properties
-        float density;
-        float diffusion;
-        float gain;
-        float gain_hf;
-        float decay_time;
-        float decay_hf_ratio;
-        float reflections_gain;
-        float reflections_delay;
-        float late_reverb_gain;
-        float late_reverb_delay;
-        float air_absorption_gain_hf;
-        float room_rolloff_factor;
-        bool decay_hf_limit;
+        float density_;
+        float diffusion_;
+        float gain_;
+        float gain_hf_;
+        float decay_time_;
+        float decay_hf_ratio_;
+        float reflections_gain_;
+        float reflections_delay_;
+        float late_reverb_gain_;
+        float late_reverb_delay_;
+        float air_absorption_gain_hf_;
+        float room_rolloff_factor_;
+        bool decay_hf_limit_;
 
         // Additional EAX reverb properties
-        float gain_lf;
-        float decay_lf_ratio;
-        Pan reflections_pan;
-        Pan late_reverb_pan;
-        float echo_time;
-        float echo_depth;
-        float modulation_time;
-        float modulation_depth;
-        float hf_reference;
-        float lf_reference;
+        float gain_lf_;
+        float decay_lf_ratio_;
+        Pan reflections_pan_;
+        Pan late_reverb_pan_;
+        float echo_time_;
+        float echo_depth_;
+        float modulation_time_;
+        float modulation_depth_;
+        float hf_reference_;
+        float lf_reference_;
     }; // Reverb
 
     struct Chorus
@@ -165,12 +165,12 @@ union EffectProps
         static constexpr auto default_delay = 0.016F;
 
 
-        int waveform;
-        int phase;
-        float rate;
-        float depth;
-        float feedback;
-        float delay;
+        int waveform_;
+        int phase_;
+        float rate_;
+        float depth_;
+        float feedback_;
+        float delay_;
     }; // Chorus
 
     struct Compressor
@@ -180,7 +180,7 @@ union EffectProps
         static constexpr auto default_on_off = true;
 
 
-        bool on_off;
+        bool on_off_;
     }; // Compressor
 
     struct Distortion
@@ -206,11 +206,11 @@ union EffectProps
         static constexpr auto default_eq_bandwidth = 3600.0F;
 
 
-        float edge;
-        float gain;
-        float low_pass_cutoff;
-        float eq_center;
-        float eq_bandwidth;
+        float edge_;
+        float gain_;
+        float low_pass_cutoff_;
+        float eq_center_;
+        float eq_bandwidth_;
     }; // Distortion
 
     struct Echo
@@ -236,13 +236,13 @@ union EffectProps
         static constexpr auto default_spread = -1.0F;
 
 
-        float delay;
-        float lr_delay;
+        float delay_;
+        float lr_delay_;
 
-        float damping;
-        float feedback;
+        float damping_;
+        float feedback_;
 
-        float spread;
+        float spread_;
     }; // Echo
 
     struct Equalizer
@@ -288,16 +288,16 @@ union EffectProps
         static constexpr auto default_high_cutoff = 6000.0F;
 
 
-        float low_cutoff;
-        float low_gain;
-        float mid1_center;
-        float mid1_gain;
-        float mid1_width;
-        float mid2_center;
-        float mid2_gain;
-        float mid2_width;
-        float high_cutoff;
-        float high_gain;
+        float low_cutoff_;
+        float low_gain_;
+        float mid1_center_;
+        float mid1_gain_;
+        float mid1_width_;
+        float mid2_center_;
+        float mid2_gain_;
+        float mid2_width_;
+        float high_cutoff_;
+        float high_gain_;
     }; // Equalizer
 
     struct Flanger
@@ -330,12 +330,12 @@ union EffectProps
         static constexpr auto default_delay = 0.002F;
 
 
-        int waveform;
-        int phase;
-        float rate;
-        float depth;
-        float feedback;
-        float delay;
+        int waveform_;
+        int phase_;
+        float rate_;
+        float depth_;
+        float feedback_;
+        float delay_;
     }; // Flanger
 
     struct Modulator
@@ -357,9 +357,9 @@ union EffectProps
         static constexpr auto default_waveform = waveform_sinusoid;
 
 
-        float frequency;
-        float high_pass_cutoff;
-        int waveform;
+        float frequency_;
+        float high_pass_cutoff_;
+        int waveform_;
     }; // Modulator
 
     struct Dedicated
@@ -369,26 +369,25 @@ union EffectProps
         static constexpr auto default_gain = 1.0F;
 
 
-        float gain;
+        float gain_;
     }; // Dedicated
 
 
-    Reverb reverb;
-    Chorus chorus;
-    Compressor compressor;
-    Distortion distortion;
-    Echo echo;
-    Equalizer equalizer;
-    Flanger flanger;
-    Modulator modulator;
-    Dedicated dedicated;
+    Reverb reverb_;
+    Chorus chorus_;
+    Compressor compressor_;
+    Distortion distortion_;
+    Echo echo_;
+    Equalizer equalizer_;
+    Flanger flanger_;
+    Modulator modulator_;
+    Dedicated dedicated_;
 }; // EffectProps
 
 
 struct Effect
 {
     EffectType type_;
-
     EffectProps props_;
 
 
@@ -411,8 +410,8 @@ public:
     virtual ~EffectState();
 
 
-    SampleBuffers* out_buffer;
-    int out_channels;
+    SampleBuffers* dst_buffers_;
+    int dst_channel_count_;
 
 
     void construct();

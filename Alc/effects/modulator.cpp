@@ -70,11 +70,11 @@ protected:
         const EffectSlot* slot,
         const EffectProps* props) final
     {
-        if (props->modulator.waveform == AL_RING_MODULATOR_SINUSOID)
+        if (props->modulator_.waveform_ == AL_RING_MODULATOR_SINUSOID)
         {
             process_func_ = modulate_sin;
         }
-        else if (props->modulator.waveform == AL_RING_MODULATOR_SAWTOOTH)
+        else if (props->modulator_.waveform_ == AL_RING_MODULATOR_SAWTOOTH)
         {
             process_func_ = modulate_saw;
         }
@@ -83,7 +83,7 @@ protected:
             process_func_ = modulate_square;
         }
 
-        step_ = static_cast<int>(props->modulator.frequency * waveform_frac_one / device->frequency);
+        step_ = static_cast<int>(props->modulator_.frequency_ * waveform_frac_one / device->frequency_);
 
         if (step_ == 0)
         {
@@ -91,24 +91,24 @@ protected:
         }
 
         // Custom filter coeffs, which match the old version instead of a low-shelf.
-        const auto cw = std::cos(tau * props->modulator.high_pass_cutoff / device->frequency);
+        const auto cw = std::cos(tau * props->modulator_.high_pass_cutoff_ / device->frequency_);
         const auto a = (2.0F - cw) - std::sqrt(std::pow(2.0F - cw, 2.0F) - 1.0F);
 
         for (int i = 0; i < max_effect_channels; ++i)
         {
-            filters_[i].b0 = a;
-            filters_[i].b1 = -a;
-            filters_[i].b2 = 0.0F;
-            filters_[i].a1 = -a;
-            filters_[i].a2 = 0.0F;
+            filters_[i].b0_ = a;
+            filters_[i].b1_ = -a;
+            filters_[i].b2_ = 0.0F;
+            filters_[i].a1_ = -a;
+            filters_[i].a2_ = 0.0F;
         }
 
-        out_buffer = &device->sample_buffers;
-        out_channels = device->channel_count;
+        dst_buffers_ = &device->sample_buffers_;
+        dst_channel_count_ = device->channel_count_;
 
         for (int i = 0; i < max_effect_channels; ++i)
         {
-            compute_first_order_gains(device, identity_matrix_f.m[i], 1.0F, gains_[i].data());
+            compute_first_order_gains(device, identity_matrix_f.m_[i], 1.0F, gains_[i].data());
         }
     }
 

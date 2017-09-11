@@ -32,12 +32,12 @@ ALCdevice* g_device = nullptr;
 
 void AmbiConfig::reset()
 {
-    for (auto& coeff : coeffs)
+    for (auto& coeff : coeffs_)
     {
         coeff.fill(0.0F);
     }
 
-    for (auto& map_item : map)
+    for (auto& map_item : map_)
     {
         map_item.reset();
     }
@@ -45,71 +45,71 @@ void AmbiConfig::reset()
 
 void BFChannelConfig::reset()
 {
-    scale = 0.0F;
-    index = 0;
+    scale_ = 0.0F;
+    index_ = 0;
 }
 
 // Sets the default channel order used by WaveFormatEx.
 void set_default_wfx_channel_order(
     ALCdevice* device)
 {
-    device->channel_names.fill(InvalidChannel);
+    device->channel_names_.fill(InvalidChannel);
 
-    switch (device->fmt_chans)
+    switch (device->channel_format_)
     {
     case DevFmtMono:
-        device->channel_names[0] = FrontCenter;
+        device->channel_names_[0] = FrontCenter;
         break;
 
     case DevFmtStereo:
-        device->channel_names[0] = FrontLeft;
-        device->channel_names[1] = FrontRight;
+        device->channel_names_[0] = FrontLeft;
+        device->channel_names_[1] = FrontRight;
         break;
 
     case DevFmtQuad:
-        device->channel_names[0] = FrontLeft;
-        device->channel_names[1] = FrontRight;
-        device->channel_names[2] = BackLeft;
-        device->channel_names[3] = BackRight;
+        device->channel_names_[0] = FrontLeft;
+        device->channel_names_[1] = FrontRight;
+        device->channel_names_[2] = BackLeft;
+        device->channel_names_[3] = BackRight;
         break;
 
     case DevFmtX51:
-        device->channel_names[0] = FrontLeft;
-        device->channel_names[1] = FrontRight;
-        device->channel_names[2] = FrontCenter;
-        device->channel_names[3] = LFE;
-        device->channel_names[4] = SideLeft;
-        device->channel_names[5] = SideRight;
+        device->channel_names_[0] = FrontLeft;
+        device->channel_names_[1] = FrontRight;
+        device->channel_names_[2] = FrontCenter;
+        device->channel_names_[3] = LFE;
+        device->channel_names_[4] = SideLeft;
+        device->channel_names_[5] = SideRight;
         break;
 
     case DevFmtX51Rear:
-        device->channel_names[0] = FrontLeft;
-        device->channel_names[1] = FrontRight;
-        device->channel_names[2] = FrontCenter;
-        device->channel_names[3] = LFE;
-        device->channel_names[4] = BackLeft;
-        device->channel_names[5] = BackRight;
+        device->channel_names_[0] = FrontLeft;
+        device->channel_names_[1] = FrontRight;
+        device->channel_names_[2] = FrontCenter;
+        device->channel_names_[3] = LFE;
+        device->channel_names_[4] = BackLeft;
+        device->channel_names_[5] = BackRight;
         break;
 
     case DevFmtX61:
-        device->channel_names[0] = FrontLeft;
-        device->channel_names[1] = FrontRight;
-        device->channel_names[2] = FrontCenter;
-        device->channel_names[3] = LFE;
-        device->channel_names[4] = BackCenter;
-        device->channel_names[5] = SideLeft;
-        device->channel_names[6] = SideRight;
+        device->channel_names_[0] = FrontLeft;
+        device->channel_names_[1] = FrontRight;
+        device->channel_names_[2] = FrontCenter;
+        device->channel_names_[3] = LFE;
+        device->channel_names_[4] = BackCenter;
+        device->channel_names_[5] = SideLeft;
+        device->channel_names_[6] = SideRight;
         break;
 
     case DevFmtX71:
-        device->channel_names[0] = FrontLeft;
-        device->channel_names[1] = FrontRight;
-        device->channel_names[2] = FrontCenter;
-        device->channel_names[3] = LFE;
-        device->channel_names[4] = BackLeft;
-        device->channel_names[5] = BackRight;
-        device->channel_names[6] = SideLeft;
-        device->channel_names[7] = SideRight;
+        device->channel_names_[0] = FrontLeft;
+        device->channel_names_[1] = FrontRight;
+        device->channel_names_[2] = FrontCenter;
+        device->channel_names_[3] = LFE;
+        device->channel_names_[4] = BackLeft;
+        device->channel_names_[5] = BackRight;
+        device->channel_names_[6] = SideLeft;
+        device->channel_names_[7] = SideRight;
         break;
     }
 }
@@ -119,29 +119,29 @@ void set_default_wfx_channel_order(
 static void update_device_params(
     ALCdevice* device)
 {
-    device->sample_buffers = SampleBuffers{};
-    device->channel_count = 0;
+    device->sample_buffers_ = SampleBuffers{};
+    device->channel_count_ = 0;
 
     alu_init_renderer(device);
 
-    device->sample_buffers.resize(device->channel_count);
+    device->sample_buffers_.resize(device->channel_count_);
 
-    auto slot = device->effect_slot;
+    auto slot = device->effect_slot_;
     auto state = slot->effect_state_.get();
 
-    state->out_buffer = &device->sample_buffers;
-    state->out_channels = device->channel_count;
+    state->dst_buffers_ = &device->sample_buffers_;
+    state->dst_channel_count_ = device->channel_count_;
 
     state->update_device(device);
     slot->is_props_updated_ = true;
 
     allocate_voices(device);
 
-    for (int pos = 0; pos < device->voice_count; ++pos)
+    for (int pos = 0; pos < device->voice_count_; ++pos)
     {
-        const auto voice = device->voice;
+        const auto voice = device->voice_;
 
-        if (!voice->source)
+        if (!voice->source_)
         {
             continue;
         }
@@ -155,14 +155,14 @@ static void update_device_params(
 static void free_device(
     ALCdevice* device)
 {
-    delete device->effect;
-    delete device->effect_slot;
+    delete device->effect_;
+    delete device->effect_slot_;
 
-    deinit_source(device->source);
-    delete device->source;
+    deinit_source(device->source_);
+    delete device->source_;
 
-    device->sample_buffers = SampleBuffers{};
-    device->channel_count = 0;
+    device->sample_buffers_ = SampleBuffers{};
+    device->channel_count_ = 0;
 
     delete device;
 }
@@ -173,14 +173,14 @@ static void free_context()
 {
     auto device = g_device;
 
-    for(int i = 0; i < device->voice_count; ++i)
+    for(int i = 0; i < device->voice_count_; ++i)
     {
-        deinit_voice(device->voice);
+        deinit_voice(device->voice_);
     }
 
-    delete[] reinterpret_cast<char*>(device->voice);
-    device->voice = nullptr;
-    device->voice_count = 0;
+    delete[] reinterpret_cast<char*>(device->voice_);
+    device->voice_ = nullptr;
+    device->voice_count_ = 0;
 }
 
 // Removes the context reference from the given device and removes it from
@@ -194,14 +194,14 @@ static void release_context()
 void allocate_voices(
     ALCdevice* device)
 {
-    if (device->voice)
+    if (device->voice_)
     {
         return;
     }
 
-    delete device->voice;
-    device->voice = new ALvoice{};
-    device->voice_count = 1;
+    delete device->voice_;
+    device->voice_ = new ALvoice{};
+    device->voice_count_ = 1;
 }
 
 
@@ -228,25 +228,25 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(
         return nullptr;
     }
 
-    device->sample_buffers = SampleBuffers{};
-    device->channel_count = 0;
+    device->sample_buffers_ = SampleBuffers{};
+    device->channel_count_ = 0;
 
     // Set output format
-    device->fmt_chans = DevFmtChannelsDefault;
-    device->frequency = default_output_rate;
-    device->update_size = clamp(1024, 64, 8192);
+    device->channel_format_ = DevFmtChannelsDefault;
+    device->frequency_ = default_output_rate;
+    device->update_size_ = clamp(1024, 64, 8192);
 
-    device->source = new ALsource{};
-    init_source_params(device->source);
+    device->source_ = new ALsource{};
+    init_source_params(device->source_);
 
-    device->effect_slot = new EffectSlot{};
-    alu_init_effect_panning(device->effect_slot);
+    device->effect_slot_ = new EffectSlot{};
+    alu_init_effect_panning(device->effect_slot_);
 
-    device->effect = new Effect{};
-    device->effect->initialize();
+    device->effect_ = new Effect{};
+    device->effect_->initialize();
 
-    device->voice = nullptr;
-    device->voice_count = 0;
+    device->voice_ = nullptr;
+    device->voice_count_ = 0;
 
     update_device_params(device);
     allocate_voices(device);

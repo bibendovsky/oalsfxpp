@@ -25,39 +25,39 @@
 
 void FilterState::reset()
 {
-    x[0] = 0.0F;
-    x[1] = 0.0F;
+    x_[0] = 0.0F;
+    x_[1] = 0.0F;
 
-    y[0] = 0.0F;
-    y[1] = 0.0F;
+    y_[0] = 0.0F;
+    y_[1] = 0.0F;
 
-    b0 = 0.0F;
-    b1 = 0.0F;
-    b2 = 0.0F;
+    b0_ = 0.0F;
+    b1_ = 0.0F;
+    b2_ = 0.0F;
 
-    a1 = 0.0F;
-    a2 = 0.0F;
+    a1_ = 0.0F;
+    a2_ = 0.0F;
 }
 
 
 void al_filter_state_clear(
     FilterState* filter)
 {
-    filter->x[0] = 0.0F;
-    filter->x[1] = 0.0F;
-    filter->y[0] = 0.0F;
-    filter->y[1] = 0.0F;
+    filter->x_[0] = 0.0F;
+    filter->x_[1] = 0.0F;
+    filter->y_[0] = 0.0F;
+    filter->y_[1] = 0.0F;
 }
 
 void al_filter_state_copy_params(
     FilterState* dst,
     const FilterState* src)
 {
-    dst->b0 = src->b0;
-    dst->b1 = src->b1;
-    dst->b2 = src->b2;
-    dst->a1 = src->a1;
-    dst->a2 = src->a2;
+    dst->b0_ = src->b0_;
+    dst->b1_ = src->b1_;
+    dst->b2_ = src->b2_;
+    dst->a1_ = src->a1_;
+    dst->a2_ = src->a2_;
 }
 
 void al_filter_state_process_pass_through(
@@ -67,17 +67,17 @@ void al_filter_state_process_pass_through(
 {
     if (num_samples >= 2)
     {
-        filter->x[1] = src[num_samples - 2];
-        filter->x[0] = src[num_samples - 1];
-        filter->y[1] = src[num_samples - 2];
-        filter->y[0] = src[num_samples - 1];
+        filter->x_[1] = src[num_samples - 2];
+        filter->x_[0] = src[num_samples - 1];
+        filter->y_[1] = src[num_samples - 2];
+        filter->y_[0] = src[num_samples - 1];
     }
     else if (num_samples == 1)
     {
-        filter->x[1] = filter->x[0];
-        filter->x[0] = src[0];
-        filter->y[1] = filter->y[0];
-        filter->y[0] = src[0];
+        filter->x_[1] = filter->x_[0];
+        filter->x_[0] = src[0];
+        filter->y_[1] = filter->y_[0];
+        filter->y_[0] = src[0];
     }
 }
 
@@ -207,9 +207,9 @@ void al_filter_state_set_params(
         break;
     }
 
-    filter->a1 = a[1] / a[0];
-    filter->a2 = a[2] / a[0];
-    filter->b0 = b[0] / a[0];
-    filter->b1 = b[1] / a[0];
-    filter->b2 = b[2] / a[0];
+    filter->a1_ = a[1] / a[0];
+    filter->a2_ = a[2] / a[0];
+    filter->b0_ = b[0] / a[0];
+    filter->b1_ = b[1] / a[0];
+    filter->b2_ = b[2] / a[0];
 }

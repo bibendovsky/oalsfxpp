@@ -60,8 +60,8 @@ protected:
     void CompressorEffectState::do_update_device(
         ALCdevice* device) final
     {
-        const auto attackTime = device->frequency * 0.2F; // 200ms Attack
-        const auto releaseTime = device->frequency * 0.4F; // 400ms Release
+        const auto attackTime = device->frequency_ * 0.2F; // 200ms Attack
+        const auto releaseTime = device->frequency_ * 0.4F; // 400ms Release
 
         attack_rate_ = 1.0F / attackTime;
         release_rate_ = 1.0F / releaseTime;
@@ -72,14 +72,14 @@ protected:
         const EffectSlot* slot,
         const EffectProps* props) final
     {
-        is_enabled_ = props->compressor.on_off;
+        is_enabled_ = props->compressor_.on_off_;
 
-        out_buffer = &device->sample_buffers;
-        out_channels = device->channel_count;
+        dst_buffers_ = &device->sample_buffers_;
+        dst_channel_count_ = device->channel_count_;
 
         for (int i = 0; i < 4; ++i)
         {
-            compute_first_order_gains(device, identity_matrix_f.m[i], 1.0F, gains_[i].data());
+            compute_first_order_gains(device, identity_matrix_f.m_[i], 1.0F, gains_[i].data());
         }
     }
 

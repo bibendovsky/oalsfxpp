@@ -159,8 +159,8 @@ using ChannelConfig = std::array<float, max_ambi_coeffs>;
 
 struct BFChannelConfig
 {
-    float scale;
-    int index;
+    float scale_;
+    int index_;
 
 
     void reset();
@@ -173,10 +173,10 @@ union AmbiConfig
 
 
     // Ambisonic coefficients for mixing to the dry buffer.
-    Coeffs coeffs;
+    Coeffs coeffs_;
 
     // Coefficient channel mapping for mixing to the dry buffer.
-    Map map;
+    Map map_;
 
 
     void reset();
@@ -192,42 +192,42 @@ struct ALCdevice_struct
 
     struct AmbiOutput
     {
-        AmbiConfig ambi;
+        AmbiConfig ambi_;
 
         // Number of coefficients in each Ambi.Coeffs to mix together (4 for
         // first-order, 9 for second-order, etc). If the count is 0, Ambi.Map
         // is used instead to map each output to a coefficient index.
         //
         // Will only be 4 or 0 (first-order ambisonics output).
-        int coeff_count;
+        int coeff_count_;
     }; // AmbiOutput
 
 
-    int frequency;
-    int update_size;
-    DevFmtChannels fmt_chans;
+    int frequency_;
+    int update_size_;
+    DevFmtChannels channel_format_;
 
-    int channel_count;
-    ChannelNames channel_names;
-    SampleBuffers sample_buffers;
+    int channel_count_;
+    ChannelNames channel_names_;
+    SampleBuffers sample_buffers_;
 
     // Temp storage used for each source when mixing.
-    SampleBuffer source_data;
-    SampleBuffer resampled_data;
-    SampleBuffer filtered_data;
+    SampleBuffer source_data_;
+    SampleBuffer resampled_data_;
+    SampleBuffer filtered_data_;
 
     // The "dry" path corresponds to the main output.
-    AmbiOutput dry;
+    AmbiOutput dry_;
 
     // First-order ambisonics output, to be upsampled to the dry buffer if different.
-    AmbiOutput foa_out;
+    AmbiOutput foa_;
 
-    struct ALsource* source;
-    const float* source_samples;
-    struct EffectSlot* effect_slot;
-    struct Effect* effect;
-    struct ALvoice* voice;
-    int voice_count;
+    struct ALsource* source_;
+    const float* source_samples_;
+    struct EffectSlot* effect_slot_;
+    struct Effect* effect_;
+    struct ALvoice* voice_;
+    int voice_count_;
 }; // ALCdevice_struct
 
 
