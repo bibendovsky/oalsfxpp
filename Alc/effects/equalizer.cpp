@@ -121,7 +121,7 @@ protected:
 
         for (int i = 0; i < max_effect_channels; ++i)
         {
-            compute_first_order_gains(device->foa_out, identity_matrix_f.m[i], 1.0F, gains_[i].data());
+            compute_first_order_gains(device, identity_matrix_f.m[i], 1.0F, gains_[i].data());
         }
 
         // Calculate coefficients for the each type of filter. Note that the shelf

@@ -248,22 +248,11 @@ void compute_ambient_gains_bf(
 
 // Computes panning gains using the given channel decoder coefficients and the
 // pre-calculated direction or angle coefficients.
-template<typename T>
 void compute_panning_gains(
-    const T& b,
-    const float* const c,
-    const float g,
-    float* const o)
-{
-    if (b.coeff_count > 0)
-    {
-        compute_panning_gains_mc(b.ambi.coeffs.data(), b.num_channels, b.coeff_count, c, g, o);
-    }
-    else
-    {
-        compute_panning_gains_bf(b.ambi.map.data(), b.num_channels, c, g, o);
-    }
-}
+    const ALCdevice* device,
+    const float* const coeffs,
+    const float in_gain,
+    float* const out_gains);
 
 void compute_panning_gains_mc(
     const ChannelConfig* chan_coeffs,
@@ -283,22 +272,11 @@ void compute_panning_gains_bf(
 // Sets channel gains for a first-order ambisonics input channel. The matrix is
 // a 1x4 'slice' of a transform matrix for the input channel, used to scale and
 // orient the sound samples.
-template<typename T>
 void compute_first_order_gains(
-    const T& b,
-    const float* const m,
-    const float g,
-    float* const o)
-{
-    if (b.coeff_count > 0)
-    {
-        compute_first_order_gains_mc(b.ambi.coeffs.data(), b.num_channels, m, g, o);
-    }
-    else
-    {
-        compute_first_order_gains_bf(b.ambi.map.data(), b.num_channels, m, g, o);
-    }
-}
+    const ALCdevice* device,
+    const float* const matrix,
+    const float in_gain,
+    float* const out_gains);
 
 void compute_first_order_gains_mc(
     const ChannelConfig* channel_coeffs,

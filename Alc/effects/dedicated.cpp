@@ -99,7 +99,7 @@ protected:
                 out_buffer = &device->dry.buffers;
                 out_channels = device->dry.num_channels;
 
-                compute_panning_gains(device->dry, coeffs, gain, gains_.data());
+                compute_panning_gains(device, coeffs, gain, gains_.data());
             }
         }
     }

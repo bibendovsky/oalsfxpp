@@ -247,7 +247,7 @@ static void calc_panning_and_filters(
 
             calc_angle_coeffs(chans[c].angle, chans[c].elevation, spread, coeffs);
 
-            compute_panning_gains(device->dry, coeffs, dry_gain, voice->direct.params[c].gains.target);
+            compute_panning_gains(device, coeffs, dry_gain, voice->direct.params[c].gains.target);
 
             if (num_sends > 0)
             {

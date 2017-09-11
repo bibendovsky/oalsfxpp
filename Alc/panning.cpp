@@ -176,6 +176,24 @@ void compute_ambient_gains_bf(
     }
 }
 
+void compute_panning_gains(
+    const ALCdevice* device,
+    const float* const coeffs,
+    const float in_gain,
+    float* const out_gains)
+{
+    const auto& dry = device->dry;
+
+    if (dry.coeff_count > 0)
+    {
+        compute_panning_gains_mc(dry.ambi.coeffs.data(), dry.num_channels, dry.coeff_count, coeffs, in_gain, out_gains);
+    }
+    else
+    {
+        compute_panning_gains_bf(dry.ambi.map.data(), dry.num_channels, coeffs, in_gain, out_gains);
+    }
+}
+
 void compute_panning_gains_mc(
     const ChannelConfig* channel_coeffs,
     const int num_channels,
@@ -221,6 +239,24 @@ void compute_panning_gains_bf(
         {
             gains[i] = 0.0F;
         }
+    }
+}
+
+void compute_first_order_gains(
+    const ALCdevice* device,
+    const float* const matrix,
+    const float in_gain,
+    float* const out_gains)
+{
+    const auto& foa_out = device->foa_out;
+
+    if (foa_out.coeff_count > 0)
+    {
+        compute_first_order_gains_mc(foa_out.ambi.coeffs.data(), foa_out.num_channels, matrix, in_gain, out_gains);
+    }
+    else
+    {
+        compute_first_order_gains_bf(foa_out.ambi.map.data(), foa_out.num_channels, matrix, in_gain, out_gains);
     }
 }
 
