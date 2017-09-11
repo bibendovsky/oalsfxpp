@@ -77,7 +77,7 @@ protected:
         edge = std::min(edge, 0.99F);
         edge_coeff_ = 2.0F * edge / (1.0F - edge);
 
-        auto cutoff = props->distortion.lowpass_cutoff;
+        auto cutoff = props->distortion.low_pass_cutoff;
 
         // Bandwidth value is constant in octaves.
         auto bandwidth = (cutoff / 2.0F) / (cutoff * 0.67F);

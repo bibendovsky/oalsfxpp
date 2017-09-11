@@ -38,126 +38,97 @@ void Effect::initialize(
 {
     switch (type)
     {
-    case EffectType::eax_reverb:
-        props_.reverb.density = AL_EAXREVERB_DEFAULT_DENSITY;
-        props_.reverb.diffusion = AL_EAXREVERB_DEFAULT_DIFFUSION;
-        props_.reverb.gain = AL_EAXREVERB_DEFAULT_GAIN;
-        props_.reverb.gain_hf = AL_EAXREVERB_DEFAULT_GAINHF;
-        props_.reverb.gain_lf = AL_EAXREVERB_DEFAULT_GAINLF;
-        props_.reverb.decay_time = AL_EAXREVERB_DEFAULT_DECAY_TIME;
-        props_.reverb.decay_hf_ratio = AL_EAXREVERB_DEFAULT_DECAY_HFRATIO;
-        props_.reverb.decay_lf_ratio = AL_EAXREVERB_DEFAULT_DECAY_LFRATIO;
-        props_.reverb.reflections_gain = AL_EAXREVERB_DEFAULT_REFLECTIONS_GAIN;
-        props_.reverb.reflections_delay = AL_EAXREVERB_DEFAULT_REFLECTIONS_DELAY;
-        props_.reverb.reflections_pan[0] = AL_EAXREVERB_DEFAULT_REFLECTIONS_PAN_XYZ;
-        props_.reverb.reflections_pan[1] = AL_EAXREVERB_DEFAULT_REFLECTIONS_PAN_XYZ;
-        props_.reverb.reflections_pan[2] = AL_EAXREVERB_DEFAULT_REFLECTIONS_PAN_XYZ;
-        props_.reverb.late_reverb_gain = AL_EAXREVERB_DEFAULT_LATE_REVERB_GAIN;
-        props_.reverb.late_reverb_delay = AL_EAXREVERB_DEFAULT_LATE_REVERB_DELAY;
-        props_.reverb.late_reverb_pan[0] = AL_EAXREVERB_DEFAULT_LATE_REVERB_PAN_XYZ;
-        props_.reverb.late_reverb_pan[1] = AL_EAXREVERB_DEFAULT_LATE_REVERB_PAN_XYZ;
-        props_.reverb.late_reverb_pan[2] = AL_EAXREVERB_DEFAULT_LATE_REVERB_PAN_XYZ;
-        props_.reverb.echo_time = AL_EAXREVERB_DEFAULT_ECHO_TIME;
-        props_.reverb.echo_depth = AL_EAXREVERB_DEFAULT_ECHO_DEPTH;
-        props_.reverb.modulation_time = AL_EAXREVERB_DEFAULT_MODULATION_TIME;
-        props_.reverb.modulation_depth = AL_EAXREVERB_DEFAULT_MODULATION_DEPTH;
-        props_.reverb.air_absorption_gain_hf = AL_EAXREVERB_DEFAULT_AIR_ABSORPTION_GAINHF;
-        props_.reverb.hf_reference = AL_EAXREVERB_DEFAULT_HFREFERENCE;
-        props_.reverb.lf_reference = AL_EAXREVERB_DEFAULT_LFREFERENCE;
-        props_.reverb.room_rolloff_factor = AL_EAXREVERB_DEFAULT_ROOM_ROLLOFF_FACTOR;
-        props_.reverb.decay_hf_limit = AL_EAXREVERB_DEFAULT_DECAY_HFLIMIT;
-        break;
-
     case EffectType::reverb:
-        props_.reverb.density = AL_REVERB_DEFAULT_DENSITY;
-        props_.reverb.diffusion = AL_REVERB_DEFAULT_DIFFUSION;
-        props_.reverb.gain = AL_REVERB_DEFAULT_GAIN;
-        props_.reverb.gain_hf = AL_REVERB_DEFAULT_GAINHF;
-        props_.reverb.gain_lf = 1.0F;
-        props_.reverb.decay_time = AL_REVERB_DEFAULT_DECAY_TIME;
-        props_.reverb.decay_hf_ratio = AL_REVERB_DEFAULT_DECAY_HFRATIO;
-        props_.reverb.decay_lf_ratio = 1.0F;
-        props_.reverb.reflections_gain = AL_REVERB_DEFAULT_REFLECTIONS_GAIN;
-        props_.reverb.reflections_delay = AL_REVERB_DEFAULT_REFLECTIONS_DELAY;
-        props_.reverb.reflections_pan[0] = 0.0F;
-        props_.reverb.reflections_pan[1] = 0.0F;
-        props_.reverb.reflections_pan[2] = 0.0F;
-        props_.reverb.late_reverb_gain = AL_REVERB_DEFAULT_LATE_REVERB_GAIN;
-        props_.reverb.late_reverb_delay = AL_REVERB_DEFAULT_LATE_REVERB_DELAY;
-        props_.reverb.late_reverb_pan[0] = 0.0F;
-        props_.reverb.late_reverb_pan[1] = 0.0F;
-        props_.reverb.late_reverb_pan[2] = 0.0F;
-        props_.reverb.echo_time = 0.25F;
-        props_.reverb.echo_depth = 0.0F;
-        props_.reverb.modulation_time = 0.25F;
-        props_.reverb.modulation_depth = 0.0F;
-        props_.reverb.air_absorption_gain_hf = AL_REVERB_DEFAULT_AIR_ABSORPTION_GAINHF;
-        props_.reverb.hf_reference = 5000.0F;
-        props_.reverb.lf_reference = 250.0F;
-        props_.reverb.room_rolloff_factor = AL_REVERB_DEFAULT_ROOM_ROLLOFF_FACTOR;
-        props_.reverb.decay_hf_limit = AL_REVERB_DEFAULT_DECAY_HFLIMIT;
+    case EffectType::eax_reverb:
+        props_.reverb.density = EffectProps::Reverb::default_density;
+        props_.reverb.diffusion = EffectProps::Reverb::default_diffusion;
+        props_.reverb.gain = EffectProps::Reverb::default_gain;
+        props_.reverb.gain_hf = EffectProps::Reverb::default_gain_hf;
+        props_.reverb.gain_lf = EffectProps::Reverb::default_gain_lf;
+        props_.reverb.decay_time = EffectProps::Reverb::default_decay_time;
+        props_.reverb.decay_hf_ratio = EffectProps::Reverb::default_decay_hf_ratio;
+        props_.reverb.decay_lf_ratio = EffectProps::Reverb::default_decay_lf_ratio;
+        props_.reverb.reflections_gain = EffectProps::Reverb::default_reflections_gain;
+        props_.reverb.reflections_delay = EffectProps::Reverb::default_reflections_delay;
+        props_.reverb.reflections_pan[0] = EffectProps::Reverb::default_reflections_pan_xyz;
+        props_.reverb.reflections_pan[1] = EffectProps::Reverb::default_reflections_pan_xyz;
+        props_.reverb.reflections_pan[2] = EffectProps::Reverb::default_reflections_pan_xyz;
+        props_.reverb.late_reverb_gain = EffectProps::Reverb::default_late_reverb_gain;
+        props_.reverb.late_reverb_delay = EffectProps::Reverb::default_late_reverb_delay;
+        props_.reverb.late_reverb_pan[0] = EffectProps::Reverb::default_late_reverb_pan_xyz;
+        props_.reverb.late_reverb_pan[1] = EffectProps::Reverb::default_late_reverb_pan_xyz;
+        props_.reverb.late_reverb_pan[2] = EffectProps::Reverb::default_late_reverb_pan_xyz;
+        props_.reverb.echo_time = EffectProps::Reverb::default_echo_time;
+        props_.reverb.echo_depth = EffectProps::Reverb::default_echo_depth;
+        props_.reverb.modulation_time = EffectProps::Reverb::default_modulation_time;
+        props_.reverb.modulation_depth = EffectProps::Reverb::default_modulation_depth;
+        props_.reverb.air_absorption_gain_hf = EffectProps::Reverb::default_air_absorption_gain_hf;
+        props_.reverb.hf_reference = EffectProps::Reverb::default_hf_reference;
+        props_.reverb.lf_reference = EffectProps::Reverb::default_lf_reference;
+        props_.reverb.room_rolloff_factor = EffectProps::Reverb::default_room_rolloff_factor;
+        props_.reverb.decay_hf_limit = EffectProps::Reverb::default_decay_hf_limit;
         break;
 
     case EffectType::chorus:
-        props_.chorus.waveform = AL_CHORUS_DEFAULT_WAVEFORM;
-        props_.chorus.phase = AL_CHORUS_DEFAULT_PHASE;
-        props_.chorus.rate = AL_CHORUS_DEFAULT_RATE;
-        props_.chorus.depth = AL_CHORUS_DEFAULT_DEPTH;
-        props_.chorus.feedback = AL_CHORUS_DEFAULT_FEEDBACK;
-        props_.chorus.delay = AL_CHORUS_DEFAULT_DELAY;
+        props_.chorus.waveform = EffectProps::Chorus::default_waveform;
+        props_.chorus.phase = EffectProps::Chorus::default_phase;
+        props_.chorus.rate = EffectProps::Chorus::default_rate;
+        props_.chorus.depth = EffectProps::Chorus::default_depth;
+        props_.chorus.feedback = EffectProps::Chorus::default_feedback;
+        props_.chorus.delay = EffectProps::Chorus::default_delay;
         break;
 
     case EffectType::compressor:
-        props_.compressor.on_off = AL_COMPRESSOR_DEFAULT_ONOFF;
+        props_.compressor.on_off = EffectProps::Compressor::default_on_off;
         break;
 
     case EffectType::distortion:
-        props_.distortion.edge = AL_DISTORTION_DEFAULT_EDGE;
-        props_.distortion.gain = AL_DISTORTION_DEFAULT_GAIN;
-        props_.distortion.lowpass_cutoff = AL_DISTORTION_DEFAULT_LOWPASS_CUTOFF;
-        props_.distortion.eq_center = AL_DISTORTION_DEFAULT_EQCENTER;
-        props_.distortion.eq_bandwidth = AL_DISTORTION_DEFAULT_EQBANDWIDTH;
+        props_.distortion.edge = EffectProps::Distortion::default_edge;
+        props_.distortion.gain = EffectProps::Distortion::default_gain;
+        props_.distortion.low_pass_cutoff = EffectProps::Distortion::default_low_pass_cutoff;
+        props_.distortion.eq_center = EffectProps::Distortion::default_eq_center;
+        props_.distortion.eq_bandwidth = EffectProps::Distortion::default_eq_bandwidth;
         break;
 
     case EffectType::echo:
-        props_.echo.delay = AL_ECHO_DEFAULT_DELAY;
-        props_.echo.lr_delay = AL_ECHO_DEFAULT_LRDELAY;
-        props_.echo.damping = AL_ECHO_DEFAULT_DAMPING;
-        props_.echo.feedback = AL_ECHO_DEFAULT_FEEDBACK;
-        props_.echo.spread = AL_ECHO_DEFAULT_SPREAD;
+        props_.echo.delay = EffectProps::Echo::default_delay;
+        props_.echo.lr_delay = EffectProps::Echo::default_lr_delay;
+        props_.echo.damping = EffectProps::Echo::default_damping;
+        props_.echo.feedback = EffectProps::Echo::default_feedback;
+        props_.echo.spread = EffectProps::Echo::default_spread;
         break;
 
     case EffectType::equalizer:
-        props_.equalizer.low_cutoff = AL_EQUALIZER_DEFAULT_LOW_CUTOFF;
-        props_.equalizer.low_gain = AL_EQUALIZER_DEFAULT_LOW_GAIN;
-        props_.equalizer.mid1_center = AL_EQUALIZER_DEFAULT_MID1_CENTER;
-        props_.equalizer.mid1_gain = AL_EQUALIZER_DEFAULT_MID1_GAIN;
-        props_.equalizer.mid1_width = AL_EQUALIZER_DEFAULT_MID1_WIDTH;
-        props_.equalizer.mid2_center = AL_EQUALIZER_DEFAULT_MID2_CENTER;
-        props_.equalizer.mid2_gain = AL_EQUALIZER_DEFAULT_MID2_GAIN;
-        props_.equalizer.mid2_width = AL_EQUALIZER_DEFAULT_MID2_WIDTH;
-        props_.equalizer.high_cutoff = AL_EQUALIZER_DEFAULT_HIGH_CUTOFF;
-        props_.equalizer.high_gain = AL_EQUALIZER_DEFAULT_HIGH_GAIN;
+        props_.equalizer.low_cutoff = EffectProps::Equalizer::default_low_cutoff;
+        props_.equalizer.low_gain = EffectProps::Equalizer::default_high_gain;
+        props_.equalizer.mid1_center = EffectProps::Equalizer::default_mid1_center;
+        props_.equalizer.mid1_gain = EffectProps::Equalizer::default_mid1_gain;
+        props_.equalizer.mid1_width = EffectProps::Equalizer::default_mid1_width;
+        props_.equalizer.mid2_center = EffectProps::Equalizer::default_mid2_center;
+        props_.equalizer.mid2_gain = EffectProps::Equalizer::default_mid2_gain;
+        props_.equalizer.mid2_width = EffectProps::Equalizer::default_mid2_width;
+        props_.equalizer.high_cutoff = EffectProps::Equalizer::default_high_cutoff;
+        props_.equalizer.high_gain = EffectProps::Equalizer::default_high_gain;
         break;
 
     case EffectType::flanger:
-        props_.flanger.waveform = AL_FLANGER_DEFAULT_WAVEFORM;
-        props_.flanger.phase = AL_FLANGER_DEFAULT_PHASE;
-        props_.flanger.rate = AL_FLANGER_DEFAULT_RATE;
-        props_.flanger.depth = AL_FLANGER_DEFAULT_DEPTH;
-        props_.flanger.feedback = AL_FLANGER_DEFAULT_FEEDBACK;
-        props_.flanger.delay = AL_FLANGER_DEFAULT_DELAY;
+        props_.flanger.waveform = EffectProps::Flanger::default_waveform;
+        props_.flanger.phase = EffectProps::Flanger::default_phase;
+        props_.flanger.rate = EffectProps::Flanger::default_rate;
+        props_.flanger.depth = EffectProps::Flanger::default_depth;
+        props_.flanger.feedback = EffectProps::Flanger::default_feedback;
+        props_.flanger.delay = EffectProps::Flanger::default_delay;
         break;
 
     case EffectType::ring_modulator:
-        props_.modulator.frequency = AL_RING_MODULATOR_DEFAULT_FREQUENCY;
-        props_.modulator.high_pass_cutoff = AL_RING_MODULATOR_DEFAULT_HIGHPASS_CUTOFF;
-        props_.modulator.waveform = AL_RING_MODULATOR_DEFAULT_WAVEFORM;
+        props_.modulator.frequency = EffectProps::Modulator::default_frequency;
+        props_.modulator.high_pass_cutoff = EffectProps::Modulator::default_high_pass_cutoff;
+        props_.modulator.waveform = EffectProps::Modulator::default_waveform;
         break;
 
     case EffectType::dedicated_dialog:
     case EffectType::dedicated_low_frequency:
-        props_.dedicated.gain = 1.0F;
+        props_.dedicated.gain = EffectProps::Dedicated::default_gain;
         break;
 
     default:
