@@ -209,7 +209,7 @@ struct ALCdevice_struct
         ChannelsPerOrder num_channels_per_order;
     }; // Dry
 
-    // First-order ambisonics output, to be upsampled to the dry buffer if different. */
+    // First-order ambisonics output, to be upsampled to the dry buffer if different.
     struct FOAOut
     {
         AmbiConfig ambi;
