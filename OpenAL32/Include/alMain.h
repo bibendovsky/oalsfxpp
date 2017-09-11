@@ -225,9 +225,6 @@ struct ALCdevice_struct
     ChannelNames channel_names;
     SampleBuffers sample_buffers;
 
-    // Maximum number of slots that can be created
-    int auxiliary_effect_slot_max;
-
     int num_aux_sends;
 
     // Temp storage used for each source when mixing.

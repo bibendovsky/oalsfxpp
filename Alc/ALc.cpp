@@ -231,18 +231,12 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(
     device->sample_buffers = SampleBuffers{};
     device->num_channels = 0;
 
-    device->auxiliary_effect_slot_max = 64;
     device->num_aux_sends = default_sends;
 
     // Set output format
     device->fmt_chans = DevFmtChannelsDefault;
     device->frequency = default_output_rate;
     device->update_size = clamp(1024, 64, 8192);
-
-    if (device->auxiliary_effect_slot_max == 0)
-    {
-        device->auxiliary_effect_slot_max = 64;
-    }
 
     device->source = new ALsource{};
     init_source_params(device->source, device->num_aux_sends);
