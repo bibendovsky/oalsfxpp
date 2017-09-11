@@ -21,8 +21,7 @@
 
 void update_source_props(
     ALsource* source,
-    ALvoice* voice,
-    const int num_sends);
+    ALvoice* voice);
 
 void alu_mix_data(
     ALCdevice* device,
@@ -240,7 +239,7 @@ int main()
     if (is_succeed)
     {
         oal_device->source->send->slot = oal_device->effect_slot;
-        update_source_props(oal_device->source, oal_device->voice, 1);
+        update_source_props(oal_device->source, oal_device->voice);
     }
 
     if (is_succeed)

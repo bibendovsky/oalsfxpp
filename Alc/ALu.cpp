@@ -174,9 +174,9 @@ static void calc_panning_and_filters(
     const float dry_gain,
     const float dry_gain_hf,
     const float dry_gain_lf,
-    const float* wet_gain,
-    const float* wet_gain_lf,
-    const float* wet_gain_hf,
+    const float wet_gain,
+    const float wet_gain_lf,
+    const float wet_gain_hf,
     EffectSlot* send_slot,
     const struct ALvoiceProps* props,
     const ALCdevice* device)
@@ -186,7 +186,6 @@ static void calc_panning_and_filters(
         {FrontRight, deg_to_rad(30.0F), deg_to_rad(0.0F)}
     };
 
-    const auto num_sends = device->num_aux_sends;
     const auto frequency = device->frequency;
     const ChannelMap* chans = nullptr;
     auto num_channels = 0;
@@ -231,12 +230,9 @@ static void calc_panning_and_filters(
                     voice->direct.params[c].gains.target[idx] = dry_gain;
                 }
 
-                if (num_sends > 0)
+                for (int j = 0; j < max_effect_channels; ++j)
                 {
-                    for (int j = 0; j < max_effect_channels; ++j)
-                    {
-                        voice->send.params[c].gains.target[j] = 0.0F;
-                    }
+                    voice->send.params[c].gains.target[j] = 0.0F;
                 }
 
                 continue;
@@ -246,25 +242,22 @@ static void calc_panning_and_filters(
 
             compute_panning_gains(device, coeffs, dry_gain, voice->direct.params[c].gains.target);
 
-            if (num_sends > 0)
-            {
-                const auto slot = send_slot;
+            const auto slot = send_slot;
 
-                if (slot)
+            if (slot)
+            {
+                compute_panning_gains_bf(
+                    slot->channel_map_,
+                    slot->channel_count_,
+                    coeffs,
+                    wet_gain,
+                    voice->send.params[c].gains.target);
+            }
+            else
+            {
+                for (int j = 0; j < max_effect_channels; ++j)
                 {
-                    compute_panning_gains_bf(
-                        slot->channel_map_,
-                        slot->channel_count_,
-                        coeffs,
-                        wet_gain[0],
-                        voice->send.params[c].gains.target);
-                }
-                else
-                {
-                    for (int j = 0; j < max_effect_channels; ++j)
-                    {
-                        voice->send.params[c].gains.target[j] = 0.0F;
-                    }
+                    voice->send.params[c].gains.target[j] = 0.0F;
                 }
             }
         }
@@ -311,12 +304,11 @@ static void calc_panning_and_filters(
         }
     }
 
-    if (num_sends > 0)
     {
         const auto hf_scale = props->send.hf_reference / frequency;
         const auto lf_scale = props->send.lf_reference / frequency;
-        const auto gain_hf = std::max(wet_gain_hf[0], 0.001F);
-        const auto gain_lf = std::max(wet_gain_lf[0], 0.001F);
+        const auto gain_hf = std::max(wet_gain_hf, 0.001F);
+        const auto gain_lf = std::max(wet_gain_lf, 0.001F);
 
         voice->send.filter_type = ActiveFilters::none;
 
@@ -364,20 +356,17 @@ static void calc_non_attn_source_params(
 
     EffectSlot* send_slot = nullptr;
 
-    if (device->num_aux_sends > 0)
-    {
-        send_slot = props->send.slot;
+    send_slot = props->send.slot;
 
-        if (!send_slot || send_slot->effect_.type_ == EffectType::null)
-        {
-            voice->send.buffer = nullptr;
-            voice->send.channels = 0;
-        }
-        else
-        {
-            voice->send.buffer = &send_slot->wet_buffer_;
-            voice->send.channels = send_slot->channel_count_;
-        }
+    if (!send_slot || send_slot->effect_.type_ == EffectType::null)
+    {
+        voice->send.buffer = nullptr;
+        voice->send.channels = 0;
+    }
+    else
+    {
+        voice->send.buffer = &send_slot->wet_buffer_;
+        voice->send.channels = send_slot->channel_count_;
     }
 
     // Calculate gains
@@ -390,18 +379,9 @@ static void calc_non_attn_source_params(
 
     static const float dir[3] = {0.0F, 0.0F, -1.0F};
 
-    float wet_gain[max_sends];
-    float wet_gain_hf[max_sends];
-    float wet_gain_lf[max_sends];
-
-    for (int i = 0; i < device->num_aux_sends; ++i)
-    {
-        wet_gain[i] = 1.0F;
-        wet_gain[i] *= props->send.gain;
-        wet_gain[i] = std::min(wet_gain[i], max_mix_gain);
-        wet_gain_hf[i] = props->send.gain_hf;
-        wet_gain_lf[i] = props->send.gain_lf;
-    }
+    const auto wet_gain = std::min(props->send.gain, max_mix_gain);
+    const auto wet_gain_hf = props->send.gain_hf;
+    const auto wet_gain_lf = props->send.gain_lf;
 
     calc_panning_and_filters(
         voice,

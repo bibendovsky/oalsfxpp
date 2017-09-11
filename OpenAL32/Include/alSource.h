@@ -6,10 +6,6 @@
 #include "alu.h"
 
 
-constexpr auto max_sends = 1;
-constexpr auto default_sends = 1;
-
-
 struct ALsource
 {
     // Direct filter and auxiliary send info.

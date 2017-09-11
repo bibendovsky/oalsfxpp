@@ -47,8 +47,7 @@ static int get_source_state(
 
 void update_source_props(
     ALsource* source,
-    ALvoice* voice,
-    const int num_sends)
+    ALvoice* voice)
 {
     // Get an unused property container, or allocate a new one as needed.
     auto& props = voice->props;
@@ -60,15 +59,12 @@ void update_source_props(
     props.direct.gain_lf = source->direct.gain_lf;
     props.direct.lf_reference = source->direct.lf_reference;
 
-    if (num_sends > 0)
-    {
-        props.send.slot = source->send->slot;
-        props.send.gain = source->send->gain;
-        props.send.gain_hf = source->send->gain_hf;
-        props.send.hf_reference = source->send->hf_reference;
-        props.send.gain_lf = source->send->gain_lf;
-        props.send.lf_reference = source->send->lf_reference;
-    }
+    props.send.slot = source->send->slot;
+    props.send.gain = source->send->gain;
+    props.send.gain_hf = source->send->gain_hf;
+    props.send.hf_reference = source->send->hf_reference;
+    props.send.gain_lf = source->send->gain_lf;
+    props.send.lf_reference = source->send->lf_reference;
 }
 
 AL_API void AL_APIENTRY alSourcePlay(
@@ -125,21 +121,14 @@ AL_API void AL_APIENTRY alSourcePlayv(
 
     voice->playing = false;
 
-    update_source_props(source, voice, device->num_aux_sends);
+    update_source_props(source, voice);
 
     voice->num_channels = device->channel_count;
 
     for (int i = 0; i < voice->num_channels; ++i)
     {
         voice->direct.params[i].reset();
-    }
-
-    if (device->num_aux_sends > 0)
-    {
-        for (int i = 0; i < voice->num_channels; ++i)
-        {
-            voice->send.params[i].reset();
-        }
+        voice->send.params[i].reset();
     }
 
     voice->source = source;
@@ -176,8 +165,7 @@ AL_API void AL_APIENTRY alSourceStopv(
 }
 
 void init_source_params(
-    ALsource* source,
-    const int num_sends)
+    ALsource* source)
 {
     source->direct.gain = 1.0F;
     source->direct.gain_hf = 1.0F;
@@ -195,8 +183,7 @@ void init_source_params(
 }
 
 void deinit_source(
-    ALsource* source,
-    const int num_sends)
+    ALsource* source)
 {
     if (source->send)
     {
@@ -208,8 +195,6 @@ void deinit_source(
 void update_all_source_props(
     ALCdevice* device)
 {
-    int num_sends = device->num_aux_sends;
-
     for (int pos = 0; pos < device->voice_count; ++pos)
     {
         auto source = device->source;
@@ -217,7 +202,7 @@ void update_all_source_props(
         if (source)
         {
             auto voice = device->voice;
-            update_source_props(source, voice, num_sends);
+            update_source_props(source, voice);
         }
     }
 }

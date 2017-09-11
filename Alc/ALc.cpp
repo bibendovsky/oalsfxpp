@@ -23,8 +23,8 @@
 #include "alSource.h"
 
 
-void init_source_params(ALsource* source, const int num_sends);
-void deinit_source(ALsource* source, const int num_sends);
+void init_source_params(ALsource* source);
+void deinit_source(ALsource* source);
 
 
 ALCdevice* g_device = nullptr;
@@ -158,7 +158,7 @@ static void free_device(
     delete device->effect;
     delete device->effect_slot;
 
-    deinit_source(device->source, device->num_aux_sends);
+    deinit_source(device->source);
     delete device->source;
 
     device->sample_buffers = SampleBuffers{};
@@ -231,15 +231,13 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(
     device->sample_buffers = SampleBuffers{};
     device->channel_count = 0;
 
-    device->num_aux_sends = default_sends;
-
     // Set output format
     device->fmt_chans = DevFmtChannelsDefault;
     device->frequency = default_output_rate;
     device->update_size = clamp(1024, 64, 8192);
 
     device->source = new ALsource{};
-    init_source_params(device->source, device->num_aux_sends);
+    init_source_params(device->source);
 
     device->effect_slot = new EffectSlot{};
     alu_init_effect_panning(device->effect_slot);

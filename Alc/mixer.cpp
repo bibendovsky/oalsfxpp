@@ -109,35 +109,32 @@ bool mix_source(ALvoice* voice, ALsource* source, ALCdevice* device, int samples
             0,
             samples_to_do);
 
-        if (device->num_aux_sends > 0)
+        if (!voice->send.buffer)
         {
-            SendParams *parms = &voice->send.params[chan];
-
-            if (!voice->send.buffer)
-            {
-                continue;
-            }
-
-            samples = do_filters(
-                &parms->low_pass,
-                &parms->high_pass,
-                device->filtered_data.data(),
-                device->resampled_data.data(),
-                samples_to_do,
-                voice->send.filter_type);
-
-            memcpy(parms->gains.current, parms->gains.target, sizeof(parms->gains.current));
-
-            mix_samples(
-                samples,
-                voice->send.channels,
-                *voice->send.buffer,
-                parms->gains.current,
-                parms->gains.target,
-                0,
-                0,
-                samples_to_do);
+            continue;
         }
+
+        parms = &voice->send.params[chan];
+
+        samples = do_filters(
+            &parms->low_pass,
+            &parms->high_pass,
+            device->filtered_data.data(),
+            device->resampled_data.data(),
+            samples_to_do,
+            voice->send.filter_type);
+
+        memcpy(parms->gains.current, parms->gains.target, sizeof(parms->gains.current));
+
+        mix_samples(
+            samples,
+            voice->send.channels,
+            *voice->send.buffer,
+            parms->gains.current,
+            parms->gains.target,
+            0,
+            0,
+            samples_to_do);
     }
 
     return true;

@@ -211,8 +211,6 @@ struct ALCdevice_struct
     ChannelNames channel_names;
     SampleBuffers sample_buffers;
 
-    int num_aux_sends;
-
     // Temp storage used for each source when mixing.
     SampleBuffer source_data;
     SampleBuffer resampled_data;
