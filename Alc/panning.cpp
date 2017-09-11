@@ -514,18 +514,7 @@ void alu_init_renderer(
     device->dry.coeff_count = 0;
     device->channel_count = 0;
 
-    for (int i = 0; i < (max_ambi_order + 1); ++i)
-    {
-        device->dry.num_channels_per_order[i] = 0;
-    }
-
     set_default_wfx_channel_order(device);
-
-    if(device->fmt_chans != DevFmtStereo)
-    {
-        init_panning(device);
-        return;
-    }
 
     init_panning(device);
 }

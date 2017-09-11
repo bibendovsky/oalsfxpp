@@ -194,17 +194,12 @@ struct ALCdevice_struct
     // The "dry" path corresponds to the main output.
     struct Dry
     {
-        using ChannelsPerOrder = std::array<int, max_ambi_order + 1>;
-
-
         AmbiConfig ambi;
 
         // Number of coefficients in each Ambi.Coeffs to mix together (4 for
         // first-order, 9 for second-order, etc). If the count is 0, Ambi.Map
         // is used instead to map each output to a coefficient index.
         int coeff_count;
-
-        ChannelsPerOrder num_channels_per_order;
     }; // Dry
 
     // First-order ambisonics output, to be upsampled to the dry buffer if different.
