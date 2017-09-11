@@ -360,7 +360,7 @@ static void calc_non_attn_source_params(
     ALCdevice* device)
 {
     voice->direct.buffer = &device->sample_buffers;
-    voice->direct.channels = device->num_channels;
+    voice->direct.channels = device->channel_count;
 
     EffectSlot* send_slot = nullptr;
 
@@ -465,7 +465,7 @@ void alu_mix_data(
     {
         const auto samples_to_do = std::min(num_samples - samples_done, max_sample_buffer_size);
 
-        for (int c = 0; c < device->num_channels; ++c)
+        for (int c = 0; c < device->channel_count; ++c)
         {
             std::fill_n(device->sample_buffers[c].begin(), samples_to_do, 0.0F);
         }
@@ -503,7 +503,7 @@ void alu_mix_data(
         if (out_buffer)
         {
             auto buffers = &device->sample_buffers;
-            const auto channels = device->num_channels;
+            const auto channels = device->channel_count;
 
             write_f32(buffers, out_buffer, samples_done, samples_to_do, channels);
         }

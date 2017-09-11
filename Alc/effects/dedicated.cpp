@@ -73,7 +73,7 @@ protected:
             if (idx != -1)
             {
                 out_buffer = &device->sample_buffers;
-                out_channels = device->num_channels;
+                out_channels = device->channel_count;
                 gains_[idx] = gain;
             }
         }
@@ -87,7 +87,7 @@ protected:
             if (idx != -1)
             {
                 out_buffer = &device->sample_buffers;
-                out_channels = device->num_channels;
+                out_channels = device->channel_count;
                 gains_[idx] = gain;
             }
             else
@@ -97,7 +97,7 @@ protected:
                 calc_angle_coeffs(0.0F, 0.0F, 0.0F, coeffs);
 
                 out_buffer = &device->sample_buffers;
-                out_channels = device->num_channels;
+                out_channels = device->channel_count;
 
                 compute_panning_gains(device, coeffs, gain, gains_.data());
             }

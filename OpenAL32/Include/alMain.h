@@ -221,7 +221,7 @@ struct ALCdevice_struct
     int update_size;
     DevFmtChannels fmt_chans;
 
-    int num_channels;
+    int channel_count;
     ChannelNames channel_names;
     SampleBuffers sample_buffers;
 

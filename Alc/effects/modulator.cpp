@@ -104,7 +104,7 @@ protected:
         }
 
         out_buffer = &device->sample_buffers;
-        out_channels = device->num_channels;
+        out_channels = device->channel_count;
 
         for (int i = 0; i < max_effect_channels; ++i)
         {

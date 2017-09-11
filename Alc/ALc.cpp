@@ -120,17 +120,17 @@ static void update_device_params(
     ALCdevice* device)
 {
     device->sample_buffers = SampleBuffers{};
-    device->num_channels = 0;
+    device->channel_count = 0;
 
     alu_init_renderer(device);
 
-    device->sample_buffers.resize(device->num_channels);
+    device->sample_buffers.resize(device->channel_count);
 
     auto slot = device->effect_slot;
     auto state = slot->effect_state_.get();
 
     state->out_buffer = &device->sample_buffers;
-    state->out_channels = device->num_channels;
+    state->out_channels = device->channel_count;
 
     state->update_device(device);
     slot->is_props_updated_ = true;
@@ -162,7 +162,7 @@ static void free_device(
     delete device->source;
 
     device->sample_buffers = SampleBuffers{};
-    device->num_channels = 0;
+    device->channel_count = 0;
 
     delete device;
 }
@@ -229,7 +229,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(
     }
 
     device->sample_buffers = SampleBuffers{};
-    device->num_channels = 0;
+    device->channel_count = 0;
 
     device->num_aux_sends = default_sends;
 

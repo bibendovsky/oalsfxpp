@@ -1536,7 +1536,7 @@ private:
         aluMatrixf rot;
 
         out_buffer = &device->sample_buffers;
-        out_channels = device->num_channels;
+        out_channels = device->channel_count;
 
         // Create a matrix that first converts A-Format to B-Format, then rotates
         // the B-Format soundfield according to the panning vector.

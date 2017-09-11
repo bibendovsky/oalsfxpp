@@ -127,7 +127,7 @@ AL_API void AL_APIENTRY alSourcePlayv(
 
     update_source_props(source, voice, device->num_aux_sends);
 
-    voice->num_channels = device->num_channels;
+    voice->num_channels = device->channel_count;
 
     for (int i = 0; i < voice->num_channels; ++i)
     {

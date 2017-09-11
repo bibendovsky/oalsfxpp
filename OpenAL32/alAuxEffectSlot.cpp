@@ -62,7 +62,7 @@ void EffectSlot::initialize_effect(
         effect_state_.reset(EffectStateFactory::create_by_type(device->effect->type_));
 
         effect_state_->out_buffer = &device->sample_buffers;
-        effect_state_->out_channels = device->num_channels;
+        effect_state_->out_channels = device->channel_count;
         effect_state_->update_device(device);
 
         effect_.type_ = device->effect->type_;
