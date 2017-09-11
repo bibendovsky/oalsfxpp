@@ -190,26 +190,17 @@ struct ALCdevice_struct
 {
     using ChannelNames = std::array<Channel, max_output_channels>;
 
-
-    // The "dry" path corresponds to the main output.
-    struct Dry
+    struct AmbiOutput
     {
         AmbiConfig ambi;
 
         // Number of coefficients in each Ambi.Coeffs to mix together (4 for
         // first-order, 9 for second-order, etc). If the count is 0, Ambi.Map
         // is used instead to map each output to a coefficient index.
+        //
+        // Will only be 4 or 0 (first-order ambisonics output).
         int coeff_count;
-    }; // Dry
-
-    // First-order ambisonics output, to be upsampled to the dry buffer if different.
-    struct FOAOut
-    {
-        AmbiConfig ambi;
-
-        // Will only be 4 or 0.
-        int coeff_count;
-    }; // FOAOut
+    }; // AmbiOutput
 
 
     int frequency;
@@ -227,8 +218,11 @@ struct ALCdevice_struct
     SampleBuffer resampled_data;
     SampleBuffer filtered_data;
 
-    Dry dry;
-    FOAOut foa_out;
+    // The "dry" path corresponds to the main output.
+    AmbiOutput dry;
+
+    // First-order ambisonics output, to be upsampled to the dry buffer if different.
+    AmbiOutput foa_out;
 
     struct ALsource* source;
     const float* source_samples;
