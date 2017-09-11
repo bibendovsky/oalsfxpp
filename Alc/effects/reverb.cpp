@@ -1525,7 +1525,7 @@ private:
 
     /* Update the early and late 3D panning gains. */
     void update_3d_panning(
-        const ALCdevice* device,
+        ALCdevice* const device,
         const float* reflections_pan,
         const float* late_reverb_pan,
         const float gain,
@@ -1535,8 +1535,8 @@ private:
         aluMatrixf transform;
         aluMatrixf rot;
 
-        out_buffer = device->foa_out.buffers;
-        out_channels = device->foa_out.num_channels;
+        out_buffer = &device->sample_buffers;
+        out_channels = device->num_channels;
 
         // Create a matrix that first converts A-Format to B-Format, then rotates
         // the B-Format soundfield according to the panning vector.

@@ -224,14 +224,11 @@ static void calc_panning_and_filters(
                     voice->direct.params[c].gains.target[j] = 0.0F;
                 }
 
-                if (&device->dry.buffers == device->real_out.buffers)
-                {
-                    const auto idx = get_channel_index_by_name(device->real_out, chans[c].channel);
+                const auto idx = get_channel_index(device->channel_names, chans[c].channel);
 
-                    if (idx != -1)
-                    {
-                        voice->direct.params[c].gains.target[idx] = dry_gain;
-                    }
+                if (idx != -1)
+                {
+                    voice->direct.params[c].gains.target[idx] = dry_gain;
                 }
 
                 if (num_sends > 0)
@@ -362,8 +359,8 @@ static void calc_non_attn_source_params(
     const ALvoiceProps* props,
     ALCdevice* device)
 {
-    voice->direct.buffer = &device->dry.buffers;
-    voice->direct.channels = device->dry.num_channels;
+    voice->direct.buffer = &device->sample_buffers;
+    voice->direct.channels = device->num_channels;
 
     EffectSlot* send_slot = nullptr;
 
@@ -468,9 +465,9 @@ void alu_mix_data(
     {
         const auto samples_to_do = std::min(num_samples - samples_done, max_sample_buffer_size);
 
-        for (int c = 0; c < device->dry.num_channels; ++c)
+        for (int c = 0; c < device->num_channels; ++c)
         {
-            std::fill_n(device->dry.buffers[c].begin(), samples_to_do, 0.0F);
+            std::fill_n(device->sample_buffers[c].begin(), samples_to_do, 0.0F);
         }
 
         update_context_sources(device);
@@ -505,10 +502,10 @@ void alu_mix_data(
 
         if (out_buffer)
         {
-            auto buffer = device->real_out.buffers;
-            const auto channels = device->real_out.num_channels;
+            auto buffers = &device->sample_buffers;
+            const auto channels = device->num_channels;
 
-            write_f32(buffer, out_buffer, samples_done, samples_to_do, channels);
+            write_f32(buffers, out_buffer, samples_done, samples_to_do, channels);
         }
 
         samples_done += samples_to_do;

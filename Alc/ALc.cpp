@@ -53,63 +53,63 @@ void BFChannelConfig::reset()
 void set_default_wfx_channel_order(
     ALCdevice* device)
 {
-    device->real_out.channel_name.fill(InvalidChannel);
+    device->channel_names.fill(InvalidChannel);
 
     switch (device->fmt_chans)
     {
     case DevFmtMono:
-        device->real_out.channel_name[0] = FrontCenter;
+        device->channel_names[0] = FrontCenter;
         break;
 
     case DevFmtStereo:
-        device->real_out.channel_name[0] = FrontLeft;
-        device->real_out.channel_name[1] = FrontRight;
+        device->channel_names[0] = FrontLeft;
+        device->channel_names[1] = FrontRight;
         break;
 
     case DevFmtQuad:
-        device->real_out.channel_name[0] = FrontLeft;
-        device->real_out.channel_name[1] = FrontRight;
-        device->real_out.channel_name[2] = BackLeft;
-        device->real_out.channel_name[3] = BackRight;
+        device->channel_names[0] = FrontLeft;
+        device->channel_names[1] = FrontRight;
+        device->channel_names[2] = BackLeft;
+        device->channel_names[3] = BackRight;
         break;
 
     case DevFmtX51:
-        device->real_out.channel_name[0] = FrontLeft;
-        device->real_out.channel_name[1] = FrontRight;
-        device->real_out.channel_name[2] = FrontCenter;
-        device->real_out.channel_name[3] = LFE;
-        device->real_out.channel_name[4] = SideLeft;
-        device->real_out.channel_name[5] = SideRight;
+        device->channel_names[0] = FrontLeft;
+        device->channel_names[1] = FrontRight;
+        device->channel_names[2] = FrontCenter;
+        device->channel_names[3] = LFE;
+        device->channel_names[4] = SideLeft;
+        device->channel_names[5] = SideRight;
         break;
 
     case DevFmtX51Rear:
-        device->real_out.channel_name[0] = FrontLeft;
-        device->real_out.channel_name[1] = FrontRight;
-        device->real_out.channel_name[2] = FrontCenter;
-        device->real_out.channel_name[3] = LFE;
-        device->real_out.channel_name[4] = BackLeft;
-        device->real_out.channel_name[5] = BackRight;
+        device->channel_names[0] = FrontLeft;
+        device->channel_names[1] = FrontRight;
+        device->channel_names[2] = FrontCenter;
+        device->channel_names[3] = LFE;
+        device->channel_names[4] = BackLeft;
+        device->channel_names[5] = BackRight;
         break;
 
     case DevFmtX61:
-        device->real_out.channel_name[0] = FrontLeft;
-        device->real_out.channel_name[1] = FrontRight;
-        device->real_out.channel_name[2] = FrontCenter;
-        device->real_out.channel_name[3] = LFE;
-        device->real_out.channel_name[4] = BackCenter;
-        device->real_out.channel_name[5] = SideLeft;
-        device->real_out.channel_name[6] = SideRight;
+        device->channel_names[0] = FrontLeft;
+        device->channel_names[1] = FrontRight;
+        device->channel_names[2] = FrontCenter;
+        device->channel_names[3] = LFE;
+        device->channel_names[4] = BackCenter;
+        device->channel_names[5] = SideLeft;
+        device->channel_names[6] = SideRight;
         break;
 
     case DevFmtX71:
-        device->real_out.channel_name[0] = FrontLeft;
-        device->real_out.channel_name[1] = FrontRight;
-        device->real_out.channel_name[2] = FrontCenter;
-        device->real_out.channel_name[3] = LFE;
-        device->real_out.channel_name[4] = BackLeft;
-        device->real_out.channel_name[5] = BackRight;
-        device->real_out.channel_name[6] = SideLeft;
-        device->real_out.channel_name[7] = SideRight;
+        device->channel_names[0] = FrontLeft;
+        device->channel_names[1] = FrontRight;
+        device->channel_names[2] = FrontCenter;
+        device->channel_names[3] = LFE;
+        device->channel_names[4] = BackLeft;
+        device->channel_names[5] = BackRight;
+        device->channel_names[6] = SideLeft;
+        device->channel_names[7] = SideRight;
         break;
     }
 }
@@ -119,28 +119,18 @@ void set_default_wfx_channel_order(
 static void update_device_params(
     ALCdevice* device)
 {
-    device->dry.buffers = SampleBuffers{};
-    device->dry.num_channels = 0;
-    device->foa_out.buffers = nullptr;
-    device->foa_out.num_channels = 0;
-    device->real_out.buffers = nullptr;
-    device->real_out.num_channels = 0;
+    device->sample_buffers = SampleBuffers{};
+    device->num_channels = 0;
 
     alu_init_renderer(device);
 
-    device->dry.buffers.resize(device->dry.num_channels);
-
-    device->real_out.buffers = &device->dry.buffers;
-    device->real_out.num_channels = device->dry.num_channels;
-
-    device->foa_out.buffers = &device->dry.buffers;
-    device->foa_out.num_channels = device->dry.num_channels;
+    device->sample_buffers.resize(device->num_channels);
 
     auto slot = device->effect_slot;
     auto state = slot->effect_state_.get();
 
-    state->out_buffer = &device->dry.buffers;
-    state->out_channels = device->dry.num_channels;
+    state->out_buffer = &device->sample_buffers;
+    state->out_channels = device->num_channels;
 
     state->update_device(device);
     slot->is_props_updated_ = true;
@@ -171,12 +161,8 @@ static void free_device(
     deinit_source(device->source, device->num_aux_sends);
     delete device->source;
 
-    device->dry.buffers = SampleBuffers{};
-    device->dry.num_channels = 0;
-    device->foa_out.buffers = nullptr;
-    device->foa_out.num_channels = 0;
-    device->real_out.buffers = nullptr;
-    device->real_out.num_channels = 0;
+    device->sample_buffers = SampleBuffers{};
+    device->num_channels = 0;
 
     delete device;
 }
@@ -242,12 +228,8 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(
         return nullptr;
     }
 
-    device->dry.buffers = SampleBuffers{};
-    device->dry.num_channels = 0;
-    device->foa_out.buffers = nullptr;
-    device->foa_out.num_channels = 0;
-    device->real_out.buffers = nullptr;
-    device->real_out.num_channels = 0;
+    device->sample_buffers = SampleBuffers{};
+    device->num_channels = 0;
 
     device->auxiliary_effect_slot_max = 64;
     device->num_aux_sends = default_sends;

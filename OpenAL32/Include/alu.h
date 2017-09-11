@@ -218,21 +218,10 @@ void calc_angle_coeffs(
     float coeffs[max_ambi_coeffs]);
 
 // Computes channel gains for ambient, omni-directional sounds.
-template<typename T>
 void compute_ambient_gains(
-    const T& b,
+    const ALCdevice* b,
     const float g,
-    float* const o)
-{
-    if (b.coeff_count > 0)
-    {
-        compute_ambient_gains_mc(b.ambi.coeffs.data(), b.num_channels, g, o);
-    }
-    else
-    {
-        compute_ambient_gains_bf(b.ambi.map.data(), b.num_channels, g, o);
-    }
-}
+    float* const o);
 
 void compute_ambient_gains_mc(
     const ChannelConfig* channel_coeffs,

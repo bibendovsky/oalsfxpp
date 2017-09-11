@@ -133,6 +133,23 @@ void calc_angle_coeffs(
     calc_direction_coeffs(dir, spread, coeffs);
 }
 
+void compute_ambient_gains(
+    const ALCdevice* device,
+    const float in_gain,
+    float* const out_gains)
+{
+    const auto& dry = device->dry;
+
+    if (dry.coeff_count > 0)
+    {
+        compute_ambient_gains_mc(dry.ambi.coeffs.data(), device->num_channels, in_gain, out_gains);
+    }
+    else
+    {
+        compute_ambient_gains_bf(dry.ambi.map.data(), device->num_channels, in_gain, out_gains);
+    }
+}
+
 void compute_ambient_gains_mc(
     const ChannelConfig* channel_coeffs,
     const int num_channels,
@@ -186,11 +203,22 @@ void compute_panning_gains(
 
     if (dry.coeff_count > 0)
     {
-        compute_panning_gains_mc(dry.ambi.coeffs.data(), dry.num_channels, dry.coeff_count, coeffs, in_gain, out_gains);
+        compute_panning_gains_mc(
+            dry.ambi.coeffs.data(),
+            device->num_channels,
+            dry.coeff_count,
+            coeffs,
+            in_gain,
+            out_gains);
     }
     else
     {
-        compute_panning_gains_bf(dry.ambi.map.data(), dry.num_channels, coeffs, in_gain, out_gains);
+        compute_panning_gains_bf(
+            dry.ambi.map.data(),
+            device->num_channels,
+            coeffs,
+            in_gain,
+            out_gains);
     }
 }
 
@@ -252,11 +280,11 @@ void compute_first_order_gains(
 
     if (foa_out.coeff_count > 0)
     {
-        compute_first_order_gains_mc(foa_out.ambi.coeffs.data(), foa_out.num_channels, matrix, in_gain, out_gains);
+        compute_first_order_gains_mc(foa_out.ambi.coeffs.data(), device->num_channels, matrix, in_gain, out_gains);
     }
     else
     {
-        compute_first_order_gains_bf(foa_out.ambi.map.data(), foa_out.num_channels, matrix, in_gain, out_gains);
+        compute_first_order_gains_bf(foa_out.ambi.map.data(), device->num_channels, matrix, in_gain, out_gains);
     }
 }
 
@@ -456,17 +484,17 @@ static void init_panning(
     }
 
     set_channel_map(
-        device->real_out.channel_name.data(),
+        device->channel_names.data(),
         device->dry.ambi.coeffs.data(),
         channel_map,
         count,
-        &device->dry.num_channels);
+        &device->num_channels);
 
     device->dry.coeff_count = coeff_count;
 
     device->foa_out.ambi.reset();
 
-    for (int i = 0; i < device->dry.num_channels; ++i)
+    for (int i = 0; i < device->num_channels; ++i)
     {
         device->foa_out.ambi.coeffs[i][0] = device->dry.ambi.coeffs[i][0];
 
@@ -477,8 +505,6 @@ static void init_panning(
     }
 
     device->foa_out.coeff_count = 4;
-    device->foa_out.num_channels = 0;
-    device->real_out.num_channels = 0;
 }
 
 void alu_init_renderer(
@@ -486,7 +512,7 @@ void alu_init_renderer(
 {
     device->dry.ambi.reset();
     device->dry.coeff_count = 0;
-    device->dry.num_channels = 0;
+    device->num_channels = 0;
 
     for (int i = 0; i < (max_ambi_order + 1); ++i)
     {

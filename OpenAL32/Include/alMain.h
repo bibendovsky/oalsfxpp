@@ -204,8 +204,6 @@ struct ALCdevice_struct
         // is used instead to map each output to a coefficient index.
         int coeff_count;
 
-        SampleBuffers buffers;
-        int num_channels;
         ChannelsPerOrder num_channels_per_order;
     }; // Dry
 
@@ -216,24 +214,16 @@ struct ALCdevice_struct
 
         // Will only be 4 or 0.
         int coeff_count;
-
-        SampleBuffers* buffers;
-        int num_channels;
     }; // FOAOut
-
-    // "Real" output, which will be written to the device buffer. May alias the
-    // dry buffer.
-    struct RealOut
-    {
-        ChannelNames channel_name;
-        SampleBuffers* buffers;
-        int num_channels;
-    }; // RealOut
 
 
     int frequency;
     int update_size;
     DevFmtChannels fmt_chans;
+
+    int num_channels;
+    ChannelNames channel_names;
+    SampleBuffers sample_buffers;
 
     // Maximum number of slots that can be created
     int auxiliary_effect_slot_max;
@@ -247,7 +237,6 @@ struct ALCdevice_struct
 
     Dry dry;
     FOAOut foa_out;
-    RealOut real_out;
 
     struct ALsource* source;
     const float* source_samples;
@@ -282,13 +271,6 @@ inline int get_channel_index(
     }
 
     return -1;
-}
-
-inline int get_channel_index_by_name(
-    const ALCdevice::RealOut& real_out,
-    const Channel channel)
-{
-    return get_channel_index(real_out.channel_name, channel);
 }
 
 
