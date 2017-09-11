@@ -5,6 +5,8 @@
 #include <malloc.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <iostream>
+#include <string>
 #include "config.h"
 #include "AL\al.h"
 #include "AL\alc.h"
@@ -132,7 +134,7 @@ int main()
 
     if (is_succeed)
     {
-        oal_device = alcOpenDevice(NULL);
+        oal_device = alcOpenDevice(nullptr);
 
         if (!oal_device)
         {
@@ -141,152 +143,94 @@ int main()
         }
     }
 
-#if 1
     if (is_succeed)
     {
-        oal_device->effect->initialize(EffectType::eax_reverb);
+        std::cout << "1. EAX Reverb\n";
+        std::cout << "2. Reverb\n";
+        std::cout << "3. Chorus\n";
+        std::cout << "4. Compressor\n";
+        std::cout << "5. Dedicated (dialog)\n";
+        std::cout << "6. Dedicated (low frequency)\n";
+        std::cout << "7. Distortion\n";
+        std::cout << "8. Echo\n";
+        std::cout << "9. Equalizer\n";
+        std::cout << "10. Flanger\n";
+        std::cout << "11. Ring modulator\n\n";
 
-        EFXEAXREVERBPROPERTIES props = EFX_REVERB_PRESET_BATHROOM;
-        auto oal_props = &oal_device->effect->props_;
+        auto effect_number = 0;
+        auto effect_number_string = std::string{};
+        auto effect_type = EffectType::null;
 
-        oal_props->reverb.density = props.flDensity;
-        oal_props->reverb.diffusion = props.flDiffusion;
-        oal_props->reverb.gain = props.flGain;
-        oal_props->reverb.gain_hf = props.flGainHF;
-        oal_props->reverb.gain_lf = props.flGainLF;
-        oal_props->reverb.decay_time = props.flDecayTime;
-        oal_props->reverb.decay_hf_ratio = props.flDecayHFRatio;
-        oal_props->reverb.decay_lf_ratio = props.flDecayLFRatio;
-        oal_props->reverb.reflections_gain = props.flReflectionsGain;
-        oal_props->reverb.reflections_delay = props.flReflectionsDelay;
-        oal_props->reverb.reflections_pan[0] = props.flReflectionsPan[0];
-        oal_props->reverb.reflections_pan[1] = props.flReflectionsPan[1];
-        oal_props->reverb.reflections_pan[2] = props.flReflectionsPan[2];
-        oal_props->reverb.late_reverb_gain = props.flLateReverbGain;
-        oal_props->reverb.late_reverb_delay = props.flLateReverbDelay;
-        oal_props->reverb.late_reverb_pan[0] = props.flLateReverbPan[0];
-        oal_props->reverb.late_reverb_pan[1] = props.flLateReverbPan[1];
-        oal_props->reverb.late_reverb_pan[2] = props.flLateReverbPan[2];
-        oal_props->reverb.echo_time = props.flEchoTime;
-        oal_props->reverb.echo_depth = props.flEchoDepth;
-        oal_props->reverb.modulation_time = props.flModulationTime;
-        oal_props->reverb.modulation_depth = props.flModulationDepth;
-        oal_props->reverb.air_absorption_gain_hf = props.flAirAbsorptionGainHF;
-        oal_props->reverb.hf_reference = props.flHFReference;
-        oal_props->reverb.lf_reference = props.flLFReference;
-        oal_props->reverb.room_rolloff_factor = props.flRoomRolloffFactor;
-        oal_props->reverb.decay_hf_limit = props.iDecayHFLimit;
+        while (effect_number == 0)
+        {
+            std::cout << "Enter effect number: ";
+            std::cin >> effect_number_string;
+
+            try
+            {
+                effect_number = std::stoi(effect_number_string);
+            }
+            catch (const std::invalid_argument&)
+            {
+            }
+            catch (const std::out_of_range&)
+            {
+            }
+
+            switch (effect_number)
+            {
+            case 1:
+                effect_type = EffectType::eax_reverb;
+                break;
+
+            case 2:
+                effect_type = EffectType::reverb;
+                break;
+
+            case 3:
+                effect_type = EffectType::chorus;
+                break;
+
+            case 4:
+                effect_type = EffectType::compressor;
+                break;
+
+            case 5:
+                effect_type = EffectType::dedicated_dialog;
+                break;
+
+            case 6:
+                effect_type = EffectType::dedicated_low_frequency;
+                break;
+
+            case 7:
+                effect_type = EffectType::distortion;
+                break;
+
+            case 8:
+                effect_type = EffectType::echo;
+                break;
+
+            case 9:
+                effect_type = EffectType::equalizer;
+                break;
+
+            case 10:
+                effect_type = EffectType::flanger;
+                break;
+
+            case 11:
+                effect_type = EffectType::ring_modulator;
+                break;
+
+            default:
+                effect_number = 0;
+                break;
+            }
+        }
+
+        oal_device->effect->initialize(effect_type);
     }
-#endif
-
-#if 0
-    if (is_succeed)
-    {
-        oal_device->effect->initialize(AL_EFFECT_CHORUS);
-
-        auto oal_props = &oal_device->effect->props_;
-        oal_props->chorus.delay = AL_CHORUS_DEFAULT_DELAY;
-        oal_props->chorus.depth = AL_CHORUS_DEFAULT_DEPTH;
-        oal_props->chorus.feedback = AL_CHORUS_DEFAULT_FEEDBACK;
-        oal_props->chorus.phase = AL_CHORUS_DEFAULT_PHASE;
-        oal_props->chorus.rate = AL_CHORUS_DEFAULT_RATE;
-        oal_props->chorus.waveform = AL_CHORUS_DEFAULT_WAVEFORM;
-    }
-#endif
-
-#if 0
-    if (is_succeed)
-    {
-        oal_device->effect->initialize(AL_EFFECT_COMPRESSOR);
-
-        auto oal_props = &oal_device->effect->props_;
-        oal_props->compressor.on_off = AL_TRUE;
-    }
-#endif
-
-#if 0
-    if (is_succeed)
-    {
-        oal_device->effect->initialize(AL_EFFECT_DEDICATED_DIALOGUE);
-
-        auto oal_props = &oal_device->effect->props_;
-        oal_props->dedicated.gain = 1.0F;
-    }
-#endif
-
-#if 0
-    if (is_succeed)
-    {
-        oal_device->effect->initialize(AL_EFFECT_DISTORTION);
-
-        auto oal_props = &oal_device->effect->props_;
-        oal_props->distortion.edge = AL_DISTORTION_DEFAULT_EDGE;
-        oal_props->distortion.eq_bandwidth = AL_DISTORTION_DEFAULT_EQBANDWIDTH;
-        oal_props->distortion.eq_center = AL_DISTORTION_DEFAULT_EQCENTER;
-        oal_props->distortion.gain = AL_DISTORTION_DEFAULT_GAIN;
-        oal_props->distortion.lowpass_cutoff = AL_DISTORTION_DEFAULT_LOWPASS_CUTOFF;
-    }
-#endif
-
-#if 0
-    if (is_succeed)
-    {
-        oal_device->effect->initialize(AL_EFFECT_ECHO);
-
-        auto oal_props = &oal_device->effect->props_;
-        oal_props->echo.damping = AL_ECHO_DEFAULT_DAMPING;
-        oal_props->echo.delay = AL_ECHO_DEFAULT_DELAY;
-        oal_props->echo.feedback = AL_ECHO_DEFAULT_FEEDBACK;
-        oal_props->echo.lr_delay = AL_ECHO_DEFAULT_LRDELAY;
-        oal_props->echo.spread = AL_ECHO_DEFAULT_SPREAD;
-    }
-#endif
-
-#if 0
-    if (is_succeed)
-    {
-        oal_device->effect->initialize(AL_EFFECT_EQUALIZER);
-
-        auto oal_props = &oal_device->effect->props_;
-        oal_props->equalizer.high_cutoff = AL_EQUALIZER_DEFAULT_HIGH_CUTOFF;
-        oal_props->equalizer.high_gain = AL_EQUALIZER_DEFAULT_HIGH_GAIN;
-        oal_props->equalizer.low_cutoff = AL_EQUALIZER_DEFAULT_LOW_CUTOFF;
-        oal_props->equalizer.low_gain = AL_EQUALIZER_DEFAULT_LOW_GAIN;
-        oal_props->equalizer.mid1_center = AL_EQUALIZER_DEFAULT_MID1_CENTER;
-        oal_props->equalizer.mid1_gain = AL_EQUALIZER_DEFAULT_MID1_GAIN;
-        oal_props->equalizer.mid1_width = AL_EQUALIZER_DEFAULT_MID1_WIDTH;
-        oal_props->equalizer.mid2_center = AL_EQUALIZER_DEFAULT_MID2_CENTER;
-        oal_props->equalizer.mid2_gain = AL_EQUALIZER_DEFAULT_MID2_GAIN;
-        oal_props->equalizer.mid2_width = AL_EQUALIZER_DEFAULT_MID2_WIDTH;
-    }
-#endif
-
-#if 0
-    if (is_succeed)
-    {
-        oal_device->effect->initialize(AL_EFFECT_FLANGER);
-
-        auto oal_props = &oal_device->effect->props_;
-        oal_props->flanger.delay = AL_FLANGER_DEFAULT_DELAY;
-        oal_props->flanger.depth = AL_FLANGER_DEFAULT_DEPTH;
-        oal_props->flanger.feedback = AL_FLANGER_DEFAULT_FEEDBACK;
-        oal_props->flanger.phase = AL_FLANGER_DEFAULT_PHASE;
-        oal_props->flanger.rate = AL_FLANGER_DEFAULT_RATE;
-        oal_props->flanger.waveform = AL_FLANGER_DEFAULT_WAVEFORM;
-    }
-#endif
-
-#if 0
-    if (is_succeed)
-    {
-        oal_device->effect->initialize(AL_EFFECT_RING_MODULATOR);
-
-        auto oal_props = &oal_device->effect->props_;
-        oal_props->modulator.frequency = AL_RING_MODULATOR_DEFAULT_FREQUENCY;
-        oal_props->modulator.high_pass_cutoff = AL_RING_MODULATOR_DEFAULT_HIGHPASS_CUTOFF;
-        oal_props->modulator.waveform = AL_RING_MODULATOR_DEFAULT_WAVEFORM;
-    }
-#endif
 
     if (is_succeed)
     {
