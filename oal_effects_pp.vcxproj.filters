@@ -72,7 +72,7 @@
     <ClCompile Include="Alc\effects\reverb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="oal_effects_pp.cpp">
+    <ClCompile Include="oal_effects_pp_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
