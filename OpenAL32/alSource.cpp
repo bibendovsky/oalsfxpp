@@ -53,18 +53,18 @@ void update_source_props(
     auto& props = voice->props_;
 
     // Copy in current property values.
-    props.direct_.gain_ = source->direct_.gain_;
-    props.direct_.gain_hf_ = source->direct_.gain_hf_;
-    props.direct_.hf_reference_ = source->direct_.hf_reference_;
-    props.direct_.gain_lf_ = source->direct_.gain_lf_;
-    props.direct_.lf_reference_ = source->direct_.lf_reference_;
+    props.direct_.gain_ = source->props_.direct_.gain_;
+    props.direct_.gain_hf_ = source->props_.direct_.gain_hf_;
+    props.direct_.hf_reference_ = source->props_.direct_.hf_reference_;
+    props.direct_.gain_lf_ = source->props_.direct_.gain_lf_;
+    props.direct_.lf_reference_ = source->props_.direct_.lf_reference_;
 
-    props.send_.effect_slot_ = source->send_.effect_slot_;
-    props.send_.gain_ = source->send_.gain_;
-    props.send_.gain_hf_ = source->send_.gain_hf_;
-    props.send_.hf_reference_ = source->send_.hf_reference_;
-    props.send_.gain_lf_ = source->send_.gain_lf_;
-    props.send_.lf_reference_ = source->send_.lf_reference_;
+    props.send_.effect_slot_ = source->props_.send_.effect_slot_;
+    props.send_.gain_ = source->props_.send_.gain_;
+    props.send_.gain_hf_ = source->props_.send_.gain_hf_;
+    props.send_.hf_reference_ = source->props_.send_.hf_reference_;
+    props.send_.gain_lf_ = source->props_.send_.gain_lf_;
+    props.send_.lf_reference_ = source->props_.send_.lf_reference_;
 }
 
 AL_API void AL_APIENTRY alSourcePlay(
@@ -165,24 +165,24 @@ AL_API void AL_APIENTRY alSourceStopv(
 void init_source_params(
     ALsource* source)
 {
-    source->direct_.gain_ = 1.0F;
-    source->direct_.gain_hf_ = 1.0F;
-    source->direct_.hf_reference_ = lp_frequency_reference;
-    source->direct_.gain_lf_ = 1.0F;
-    source->direct_.lf_reference_ = hp_frequency_reference;
-    source->send_.effect_slot_ = nullptr;
-    source->send_.gain_ = 1.0F;
-    source->send_.gain_hf_ = 1.0F;
-    source->send_.hf_reference_ = lp_frequency_reference;
-    source->send_.gain_lf_ = 1.0F;
-    source->send_.lf_reference_ = hp_frequency_reference;
+    source->props_.direct_.gain_ = 1.0F;
+    source->props_.direct_.gain_hf_ = 1.0F;
+    source->props_.direct_.hf_reference_ = lp_frequency_reference;
+    source->props_.direct_.gain_lf_ = 1.0F;
+    source->props_.direct_.lf_reference_ = hp_frequency_reference;
+    source->props_.send_.effect_slot_ = nullptr;
+    source->props_.send_.gain_ = 1.0F;
+    source->props_.send_.gain_hf_ = 1.0F;
+    source->props_.send_.hf_reference_ = lp_frequency_reference;
+    source->props_.send_.gain_lf_ = 1.0F;
+    source->props_.send_.lf_reference_ = hp_frequency_reference;
     source->state_ = AL_INITIAL;
 }
 
 void deinit_source(
     ALsource* source)
 {
-    source->send_.effect_slot_ = nullptr;
+    source->props_.send_.effect_slot_ = nullptr;
 }
 
 void update_all_source_props(

@@ -21,9 +21,14 @@ struct ALsource
         EffectSlot* effect_slot_;
     }; // Send
 
+    struct Props
+    {
+        Base direct_;
+        Send send_;
+    }; // Props
 
-    Base direct_;
-    Send send_;
+
+    Props props_;
 
     // Source state (initial, playing, paused, or stopped)
     int state_;
