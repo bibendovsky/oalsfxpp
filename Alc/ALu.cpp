@@ -160,7 +160,6 @@ static void calc_panning_and_filters(
     const float wet_gain_lf,
     const float wet_gain_hf,
     EffectSlot* send_slot,
-    const ALsource::Props* props,
     const ALCdevice* device)
 {
     ChannelMap stereo_map[2] = {
@@ -198,19 +197,19 @@ static void calc_panning_and_filters(
             {
                 for (int j = 0; j < max_output_channels; ++j)
                 {
-                    source->direct_.params_[c].target_gains_[j] = 0.0F;
+                    source->direct_.channels_[c].target_gains_[j] = 0.0F;
                 }
 
                 const auto idx = get_channel_index(device->channel_names_, chans[c].channel);
 
                 if (idx != -1)
                 {
-                    source->direct_.params_[c].target_gains_[idx] = dry_gain;
+                    source->direct_.channels_[c].target_gains_[idx] = dry_gain;
                 }
 
                 for (int j = 0; j < max_effect_channels; ++j)
                 {
-                    source->send_.params_[c].target_gains_[j] = 0.0F;
+                    source->aux_.channels_[c].target_gains_[j] = 0.0F;
                 }
 
                 continue;
@@ -218,7 +217,7 @@ static void calc_panning_and_filters(
 
             calc_angle_coeffs(chans[c].angle, chans[c].elevation, spread, coeffs);
 
-            compute_panning_gains(device, coeffs, dry_gain, source->direct_.params_[c].target_gains_.data());
+            compute_panning_gains(device, coeffs, dry_gain, source->direct_.channels_[c].target_gains_.data());
 
             const auto slot = send_slot;
 
@@ -229,21 +228,21 @@ static void calc_panning_and_filters(
                     slot->channel_count_,
                     coeffs,
                     wet_gain,
-                    source->send_.params_[c].target_gains_.data());
+                    source->aux_.channels_[c].target_gains_.data());
             }
             else
             {
                 for (int j = 0; j < max_effect_channels; ++j)
                 {
-                    source->send_.params_[c].target_gains_[j] = 0.0F;
+                    source->aux_.channels_[c].target_gains_[j] = 0.0F;
                 }
             }
         }
     }
 
     {
-        const auto hf_scale = props->direct_.hf_reference_ / frequency;
-        const auto lf_scale = props->direct_.lf_reference_ / frequency;
+        const auto hf_scale = source->direct_.hf_reference_ / frequency;
+        const auto lf_scale = source->direct_.lf_reference_ / frequency;
         const auto gain_hf = std::max(dry_gain_hf, 0.001F); // Limit -60dB
         const auto gain_lf = std::max(dry_gain_lf, 0.001F);
 
@@ -262,14 +261,14 @@ static void calc_panning_and_filters(
         }
 
         al_filter_state_set_params(
-            &source->direct_.params_[0].low_pass_,
+            &source->direct_.channels_[0].low_pass_,
             FilterType::high_shelf,
             gain_hf,
             hf_scale,
             calc_rcp_q_from_slope(gain_hf, 1.0F));
 
         al_filter_state_set_params(
-            &source->direct_.params_[0].high_pass_,
+            &source->direct_.channels_[0].high_pass_,
             FilterType::low_shelf,
             gain_lf,
             lf_scale,
@@ -277,40 +276,40 @@ static void calc_panning_and_filters(
 
         for (int c = 1; c < num_channels; ++c)
         {
-            al_filter_state_copy_params(&source->direct_.params_[c].low_pass_, &source->direct_.params_[0].low_pass_);
-            al_filter_state_copy_params(&source->direct_.params_[c].high_pass_, &source->direct_.params_[0].high_pass_);
+            al_filter_state_copy_params(&source->direct_.channels_[c].low_pass_, &source->direct_.channels_[0].low_pass_);
+            al_filter_state_copy_params(&source->direct_.channels_[c].high_pass_, &source->direct_.channels_[0].high_pass_);
         }
     }
 
     {
-        const auto hf_scale = props->send_.hf_reference_ / frequency;
-        const auto lf_scale = props->send_.lf_reference_ / frequency;
+        const auto hf_scale = source->aux_.hf_reference_ / frequency;
+        const auto lf_scale = source->aux_.lf_reference_ / frequency;
         const auto gain_hf = std::max(wet_gain_hf, 0.001F);
         const auto gain_lf = std::max(wet_gain_lf, 0.001F);
 
-        source->send_.filter_type_ = ActiveFilters::none;
+        source->aux_.filter_type_ = ActiveFilters::none;
 
         if (gain_hf != 1.0F)
         {
-            source->send_.filter_type_ = static_cast<ActiveFilters>(
-                static_cast<int>(source->send_.filter_type_) | static_cast<int>(ActiveFilters::low_pass));
+            source->aux_.filter_type_ = static_cast<ActiveFilters>(
+                static_cast<int>(source->aux_.filter_type_) | static_cast<int>(ActiveFilters::low_pass));
         }
 
         if (gain_lf != 1.0F)
         {
-            source->send_.filter_type_ = static_cast<ActiveFilters>(
-                static_cast<int>(source->send_.filter_type_) | static_cast<int>(ActiveFilters::high_pass));
+            source->aux_.filter_type_ = static_cast<ActiveFilters>(
+                static_cast<int>(source->aux_.filter_type_) | static_cast<int>(ActiveFilters::high_pass));
         }
 
         al_filter_state_set_params(
-            &source->send_.params_[0].low_pass_,
+            &source->aux_.channels_[0].low_pass_,
             FilterType::high_shelf,
             gain_hf,
             hf_scale,
             calc_rcp_q_from_slope(gain_hf, 1.0F));
 
         al_filter_state_set_params(
-            &source->send_.params_[0].high_pass_,
+            &source->aux_.channels_[0].high_pass_,
             FilterType::low_shelf,
             gain_lf,
             lf_scale,
@@ -318,15 +317,14 @@ static void calc_panning_and_filters(
 
         for (int c = 1; c < num_channels; ++c)
         {
-            al_filter_state_copy_params(&source->send_.params_[c].low_pass_, &source->send_.params_[0].low_pass_);
-            al_filter_state_copy_params(&source->send_.params_[c].high_pass_, &source->send_.params_[0].high_pass_);
+            al_filter_state_copy_params(&source->aux_.channels_[c].low_pass_, &source->aux_.channels_[0].low_pass_);
+            al_filter_state_copy_params(&source->aux_.channels_[c].high_pass_, &source->aux_.channels_[0].high_pass_);
         }
     }
 }
 
 static void calc_non_attn_source_params(
     ALsource* source,
-    const ALsource::Props* props,
     ALCdevice* device)
 {
     source->direct_.buffers_ = &device->sample_buffers_;
@@ -336,28 +334,28 @@ static void calc_non_attn_source_params(
 
     if (!send_slot || send_slot->effect_.type_ == EffectType::null)
     {
-        source->send_.buffers_ = nullptr;
-        source->send_.channel_count_ = 0;
+        source->aux_.buffers_ = nullptr;
+        source->aux_.channel_count_ = 0;
     }
     else
     {
-        source->send_.buffers_ = &send_slot->wet_buffer_;
-        source->send_.channel_count_ = send_slot->channel_count_;
+        source->aux_.buffers_ = &send_slot->wet_buffer_;
+        source->aux_.channel_count_ = send_slot->channel_count_;
     }
 
     // Calculate gains
     auto dry_gain = 1.0F;
-    dry_gain *= props->direct_.gain_;
+    dry_gain *= source->direct_.gain_;
     dry_gain = std::min(dry_gain, max_mix_gain);
 
-    const auto dry_gain_hf = props->direct_.gain_hf_;
-    const auto dry_gain_lf = props->direct_.gain_lf_;
+    const auto dry_gain_hf = source->direct_.gain_hf_;
+    const auto dry_gain_lf = source->direct_.gain_lf_;
 
     static const float dir[3] = {0.0F, 0.0F, -1.0F};
 
-    const auto wet_gain = std::min(props->send_.gain_, max_mix_gain);
-    const auto wet_gain_hf = props->send_.gain_hf_;
-    const auto wet_gain_lf = props->send_.gain_lf_;
+    const auto wet_gain = std::min(source->aux_.gain_, max_mix_gain);
+    const auto wet_gain_hf = source->aux_.gain_hf_;
+    const auto wet_gain_lf = source->aux_.gain_lf_;
 
     calc_panning_and_filters(
         source,
@@ -371,7 +369,6 @@ static void calc_non_attn_source_params(
         wet_gain_lf,
         wet_gain_hf,
         send_slot,
-        props,
         device);
 }
 
@@ -385,7 +382,7 @@ static void update_context_sources(
 
     if (source && is_props_updated)
     {
-        calc_non_attn_source_params(source, &source->props_, device);
+        calc_non_attn_source_params(source, device);
     }
 }
 

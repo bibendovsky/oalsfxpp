@@ -7,25 +7,9 @@
 
 struct ALsource
 {
-    struct Props
+    struct Send
     {
-        struct State
-        {
-            float gain_;
-            float gain_hf_;
-            float hf_reference_;
-            float gain_lf_;
-            float lf_reference_;
-        }; // State
-
-
-        State direct_;
-        State send_;
-    }; // Props
-
-    struct State
-    {
-        struct Param
+        struct Channel
         {
             using Gains = std::array<float, max_output_channels>;
 
@@ -36,22 +20,26 @@ struct ALsource
 
 
             void reset();
-        }; // Param
+        }; // Channel
 
-        using Params = std::array<Param, max_input_channels>;
+        using Channels = std::array<Channel, max_input_channels>;
 
+
+        float gain_;
+        float gain_hf_;
+        float hf_reference_;
+        float gain_lf_;
+        float lf_reference_;
 
         ActiveFilters filter_type_;
-        Params params_;
+        Channels channels_;
         SampleBuffers* buffers_;
         int channel_count_;
-    }; // State
+    }; // Send
 
 
-    Props props_;
-
-    State direct_;
-    State send_;
+    Send direct_;
+    Send aux_;
 }; // ALsource
 
 

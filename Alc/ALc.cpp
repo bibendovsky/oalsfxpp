@@ -138,8 +138,8 @@ static void update_device_params(
 
     for (int i = 0; i < device->channel_count_; ++i)
     {
-        source->direct_.params_[i].reset();
-        source->send_.params_[i].reset();
+        source->direct_.channels_[i].reset();
+        source->aux_.channels_[i].reset();
     }
 }
 

@@ -24,7 +24,7 @@
 #include "alSource.h"
 
 
-void ALsource::State::Param::reset()
+void ALsource::Send::Channel::reset()
 {
     low_pass_.reset();
     high_pass_.reset();
@@ -36,14 +36,14 @@ void ALsource::State::Param::reset()
 void init_source_params(
     ALsource* source)
 {
-    source->props_.direct_.gain_ = 1.0F;
-    source->props_.direct_.gain_hf_ = 1.0F;
-    source->props_.direct_.hf_reference_ = lp_frequency_reference;
-    source->props_.direct_.gain_lf_ = 1.0F;
-    source->props_.direct_.lf_reference_ = hp_frequency_reference;
-    source->props_.send_.gain_ = 1.0F;
-    source->props_.send_.gain_hf_ = 1.0F;
-    source->props_.send_.hf_reference_ = lp_frequency_reference;
-    source->props_.send_.gain_lf_ = 1.0F;
-    source->props_.send_.lf_reference_ = hp_frequency_reference;
+    source->direct_.gain_ = 1.0F;
+    source->direct_.gain_hf_ = 1.0F;
+    source->direct_.hf_reference_ = lp_frequency_reference;
+    source->direct_.gain_lf_ = 1.0F;
+    source->direct_.lf_reference_ = hp_frequency_reference;
+    source->aux_.gain_ = 1.0F;
+    source->aux_.gain_hf_ = 1.0F;
+    source->aux_.hf_reference_ = lp_frequency_reference;
+    source->aux_.gain_lf_ = 1.0F;
+    source->aux_.lf_reference_ = hp_frequency_reference;
 }

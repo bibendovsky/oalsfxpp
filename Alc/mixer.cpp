@@ -83,7 +83,7 @@ bool mix_source(ALsource* source, ALCdevice* device, int samples_to_do)
         std::uninitialized_copy_n(device->source_data_.cbegin(), samples_to_do, device->resampled_data_.begin());
 
 
-        auto parms = &source->direct_.params_[chan];
+        auto parms = &source->direct_.channels_[chan];
 
         samples = do_filters(
             &parms->low_pass_,
@@ -105,12 +105,12 @@ bool mix_source(ALsource* source, ALCdevice* device, int samples_to_do)
             0,
             samples_to_do);
 
-        if (!source->send_.buffers_)
+        if (!source->aux_.buffers_)
         {
             continue;
         }
 
-        parms = &source->send_.params_[chan];
+        parms = &source->aux_.channels_[chan];
 
         samples = do_filters(
             &parms->low_pass_,
@@ -118,14 +118,14 @@ bool mix_source(ALsource* source, ALCdevice* device, int samples_to_do)
             device->filtered_data_.data(),
             device->resampled_data_.data(),
             samples_to_do,
-            source->send_.filter_type_);
+            source->aux_.filter_type_);
 
         parms->current_gains_ = parms->target_gains_;
 
         mix_samples(
             samples,
-            source->send_.channel_count_,
-            *source->send_.buffers_,
+            source->aux_.channel_count_,
+            *source->aux_.buffers_,
             parms->current_gains_.data(),
             parms->target_gains_.data(),
             0,
