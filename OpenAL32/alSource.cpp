@@ -50,7 +50,7 @@ void update_source_props(
     ALvoice* voice)
 {
     // Get an unused property container, or allocate a new one as needed.
-    auto& props = voice->props_;
+    auto& props = source->props_;
 
     // Copy in current property values.
     props.direct_.gain_ = source->props_.direct_.gain_;

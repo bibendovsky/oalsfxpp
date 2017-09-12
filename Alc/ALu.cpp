@@ -174,7 +174,7 @@ static void calc_panning_and_filters(
     const float wet_gain_lf,
     const float wet_gain_hf,
     EffectSlot* send_slot,
-    const ALvoice::Props* props,
+    const ALsource::Props* props,
     const ALCdevice* device)
 {
     ChannelMap stereo_map[2] = {
@@ -340,7 +340,7 @@ static void calc_panning_and_filters(
 
 static void calc_non_attn_source_params(
     ALvoice* voice,
-    const ALvoice::Props* props,
+    const ALsource::Props* props,
     ALCdevice* device)
 {
     voice->direct_.buffers_ = &device->sample_buffers_;
@@ -402,7 +402,7 @@ static void update_context_sources(
 
     if (source && is_props_updated)
     {
-        calc_non_attn_source_params(voice, &voice->props_, device);
+        calc_non_attn_source_params(voice, &source->props_, device);
     }
 }
 

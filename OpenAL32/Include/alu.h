@@ -60,28 +60,6 @@ enum class ActiveFilters
 
 struct ALvoice
 {
-    struct Props
-    {
-        struct Base
-        {
-            float gain_;
-            float gain_hf_;
-            float hf_reference_;
-            float gain_lf_;
-            float lf_reference_;
-        }; // Base
-
-        struct Send :
-            Base
-        {
-            EffectSlot* effect_slot_;
-        }; // Send
-
-        // Direct filter and auxiliary send info.
-        Base direct_;
-        Send send_;
-    }; // Props
-
     struct State
     {
         struct Param
@@ -107,7 +85,6 @@ struct ALvoice
     }; // State
 
 
-    Props props_;
     ALsource* source_;
     bool is_playing_;
 
