@@ -84,27 +84,23 @@ using SendParams = ParamsBase;
 
 struct ALvoiceProps
 {
-    struct Direct
+    struct Base
     {
         float gain_;
         float gain_hf_;
         float hf_reference_;
         float gain_lf_;
         float lf_reference_;
-    }; // Direct
+    }; // Base
 
-    struct Send
+    struct Send :
+        Base
     {
         EffectSlot* effect_slot_;
-        float gain_;
-        float gain_hf_;
-        float hf_reference_;
-        float gain_lf_;
-        float lf_reference_;
     }; // Send
 
     // Direct filter and auxiliary send info.
-    Direct direct_;
+    Base direct_;
     Send send_;
 };
 
