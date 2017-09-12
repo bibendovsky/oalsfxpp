@@ -2,7 +2,6 @@
 #define _AL_SOURCE_H_
 
 
-#include <memory>
 #include "alu.h"
 
 
@@ -22,10 +21,9 @@ struct ALsource
         EffectSlot* effect_slot_;
     }; // Send
 
-    using SendUPtr = std::unique_ptr<Send>;
 
     Base direct_;
-    SendUPtr send_;
+    Send send_;
 
     // Source state (initial, playing, paused, or stopped)
     int state_;

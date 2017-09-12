@@ -59,12 +59,12 @@ void update_source_props(
     props.direct_.gain_lf_ = source->direct_.gain_lf_;
     props.direct_.lf_reference_ = source->direct_.lf_reference_;
 
-    props.send_.effect_slot_ = source->send_->effect_slot_;
-    props.send_.gain_ = source->send_->gain_;
-    props.send_.gain_hf_ = source->send_->gain_hf_;
-    props.send_.hf_reference_ = source->send_->hf_reference_;
-    props.send_.gain_lf_ = source->send_->gain_lf_;
-    props.send_.lf_reference_ = source->send_->lf_reference_;
+    props.send_.effect_slot_ = source->send_.effect_slot_;
+    props.send_.gain_ = source->send_.gain_;
+    props.send_.gain_hf_ = source->send_.gain_hf_;
+    props.send_.hf_reference_ = source->send_.hf_reference_;
+    props.send_.gain_lf_ = source->send_.gain_lf_;
+    props.send_.lf_reference_ = source->send_.lf_reference_;
 }
 
 AL_API void AL_APIENTRY alSourcePlay(
@@ -170,24 +170,19 @@ void init_source_params(
     source->direct_.hf_reference_ = lp_frequency_reference;
     source->direct_.gain_lf_ = 1.0F;
     source->direct_.lf_reference_ = hp_frequency_reference;
-    source->send_ = std::make_unique<ALsource::Send>();
-    source->send_->effect_slot_ = nullptr;
-    source->send_->gain_ = 1.0F;
-    source->send_->gain_hf_ = 1.0F;
-    source->send_->hf_reference_ = lp_frequency_reference;
-    source->send_->gain_lf_ = 1.0F;
-    source->send_->lf_reference_ = hp_frequency_reference;
+    source->send_.effect_slot_ = nullptr;
+    source->send_.gain_ = 1.0F;
+    source->send_.gain_hf_ = 1.0F;
+    source->send_.hf_reference_ = lp_frequency_reference;
+    source->send_.gain_lf_ = 1.0F;
+    source->send_.lf_reference_ = hp_frequency_reference;
     source->state_ = AL_INITIAL;
 }
 
 void deinit_source(
     ALsource* source)
 {
-    if (source->send_)
-    {
-        source->send_->effect_slot_ = nullptr;
-        source->send_ = nullptr;
-    }
+    source->send_.effect_slot_ = nullptr;
 }
 
 void update_all_source_props(
