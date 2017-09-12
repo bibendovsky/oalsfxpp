@@ -405,6 +405,11 @@ protected:
 
 
 private:
+    static constexpr auto speed_of_sound_mps = 343.3F;
+
+    // Target gain for the reverb decay feedback reaching the decay time.
+    static constexpr auto reverb_decay_gain = 0.001F; // -60 dB
+
     // This is the maximum number of samples processed for each inner loop
     // iteration.
     static constexpr auto max_update_samples = 256;

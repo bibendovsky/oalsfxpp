@@ -81,11 +81,6 @@ constexpr auto max_mix_gain = 16.0F; // +24dB
 
 constexpr auto silence_threshold_gain = 0.00001F; // -100dB
 
-constexpr auto speed_of_sound_mps = 343.3F;
-
-// Target gain for the reverb decay feedback reaching the decay time.
-constexpr auto reverb_decay_gain = 0.001F; // -60 dB
-
 
 template<typename T>
 inline T clamp(
@@ -129,15 +124,15 @@ void calc_angle_coeffs(
 
 // Computes channel gains for ambient, omni-directional sounds.
 void compute_ambient_gains(
-    const ALCdevice* b,
-    const float g,
-    float* const o);
+    const ALCdevice* device,
+    const float in_gain,
+    float* const out_gains);
 
 void compute_ambient_gains_mc(
     const ChannelConfig* channel_coeffs,
     const int num_channels,
     const float in_gain,
-    float gains[max_output_channels]);
+    float out_gains[max_output_channels]);
 
 void compute_ambient_gains_bf(
     const BFChannelConfig* channel_map,
@@ -186,10 +181,10 @@ void compute_first_order_gains_mc(
 
 void compute_first_order_gains_bf(
     const BFChannelConfig* channel_map,
-    const int num_channels,
-    const float mtx[4],
+    const int channel_count,
+    const float matrix[4],
     const float in_gain,
-    float gains[max_output_channels]);
+    float out_gains[max_output_channels]);
 
 bool mix_source(
     ALsource* source,
