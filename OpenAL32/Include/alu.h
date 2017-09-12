@@ -120,7 +120,6 @@ struct ALvoice
         DirectParams params_[max_input_channels];
         SampleBuffers* buffers_;
         int channel_count_;
-        int channels_per_order_[max_ambi_order + 1];
     }; // Direct
 
     struct Send
