@@ -114,21 +114,13 @@ struct ALvoiceProps
 
 struct ALvoice
 {
-    struct Direct
+    struct State
     {
         ActiveFilters filter_type_;
         DirectParams params_[max_input_channels];
         SampleBuffers* buffers_;
         int channel_count_;
-    }; // Direct
-
-    struct Send
-    {
-        ActiveFilters filter_type_;
-        SendParams params_[max_input_channels];
-        SampleBuffers* buffers_;
-        int channel_count_;
-    }; // Send
+    }; // State
 
 
     ALvoiceProps props_;
@@ -139,8 +131,8 @@ struct ALvoice
     // buffer(s).
     int channel_count_;
 
-    Direct direct_;
-    Send send_;
+    State direct_;
+    State send_;
 }; // ALvoice
 
 
