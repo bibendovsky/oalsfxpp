@@ -58,30 +58,6 @@ enum class ActiveFilters
 }; // ActiveFilters
 
 
-struct ParamsBase
-{
-    struct Gains
-    {
-        float current_[max_output_channels];
-        float target_[max_output_channels];
-
-        void reset();
-    }; // Gains
-
-
-    FilterState low_pass_;
-    FilterState high_pass_;
-    Gains gains_;
-
-
-    void reset();
-}; // ParamsBase
-
-
-using DirectParams = ParamsBase;
-using SendParams = ParamsBase;
-
-
 struct ALvoiceProps
 {
     struct Base
@@ -108,8 +84,24 @@ struct ALvoice
 {
     struct State
     {
+        struct Param
+        {
+            using Gains = std::array<float, max_output_channels>;
+
+            FilterState low_pass_;
+            FilterState high_pass_;
+            Gains current_gains_;
+            Gains target_gains_;
+
+
+            void reset();
+        }; // Param
+
+        using Params = std::array<Param, max_input_channels>;
+
+
         ActiveFilters filter_type_;
-        DirectParams params_[max_input_channels];
+        Params params_;
         SampleBuffers* buffers_;
         int channel_count_;
     }; // State

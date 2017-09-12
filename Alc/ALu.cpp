@@ -86,17 +86,13 @@ const aluMatrixf identity_matrix_f = {{
     { 0.0f, 0.0f, 0.0f, 1.0f },
 }};
 
-void ParamsBase::Gains::reset()
-{
-    std::uninitialized_fill_n(current_, max_output_channels, 0.0F);
-    std::uninitialized_fill_n(target_, max_output_channels, 0.0F);
-}
-
-void ParamsBase::reset()
+void ALvoice::State::Param::reset()
 {
     low_pass_.reset();
     high_pass_.reset();
-    gains_.reset();
+
+    current_gains_.fill(0.0F);
+    target_gains_.fill(0.0F);
 }
 
 void deinit_voice(
@@ -216,19 +212,19 @@ static void calc_panning_and_filters(
             {
                 for (int j = 0; j < max_output_channels; ++j)
                 {
-                    voice->direct_.params_[c].gains_.target_[j] = 0.0F;
+                    voice->direct_.params_[c].target_gains_[j] = 0.0F;
                 }
 
                 const auto idx = get_channel_index(device->channel_names_, chans[c].channel);
 
                 if (idx != -1)
                 {
-                    voice->direct_.params_[c].gains_.target_[idx] = dry_gain;
+                    voice->direct_.params_[c].target_gains_[idx] = dry_gain;
                 }
 
                 for (int j = 0; j < max_effect_channels; ++j)
                 {
-                    voice->send_.params_[c].gains_.target_[j] = 0.0F;
+                    voice->send_.params_[c].target_gains_[j] = 0.0F;
                 }
 
                 continue;
@@ -236,7 +232,7 @@ static void calc_panning_and_filters(
 
             calc_angle_coeffs(chans[c].angle, chans[c].elevation, spread, coeffs);
 
-            compute_panning_gains(device, coeffs, dry_gain, voice->direct_.params_[c].gains_.target_);
+            compute_panning_gains(device, coeffs, dry_gain, voice->direct_.params_[c].target_gains_.data());
 
             const auto slot = send_slot;
 
@@ -247,13 +243,13 @@ static void calc_panning_and_filters(
                     slot->channel_count_,
                     coeffs,
                     wet_gain,
-                    voice->send_.params_[c].gains_.target_);
+                    voice->send_.params_[c].target_gains_.data());
             }
             else
             {
                 for (int j = 0; j < max_effect_channels; ++j)
                 {
-                    voice->send_.params_[c].gains_.target_[j] = 0.0F;
+                    voice->send_.params_[c].target_gains_[j] = 0.0F;
                 }
             }
         }

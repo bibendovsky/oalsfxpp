@@ -73,7 +73,6 @@ bool mix_source(ALvoice* voice, ALsource* source, ALCdevice* device, int samples
 
     for (chan = 0; chan < channel_count; ++chan)
     {
-        DirectParams* parms;
         const float* samples;
 
         /* Load what's left to play from the source buffer, and
@@ -84,7 +83,7 @@ bool mix_source(ALvoice* voice, ALsource* source, ALCdevice* device, int samples
         std::uninitialized_copy_n(device->source_data_.cbegin(), samples_to_do, device->resampled_data_.begin());
 
 
-        parms = &voice->direct_.params_[chan];
+        auto parms = &voice->direct_.params_[chan];
 
         samples = do_filters(
             &parms->low_pass_,
@@ -94,14 +93,14 @@ bool mix_source(ALvoice* voice, ALsource* source, ALCdevice* device, int samples
             samples_to_do,
             voice->direct_.filter_type_);
 
-        memcpy(parms->gains_.current_, parms->gains_.target_, sizeof(parms->gains_.current_));
+        parms->current_gains_ = parms->target_gains_;
 
         mix_samples(
             samples,
             voice->direct_.channel_count_,
             *voice->direct_.buffers_,
-            parms->gains_.current_,
-            parms->gains_.target_,
+            parms->current_gains_.data(),
+            parms->target_gains_.data(),
             0,
             0,
             samples_to_do);
@@ -121,14 +120,14 @@ bool mix_source(ALvoice* voice, ALsource* source, ALCdevice* device, int samples
             samples_to_do,
             voice->send_.filter_type_);
 
-        memcpy(parms->gains_.current_, parms->gains_.target_, sizeof(parms->gains_.current_));
+        parms->current_gains_ = parms->target_gains_;
 
         mix_samples(
             samples,
             voice->send_.channel_count_,
             *voice->send_.buffers_,
-            parms->gains_.current_,
-            parms->gains_.target_,
+            parms->current_gains_.data(),
+            parms->target_gains_.data(),
             0,
             0,
             samples_to_do);
