@@ -119,10 +119,6 @@ struct ALvoice
     ALsource* source_;
     bool is_playing_;
 
-    // Number of channels and bytes-per-sample for the attached source's
-    // buffer(s).
-    int channel_count_;
-
     State direct_;
     State send_;
 }; // ALvoice

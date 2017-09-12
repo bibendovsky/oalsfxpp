@@ -68,20 +68,17 @@ static const float *do_filters(
 
 bool mix_source(ALvoice* voice, ALsource* source, ALCdevice* device, int samples_to_do)
 {
-    int NumChannels;
     int chan;
+    const auto channel_count = device->channel_count_;
 
-    /* Get source info */
-    NumChannels = voice->channel_count_;
-
-    for (chan = 0; chan < NumChannels; ++chan)
+    for (chan = 0; chan < channel_count; ++chan)
     {
         DirectParams* parms;
         const float* samples;
 
         /* Load what's left to play from the source buffer, and
             * clear the rest of the temp buffer */
-        std::uninitialized_copy_n(device->source_samples_, NumChannels * samples_to_do, device->source_data_.begin());
+        std::uninitialized_copy_n(device->source_samples_, channel_count * samples_to_do, device->source_data_.begin());
 
         /* Now resample, then filter and mix to the appropriate outputs. */
         std::uninitialized_copy_n(device->source_data_.cbegin(), samples_to_do, device->resampled_data_.begin());
