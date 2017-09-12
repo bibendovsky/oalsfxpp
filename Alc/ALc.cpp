@@ -24,7 +24,6 @@
 
 
 void init_source_params(ALsource* source);
-void deinit_source(ALsource* source);
 
 
 ALCdevice* g_device = nullptr;
@@ -152,7 +151,6 @@ static void free_device(
     delete device->effect_;
     delete device->effect_slot_;
 
-    deinit_source(device->source_);
     delete device->source_;
 
     device->sample_buffers_ = SampleBuffers{};

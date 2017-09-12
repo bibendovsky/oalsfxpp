@@ -41,16 +41,9 @@ void init_source_params(
     source->props_.direct_.hf_reference_ = lp_frequency_reference;
     source->props_.direct_.gain_lf_ = 1.0F;
     source->props_.direct_.lf_reference_ = hp_frequency_reference;
-    source->props_.send_.effect_slot_ = nullptr;
     source->props_.send_.gain_ = 1.0F;
     source->props_.send_.gain_hf_ = 1.0F;
     source->props_.send_.hf_reference_ = lp_frequency_reference;
     source->props_.send_.gain_lf_ = 1.0F;
     source->props_.send_.lf_reference_ = hp_frequency_reference;
-}
-
-void deinit_source(
-    ALsource* source)
-{
-    source->props_.send_.effect_slot_ = nullptr;
 }

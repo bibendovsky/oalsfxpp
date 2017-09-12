@@ -7,24 +7,20 @@
 
 struct ALsource
 {
-    struct Base
-    {
-        float gain_;
-        float gain_hf_;
-        float hf_reference_;
-        float gain_lf_;
-        float lf_reference_;
-    }; // Base
-
-    struct Send : Base
-    {
-        EffectSlot* effect_slot_;
-    }; // Send
-
     struct Props
     {
-        Base direct_;
-        Send send_;
+        struct State
+        {
+            float gain_;
+            float gain_hf_;
+            float hf_reference_;
+            float gain_lf_;
+            float lf_reference_;
+        }; // State
+
+
+        State direct_;
+        State send_;
     }; // Props
 
     struct State

@@ -332,9 +332,7 @@ static void calc_non_attn_source_params(
     source->direct_.buffers_ = &device->sample_buffers_;
     source->direct_.channel_count_ = device->channel_count_;
 
-    EffectSlot* send_slot = nullptr;
-
-    send_slot = props->send_.effect_slot_;
+    auto send_slot = device->effect_slot_;
 
     if (!send_slot || send_slot->effect_.type_ == EffectType::null)
     {

@@ -234,11 +234,6 @@ int main()
 
     if (is_succeed)
     {
-        oal_device->source_->props_.send_.effect_slot_ = oal_device->effect_slot_;
-    }
-
-    if (is_succeed)
-    {
         dst_stream = fopen(dst_file_name, "wb");
 
         if (!dst_stream)
