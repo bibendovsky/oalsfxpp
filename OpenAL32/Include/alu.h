@@ -103,10 +103,6 @@ struct ALvoiceProps
         float lf_reference_;
     }; // Send
 
-    struct ALvoiceProps* next_;
-    float stereo_pan_[2];
-    float radius_;
-
     // Direct filter and auxiliary send info.
     Direct direct_;
     Send send_;

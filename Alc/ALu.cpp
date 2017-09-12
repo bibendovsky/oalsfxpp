@@ -199,10 +199,6 @@ static void calc_panning_and_filters(
         break;
 
     case FmtStereo:
-        // Convert counter-clockwise to clockwise.
-        stereo_map[0].angle = -props->stereo_pan_[0];
-        stereo_map[1].angle = -props->stereo_pan_[1];
-
         chans = stereo_map;
         num_channels = 2;
         downmix_gain = 1.0F / 2.0F;
