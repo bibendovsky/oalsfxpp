@@ -86,20 +86,6 @@ const aluMatrixf identity_matrix_f = {{
     { 0.0f, 0.0f, 0.0f, 1.0f },
 }};
 
-void ALvoice::State::Param::reset()
-{
-    low_pass_.reset();
-    high_pass_.reset();
-
-    current_gains_.fill(0.0F);
-    target_gains_.fill(0.0F);
-}
-
-void deinit_voice(
-    ALvoice* voice)
-{
-}
-
 static bool calc_effect_slot_params(
     EffectSlot* slot,
     ALCdevice* device)
@@ -163,7 +149,7 @@ static const ChannelMap x7_1_map[8] = {
 };
 
 static void calc_panning_and_filters(
-    ALvoice* voice,
+    ALsource* source,
     const float distance,
     const float* dir,
     const float spread,
@@ -212,19 +198,19 @@ static void calc_panning_and_filters(
             {
                 for (int j = 0; j < max_output_channels; ++j)
                 {
-                    voice->direct_.params_[c].target_gains_[j] = 0.0F;
+                    source->direct_.params_[c].target_gains_[j] = 0.0F;
                 }
 
                 const auto idx = get_channel_index(device->channel_names_, chans[c].channel);
 
                 if (idx != -1)
                 {
-                    voice->direct_.params_[c].target_gains_[idx] = dry_gain;
+                    source->direct_.params_[c].target_gains_[idx] = dry_gain;
                 }
 
                 for (int j = 0; j < max_effect_channels; ++j)
                 {
-                    voice->send_.params_[c].target_gains_[j] = 0.0F;
+                    source->send_.params_[c].target_gains_[j] = 0.0F;
                 }
 
                 continue;
@@ -232,7 +218,7 @@ static void calc_panning_and_filters(
 
             calc_angle_coeffs(chans[c].angle, chans[c].elevation, spread, coeffs);
 
-            compute_panning_gains(device, coeffs, dry_gain, voice->direct_.params_[c].target_gains_.data());
+            compute_panning_gains(device, coeffs, dry_gain, source->direct_.params_[c].target_gains_.data());
 
             const auto slot = send_slot;
 
@@ -243,13 +229,13 @@ static void calc_panning_and_filters(
                     slot->channel_count_,
                     coeffs,
                     wet_gain,
-                    voice->send_.params_[c].target_gains_.data());
+                    source->send_.params_[c].target_gains_.data());
             }
             else
             {
                 for (int j = 0; j < max_effect_channels; ++j)
                 {
-                    voice->send_.params_[c].target_gains_[j] = 0.0F;
+                    source->send_.params_[c].target_gains_[j] = 0.0F;
                 }
             }
         }
@@ -261,29 +247,29 @@ static void calc_panning_and_filters(
         const auto gain_hf = std::max(dry_gain_hf, 0.001F); // Limit -60dB
         const auto gain_lf = std::max(dry_gain_lf, 0.001F);
 
-        voice->direct_.filter_type_ = ActiveFilters::none;
+        source->direct_.filter_type_ = ActiveFilters::none;
 
         if (gain_hf != 1.0F)
         {
-            voice->direct_.filter_type_ = static_cast<ActiveFilters>(
-                static_cast<int>(voice->direct_.filter_type_) | static_cast<int>(ActiveFilters::low_pass));
+            source->direct_.filter_type_ = static_cast<ActiveFilters>(
+                static_cast<int>(source->direct_.filter_type_) | static_cast<int>(ActiveFilters::low_pass));
         }
 
         if (gain_lf != 1.0F)
         {
-            voice->direct_.filter_type_ = static_cast<ActiveFilters>(
-                static_cast<int>(voice->direct_.filter_type_) | static_cast<int>(ActiveFilters::high_pass));
+            source->direct_.filter_type_ = static_cast<ActiveFilters>(
+                static_cast<int>(source->direct_.filter_type_) | static_cast<int>(ActiveFilters::high_pass));
         }
 
         al_filter_state_set_params(
-            &voice->direct_.params_[0].low_pass_,
+            &source->direct_.params_[0].low_pass_,
             FilterType::high_shelf,
             gain_hf,
             hf_scale,
             calc_rcp_q_from_slope(gain_hf, 1.0F));
 
         al_filter_state_set_params(
-            &voice->direct_.params_[0].high_pass_,
+            &source->direct_.params_[0].high_pass_,
             FilterType::low_shelf,
             gain_lf,
             lf_scale,
@@ -291,8 +277,8 @@ static void calc_panning_and_filters(
 
         for (int c = 1; c < num_channels; ++c)
         {
-            al_filter_state_copy_params(&voice->direct_.params_[c].low_pass_, &voice->direct_.params_[0].low_pass_);
-            al_filter_state_copy_params(&voice->direct_.params_[c].high_pass_, &voice->direct_.params_[0].high_pass_);
+            al_filter_state_copy_params(&source->direct_.params_[c].low_pass_, &source->direct_.params_[0].low_pass_);
+            al_filter_state_copy_params(&source->direct_.params_[c].high_pass_, &source->direct_.params_[0].high_pass_);
         }
     }
 
@@ -302,29 +288,29 @@ static void calc_panning_and_filters(
         const auto gain_hf = std::max(wet_gain_hf, 0.001F);
         const auto gain_lf = std::max(wet_gain_lf, 0.001F);
 
-        voice->send_.filter_type_ = ActiveFilters::none;
+        source->send_.filter_type_ = ActiveFilters::none;
 
         if (gain_hf != 1.0F)
         {
-            voice->send_.filter_type_ = static_cast<ActiveFilters>(
-                static_cast<int>(voice->send_.filter_type_) | static_cast<int>(ActiveFilters::low_pass));
+            source->send_.filter_type_ = static_cast<ActiveFilters>(
+                static_cast<int>(source->send_.filter_type_) | static_cast<int>(ActiveFilters::low_pass));
         }
 
         if (gain_lf != 1.0F)
         {
-            voice->send_.filter_type_ = static_cast<ActiveFilters>(
-                static_cast<int>(voice->send_.filter_type_) | static_cast<int>(ActiveFilters::high_pass));
+            source->send_.filter_type_ = static_cast<ActiveFilters>(
+                static_cast<int>(source->send_.filter_type_) | static_cast<int>(ActiveFilters::high_pass));
         }
 
         al_filter_state_set_params(
-            &voice->send_.params_[0].low_pass_,
+            &source->send_.params_[0].low_pass_,
             FilterType::high_shelf,
             gain_hf,
             hf_scale,
             calc_rcp_q_from_slope(gain_hf, 1.0F));
 
         al_filter_state_set_params(
-            &voice->send_.params_[0].high_pass_,
+            &source->send_.params_[0].high_pass_,
             FilterType::low_shelf,
             gain_lf,
             lf_scale,
@@ -332,19 +318,19 @@ static void calc_panning_and_filters(
 
         for (int c = 1; c < num_channels; ++c)
         {
-            al_filter_state_copy_params(&voice->send_.params_[c].low_pass_, &voice->send_.params_[0].low_pass_);
-            al_filter_state_copy_params(&voice->send_.params_[c].high_pass_, &voice->send_.params_[0].high_pass_);
+            al_filter_state_copy_params(&source->send_.params_[c].low_pass_, &source->send_.params_[0].low_pass_);
+            al_filter_state_copy_params(&source->send_.params_[c].high_pass_, &source->send_.params_[0].high_pass_);
         }
     }
 }
 
 static void calc_non_attn_source_params(
-    ALvoice* voice,
+    ALsource* source,
     const ALsource::Props* props,
     ALCdevice* device)
 {
-    voice->direct_.buffers_ = &device->sample_buffers_;
-    voice->direct_.channel_count_ = device->channel_count_;
+    source->direct_.buffers_ = &device->sample_buffers_;
+    source->direct_.channel_count_ = device->channel_count_;
 
     EffectSlot* send_slot = nullptr;
 
@@ -352,13 +338,13 @@ static void calc_non_attn_source_params(
 
     if (!send_slot || send_slot->effect_.type_ == EffectType::null)
     {
-        voice->send_.buffers_ = nullptr;
-        voice->send_.channel_count_ = 0;
+        source->send_.buffers_ = nullptr;
+        source->send_.channel_count_ = 0;
     }
     else
     {
-        voice->send_.buffers_ = &send_slot->wet_buffer_;
-        voice->send_.channel_count_ = send_slot->channel_count_;
+        source->send_.buffers_ = &send_slot->wet_buffer_;
+        source->send_.channel_count_ = send_slot->channel_count_;
     }
 
     // Calculate gains
@@ -376,7 +362,7 @@ static void calc_non_attn_source_params(
     const auto wet_gain_lf = props->send_.gain_lf_;
 
     calc_panning_and_filters(
-        voice,
+        source,
         0.0F,
         dir,
         0.0F,
@@ -395,14 +381,13 @@ static void update_context_sources(
     ALCdevice* device)
 {
     auto slot = device->effect_slot_;
-    auto voice = device->voice_;
-    auto source = voice->source_;
+    auto source = device->source_;
 
     const auto is_props_updated = calc_effect_slot_params(slot, device);
 
     if (source && is_props_updated)
     {
-        calc_non_attn_source_params(voice, &source->props_, device);
+        calc_non_attn_source_params(source, &source->props_, device);
     }
 }
 
@@ -452,20 +437,7 @@ void alu_mix_data(
         }
 
         // source processing
-        for (int i = 0; i < device->voice_count_; ++i)
-        {
-            auto voice = device->voice_;
-            auto source = voice->source_;
-
-            if (source && voice->is_playing_)
-            {
-                if (!mix_source(voice, source, device, samples_to_do))
-                {
-                    voice->source_ = nullptr;
-                    voice->is_playing_ = false;
-                }
-            }
-        }
+        mix_source(device->source_, device, samples_to_do);
 
         // effect slot processing
         auto state = slot->effect_state_.get();

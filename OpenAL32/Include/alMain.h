@@ -226,13 +226,10 @@ struct ALCdevice_struct
     const float* source_samples_;
     struct EffectSlot* effect_slot_;
     struct Effect* effect_;
-    struct ALvoice* voice_;
-    int voice_count_;
 }; // ALCdevice_struct
 
 
 extern ALCdevice* g_device;
-void allocate_voices(ALCdevice* device);
 void set_default_wfx_channel_order(ALCdevice* device);
 
 

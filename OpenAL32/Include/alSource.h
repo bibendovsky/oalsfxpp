@@ -27,16 +27,36 @@ struct ALsource
         Send send_;
     }; // Props
 
+    struct State
+    {
+        struct Param
+        {
+            using Gains = std::array<float, max_output_channels>;
+
+            FilterState low_pass_;
+            FilterState high_pass_;
+            Gains current_gains_;
+            Gains target_gains_;
+
+
+            void reset();
+        }; // Param
+
+        using Params = std::array<Param, max_input_channels>;
+
+
+        ActiveFilters filter_type_;
+        Params params_;
+        SampleBuffers* buffers_;
+        int channel_count_;
+    }; // State
+
 
     Props props_;
 
-    // Source state (initial, playing, paused, or stopped)
-    int state_;
+    State direct_;
+    State send_;
 }; // ALsource
-
-
-void update_all_source_props(
-    ALCdevice* device);
 
 
 #endif

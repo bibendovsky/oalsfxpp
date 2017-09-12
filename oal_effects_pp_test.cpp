@@ -19,10 +19,6 @@
 #include "alSource.h"
 
 
-void update_source_props(
-    ALsource* source,
-    ALvoice* voice);
-
 void alu_mix_data(
     ALCdevice* device,
     void* OutBuffer,
@@ -239,12 +235,6 @@ int main()
     if (is_succeed)
     {
         oal_device->source_->props_.send_.effect_slot_ = oal_device->effect_slot_;
-        update_source_props(oal_device->source_, oal_device->voice_);
-    }
-
-    if (is_succeed)
-    {
-        alSourcePlay(0);
     }
 
     if (is_succeed)
@@ -291,8 +281,6 @@ int main()
             offset += write_sample_count * channel_count;
         }
     }
-
-    alSourceStop(0);
 
     alcCloseDevice(oal_device);
 

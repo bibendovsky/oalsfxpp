@@ -58,45 +58,6 @@ enum class ActiveFilters
 }; // ActiveFilters
 
 
-struct ALvoice
-{
-    struct State
-    {
-        struct Param
-        {
-            using Gains = std::array<float, max_output_channels>;
-
-            FilterState low_pass_;
-            FilterState high_pass_;
-            Gains current_gains_;
-            Gains target_gains_;
-
-
-            void reset();
-        }; // Param
-
-        using Params = std::array<Param, max_input_channels>;
-
-
-        ActiveFilters filter_type_;
-        Params params_;
-        SampleBuffers* buffers_;
-        int channel_count_;
-    }; // State
-
-
-    ALsource* source_;
-    bool is_playing_;
-
-    State direct_;
-    State send_;
-}; // ALvoice
-
-
-void deinit_voice(
-    ALvoice* voice);
-
-
 using MixerFunc = void (*)(
     const float* data,
     int out_chans,
@@ -231,7 +192,6 @@ void compute_first_order_gains_bf(
     float gains[max_output_channels]);
 
 bool mix_source(
-    ALvoice* voice,
     ALsource* source,
     ALCdevice* device,
     int samples_to_do);

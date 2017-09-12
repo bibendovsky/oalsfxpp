@@ -135,19 +135,13 @@ static void update_device_params(
     state->update_device(device);
     slot->is_props_updated_ = true;
 
-    allocate_voices(device);
+    auto source = device->source_;
 
-    for (int pos = 0; pos < device->voice_count_; ++pos)
+    for (int i = 0; i < device->channel_count_; ++i)
     {
-        const auto voice = device->voice_;
-
-        if (!voice->source_)
-        {
-            continue;
-        }
+        source->direct_.params_[i].reset();
+        source->send_.params_[i].reset();
     }
-
-    update_all_source_props(device);
 }
 
 // Frees the device structure, and destroys any objects the app failed to
@@ -165,43 +159,6 @@ static void free_device(
     device->channel_count_ = 0;
 
     delete device;
-}
-
-// Cleans up the context, and destroys any remaining objects the app failed to
-// delete. Called once there's no more references on the context.
-static void free_context()
-{
-    auto device = g_device;
-
-    for(int i = 0; i < device->voice_count_; ++i)
-    {
-        deinit_voice(device->voice_);
-    }
-
-    delete[] reinterpret_cast<char*>(device->voice_);
-    device->voice_ = nullptr;
-    device->voice_count_ = 0;
-}
-
-// Removes the context reference from the given device and removes it from
-// being current on the running thread or globally. Returns true if other
-// contexts still exist on the device.
-static void release_context()
-{
-    free_context();
-}
-
-void allocate_voices(
-    ALCdevice* device)
-{
-    if (device->voice_)
-    {
-        return;
-    }
-
-    delete device->voice_;
-    device->voice_ = new ALvoice{};
-    device->voice_count_ = 1;
 }
 
 
@@ -245,11 +202,7 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(
     device->effect_ = new Effect{};
     device->effect_->initialize();
 
-    device->voice_ = nullptr;
-    device->voice_count_ = 0;
-
     update_device_params(device);
-    allocate_voices(device);
 
     g_device = device;
 
@@ -262,7 +215,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(
  */
 ALC_API ALCboolean ALC_APIENTRY alcCloseDevice(ALCdevice *device)
 {
-    release_context();
     free_device(g_device);
 
     return ALC_TRUE;

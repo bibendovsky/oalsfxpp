@@ -66,7 +66,7 @@ static const float *do_filters(
     return src;
 }
 
-bool mix_source(ALvoice* voice, ALsource* source, ALCdevice* device, int samples_to_do)
+bool mix_source(ALsource* source, ALCdevice* device, int samples_to_do)
 {
     int chan;
     const auto channel_count = device->channel_count_;
@@ -83,7 +83,7 @@ bool mix_source(ALvoice* voice, ALsource* source, ALCdevice* device, int samples
         std::uninitialized_copy_n(device->source_data_.cbegin(), samples_to_do, device->resampled_data_.begin());
 
 
-        auto parms = &voice->direct_.params_[chan];
+        auto parms = &source->direct_.params_[chan];
 
         samples = do_filters(
             &parms->low_pass_,
@@ -91,26 +91,26 @@ bool mix_source(ALvoice* voice, ALsource* source, ALCdevice* device, int samples
             device->filtered_data_.data(),
             device->resampled_data_.data(),
             samples_to_do,
-            voice->direct_.filter_type_);
+            source->direct_.filter_type_);
 
         parms->current_gains_ = parms->target_gains_;
 
         mix_samples(
             samples,
-            voice->direct_.channel_count_,
-            *voice->direct_.buffers_,
+            source->direct_.channel_count_,
+            *source->direct_.buffers_,
             parms->current_gains_.data(),
             parms->target_gains_.data(),
             0,
             0,
             samples_to_do);
 
-        if (!voice->send_.buffers_)
+        if (!source->send_.buffers_)
         {
             continue;
         }
 
-        parms = &voice->send_.params_[chan];
+        parms = &source->send_.params_[chan];
 
         samples = do_filters(
             &parms->low_pass_,
@@ -118,14 +118,14 @@ bool mix_source(ALvoice* voice, ALsource* source, ALCdevice* device, int samples
             device->filtered_data_.data(),
             device->resampled_data_.data(),
             samples_to_do,
-            voice->send_.filter_type_);
+            source->send_.filter_type_);
 
         parms->current_gains_ = parms->target_gains_;
 
         mix_samples(
             samples,
-            voice->send_.channel_count_,
-            *voice->send_.buffers_,
+            source->send_.channel_count_,
+            *source->send_.buffers_,
             parms->current_gains_.data(),
             parms->target_gains_.data(),
             0,
