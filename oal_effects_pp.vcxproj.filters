@@ -83,24 +83,6 @@
     <ClInclude Include="common\math_defs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\AL\al.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\AL\alc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\AL\alext.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\AL\efx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\AL\efx-creative.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\AL\efx-presets.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="OpenAL32\Include\alAuxEffectSlot.h">
       <Filter>Header Files</Filter>
     </ClInclude>

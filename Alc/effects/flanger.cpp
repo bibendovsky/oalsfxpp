@@ -78,7 +78,7 @@ protected:
     void FlangerEffectState::do_update_device(
         ALCdevice* device) final
     {
-        auto maxlen = static_cast<int>(AL_FLANGER_MAX_DELAY * 2.0F * device->frequency_) + 1;
+        auto maxlen = static_cast<int>(EffectProps::Flanger::max_delay * 2.0F * device->frequency_) + 1;
         maxlen = next_power_of_2(maxlen);
 
         if (maxlen != buffer_length_)
@@ -107,11 +107,11 @@ protected:
 
         switch (props->flanger_.waveform_)
         {
-        case AL_FLANGER_WAVEFORM_TRIANGLE:
+        case EffectProps::Flanger::waveform_triangle:
             waveform_ = Waveform::triangle;
             break;
 
-        case AL_FLANGER_WAVEFORM_SINUSOID:
+        case EffectProps::Flanger::waveform_sinusoid:
             waveform_ = Waveform::sinusoid;
             break;
         }
@@ -271,8 +271,8 @@ protected:
 private:
     enum class Waveform
     {
-        triangle = AL_FLANGER_WAVEFORM_TRIANGLE,
-        sinusoid = AL_FLANGER_WAVEFORM_SINUSOID
+        triangle = EffectProps::Flanger::waveform_triangle,
+        sinusoid = EffectProps::Flanger::waveform_sinusoid,
     }; // Waveform
 
     using SampleBuffer = EffectSampleBuffer;

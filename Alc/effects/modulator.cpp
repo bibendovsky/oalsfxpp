@@ -70,11 +70,11 @@ protected:
         const EffectSlot* slot,
         const EffectProps* props) final
     {
-        if (props->modulator_.waveform_ == AL_RING_MODULATOR_SINUSOID)
+        if (props->modulator_.waveform_ == EffectProps::Modulator::waveform_sinusoid)
         {
             process_func_ = modulate_sin;
         }
-        else if (props->modulator_.waveform_ == AL_RING_MODULATOR_SAWTOOTH)
+        else if (props->modulator_.waveform_ == EffectProps::Modulator::waveform_sawtooth)
         {
             process_func_ = modulate_saw;
         }

@@ -143,12 +143,6 @@
   <ItemGroup>
     <ClInclude Include="Alc\mixer_defs.h" />
     <ClInclude Include="common\math_defs.h" />
-    <ClInclude Include="include\AL\al.h" />
-    <ClInclude Include="include\AL\alc.h" />
-    <ClInclude Include="include\AL\alext.h" />
-    <ClInclude Include="include\AL\efx-creative.h" />
-    <ClInclude Include="include\AL\efx-presets.h" />
-    <ClInclude Include="include\AL\efx.h" />
     <ClInclude Include="OpenAL32\Include\alAuxEffectSlot.h" />
     <ClInclude Include="OpenAL32\Include\alBuffer.h" />
     <ClInclude Include="OpenAL32\Include\alEffect.h" />

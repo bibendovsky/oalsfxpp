@@ -76,8 +76,8 @@ protected:
     {
         // Use the next power of 2 for the buffer length, so the tap offsets can be
         // wrapped using a mask instead of a modulo
-        auto maxlen = static_cast<int>(AL_ECHO_MAX_DELAY * device->frequency_) + 1;
-        maxlen += static_cast<int>(AL_ECHO_MAX_LRDELAY * device->frequency_) + 1;
+        auto maxlen = static_cast<int>(EffectProps::Echo::max_delay * device->frequency_) + 1;
+        maxlen += static_cast<int>(EffectProps::Echo::max_lr_delay * device->frequency_) + 1;
         maxlen = next_power_of_2(maxlen);
 
         if (maxlen != buffer_length_)

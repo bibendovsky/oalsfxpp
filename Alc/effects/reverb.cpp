@@ -177,7 +177,7 @@ protected:
         for (int i = 0; i < 4; ++i)
         {
             late_feed_tap_ = static_cast<int>(
-                (AL_EAXREVERB_MAX_REFLECTIONS_DELAY + (early_tap_lengths[3] * multiplier)) * frequency);
+                (EffectProps::Reverb::max_reflections_delay + (early_tap_lengths[3] * multiplier)) * frequency);
         }
     }
 
@@ -260,13 +260,13 @@ protected:
         // Calculate the LF/HF decay times.
         const auto lf_decay_time = clamp(
             props->reverb_.decay_time_ * props->reverb_.decay_lf_ratio_,
-            AL_EAXREVERB_MIN_DECAY_TIME,
-            AL_EAXREVERB_MAX_DECAY_TIME);
+            EffectProps::Reverb::min_decay_time,
+            EffectProps::Reverb::max_decay_time);
 
         const auto hf_decay_time = clamp(
             props->reverb_.decay_time_ * hf_ratio,
-            AL_EAXREVERB_MIN_DECAY_TIME,
-            AL_EAXREVERB_MAX_DECAY_TIME);
+            EffectProps::Reverb::min_decay_time,
+            EffectProps::Reverb::max_decay_time);
 
         // Update the modulator line.
         update_modulator(props->reverb_.modulation_time_, props->reverb_.modulation_depth_, frequency);
@@ -796,9 +796,9 @@ private:
         // largest early tap width, the maximum late reverb delay, and the
         // largest late tap width.  Finally, it must also be extended by the
         // update size (MAX_UPDATE_SAMPLES) for block processing.
-        auto length = AL_EAXREVERB_MAX_REFLECTIONS_DELAY +
+        auto length = EffectProps::Reverb::max_reflections_delay +
                  (early_tap_lengths[3] * multiplier) +
-                 AL_EAXREVERB_MAX_LATE_REVERB_DELAY +
+                 EffectProps::Reverb::max_late_reverb_delay +
                  ((late_line_lengths[3] - late_line_lengths[0]) * 0.25F * multiplier);
 
         initialize_delay_line(length, frequency, max_update_samples, delay_);
@@ -821,9 +821,9 @@ private:
         // maximum modulation time and depth coefficient, and halved for the low-
         // to-high frequency swing.
         length = std::max(
-            AL_EAXREVERB_MAX_ECHO_TIME,
+            EffectProps::Reverb::max_echo_time,
             late_line_lengths[3] * multiplier) +
-                (AL_EAXREVERB_MAX_MODULATION_TIME * modulation_depth_coeff / 2.0F);
+                (EffectProps::Reverb::max_modulation_time * modulation_depth_coeff / 2.0F);
 
         initialize_delay_line(length, frequency, 0, late_.delay);
     }

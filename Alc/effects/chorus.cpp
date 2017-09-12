@@ -79,7 +79,7 @@ protected:
     void ChorusEffectState::do_update_device(
         ALCdevice* device) final
     {
-        auto max_len = static_cast<int>(AL_CHORUS_MAX_DELAY * 2.0F * device->frequency_) + 1;
+        auto max_len = static_cast<int>(EffectProps::Chorus::max_delay * 2.0F * device->frequency_) + 1;
 
         max_len = next_power_of_2(max_len);
 
@@ -106,11 +106,11 @@ protected:
 
         switch (props->chorus_.waveform_)
         {
-        case AL_CHORUS_WAVEFORM_TRIANGLE:
+        case EffectProps::Chorus::waveform_triangle:
             waveform_ = Waveform::triangle;
             break;
 
-        case AL_CHORUS_WAVEFORM_SINUSOID:
+        case EffectProps::Chorus::waveform_sinusoid:
             waveform_ = Waveform::sinusoid;
             break;
         }
@@ -271,8 +271,8 @@ protected:
 private:
     enum class Waveform
     {
-        triangle = AL_CHORUS_WAVEFORM_TRIANGLE,
-        sinusoid = AL_CHORUS_WAVEFORM_SINUSOID
+        triangle = EffectProps::Chorus::waveform_triangle,
+        sinusoid = EffectProps::Chorus::waveform_sinusoid
     }; // Waveform
 
 

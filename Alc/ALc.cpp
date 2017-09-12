@@ -168,8 +168,7 @@ static void free_device(
  *
  * Opens the named device.
  */
-ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(
-    const ALCchar* device_name)
+ALCdevice* alcOpenDevice()
 {
     if (g_device)
     {
@@ -211,9 +210,8 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(
  *
  * Closes the given device.
  */
-ALC_API ALCboolean ALC_APIENTRY alcCloseDevice(ALCdevice *device)
+void alcCloseDevice(
+    ALCdevice* device)
 {
     free_device(g_device);
-
-    return ALC_TRUE;
 }

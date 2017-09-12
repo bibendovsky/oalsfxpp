@@ -1,18 +1,9 @@
-#define NOMINMAX
-
-
-#include <cfenv>
 #include <malloc.h>
-#include <stdio.h>
-#include <stdint.h>
+#include <cstdio>
+#include <cstdint>
 #include <iostream>
 #include <string>
 #include "config.h"
-#include "AL\al.h"
-#include "AL\alc.h"
-#include "AL\alext.h"
-#include "AL\efx.h"
-#include "AL\efx-presets.h"
 #include "alMain.h"
 #include "alEffect.h"
 #include "alAuxEffectSlot.h"
@@ -25,11 +16,14 @@ void alu_mix_data(
     const int NumSamples,
     const float* src_samples);
 
+ALCdevice* alcOpenDevice();
+
+void alcCloseDevice(
+    ALCdevice* device);
+
 
 int main()
 {
-    const auto fem = fegetround();
-
     const char* src_file_name = "f:\\temp\\rev\\in.raw";
     const char* dst_file_name = "f:\\temp\\rev\\out.raw";
     const int sample_count = 1024;
@@ -129,7 +123,7 @@ int main()
 
     if (is_succeed)
     {
-        oal_device = alcOpenDevice(nullptr);
+        oal_device = alcOpenDevice();
 
         if (!oal_device)
         {

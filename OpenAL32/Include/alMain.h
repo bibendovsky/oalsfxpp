@@ -9,9 +9,8 @@
 #include <type_traits>
 #include <vector>
 
-#include "AL/al.h"
-#include "AL/alc.h"
-#include "AL/alext.h"
+
+constexpr auto max_input_channels = 8;
 
 
 enum class EffectType
@@ -141,12 +140,12 @@ enum Channel
 // Device formats
 enum DevFmtChannels
 {
-    DevFmtMono   = ALC_MONO_SOFT,
-    DevFmtStereo = ALC_STEREO_SOFT,
-    DevFmtQuad   = ALC_QUAD_SOFT,
-    DevFmtX51    = ALC_5POINT1_SOFT,
-    DevFmtX61    = ALC_6POINT1_SOFT,
-    DevFmtX71    = ALC_7POINT1_SOFT,
+    DevFmtMono,
+    DevFmtStereo,
+    DevFmtQuad,
+    DevFmtX51,
+    DevFmtX61,
+    DevFmtX71,
 
     // Similar to 5.1, except using rear channels instead of sides
     DevFmtX51Rear = 0x80000000,
@@ -227,6 +226,8 @@ struct ALCdevice_struct
     struct EffectSlot* effect_slot_;
     struct Effect* effect_;
 }; // ALCdevice_struct
+
+using ALCdevice = ALCdevice_struct;
 
 
 extern ALCdevice* g_device;
