@@ -7,10 +7,6 @@
 #include "math_defs.h"
 
 
-constexpr auto lp_frequency_reference = 5000.0F;
-constexpr auto hp_frequency_reference = 250.0F;
-
-
 // Filters implementation is based on the "Cookbook formulae for audio
 // EQ biquad filter coefficients" by Robert Bristow-Johnson
 // http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt
@@ -44,6 +40,10 @@ enum class FilterType
 
 struct FilterState
 {
+    static constexpr auto lp_frequency_reference = 5000.0F;
+    static constexpr auto hp_frequency_reference = 250.0F;
+
+
     float x_[2]; // History of two last input samples
     float y_[2]; // History of two last output samples
 

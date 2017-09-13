@@ -125,7 +125,7 @@ protected:
         filter_.set_params(
             FilterType::high_shelf,
             effect_gain,
-            lp_frequency_reference / frequency,
+            FilterState::lp_frequency_reference / frequency,
             FilterState::calc_rcp_q_from_slope(effect_gain, 1.0F));
 
         effect_gain = 1.0F;

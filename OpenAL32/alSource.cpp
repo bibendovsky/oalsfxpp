@@ -38,12 +38,12 @@ void init_source_params(
 {
     source->direct_.gain_ = 1.0F;
     source->direct_.gain_hf_ = 1.0F;
-    source->direct_.hf_reference_ = lp_frequency_reference;
+    source->direct_.hf_reference_ = FilterState::lp_frequency_reference;
     source->direct_.gain_lf_ = 1.0F;
-    source->direct_.lf_reference_ = hp_frequency_reference;
+    source->direct_.lf_reference_ = FilterState::hp_frequency_reference;
     source->aux_.gain_ = 1.0F;
     source->aux_.gain_hf_ = 1.0F;
-    source->aux_.hf_reference_ = lp_frequency_reference;
+    source->aux_.hf_reference_ = FilterState::lp_frequency_reference;
     source->aux_.gain_lf_ = 1.0F;
-    source->aux_.lf_reference_ = hp_frequency_reference;
+    source->aux_.lf_reference_ = FilterState::hp_frequency_reference;
 }
