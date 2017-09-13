@@ -42,12 +42,6 @@
     <ClCompile Include="Alc\effects\flanger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Alc\mixer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Alc\mixer_c.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Alc\effects\modulator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -68,9 +62,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Alc\mixer_defs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="common\math_defs.h">
       <Filter>Header Files</Filter>
     </ClInclude>

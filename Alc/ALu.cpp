@@ -20,9 +20,8 @@
 
 
 #include <algorithm>
-#include "config.h"
+#include "oalsfxpp_api_impl.h"
 #include "alSource.h"
-#include "alu.h"
 
 
 struct ChannelMap {
@@ -449,7 +448,7 @@ void alu_mix_data(
         }
 
         // source processing
-        mix_source(g_source, device, samples_to_do);
+        ApiImpl::mix_source(g_source, device, samples_to_do);
 
         // effect slot processing
         auto state = slot->effect_state_.get();

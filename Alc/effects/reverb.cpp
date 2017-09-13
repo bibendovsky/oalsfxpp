@@ -23,9 +23,7 @@
 #include <algorithm>
 #include <array>
 #include <vector>
-#include "config.h"
-#include "alu.h"
-#include "mixer_defs.h"
+#include "oalsfxpp_api_impl.h"
 
 
 class ReverbEffectState :
@@ -335,7 +333,7 @@ protected:
 
             for (int c = 0; c < 4; ++c)
             {
-                mix_row_c(
+                ApiImpl::mix_row_c(
                     a_format_samples_[c].data(),
                     b2a.m_[c],
                     src_samples,
@@ -373,7 +371,7 @@ protected:
             // B-Format.
             for (int c = 0; c < 4; c++)
             {
-                mix_c(
+                ApiImpl::mix_c(
                     early_samples_[c].data(),
                     channel_count,
                     dst_samples,
@@ -386,7 +384,7 @@ protected:
 
             for (int c = 0; c < 4; c++)
             {
-                mix_c(
+                ApiImpl::mix_c(
                     reverb_samples_[c].data(),
                     channel_count,
                     dst_samples,
