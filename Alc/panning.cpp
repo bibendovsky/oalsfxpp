@@ -436,43 +436,43 @@ static void init_panning(
 
     switch (device->channel_format_)
     {
-    case DevFmtMono:
+    case ChannelFormat::mono:
         count = count_of(mono_cfg);
         channel_map = mono_cfg;
         coeff_count = 1;
         break;
 
-    case DevFmtStereo:
+    case ChannelFormat::stereo:
         count = count_of(stereo_cfg);
         channel_map = stereo_cfg;
         coeff_count = 4;
         break;
 
-    case DevFmtQuad:
+    case ChannelFormat::quad:
         count = count_of(quad_cfg);
         channel_map = quad_cfg;
         coeff_count = 4;
         break;
 
-    case DevFmtX51:
+    case ChannelFormat::five_point_one:
         count = count_of(x5_1_side_cfg);
         channel_map = x5_1_side_cfg;
         coeff_count = 9;
         break;
 
-    case DevFmtX51Rear:
+    case ChannelFormat::five_point_one_rear:
         count = count_of(x5_1_rear_cfg);
         channel_map = x5_1_rear_cfg;
         coeff_count = 9;
         break;
 
-    case DevFmtX61:
+    case ChannelFormat::six_point_one:
         count = count_of(x6_1_cfg);
         channel_map = x6_1_cfg;
         coeff_count = 9;
         break;
 
-    case DevFmtX71:
+    case ChannelFormat::seven_point_one:
         count = count_of(x7_1_cfg);
         channel_map = x7_1_cfg;
         coeff_count = 16;

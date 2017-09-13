@@ -174,12 +174,12 @@ static void calc_panning_and_filters(
 
     switch (device->channel_format_)
     {
-    case DevFmtMono:
+    case ChannelFormat::mono:
         chans = mono_map;
         num_channels = 1;
         break;
 
-    case DevFmtStereo:
+    case ChannelFormat::stereo:
         chans = stereo_map;
         num_channels = 2;
         downmix_gain = 1.0F / 2.0F;

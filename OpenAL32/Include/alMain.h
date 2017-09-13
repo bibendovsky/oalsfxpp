@@ -108,20 +108,16 @@ enum class ChannelId
 }; // ChannelId
 
 // Device formats
-enum DevFmtChannels
+enum class ChannelFormat
 {
-    DevFmtMono,
-    DevFmtStereo,
-    DevFmtQuad,
-    DevFmtX51,
-    DevFmtX61,
-    DevFmtX71,
-
-    // Similar to 5.1, except using rear channels instead of sides
-    DevFmtX51Rear = 0x80000000,
-
-    DevFmtChannelsDefault = DevFmtMono
-}; // DevFmtChannels
+    mono,
+    stereo,
+    quad,
+    five_point_one,
+    five_point_one_rear,
+    six_point_one,
+    seven_point_one,
+}; // ChannelFormat
 
 
 using ChannelConfig = std::array<float, max_ambi_coeffs>;
@@ -166,7 +162,7 @@ struct ALCdevice_struct
 
     int frequency_;
     int update_size_;
-    DevFmtChannels channel_format_;
+    ChannelFormat channel_format_;
 
     int channel_count_;
     ChannelNames channel_names_;

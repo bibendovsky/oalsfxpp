@@ -30,23 +30,23 @@ void ALCdevice_struct::set_default_wfx_channel_order()
 
     switch (channel_format_)
     {
-    case DevFmtMono:
+    case ChannelFormat::mono:
         channel_names_[0] = ChannelId::front_center;
         break;
 
-    case DevFmtStereo:
+    case ChannelFormat::stereo:
         channel_names_[0] = ChannelId::front_left;
         channel_names_[1] = ChannelId::front_right;
         break;
 
-    case DevFmtQuad:
+    case ChannelFormat::quad:
         channel_names_[0] = ChannelId::front_left;
         channel_names_[1] = ChannelId::front_right;
         channel_names_[2] = ChannelId::back_left;
         channel_names_[3] = ChannelId::back_right;
         break;
 
-    case DevFmtX51:
+    case ChannelFormat::five_point_one:
         channel_names_[0] = ChannelId::front_left;
         channel_names_[1] = ChannelId::front_right;
         channel_names_[2] = ChannelId::front_center;
@@ -55,7 +55,7 @@ void ALCdevice_struct::set_default_wfx_channel_order()
         channel_names_[5] = ChannelId::side_right;
         break;
 
-    case DevFmtX51Rear:
+    case ChannelFormat::five_point_one_rear:
         channel_names_[0] = ChannelId::front_left;
         channel_names_[1] = ChannelId::front_right;
         channel_names_[2] = ChannelId::front_center;
@@ -64,7 +64,7 @@ void ALCdevice_struct::set_default_wfx_channel_order()
         channel_names_[5] = ChannelId::back_right;
         break;
 
-    case DevFmtX61:
+    case ChannelFormat::six_point_one:
         channel_names_[0] = ChannelId::front_left;
         channel_names_[1] = ChannelId::front_right;
         channel_names_[2] = ChannelId::front_center;
@@ -74,7 +74,7 @@ void ALCdevice_struct::set_default_wfx_channel_order()
         channel_names_[6] = ChannelId::side_right;
         break;
 
-    case DevFmtX71:
+    case ChannelFormat::seven_point_one:
         channel_names_[0] = ChannelId::front_left;
         channel_names_[1] = ChannelId::front_right;
         channel_names_[2] = ChannelId::front_center;
@@ -110,7 +110,7 @@ void ALCdevice_struct::initialize(
     channel_count_ = channel_count;
 
     // Set output format
-    channel_format_ = DevFmtChannelsDefault;
+    channel_format_ = ChannelFormat::mono;
     frequency_ = sampling_rate;
     update_size_ = 1024;
 
