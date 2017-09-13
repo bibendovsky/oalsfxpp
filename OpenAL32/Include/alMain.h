@@ -35,7 +35,6 @@ constexpr int count_of(const T&)
 }
 
 
-constexpr auto default_output_rate = 44100;
 constexpr auto max_channels = 8;
 
 // The maximum number of Ambisonics coefficients. For a given order (o), the
@@ -184,6 +183,17 @@ struct ALCdevice_struct
     AmbiOutput foa_;
 
     const float* source_samples_;
+
+
+    ALCdevice_struct();
+
+    void initialize(
+        const int channel_count,
+        const int sampling_rate);
+
+    void uninitialize();
+
+    void set_default_wfx_channel_order();
 }; // ALCdevice_struct
 
 using ALCdevice = ALCdevice_struct;
@@ -191,10 +201,8 @@ using ALCdevice = ALCdevice_struct;
 
 extern ALCdevice* g_device;
 extern struct ALsource* g_source;
-extern struct EffectSlot* g_effect_slot;
 extern struct Effect* g_effect;
-
-void set_default_wfx_channel_order(ALCdevice* device);
+extern struct EffectSlot* g_effect_slot;
 
 
 // Returns the index for the given channel name (e.g. FrontCenter), or -1 if it

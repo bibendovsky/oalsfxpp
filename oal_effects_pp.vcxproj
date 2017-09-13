@@ -134,11 +134,13 @@
     <ClCompile Include="Alc\mixer.cpp" />
     <ClCompile Include="Alc\mixer_c.cpp" />
     <ClCompile Include="Alc\panning.cpp" />
+    <ClCompile Include="oalsfxpp_api_impl.cpp" />
     <ClCompile Include="oal_effects_pp_test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Alc\mixer_defs.h" />
     <ClInclude Include="common\math_defs.h" />
+    <ClInclude Include="oalsfxpp_api_impl.h" />
     <ClInclude Include="OpenAL32\Include\alAuxEffectSlot.h" />
     <ClInclude Include="OpenAL32\Include\alEffect.h" />
     <ClInclude Include="OpenAL32\Include\alFilter.h" />

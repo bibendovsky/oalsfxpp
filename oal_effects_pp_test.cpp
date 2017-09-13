@@ -8,6 +8,7 @@
 #include "alEffect.h"
 #include "alAuxEffectSlot.h"
 #include "alSource.h"
+#include "oalsfxpp_api_impl.h"
 
 
 void alu_mix_data(
@@ -16,10 +17,6 @@ void alu_mix_data(
     const int NumSamples,
     const float* src_samples);
 
-void alcOpenDevice();
-
-void alcCloseDevice();
-
 
 int main()
 {
@@ -27,6 +24,7 @@ int main()
     const char* dst_file_name = "f:\\temp\\rev\\out.raw";
     const int sample_count = 1024;
     const int channel_count = 1;
+    const int sampling_rate = 44100;
     FILE* src_stream = NULL;
     FILE* dst_stream = NULL;
     long stream_size = 0;
@@ -123,7 +121,7 @@ int main()
 
     if (is_succeed)
     {
-        alcOpenDevice();
+        ApiImpl::initialize(channel_count, sampling_rate);
     }
 
     if (is_succeed)
@@ -270,7 +268,7 @@ int main()
         }
     }
 
-    alcCloseDevice();
+    ApiImpl::uninitialize();
 
     free(dst_buffer);
     free(src_buffer);

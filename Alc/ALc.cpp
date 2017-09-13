@@ -20,164 +20,106 @@
 
 
 #include "config.h"
-#include "alSource.h"
-
-
-ALCdevice* g_device = nullptr;
-ALsource* g_source = nullptr;
-EffectSlot* g_effect_slot = nullptr;
-Effect* g_effect = nullptr;
-
+#include "alu.h"
 
 
 // Sets the default channel order used by WaveFormatEx.
-void set_default_wfx_channel_order(
-    ALCdevice* device)
+void ALCdevice_struct::set_default_wfx_channel_order()
 {
-    device->channel_names_.fill(ChannelId::invalid);
+    channel_names_.fill(ChannelId::invalid);
 
-    switch (device->channel_format_)
+    switch (channel_format_)
     {
     case DevFmtMono:
-        device->channel_names_[0] = ChannelId::front_center;
+        channel_names_[0] = ChannelId::front_center;
         break;
 
     case DevFmtStereo:
-        device->channel_names_[0] = ChannelId::front_left;
-        device->channel_names_[1] = ChannelId::front_right;
+        channel_names_[0] = ChannelId::front_left;
+        channel_names_[1] = ChannelId::front_right;
         break;
 
     case DevFmtQuad:
-        device->channel_names_[0] = ChannelId::front_left;
-        device->channel_names_[1] = ChannelId::front_right;
-        device->channel_names_[2] = ChannelId::back_left;
-        device->channel_names_[3] = ChannelId::back_right;
+        channel_names_[0] = ChannelId::front_left;
+        channel_names_[1] = ChannelId::front_right;
+        channel_names_[2] = ChannelId::back_left;
+        channel_names_[3] = ChannelId::back_right;
         break;
 
     case DevFmtX51:
-        device->channel_names_[0] = ChannelId::front_left;
-        device->channel_names_[1] = ChannelId::front_right;
-        device->channel_names_[2] = ChannelId::front_center;
-        device->channel_names_[3] = ChannelId::lfe;
-        device->channel_names_[4] = ChannelId::side_left;
-        device->channel_names_[5] = ChannelId::side_right;
+        channel_names_[0] = ChannelId::front_left;
+        channel_names_[1] = ChannelId::front_right;
+        channel_names_[2] = ChannelId::front_center;
+        channel_names_[3] = ChannelId::lfe;
+        channel_names_[4] = ChannelId::side_left;
+        channel_names_[5] = ChannelId::side_right;
         break;
 
     case DevFmtX51Rear:
-        device->channel_names_[0] = ChannelId::front_left;
-        device->channel_names_[1] = ChannelId::front_right;
-        device->channel_names_[2] = ChannelId::front_center;
-        device->channel_names_[3] = ChannelId::lfe;
-        device->channel_names_[4] = ChannelId::back_left;
-        device->channel_names_[5] = ChannelId::back_right;
+        channel_names_[0] = ChannelId::front_left;
+        channel_names_[1] = ChannelId::front_right;
+        channel_names_[2] = ChannelId::front_center;
+        channel_names_[3] = ChannelId::lfe;
+        channel_names_[4] = ChannelId::back_left;
+        channel_names_[5] = ChannelId::back_right;
         break;
 
     case DevFmtX61:
-        device->channel_names_[0] = ChannelId::front_left;
-        device->channel_names_[1] = ChannelId::front_right;
-        device->channel_names_[2] = ChannelId::front_center;
-        device->channel_names_[3] = ChannelId::lfe;
-        device->channel_names_[4] = ChannelId::back_center;
-        device->channel_names_[5] = ChannelId::side_left;
-        device->channel_names_[6] = ChannelId::side_right;
+        channel_names_[0] = ChannelId::front_left;
+        channel_names_[1] = ChannelId::front_right;
+        channel_names_[2] = ChannelId::front_center;
+        channel_names_[3] = ChannelId::lfe;
+        channel_names_[4] = ChannelId::back_center;
+        channel_names_[5] = ChannelId::side_left;
+        channel_names_[6] = ChannelId::side_right;
         break;
 
     case DevFmtX71:
-        device->channel_names_[0] = ChannelId::front_left;
-        device->channel_names_[1] = ChannelId::front_right;
-        device->channel_names_[2] = ChannelId::front_center;
-        device->channel_names_[3] = ChannelId::lfe;
-        device->channel_names_[4] = ChannelId::back_left;
-        device->channel_names_[5] = ChannelId::back_right;
-        device->channel_names_[6] = ChannelId::side_left;
-        device->channel_names_[7] = ChannelId::side_right;
+        channel_names_[0] = ChannelId::front_left;
+        channel_names_[1] = ChannelId::front_right;
+        channel_names_[2] = ChannelId::front_center;
+        channel_names_[3] = ChannelId::lfe;
+        channel_names_[4] = ChannelId::back_left;
+        channel_names_[5] = ChannelId::back_right;
+        channel_names_[6] = ChannelId::side_left;
+        channel_names_[7] = ChannelId::side_right;
         break;
     }
 }
 
-// Updates device parameters according to the attribute list (caller is
-// responsible for holding the list lock).
-static void update_device_params(
-    ALCdevice* device)
+ALCdevice_struct::ALCdevice_struct()
+    :
+    frequency_{},
+    update_size_{},
+    channel_format_{},
+    channel_count_{},
+    channel_names_{},
+    sample_buffers_{},
+    resampled_data_{},
+    filtered_data_{},
+    dry_{},
+    foa_{},
+    source_samples_{}
 {
-    device->sample_buffers_ = SampleBuffers{};
-    device->channel_count_ = 0;
-
-    alu_init_renderer(device);
-
-    device->sample_buffers_.resize(device->channel_count_);
-
-    auto slot = g_effect_slot;
-    auto state = slot->effect_state_.get();
-
-    state->dst_buffers_ = &device->sample_buffers_;
-    state->dst_channel_count_ = device->channel_count_;
-
-    state->update_device(device);
-    slot->is_props_updated_ = true;
-
-    auto source = g_source;
-
-    for (int i = 0; i < device->channel_count_; ++i)
-    {
-        source->direct_.channels_[i].reset();
-        source->aux_.channels_[i].reset();
-    }
 }
 
-// Frees the device structure, and destroys any objects the app failed to
-// delete. Called once there's no more references on the device.
-static void free_device(
-    ALCdevice* device)
+void ALCdevice_struct::initialize(
+    const int channel_count,
+    const int sampling_rate)
 {
-    delete g_effect;
-    delete g_effect_slot;
-    delete g_source;
-    delete device;
-}
-
-
-/************************************************
- * Standard ALC functions
- ************************************************/
-
-/* alcOpenDevice
- *
- * Opens the named device.
- */
-void alcOpenDevice()
-{
-    if (g_device)
-    {
-        return;
-    }
-
-    // TODO Check for null.
-    g_device = new (std::nothrow) ALCdevice{};
-
-    g_device->sample_buffers_ = SampleBuffers{};
-    g_device->channel_count_ = 0;
+    channel_count_ = channel_count;
 
     // Set output format
-    g_device->channel_format_ = DevFmtChannelsDefault;
-    g_device->frequency_ = default_output_rate;
-    g_device->update_size_ = clamp(1024, 64, 8192);
+    channel_format_ = DevFmtChannelsDefault;
+    frequency_ = sampling_rate;
+    update_size_ = 1024;
 
-    g_source = new ALsource{};
+    alu_init_renderer(this);
 
-    g_effect_slot = new EffectSlot{};
-
-    g_effect = new Effect{};
-    g_effect->initialize();
-
-    update_device_params(g_device);
+    sample_buffers_.clear();
+    sample_buffers_.resize(channel_count_);
 }
 
-/* alcCloseDevice
- *
- * Closes the given device.
- */
-void alcCloseDevice()
+void ALCdevice_struct::uninitialize()
 {
-    free_device(g_device);
 }

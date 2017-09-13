@@ -63,6 +63,9 @@
     <ClCompile Include="oal_effects_pp_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="oalsfxpp_api_impl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Alc\mixer_defs.h">
@@ -87,6 +90,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OpenAL32\Include\alu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="oalsfxpp_api_impl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -508,9 +508,7 @@ void alu_init_renderer(
 {
     device->dry_.ambi_.reset();
     device->dry_.coeff_count_ = 0;
-    device->channel_count_ = 0;
-
-    set_default_wfx_channel_order(device);
+    device->set_default_wfx_channel_order();
 
     init_panning(device);
 }
