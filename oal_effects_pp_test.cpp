@@ -121,7 +121,9 @@ int main()
 
     if (is_succeed)
     {
-        ApiImpl::initialize(channel_count, sampling_rate);
+        const auto channel_format = channel_count_to_channel_format(channel_count);
+
+        ApiImpl::initialize(channel_format, sampling_rate);
     }
 
     if (is_succeed)

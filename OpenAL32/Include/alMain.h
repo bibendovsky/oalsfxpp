@@ -110,6 +110,7 @@ enum class ChannelId
 // Device formats
 enum class ChannelFormat
 {
+    none,
     mono,
     stereo,
     quad,
@@ -184,7 +185,7 @@ struct ALCdevice_struct
     ALCdevice_struct();
 
     void initialize(
-        const int channel_count,
+        const ChannelFormat channel_format,
         const int sampling_rate);
 
     void uninitialize();
@@ -220,6 +221,64 @@ inline int get_channel_index(
     }
 
     return -1;
+}
+
+
+inline int channel_format_to_channel_count(
+    const ChannelFormat channel_format)
+{
+    switch (channel_format)
+    {
+    case ChannelFormat::mono:
+        return 1;
+
+    case ChannelFormat::stereo:
+        return 2;
+
+    case ChannelFormat::quad:
+        return 4;
+
+    case ChannelFormat::five_point_one:
+    case ChannelFormat::five_point_one_rear:
+        return 6;
+
+    case ChannelFormat::six_point_one:
+        return 7;
+
+    case ChannelFormat::seven_point_one:
+        return 8;
+
+    default:
+        return 0;
+    }
+}
+
+inline ChannelFormat channel_count_to_channel_format(
+    const int channel_count)
+{
+    switch (channel_count)
+    {
+    case 1:
+        return ChannelFormat::mono;
+
+    case 2:
+        return ChannelFormat::stereo;
+
+    case 4:
+        return ChannelFormat::quad;
+
+    case 6:
+        return ChannelFormat::five_point_one;
+
+    case 7:
+        return ChannelFormat::six_point_one;
+
+    case 8:
+        return ChannelFormat::seven_point_one;
+
+    default:
+        return ChannelFormat::none;
+    }
 }
 
 

@@ -104,13 +104,13 @@ ALCdevice_struct::ALCdevice_struct()
 }
 
 void ALCdevice_struct::initialize(
-    const int channel_count,
+    const ChannelFormat channel_format,
     const int sampling_rate)
 {
-    channel_count_ = channel_count;
+    channel_count_ = channel_format_to_channel_count(channel_format);
 
     // Set output format
-    channel_format_ = ChannelFormat::mono;
+    channel_format_ = channel_format;
     frequency_ = sampling_rate;
     update_size_ = 1024;
 

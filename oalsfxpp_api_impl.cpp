@@ -10,7 +10,7 @@ EffectSlot* g_effect_slot = nullptr;
 
 
 bool ApiImpl::initialize(
-    const int channel_count,
+    const ChannelFormat channel_format,
     const int sampling_rate)
 {
     g_device = new (std::nothrow) ALCdevice{};
@@ -24,18 +24,18 @@ bool ApiImpl::initialize(
         return false;
     }
 
-    g_device->initialize(channel_count, sampling_rate);
+    g_device->initialize(channel_format, sampling_rate);
     g_effect->initialize();
 
     auto effect_state = g_effect_slot->effect_state_.get();
     effect_state->dst_buffers_ = &g_device->sample_buffers_;
-    effect_state->dst_channel_count_ = channel_count;
+    effect_state->dst_channel_count_ = g_device->channel_count_;
     effect_state->update_device(g_device);
     g_effect_slot->is_props_updated_ = true;
 
     auto source = g_source;
 
-    for (int i = 0; i < channel_count; ++i)
+    for (int i = 0; i < g_device->channel_count_; ++i)
     {
         source->direct_.channels_[i].reset();
         source->aux_.channels_[i].reset();

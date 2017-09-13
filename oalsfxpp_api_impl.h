@@ -9,7 +9,7 @@ class ApiImpl
 {
 public:
     static bool initialize(
-        const int channel_count,
+        const ChannelFormat channel_format,
         const int sampling_rate);
 
     static void uninitialize();
