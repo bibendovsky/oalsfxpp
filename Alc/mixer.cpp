@@ -76,12 +76,10 @@ bool mix_source(ALsource* source, ALCdevice* device, int samples_to_do)
     {
         const float* samples;
 
-        /* Load what's left to play from the source buffer, and
-            * clear the rest of the temp buffer */
-        std::uninitialized_copy_n(device->source_samples_, channel_count * samples_to_do, device->source_data_.begin());
-
-        /* Now resample, then filter and mix to the appropriate outputs. */
-        std::uninitialized_copy_n(device->source_data_.cbegin(), samples_to_do, device->resampled_data_.begin());
+        for (int i = 0; i < samples_to_do; ++i)
+        {
+            device->resampled_data_[i] = device->source_samples_[(i * channel_count) + chan];
+        }
 
 
         auto parms = &source->direct_.channels_[chan];

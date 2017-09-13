@@ -177,7 +177,6 @@ struct ALCdevice_struct
     SampleBuffers sample_buffers_;
 
     // Temp storage used for each source when mixing.
-    SampleBuffer source_data_;
     SampleBuffer resampled_data_;
     SampleBuffer filtered_data_;
 
