@@ -10,6 +10,13 @@
 #include <vector>
 
 
+struct ALCdevice;
+
+
+void alu_init_renderer(
+    ALCdevice* device);
+
+
 enum class EffectType
 {
     null,
@@ -121,107 +128,6 @@ enum class ChannelFormat
 }; // ChannelFormat
 
 
-using ChannelConfig = std::array<float, max_ambi_coeffs>;
-
-struct AmbiConfig
-{
-    using Coeffs = std::array<ChannelConfig, max_channels>;
-
-
-    // Ambisonic coefficients for mixing to the dry buffer.
-    Coeffs coeffs_;
-
-    void reset()
-    {
-        for (auto& coeff : coeffs_)
-        {
-            coeff.fill(0.0F);
-        }
-    }
-}; // AmbiConfig
-
-
-using SampleBuffer = std::array<float, max_sample_buffer_size>;
-using SampleBuffers = std::vector<SampleBuffer>;
-
-struct ALCdevice_struct
-{
-    using ChannelNames = std::array<ChannelId, max_channels>;
-
-    struct AmbiOutput
-    {
-        AmbiConfig ambi_;
-
-        // Number of coefficients in each Ambi.Coeffs to mix together (4 for
-        // first-order, 9 for second-order, etc). If the count is 0, Ambi.Map
-        // is used instead to map each output to a coefficient index.
-        //
-        // Will only be 4 or 0 (first-order ambisonics output).
-        int coeff_count_;
-    }; // AmbiOutput
-
-
-    int frequency_;
-    int update_size_;
-    ChannelFormat channel_format_;
-
-    int channel_count_;
-    ChannelNames channel_names_;
-    SampleBuffers sample_buffers_;
-
-    // Temp storage used for each source when mixing.
-    SampleBuffer resampled_data_;
-    SampleBuffer filtered_data_;
-
-    // The "dry" path corresponds to the main output.
-    AmbiOutput dry_;
-
-    // First-order ambisonics output, to be upsampled to the dry buffer if different.
-    AmbiOutput foa_;
-
-    const float* source_samples_;
-
-
-    void initialize(
-        const ChannelFormat channel_format,
-        const int sampling_rate);
-
-    void uninitialize();
-
-    void set_default_wfx_channel_order();
-}; // ALCdevice_struct
-
-using ALCdevice = ALCdevice_struct;
-
-
-extern ALCdevice* g_device;
-extern struct ALsource* g_source;
-extern struct Effect* g_effect;
-extern struct EffectSlot* g_effect_slot;
-
-
-// Returns the index for the given channel name (e.g. FrontCenter), or -1 if it
-// doesn't exist.
-inline int get_channel_index(
-    const ALCdevice::ChannelNames& names,
-    const ChannelId chan)
-{
-    auto i = 0;
-
-    for (const auto& name : names)
-    {
-        if(name == chan)
-        {
-            return i;
-        }
-
-        i += 1;
-    }
-
-    return -1;
-}
-
-
 inline int channel_format_to_channel_count(
     const ChannelFormat channel_format)
 {
@@ -277,6 +183,182 @@ inline ChannelFormat channel_count_to_channel_format(
     default:
         return ChannelFormat::none;
     }
+}
+
+
+using ChannelConfig = std::array<float, max_ambi_coeffs>;
+
+struct AmbiConfig
+{
+    using Coeffs = std::array<ChannelConfig, max_channels>;
+
+
+    // Ambisonic coefficients for mixing to the dry buffer.
+    Coeffs coeffs_;
+
+    void reset()
+    {
+        for (auto& coeff : coeffs_)
+        {
+            coeff.fill(0.0F);
+        }
+    }
+}; // AmbiConfig
+
+
+using SampleBuffer = std::array<float, max_sample_buffer_size>;
+using SampleBuffers = std::vector<SampleBuffer>;
+
+
+struct ALCdevice
+{
+    using ChannelNames = std::array<ChannelId, max_channels>;
+
+    struct AmbiOutput
+    {
+        AmbiConfig ambi_;
+
+        // Number of coefficients in each Ambi.Coeffs to mix together (4 for
+        // first-order, 9 for second-order, etc). If the count is 0, Ambi.Map
+        // is used instead to map each output to a coefficient index.
+        //
+        // Will only be 4 or 0 (first-order ambisonics output).
+        int coeff_count_;
+    }; // AmbiOutput
+
+
+    int frequency_;
+    int update_size_;
+    ChannelFormat channel_format_;
+
+    int channel_count_;
+    ChannelNames channel_names_;
+    SampleBuffers sample_buffers_;
+
+    // Temp storage used for each source when mixing.
+    SampleBuffer resampled_data_;
+    SampleBuffer filtered_data_;
+
+    // The "dry" path corresponds to the main output.
+    AmbiOutput dry_;
+
+    // First-order ambisonics output, to be upsampled to the dry buffer if different.
+    AmbiOutput foa_;
+
+    const float* source_samples_;
+
+
+    void initialize(
+        const ChannelFormat channel_format,
+        const int sampling_rate)
+    {
+        channel_count_ = channel_format_to_channel_count(channel_format);
+
+        // Set output format
+        channel_format_ = channel_format;
+        frequency_ = sampling_rate;
+        update_size_ = 1024;
+
+        alu_init_renderer(this);
+
+        sample_buffers_.clear();
+        sample_buffers_.resize(channel_count_);
+    }
+
+    void uninitialize()
+    {
+    }
+
+    void set_default_wfx_channel_order()
+    {
+        channel_names_.fill(ChannelId::invalid);
+
+        switch (channel_format_)
+        {
+        case ChannelFormat::mono:
+            channel_names_[0] = ChannelId::front_center;
+            break;
+
+        case ChannelFormat::stereo:
+            channel_names_[0] = ChannelId::front_left;
+            channel_names_[1] = ChannelId::front_right;
+            break;
+
+        case ChannelFormat::quad:
+            channel_names_[0] = ChannelId::front_left;
+            channel_names_[1] = ChannelId::front_right;
+            channel_names_[2] = ChannelId::back_left;
+            channel_names_[3] = ChannelId::back_right;
+            break;
+
+        case ChannelFormat::five_point_one:
+            channel_names_[0] = ChannelId::front_left;
+            channel_names_[1] = ChannelId::front_right;
+            channel_names_[2] = ChannelId::front_center;
+            channel_names_[3] = ChannelId::lfe;
+            channel_names_[4] = ChannelId::side_left;
+            channel_names_[5] = ChannelId::side_right;
+            break;
+
+        case ChannelFormat::five_point_one_rear:
+            channel_names_[0] = ChannelId::front_left;
+            channel_names_[1] = ChannelId::front_right;
+            channel_names_[2] = ChannelId::front_center;
+            channel_names_[3] = ChannelId::lfe;
+            channel_names_[4] = ChannelId::back_left;
+            channel_names_[5] = ChannelId::back_right;
+            break;
+
+        case ChannelFormat::six_point_one:
+            channel_names_[0] = ChannelId::front_left;
+            channel_names_[1] = ChannelId::front_right;
+            channel_names_[2] = ChannelId::front_center;
+            channel_names_[3] = ChannelId::lfe;
+            channel_names_[4] = ChannelId::back_center;
+            channel_names_[5] = ChannelId::side_left;
+            channel_names_[6] = ChannelId::side_right;
+            break;
+
+        case ChannelFormat::seven_point_one:
+            channel_names_[0] = ChannelId::front_left;
+            channel_names_[1] = ChannelId::front_right;
+            channel_names_[2] = ChannelId::front_center;
+            channel_names_[3] = ChannelId::lfe;
+            channel_names_[4] = ChannelId::back_left;
+            channel_names_[5] = ChannelId::back_right;
+            channel_names_[6] = ChannelId::side_left;
+            channel_names_[7] = ChannelId::side_right;
+            break;
+        }
+    }
+}; // ALCdevice
+
+
+extern ALCdevice* g_device;
+extern struct ALsource* g_source;
+extern struct Effect* g_effect;
+extern struct EffectSlot* g_effect_slot;
+
+
+// Returns the index for the given channel name (e.g. FrontCenter), or -1 if it
+// doesn't exist.
+inline int get_channel_index(
+    const ALCdevice::ChannelNames& names,
+    const ChannelId chan)
+{
+    auto i = 0;
+
+    for (const auto& name : names)
+    {
+        if(name == chan)
+        {
+            return i;
+        }
+
+        i += 1;
+    }
+
+    return -1;
 }
 
 
