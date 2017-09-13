@@ -137,7 +137,6 @@
     <ClCompile Include="oal_effects_pp_test.cpp" />
     <ClCompile Include="OpenAL32\alAuxEffectSlot.cpp" />
     <ClCompile Include="OpenAL32\alEffect.cpp" />
-    <ClCompile Include="OpenAL32\alSource.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Alc\mixer_defs.h" />

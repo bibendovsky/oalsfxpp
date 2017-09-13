@@ -19,7 +19,14 @@ struct ALsource
             Gains target_gains_;
 
 
-            void reset();
+            void reset()
+            {
+                low_pass_.reset();
+                high_pass_.reset();
+
+                current_gains_.fill(0.0F);
+                target_gains_.fill(0.0F);
+            }
         }; // Channel
 
         using Channels = std::array<Channel, max_input_channels>;
@@ -40,6 +47,26 @@ struct ALsource
 
     Send direct_;
     Send aux_;
+
+
+    ALsource()
+    {
+        initialize();
+    }
+
+    void initialize()
+    {
+        direct_.gain_ = 1.0F;
+        direct_.gain_hf_ = 1.0F;
+        direct_.hf_reference_ = FilterState::lp_frequency_reference;
+        direct_.gain_lf_ = 1.0F;
+        direct_.lf_reference_ = FilterState::hp_frequency_reference;
+        aux_.gain_ = 1.0F;
+        aux_.gain_hf_ = 1.0F;
+        aux_.hf_reference_ = FilterState::lp_frequency_reference;
+        aux_.gain_lf_ = 1.0F;
+        aux_.lf_reference_ = FilterState::hp_frequency_reference;
+    }
 }; // ALsource
 
 

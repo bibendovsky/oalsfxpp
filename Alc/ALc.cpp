@@ -23,9 +23,6 @@
 #include "alSource.h"
 
 
-void init_source_params(ALsource* source);
-
-
 ALCdevice* g_device = nullptr;
 
 
@@ -191,7 +188,6 @@ ALCdevice* alcOpenDevice()
     device->update_size_ = clamp(1024, 64, 8192);
 
     device->source_ = new ALsource{};
-    init_source_params(device->source_);
 
     device->effect_slot_ = new EffectSlot{};
     alu_init_effect_panning(device->effect_slot_);
