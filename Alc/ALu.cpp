@@ -106,9 +106,9 @@ static const ChannelMap mono_map[1] = {
     {ChannelId::front_center, 0.0F, 0.0F}
 };
 
-static const ChannelMap rear_map[2] = {
-    {ChannelId::back_left, deg_to_rad(-150.0F), deg_to_rad(0.0F)},
-    {ChannelId::back_right, deg_to_rad(150.0F), deg_to_rad(0.0F)}
+static const ChannelMap stereo_map[2] = {
+    {ChannelId::front_left, deg_to_rad(-30.0F), deg_to_rad(0.0F)},
+    {ChannelId::front_right, deg_to_rad(30.0F), deg_to_rad(0.0F)}
 };
 
 static const ChannelMap quad_map[4] = {
@@ -162,33 +162,55 @@ static void calc_panning_and_filters(
     EffectSlot* send_slot,
     const ALCdevice* device)
 {
-    ChannelMap stereo_map[2] = {
-        {ChannelId::front_left, deg_to_rad(-30.0F), deg_to_rad(0.0F)},
-        {ChannelId::front_right, deg_to_rad(30.0F), deg_to_rad(0.0F)}
-    };
-
     const auto frequency = device->frequency_;
     const ChannelMap* chans = nullptr;
-    auto num_channels = 0;
+    auto channel_count = 0;
     auto downmix_gain = 1.0F;
 
     switch (device->channel_format_)
     {
     case ChannelFormat::mono:
         chans = mono_map;
-        num_channels = 1;
+        channel_count = 1;
         break;
 
     case ChannelFormat::stereo:
         chans = stereo_map;
-        num_channels = 2;
+        channel_count = 2;
         downmix_gain = 1.0F / 2.0F;
+        break;
+
+    case ChannelFormat::quad:
+        chans = quad_map;
+        channel_count = 4;
+        downmix_gain = 1.0F / 4.0F;
+        break;
+
+    case ChannelFormat::five_point_one:
+        chans = x5_1_map;
+        channel_count = 6;
+        // NOTE: Excludes LFE.
+        downmix_gain = 1.0F / 5.0F;
+        break;
+
+    case ChannelFormat::six_point_one:
+        chans = x6_1_map;
+        channel_count = 7;
+        // NOTE: Excludes LFE.
+        downmix_gain = 1.0F / 6.0F;
+        break;
+
+    case ChannelFormat::seven_point_one:
+        chans = x7_1_map;
+        channel_count = 8;
+        // NOTE: Excludes LFE.
+        downmix_gain = 1.0F / 7.0F;
         break;
     }
 
     // Non-HRTF rendering. Use normal panning to the output.
     {
-        for (int c = 0; c < num_channels; ++c)
+        for (int c = 0; c < channel_count; ++c)
         {
             float coeffs[max_ambi_coeffs];
 
@@ -271,7 +293,7 @@ static void calc_panning_and_filters(
             lf_scale,
             FilterState::calc_rcp_q_from_slope(gain_lf, 1.0F));
 
-        for (int c = 1; c < num_channels; ++c)
+        for (int c = 1; c < channel_count; ++c)
         {
             FilterState::copy_params(source->direct_.channels_[0].low_pass_, source->direct_.channels_[c].low_pass_);
             FilterState::copy_params(source->direct_.channels_[0].high_pass_, source->direct_.channels_[c].high_pass_);
@@ -310,7 +332,7 @@ static void calc_panning_and_filters(
             lf_scale,
             FilterState::calc_rcp_q_from_slope(gain_lf, 1.0F));
 
-        for (int c = 1; c < num_channels; ++c)
+        for (int c = 1; c < channel_count; ++c)
         {
             FilterState::copy_params(source->aux_.channels_[0].low_pass_, source->aux_.channels_[c].low_pass_);
             FilterState::copy_params(source->aux_.channels_[0].high_pass_, source->aux_.channels_[c].high_pass_);
