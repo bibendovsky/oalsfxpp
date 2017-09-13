@@ -18,9 +18,6 @@
     <ClCompile Include="Alc\ALc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OpenAL32\alEffect.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Alc\ALu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
