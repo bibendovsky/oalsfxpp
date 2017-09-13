@@ -33,7 +33,18 @@ struct EffectSlot
     SampleBuffers wet_buffer_;
 
 
-    EffectSlot();
+    EffectSlot()
+        :
+        effect_{},
+        effect_state_{},
+        is_props_updated_{},
+        channel_count_{},
+        channel_map_{},
+        wet_buffer_{SampleBuffers::size_type{max_effect_channels}}
+    {
+        initialize();
+    }
+
 
     EffectSlot(
         const EffectSlot& that) = delete;
@@ -41,14 +52,46 @@ struct EffectSlot
     EffectSlot& operator=(
         const EffectSlot& that) = delete;
 
-    ~EffectSlot();
+    ~EffectSlot()
+    {
+        uninitialize();
+    }
 
-    void initialize();
+    void initialize()
+    {
+        uninitialize();
 
-    void uninitialize();
+        effect_.type_ = EffectType::null;
+        effect_state_.reset(EffectStateFactory::create_by_type(EffectType::null));
+        is_props_updated_ = true;
+    }
+
+    void uninitialize()
+    {
+        effect_state_.reset(nullptr);
+    }
 
     void initialize_effect(
-        ALCdevice* device);
+        ALCdevice* device)
+    {
+        if (effect_.type_ != device->effect_->type_)
+        {
+            effect_state_.reset(EffectStateFactory::create_by_type(device->effect_->type_));
+
+            effect_state_->dst_buffers_ = &device->sample_buffers_;
+            effect_state_->dst_channel_count_ = device->channel_count_;
+            effect_state_->update_device(device);
+
+            effect_.type_ = device->effect_->type_;
+            effect_.props_ = device->effect_->props_;
+        }
+        else
+        {
+            effect_.props_ = device->effect_->props_;
+        }
+
+        is_props_updated_ = true;
+    }
 }; // EffectSlot
 
 

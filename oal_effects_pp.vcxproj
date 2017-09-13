@@ -135,7 +135,6 @@
     <ClCompile Include="Alc\mixer_c.cpp" />
     <ClCompile Include="Alc\panning.cpp" />
     <ClCompile Include="oal_effects_pp_test.cpp" />
-    <ClCompile Include="OpenAL32\alAuxEffectSlot.cpp" />
     <ClCompile Include="OpenAL32\alEffect.cpp" />
   </ItemGroup>
   <ItemGroup>
