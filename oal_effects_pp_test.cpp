@@ -16,10 +16,9 @@ void alu_mix_data(
     const int NumSamples,
     const float* src_samples);
 
-ALCdevice* alcOpenDevice();
+void alcOpenDevice();
 
-void alcCloseDevice(
-    ALCdevice* device);
+void alcCloseDevice();
 
 
 int main()
@@ -40,7 +39,6 @@ int main()
     int buffer_f32_samples = 0;
     int i = 0;
     int is_succeed = 1;
-    ALCdevice* oal_device = NULL;
 
 
     if (is_succeed)
@@ -125,13 +123,7 @@ int main()
 
     if (is_succeed)
     {
-        oal_device = alcOpenDevice();
-
-        if (!oal_device)
-        {
-            is_succeed = 0;
-            printf("%s\n", "Failed to open device.");
-        }
+        alcOpenDevice();
     }
 
     if (is_succeed)
@@ -230,7 +222,7 @@ int main()
 
     if (is_succeed)
     {
-        g_effect_slot->initialize_effect(oal_device);
+        g_effect_slot->initialize_effect(g_device);
     }
 
     if (is_succeed)
@@ -265,7 +257,7 @@ int main()
             const int write_sample_count = sample_count < remain ? sample_count : remain;
             const int write_size = write_sample_count * 4 * channel_count;
 
-            alu_mix_data(oal_device, dst_buffer, sample_count, &src_buffer_f32[offset]);
+            alu_mix_data(g_device, dst_buffer, sample_count, &src_buffer_f32[offset]);
 
             if (fwrite(dst_buffer, 1, write_size, dst_stream) != write_size)
             {
@@ -278,7 +270,7 @@ int main()
         }
     }
 
-    alcCloseDevice(oal_device);
+    alcCloseDevice();
 
     free(dst_buffer);
     free(src_buffer);

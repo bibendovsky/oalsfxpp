@@ -145,27 +145,23 @@ static void free_device(
  *
  * Opens the named device.
  */
-ALCdevice* alcOpenDevice()
+void alcOpenDevice()
 {
     if (g_device)
     {
-        return g_device;
+        return;
     }
 
-    auto device = new (std::nothrow) ALCdevice{};
+    // TODO Check for null.
+    g_device = new (std::nothrow) ALCdevice{};
 
-    if (!device)
-    {
-        return nullptr;
-    }
-
-    device->sample_buffers_ = SampleBuffers{};
-    device->channel_count_ = 0;
+    g_device->sample_buffers_ = SampleBuffers{};
+    g_device->channel_count_ = 0;
 
     // Set output format
-    device->channel_format_ = DevFmtChannelsDefault;
-    device->frequency_ = default_output_rate;
-    device->update_size_ = clamp(1024, 64, 8192);
+    g_device->channel_format_ = DevFmtChannelsDefault;
+    g_device->frequency_ = default_output_rate;
+    g_device->update_size_ = clamp(1024, 64, 8192);
 
     g_source = new ALsource{};
 
@@ -174,19 +170,14 @@ ALCdevice* alcOpenDevice()
     g_effect = new Effect{};
     g_effect->initialize();
 
-    update_device_params(device);
-
-    g_device = device;
-
-    return device;
+    update_device_params(g_device);
 }
 
 /* alcCloseDevice
  *
  * Closes the given device.
  */
-void alcCloseDevice(
-    ALCdevice* device)
+void alcCloseDevice()
 {
     free_device(g_device);
 }
