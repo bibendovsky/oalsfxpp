@@ -149,10 +149,10 @@ ALCdevice* alcOpenDevice()
 {
     if (g_device)
     {
-        return nullptr;
+        return g_device;
     }
 
-    auto device = new ALCdevice{};
+    auto device = new (std::nothrow) ALCdevice{};
 
     if (!device)
     {
