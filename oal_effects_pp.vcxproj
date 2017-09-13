@@ -143,7 +143,6 @@
     <ClInclude Include="Alc\mixer_defs.h" />
     <ClInclude Include="common\math_defs.h" />
     <ClInclude Include="OpenAL32\Include\alAuxEffectSlot.h" />
-    <ClInclude Include="OpenAL32\Include\alBuffer.h" />
     <ClInclude Include="OpenAL32\Include\alEffect.h" />
     <ClInclude Include="OpenAL32\Include\alFilter.h" />
     <ClInclude Include="OpenAL32\Include\alMain.h" />

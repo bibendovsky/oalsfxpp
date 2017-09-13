@@ -83,9 +83,6 @@
     <ClInclude Include="OpenAL32\Include\alAuxEffectSlot.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OpenAL32\Include\alBuffer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="OpenAL32\Include\alEffect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
