@@ -96,29 +96,20 @@ inline int next_power_of_2(
     return value + 1;
 }
 
-enum Channel
+enum class ChannelId
 {
-    FrontLeft = 0,
-    FrontRight,
-    FrontCenter,
-    LFE,
-    BackLeft,
-    BackRight,
-    BackCenter,
-    SideLeft,
-    SideRight,
+    front_left,
+    front_right,
+    front_center,
+    lfe,
+    back_left,
+    back_right,
+    back_center,
+    side_left,
+    side_right,
 
-    UpperFrontLeft,
-    UpperFrontRight,
-    UpperBackLeft,
-    UpperBackRight,
-    LowerFrontLeft,
-    LowerFrontRight,
-    LowerBackLeft,
-    LowerBackRight,
-
-    InvalidChannel,
-}; // Channel
+    invalid,
+}; // ChannelId
 
 // Device formats
 enum DevFmtChannels
@@ -185,7 +176,7 @@ using SampleBuffers = std::vector<SampleBuffer>;
 
 struct ALCdevice_struct
 {
-    using ChannelNames = std::array<Channel, max_output_channels>;
+    using ChannelNames = std::array<ChannelId, max_output_channels>;
 
     struct AmbiOutput
     {
@@ -237,7 +228,7 @@ void set_default_wfx_channel_order(ALCdevice* device);
 // doesn't exist.
 inline int get_channel_index(
     const ALCdevice::ChannelNames& names,
-    const Channel chan)
+    const ChannelId chan)
 {
     auto i = 0;
 

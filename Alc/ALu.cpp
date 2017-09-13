@@ -26,7 +26,7 @@
 
 
 struct ChannelMap {
-    enum Channel channel;
+    enum ChannelId channel;
     float angle;
     float elevation;
 };
@@ -103,49 +103,49 @@ static bool calc_effect_slot_params(
 
 
 static const ChannelMap mono_map[1] = {
-    {FrontCenter, 0.0F, 0.0F}
+    {ChannelId::front_center, 0.0F, 0.0F}
 };
 
 static const ChannelMap rear_map[2] = {
-    {BackLeft, deg_to_rad(-150.0F), deg_to_rad(0.0F)},
-    {BackRight, deg_to_rad(150.0F), deg_to_rad(0.0F)}
+    {ChannelId::back_left, deg_to_rad(-150.0F), deg_to_rad(0.0F)},
+    {ChannelId::back_right, deg_to_rad(150.0F), deg_to_rad(0.0F)}
 };
 
 static const ChannelMap quad_map[4] = {
-    {FrontLeft, deg_to_rad(-45.0F), deg_to_rad(0.0F)},
-    {FrontRight, deg_to_rad(45.0F), deg_to_rad(0.0F)},
-    {BackLeft, deg_to_rad(-135.0F), deg_to_rad(0.0F)},
-    {BackRight, deg_to_rad(135.0F), deg_to_rad(0.0F)}
+    {ChannelId::front_left, deg_to_rad(-45.0F), deg_to_rad(0.0F)},
+    {ChannelId::front_right, deg_to_rad(45.0F), deg_to_rad(0.0F)},
+    {ChannelId::back_left, deg_to_rad(-135.0F), deg_to_rad(0.0F)},
+    {ChannelId::back_right, deg_to_rad(135.0F), deg_to_rad(0.0F)}
 };
 
 static const ChannelMap x5_1_map[6] = {
-    {FrontLeft, deg_to_rad(-30.0F), deg_to_rad(0.0F)},
-    {FrontRight, deg_to_rad(30.0F), deg_to_rad(0.0F)},
-    {FrontCenter, deg_to_rad(0.0F), deg_to_rad(0.0F)},
-    {LFE, 0.0F, 0.0F},
-    {SideLeft, deg_to_rad(-110.0F), deg_to_rad(0.0F)},
-    {SideRight, deg_to_rad(110.0F), deg_to_rad(0.0F)}
+    {ChannelId::front_left, deg_to_rad(-30.0F), deg_to_rad(0.0F)},
+    {ChannelId::front_right, deg_to_rad(30.0F), deg_to_rad(0.0F)},
+    {ChannelId::front_center, deg_to_rad(0.0F), deg_to_rad(0.0F)},
+    {ChannelId::lfe, 0.0F, 0.0F},
+    {ChannelId::side_left, deg_to_rad(-110.0F), deg_to_rad(0.0F)},
+    {ChannelId::side_right, deg_to_rad(110.0F), deg_to_rad(0.0F)}
 };
 
 static const ChannelMap x6_1_map[7] = {
-    {FrontLeft, deg_to_rad(-30.0F), deg_to_rad(0.0F)},
-    {FrontRight, deg_to_rad(30.0F), deg_to_rad(0.0F)},
-    {FrontCenter, deg_to_rad(0.0F), deg_to_rad(0.0F)},
-    {LFE, 0.0F, 0.0F},
-    {BackCenter, deg_to_rad(180.0F), deg_to_rad(0.0F)},
-    {SideLeft, deg_to_rad(-90.0F), deg_to_rad(0.0F)},
-    {SideRight, deg_to_rad(90.0F), deg_to_rad(0.0F)}
+    {ChannelId::front_left, deg_to_rad(-30.0F), deg_to_rad(0.0F)},
+    {ChannelId::front_right, deg_to_rad(30.0F), deg_to_rad(0.0F)},
+    {ChannelId::front_center, deg_to_rad(0.0F), deg_to_rad(0.0F)},
+    {ChannelId::lfe, 0.0F, 0.0F},
+    {ChannelId::back_center, deg_to_rad(180.0F), deg_to_rad(0.0F)},
+    {ChannelId::side_left, deg_to_rad(-90.0F), deg_to_rad(0.0F)},
+    {ChannelId::side_right, deg_to_rad(90.0F), deg_to_rad(0.0F)}
 };
 
 static const ChannelMap x7_1_map[8] = {
-    {FrontLeft, deg_to_rad(-30.0F), deg_to_rad(0.0F)},
-    {FrontRight, deg_to_rad(30.0F), deg_to_rad(0.0F)},
-    {FrontCenter, deg_to_rad(0.0F), deg_to_rad(0.0F)},
-    {LFE, 0.0F, 0.0F},
-    {BackLeft, deg_to_rad(-150.0F), deg_to_rad(0.0F)},
-    {BackRight, deg_to_rad(150.0F), deg_to_rad(0.0F)},
-    {SideLeft, deg_to_rad(-90.0F), deg_to_rad(0.0F)},
-    {SideRight, deg_to_rad(90.0F), deg_to_rad(0.0F)}
+    {ChannelId::front_left, deg_to_rad(-30.0F), deg_to_rad(0.0F)},
+    {ChannelId::front_right, deg_to_rad(30.0F), deg_to_rad(0.0F)},
+    {ChannelId::front_center, deg_to_rad(0.0F), deg_to_rad(0.0F)},
+    {ChannelId::lfe, 0.0F, 0.0F},
+    {ChannelId::back_left, deg_to_rad(-150.0F), deg_to_rad(0.0F)},
+    {ChannelId::back_right, deg_to_rad(150.0F), deg_to_rad(0.0F)},
+    {ChannelId::side_left, deg_to_rad(-90.0F), deg_to_rad(0.0F)},
+    {ChannelId::side_right, deg_to_rad(90.0F), deg_to_rad(0.0F)}
 };
 
 static void calc_panning_and_filters(
@@ -163,8 +163,8 @@ static void calc_panning_and_filters(
     const ALCdevice* device)
 {
     ChannelMap stereo_map[2] = {
-        {FrontLeft, deg_to_rad(-30.0F), deg_to_rad(0.0F)},
-        {FrontRight, deg_to_rad(30.0F), deg_to_rad(0.0F)}
+        {ChannelId::front_left, deg_to_rad(-30.0F), deg_to_rad(0.0F)},
+        {ChannelId::front_right, deg_to_rad(30.0F), deg_to_rad(0.0F)}
     };
 
     const auto frequency = device->frequency_;
@@ -193,7 +193,7 @@ static void calc_panning_and_filters(
             float coeffs[max_ambi_coeffs];
 
             // Special-case LFE
-            if (chans[c].channel == LFE)
+            if (chans[c].channel == ChannelId::lfe)
             {
                 for (int j = 0; j < max_output_channels; ++j)
                 {

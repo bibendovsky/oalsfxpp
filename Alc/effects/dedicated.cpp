@@ -68,7 +68,7 @@ protected:
 
         if (slot->effect_.type_ == EffectType::dedicated_low_frequency)
         {
-            const auto idx = get_channel_index(device->channel_names_, LFE);
+            const auto idx = get_channel_index(device->channel_names_, ChannelId::lfe);
 
             if (idx != -1)
             {
@@ -79,7 +79,7 @@ protected:
         }
         else if (slot->effect_.type_ == EffectType::dedicated_dialog)
         {
-            const auto idx = get_channel_index(device->channel_names_, FrontCenter);
+            const auto idx = get_channel_index(device->channel_names_, ChannelId::front_center);
 
             // Dialog goes to the front-center speaker if it exists, otherwise it
             // plays from the front-center location.

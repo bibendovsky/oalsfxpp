@@ -34,63 +34,63 @@ Effect* g_effect = nullptr;
 void set_default_wfx_channel_order(
     ALCdevice* device)
 {
-    device->channel_names_.fill(InvalidChannel);
+    device->channel_names_.fill(ChannelId::invalid);
 
     switch (device->channel_format_)
     {
     case DevFmtMono:
-        device->channel_names_[0] = FrontCenter;
+        device->channel_names_[0] = ChannelId::front_center;
         break;
 
     case DevFmtStereo:
-        device->channel_names_[0] = FrontLeft;
-        device->channel_names_[1] = FrontRight;
+        device->channel_names_[0] = ChannelId::front_left;
+        device->channel_names_[1] = ChannelId::front_right;
         break;
 
     case DevFmtQuad:
-        device->channel_names_[0] = FrontLeft;
-        device->channel_names_[1] = FrontRight;
-        device->channel_names_[2] = BackLeft;
-        device->channel_names_[3] = BackRight;
+        device->channel_names_[0] = ChannelId::front_left;
+        device->channel_names_[1] = ChannelId::front_right;
+        device->channel_names_[2] = ChannelId::back_left;
+        device->channel_names_[3] = ChannelId::back_right;
         break;
 
     case DevFmtX51:
-        device->channel_names_[0] = FrontLeft;
-        device->channel_names_[1] = FrontRight;
-        device->channel_names_[2] = FrontCenter;
-        device->channel_names_[3] = LFE;
-        device->channel_names_[4] = SideLeft;
-        device->channel_names_[5] = SideRight;
+        device->channel_names_[0] = ChannelId::front_left;
+        device->channel_names_[1] = ChannelId::front_right;
+        device->channel_names_[2] = ChannelId::front_center;
+        device->channel_names_[3] = ChannelId::lfe;
+        device->channel_names_[4] = ChannelId::side_left;
+        device->channel_names_[5] = ChannelId::side_right;
         break;
 
     case DevFmtX51Rear:
-        device->channel_names_[0] = FrontLeft;
-        device->channel_names_[1] = FrontRight;
-        device->channel_names_[2] = FrontCenter;
-        device->channel_names_[3] = LFE;
-        device->channel_names_[4] = BackLeft;
-        device->channel_names_[5] = BackRight;
+        device->channel_names_[0] = ChannelId::front_left;
+        device->channel_names_[1] = ChannelId::front_right;
+        device->channel_names_[2] = ChannelId::front_center;
+        device->channel_names_[3] = ChannelId::lfe;
+        device->channel_names_[4] = ChannelId::back_left;
+        device->channel_names_[5] = ChannelId::back_right;
         break;
 
     case DevFmtX61:
-        device->channel_names_[0] = FrontLeft;
-        device->channel_names_[1] = FrontRight;
-        device->channel_names_[2] = FrontCenter;
-        device->channel_names_[3] = LFE;
-        device->channel_names_[4] = BackCenter;
-        device->channel_names_[5] = SideLeft;
-        device->channel_names_[6] = SideRight;
+        device->channel_names_[0] = ChannelId::front_left;
+        device->channel_names_[1] = ChannelId::front_right;
+        device->channel_names_[2] = ChannelId::front_center;
+        device->channel_names_[3] = ChannelId::lfe;
+        device->channel_names_[4] = ChannelId::back_center;
+        device->channel_names_[5] = ChannelId::side_left;
+        device->channel_names_[6] = ChannelId::side_right;
         break;
 
     case DevFmtX71:
-        device->channel_names_[0] = FrontLeft;
-        device->channel_names_[1] = FrontRight;
-        device->channel_names_[2] = FrontCenter;
-        device->channel_names_[3] = LFE;
-        device->channel_names_[4] = BackLeft;
-        device->channel_names_[5] = BackRight;
-        device->channel_names_[6] = SideLeft;
-        device->channel_names_[7] = SideRight;
+        device->channel_names_[0] = ChannelId::front_left;
+        device->channel_names_[1] = ChannelId::front_right;
+        device->channel_names_[2] = ChannelId::front_center;
+        device->channel_names_[3] = ChannelId::lfe;
+        device->channel_names_[4] = ChannelId::back_left;
+        device->channel_names_[5] = ChannelId::back_right;
+        device->channel_names_[6] = ChannelId::side_left;
+        device->channel_names_[7] = ChannelId::side_right;
         break;
     }
 }
