@@ -39,7 +39,7 @@ constexpr int count_of(const T&)
 
 
 constexpr auto default_output_rate = 44100;
-constexpr auto max_output_channels = 16;
+constexpr auto max_output_channels = 8;
 
 // The maximum number of Ambisonics coefficients. For a given order (o), the
 // size needed will be (o+1)**2, thus zero-order has 1, first-order has 4,
