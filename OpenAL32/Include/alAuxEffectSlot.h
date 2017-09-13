@@ -74,20 +74,20 @@ struct EffectSlot
     void initialize_effect(
         ALCdevice* device)
     {
-        if (effect_.type_ != device->effect_->type_)
+        if (effect_.type_ != g_effect->type_)
         {
-            effect_state_.reset(EffectStateFactory::create_by_type(device->effect_->type_));
+            effect_state_.reset(EffectStateFactory::create_by_type(g_effect->type_));
 
             effect_state_->dst_buffers_ = &device->sample_buffers_;
             effect_state_->dst_channel_count_ = device->channel_count_;
             effect_state_->update_device(device);
 
-            effect_.type_ = device->effect_->type_;
-            effect_.props_ = device->effect_->props_;
+            effect_.type_ = g_effect->type_;
+            effect_.props_ = g_effect->props_;
         }
         else
         {
-            effect_.props_ = device->effect_->props_;
+            effect_.props_ = g_effect->props_;
         }
 
         is_props_updated_ = true;

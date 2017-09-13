@@ -218,12 +218,12 @@ int main()
             }
         }
 
-        oal_device->effect_->initialize(effect_type);
+        g_effect->initialize(effect_type);
     }
 
     if (is_succeed)
     {
-        oal_device->effect_slot_->initialize_effect(oal_device);
+        g_effect_slot->initialize_effect(oal_device);
     }
 
     if (is_succeed)

@@ -24,6 +24,10 @@
 
 
 ALCdevice* g_device = nullptr;
+ALsource* g_source = nullptr;
+EffectSlot* g_effect_slot = nullptr;
+Effect* g_effect = nullptr;
+
 
 
 // Sets the default channel order used by WaveFormatEx.
@@ -103,7 +107,7 @@ static void update_device_params(
 
     device->sample_buffers_.resize(device->channel_count_);
 
-    auto slot = device->effect_slot_;
+    auto slot = g_effect_slot;
     auto state = slot->effect_state_.get();
 
     state->dst_buffers_ = &device->sample_buffers_;
@@ -112,7 +116,7 @@ static void update_device_params(
     state->update_device(device);
     slot->is_props_updated_ = true;
 
-    auto source = device->source_;
+    auto source = g_source;
 
     for (int i = 0; i < device->channel_count_; ++i)
     {
@@ -126,14 +130,9 @@ static void update_device_params(
 static void free_device(
     ALCdevice* device)
 {
-    delete device->effect_;
-    delete device->effect_slot_;
-
-    delete device->source_;
-
-    device->sample_buffers_ = SampleBuffers{};
-    device->channel_count_ = 0;
-
+    delete g_effect;
+    delete g_effect_slot;
+    delete g_source;
     delete device;
 }
 
@@ -168,13 +167,13 @@ ALCdevice* alcOpenDevice()
     device->frequency_ = default_output_rate;
     device->update_size_ = clamp(1024, 64, 8192);
 
-    device->source_ = new ALsource{};
+    g_source = new ALsource{};
 
-    device->effect_slot_ = new EffectSlot{};
-    alu_init_effect_panning(device->effect_slot_);
+    g_effect_slot = new EffectSlot{};
+    alu_init_effect_panning(g_effect_slot);
 
-    device->effect_ = new Effect{};
-    device->effect_->initialize();
+    g_effect = new Effect{};
+    g_effect->initialize();
 
     update_device_params(device);
 

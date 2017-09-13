@@ -219,16 +219,17 @@ struct ALCdevice_struct
     // First-order ambisonics output, to be upsampled to the dry buffer if different.
     AmbiOutput foa_;
 
-    struct ALsource* source_;
     const float* source_samples_;
-    struct EffectSlot* effect_slot_;
-    struct Effect* effect_;
 }; // ALCdevice_struct
 
 using ALCdevice = ALCdevice_struct;
 
 
 extern ALCdevice* g_device;
+extern struct ALsource* g_source;
+extern struct EffectSlot* g_effect_slot;
+extern struct Effect* g_effect;
+
 void set_default_wfx_channel_order(ALCdevice* device);
 
 

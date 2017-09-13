@@ -326,7 +326,7 @@ static void calc_non_attn_source_params(
     source->direct_.buffers_ = &device->sample_buffers_;
     source->direct_.channel_count_ = device->channel_count_;
 
-    auto send_slot = device->effect_slot_;
+    auto send_slot = g_effect_slot;
 
     if (!send_slot || send_slot->effect_.type_ == EffectType::null)
     {
@@ -371,8 +371,8 @@ static void calc_non_attn_source_params(
 static void update_context_sources(
     ALCdevice* device)
 {
-    auto slot = device->effect_slot_;
-    auto source = device->source_;
+    auto slot = g_effect_slot;
+    auto source = g_source;
 
     const auto is_props_updated = calc_effect_slot_params(slot, device);
 
@@ -420,7 +420,7 @@ void alu_mix_data(
 
         update_context_sources(device);
 
-        auto slot = device->effect_slot_;
+        auto slot = g_effect_slot;
 
         for (int c = 0; c < slot->channel_count_; ++c)
         {
@@ -428,7 +428,7 @@ void alu_mix_data(
         }
 
         // source processing
-        mix_source(device->source_, device, samples_to_do);
+        mix_source(g_source, device, samples_to_do);
 
         // effect slot processing
         auto state = slot->effect_state_.get();
