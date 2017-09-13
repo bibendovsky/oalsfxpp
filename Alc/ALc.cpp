@@ -87,22 +87,6 @@ void ALCdevice_struct::set_default_wfx_channel_order()
     }
 }
 
-ALCdevice_struct::ALCdevice_struct()
-    :
-    frequency_{},
-    update_size_{},
-    channel_format_{},
-    channel_count_{},
-    channel_names_{},
-    sample_buffers_{},
-    resampled_data_{},
-    filtered_data_{},
-    dry_{},
-    foa_{},
-    source_samples_{}
-{
-}
-
 void ALCdevice_struct::initialize(
     const ChannelFormat channel_format,
     const int sampling_rate)

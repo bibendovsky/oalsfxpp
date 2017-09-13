@@ -182,8 +182,6 @@ struct ALCdevice_struct
     const float* source_samples_;
 
 
-    ALCdevice_struct();
-
     void initialize(
         const ChannelFormat channel_format,
         const int sampling_rate);
