@@ -222,8 +222,8 @@ protected:
 
         for (int i = 1; i < 4; ++i)
         {
-            FilterState::copy_params(filters_[i].lp, filters_[0].lp);
-            FilterState::copy_params(filters_[i].hp, filters_[0].hp);
+            FilterState::copy_params(filters_[0].lp, filters_[i].lp);
+            FilterState::copy_params(filters_[0].hp, filters_[i].hp);
         }
 
         // Update the main effect delay and associated taps.
@@ -2034,7 +2034,7 @@ private:
         {
             // Low-pass filter the incoming samples (use the early buffer as temp
             // storage).
-            filters_[c].lp.process(early[0].data(), input[c].data(), todo);
+            filters_[c].lp.process(todo, input[c].data(), early[0].data());
 
             // Feed the initial delay line.
             for (int i = 0; i < todo; ++i)
@@ -2080,8 +2080,8 @@ private:
         {
             // Band-pass the incoming samples. Use the early output lines for temp
             // storage.
-            filters_[c].lp.process(early[0].data(), input[c].data(), todo);
-            filters_[c].hp.process(early[1].data(), early[0].data(), todo);
+            filters_[c].lp.process(todo, input[c].data(), early[0].data());
+            filters_[c].hp.process(todo, early[0].data(), early[1].data());
 
             // Feed the initial delay line.
             for (int i = 0; i < todo; i++)

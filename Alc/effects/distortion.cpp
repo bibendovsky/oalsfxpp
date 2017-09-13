@@ -139,7 +139,7 @@ protected:
             // perform buffer interpolation and lowpass cutoff for oversampling
             // (which is fortunately first step of distortion). So combine three
             // operations into the one.
-            low_pass_.process(buffer[1], buffer[0], td * 4);
+            low_pass_.process(td * 4, buffer[0], buffer[1]);
 
             // Second step, do distortion using waveshaper function to emulate
             // signal processing during tube overdriving. Three steps of
@@ -157,7 +157,7 @@ protected:
             }
 
             // Third step, do bandpass filtering of distorted signal.
-            band_pass_.process(buffer[1], buffer[0], td * 4);
+            band_pass_.process(td * 4, buffer[0], buffer[1]);
 
             for (int kt = 0; kt < channel_count; ++kt)
             {

@@ -274,8 +274,8 @@ static void calc_panning_and_filters(
 
         for (int c = 1; c < num_channels; ++c)
         {
-            FilterState::copy_params(source->direct_.channels_[c].low_pass_, source->direct_.channels_[0].low_pass_);
-            FilterState::copy_params(source->direct_.channels_[c].high_pass_, source->direct_.channels_[0].high_pass_);
+            FilterState::copy_params(source->direct_.channels_[0].low_pass_, source->direct_.channels_[c].low_pass_);
+            FilterState::copy_params(source->direct_.channels_[0].high_pass_, source->direct_.channels_[c].high_pass_);
         }
     }
 
@@ -313,8 +313,8 @@ static void calc_panning_and_filters(
 
         for (int c = 1; c < num_channels; ++c)
         {
-            FilterState::copy_params(source->aux_.channels_[c].low_pass_, source->aux_.channels_[0].low_pass_);
-            FilterState::copy_params(source->aux_.channels_[c].high_pass_, source->aux_.channels_[0].high_pass_);
+            FilterState::copy_params(source->aux_.channels_[0].low_pass_, source->aux_.channels_[c].low_pass_);
+            FilterState::copy_params(source->aux_.channels_[0].high_pass_, source->aux_.channels_[c].high_pass_);
         }
     }
 }

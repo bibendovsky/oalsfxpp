@@ -199,9 +199,9 @@ struct FilterState
     }
 
     void process(
-        float* dst_samples,
+        const int sample_count,
         const float* src_samples,
-        const int sample_count)
+        float* dst_samples)
     {
         if (sample_count > 1)
         {
@@ -253,35 +253,35 @@ struct FilterState
     }
 
     void process_pass_through(
-        const float* src,
-        const int num_samples)
+        const int sample_count,
+        const float* src_samples)
     {
-        if (num_samples >= 2)
+        if (sample_count >= 2)
         {
-            x_[1] = src[num_samples - 2];
-            x_[0] = src[num_samples - 1];
-            y_[1] = src[num_samples - 2];
-            y_[0] = src[num_samples - 1];
+            x_[1] = src_samples[sample_count - 2];
+            x_[0] = src_samples[sample_count - 1];
+            y_[1] = src_samples[sample_count - 2];
+            y_[0] = src_samples[sample_count - 1];
         }
-        else if (num_samples == 1)
+        else if (sample_count == 1)
         {
             x_[1] = x_[0];
-            x_[0] = src[0];
+            x_[0] = src_samples[0];
             y_[1] = y_[0];
-            y_[0] = src[0];
+            y_[0] = src_samples[0];
         }
     }
 
 
     static void copy_params(
-        FilterState& dst,
-        const FilterState& src)
+        const FilterState& src_state,
+        FilterState& dst_state)
     {
-        dst.b0_ = src.b0_;
-        dst.b1_ = src.b1_;
-        dst.b2_ = src.b2_;
-        dst.a1_ = src.a1_;
-        dst.a2_ = src.a2_;
+        dst_state.b0_ = src_state.b0_;
+        dst_state.b1_ = src_state.b1_;
+        dst_state.b2_ = src_state.b2_;
+        dst_state.a1_ = src_state.a1_;
+        dst_state.a2_ = src_state.a2_;
     }
 
     // Calculates the rcpQ (i.e. 1/Q) coefficient for shelving filters, using the
@@ -292,7 +292,7 @@ struct FilterState
         const float gain,
         const float slope)
     {
-        return std::sqrt((gain + (1.0F / gain)) * ((1.0F / slope) - 1.0f) + 2.0F);
+        return std::sqrt((gain + (1.0F / gain)) * ((1.0F / slope) - 1.0F) + 2.0F);
     }
 
     // Calculates the rcpQ (i.e. 1/Q) coefficient for filters, using the frequency

@@ -139,7 +139,7 @@ protected:
         // Copy the filter coefficients for the other input channels.
         for (int i = 1; i < max_effect_channels; ++i)
         {
-            FilterState::copy_params(filter_[0][i], filter_[0][0]);
+            FilterState::copy_params(filter_[0][0], filter_[0][i]);
         }
 
         gain = std::max(props->equalizer_.mid1_gain_, 0.0625F);
@@ -153,7 +153,7 @@ protected:
 
         for (int i = 1; i < max_effect_channels; ++i)
         {
-            FilterState::copy_params(filter_[1][i], filter_[1][0]);
+            FilterState::copy_params(filter_[1][0], filter_[1][i]);
         }
 
         gain = std::max(props->equalizer_.mid2_gain_, 0.0625F);
@@ -167,7 +167,7 @@ protected:
 
         for (int i = 1; i < max_effect_channels; ++i)
         {
-            FilterState::copy_params(filter_[2][i], filter_[2][0]);
+            FilterState::copy_params(filter_[2][0], filter_[2][i]);
         }
 
         gain = std::max(std::sqrt(props->equalizer_.high_gain_), 0.0625F);
@@ -181,7 +181,7 @@ protected:
 
         for (int i = 1; i < max_effect_channels; ++i)
         {
-            FilterState::copy_params(filter_[3][i], filter_[3][0]);
+            FilterState::copy_params(filter_[3][0], filter_[3][i]);
         }
     }
 
@@ -199,22 +199,22 @@ protected:
 
             for (int ft = 0; ft < max_effect_channels; ++ft)
             {
-                filter_[0][ft].process(samples[0][ft].data(), &src_samples[ft][base], td);
+                filter_[0][ft].process(td, &src_samples[ft][base], samples[0][ft].data());
             }
 
             for (int ft = 0; ft < max_effect_channels; ++ft)
             {
-                filter_[1][ft].process(samples[1][ft].data(), samples[0][ft].data(), td);
+                filter_[1][ft].process(td, samples[0][ft].data(), samples[1][ft].data());
             }
 
             for (int ft = 0; ft < max_effect_channels; ++ft)
             {
-                filter_[2][ft].process(samples[2][ft].data(), samples[1][ft].data(), td);
+                filter_[2][ft].process(td, samples[1][ft].data(), samples[2][ft].data());
             }
 
             for (int ft = 0; ft < max_effect_channels; ++ft)
             {
-                filter_[3][ft].process(samples[3][ft].data(), samples[2][ft].data(), td);
+                filter_[3][ft].process(td, samples[2][ft].data(), samples[3][ft].data());
             }
 
             for (int ft = 0; ft < max_effect_channels; ++ft)

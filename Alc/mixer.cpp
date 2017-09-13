@@ -38,18 +38,18 @@ static const float *do_filters(
     switch(type)
     {
         case ActiveFilters::none:
-            lp_filter->process_pass_through(src, num_samples);
-            hp_filter->process_pass_through(src, num_samples);
+            lp_filter->process_pass_through(num_samples, src);
+            hp_filter->process_pass_through(num_samples, src);
             break;
 
         case ActiveFilters::low_pass:
-            lp_filter->process(dst, src, num_samples);
-            hp_filter->process_pass_through(dst, num_samples);
+            lp_filter->process(num_samples, src, dst);
+            hp_filter->process_pass_through(num_samples, dst);
             return dst;
 
         case ActiveFilters::high_pass:
-            lp_filter->process_pass_through(src, num_samples);
-            hp_filter->process(dst, src, num_samples);
+            lp_filter->process_pass_through(num_samples, src);
+            hp_filter->process(num_samples, src, dst);
             return dst;
 
         case ActiveFilters::band_pass:
@@ -58,8 +58,8 @@ static const float *do_filters(
                 float temp[256];
                 int todo = std::min(256, num_samples-i);
 
-                lp_filter->process(temp, src+i, todo);
-                hp_filter->process(dst+i, temp, todo);
+                lp_filter->process(todo, src+i, temp);
+                hp_filter->process(todo, temp, dst+i);
                 i += todo;
             }
             return dst;

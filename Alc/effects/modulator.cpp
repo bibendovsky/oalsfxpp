@@ -125,7 +125,7 @@ protected:
 
             for (int j = 0; j < max_effect_channels; ++j)
             {
-                filters_[j].process(temps[0], &src_samples[j][base], td);
+                filters_[j].process(td, &src_samples[j][base], temps[0]);
                 process_func_(temps[1], temps[0], index_, step_, td);
 
                 for (int k = 0; k < channel_count; ++k)
