@@ -123,7 +123,7 @@ enum class ChannelFormat
 
 using ChannelConfig = std::array<float, max_ambi_coeffs>;
 
-union AmbiConfig
+struct AmbiConfig
 {
     using Coeffs = std::array<ChannelConfig, max_channels>;
 
