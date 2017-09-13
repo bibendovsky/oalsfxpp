@@ -134,7 +134,6 @@ void compute_ambient_gains_mc(
     float out_gains[max_output_channels]);
 
 void compute_ambient_gains_bf(
-    const BFChannelConfig* channel_map,
     const int num_channels,
     const float in_gain,
     float gains[max_output_channels]);
@@ -156,7 +155,6 @@ void compute_panning_gains_mc(
     float gains[max_output_channels]);
 
 void compute_panning_gains_bf(
-    const BFChannelConfig* channel_map,
     const int num_channels,
     const float coeffs[max_ambi_coeffs],
     const float in_gain,
@@ -179,7 +177,6 @@ void compute_first_order_gains_mc(
     float gains[max_output_channels]);
 
 void compute_first_order_gains_bf(
-    const BFChannelConfig* channel_map,
     const int channel_count,
     const float matrix[4],
     const float in_gain,

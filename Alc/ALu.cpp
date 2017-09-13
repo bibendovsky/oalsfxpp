@@ -224,7 +224,6 @@ static void calc_panning_and_filters(
             if (slot)
             {
                 compute_panning_gains_bf(
-                    slot->channel_map_,
                     slot->channel_count_,
                     coeffs,
                     wet_gain,

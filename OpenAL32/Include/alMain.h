@@ -130,42 +130,19 @@ enum DevFmtChannels
 
 using ChannelConfig = std::array<float, max_ambi_coeffs>;
 
-struct BFChannelConfig
-{
-    float scale_;
-    int index_;
-
-
-    void reset()
-    {
-        scale_ = 0.0F;
-        index_ = 0;
-    }
-}; // BFChannelConfig
-
 union AmbiConfig
 {
     using Coeffs = std::array<ChannelConfig, max_output_channels>;
-    using Map = std::array<BFChannelConfig, max_output_channels>;
 
 
     // Ambisonic coefficients for mixing to the dry buffer.
     Coeffs coeffs_;
-
-    // Coefficient channel mapping for mixing to the dry buffer.
-    Map map_;
-
 
     void reset()
     {
         for (auto& coeff : coeffs_)
         {
             coeff.fill(0.0F);
-        }
-
-        for (auto& map_item : map_)
-        {
-            map_item.reset();
         }
     }
 }; // AmbiConfig
