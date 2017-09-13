@@ -112,7 +112,9 @@ int main()
 
     total_sample_count = data_size / 2;
 
-    buffer_f32_samples = ((total_sample_count + (sample_count - 1)) / sample_count) * sample_count;
+    const auto sample_count_all_channels = sample_count * channel_count;
+
+    buffer_f32_samples = ((total_sample_count + (sample_count_all_channels - 1)) / sample_count_all_channels) * sample_count_all_channels;
 
     src_buffer_f32 = static_cast<float*>(malloc(sizeof(float) * buffer_f32_samples));
 
@@ -144,7 +146,8 @@ int main()
         std::cout << "8. Echo\n";
         std::cout << "9. Equalizer\n";
         std::cout << "10. Flanger\n";
-        std::cout << "11. Ring modulator\n\n";
+        std::cout << "11. Ring modulator\n";
+        std::cout << "12. Null\n\n";
 
         auto effect_number = 0;
         auto effect_number_string = std::string{};
@@ -212,6 +215,10 @@ int main()
                 effect_type = EffectType::ring_modulator;
                 break;
 
+            case 12:
+                effect_type = EffectType::null;
+                break;
+
             default:
                 effect_number = 0;
                 break;
@@ -266,7 +273,7 @@ int main()
                 printf("%s\n", "Failed to write out data.");
             }
 
-            remain -= write_sample_count;
+            remain -= write_sample_count * channel_count;
             offset += write_sample_count * channel_count;
         }
     }
