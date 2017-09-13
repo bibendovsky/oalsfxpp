@@ -128,12 +128,12 @@ void compute_ambient_gains_mc(
     const ChannelConfig* channel_coeffs,
     const int num_channels,
     const float in_gain,
-    float out_gains[max_output_channels]);
+    float out_gains[max_channels]);
 
 void compute_ambient_gains_bf(
     const int num_channels,
     const float in_gain,
-    float gains[max_output_channels]);
+    float gains[max_channels]);
 
 // Computes panning gains using the given channel decoder coefficients and the
 // pre-calculated direction or angle coefficients.
@@ -149,13 +149,13 @@ void compute_panning_gains_mc(
     const int num_coeffs,
     const float coeffs[max_ambi_coeffs],
     const float in_gain,
-    float gains[max_output_channels]);
+    float gains[max_channels]);
 
 void compute_panning_gains_bf(
     const int num_channels,
     const float coeffs[max_ambi_coeffs],
     const float in_gain,
-    float gains[max_output_channels]);
+    float gains[max_channels]);
 
 // Sets channel gains for a first-order ambisonics input channel. The matrix is
 // a 1x4 'slice' of a transform matrix for the input channel, used to scale and
@@ -171,13 +171,13 @@ void compute_first_order_gains_mc(
     const int num_channels,
     const float mtx[4],
     const float in_gain,
-    float gains[max_output_channels]);
+    float gains[max_channels]);
 
 void compute_first_order_gains_bf(
     const int channel_count,
     const float matrix[4],
     const float in_gain,
-    float out_gains[max_output_channels]);
+    float out_gains[max_channels]);
 
 bool mix_source(
     ALsource* source,

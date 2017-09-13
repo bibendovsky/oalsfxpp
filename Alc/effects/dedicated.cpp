@@ -128,7 +128,7 @@ protected:
 
 
 private:
-    using Gains = std::array<float, max_output_channels>;
+    using Gains = std::array<float, max_channels>;
 
     Gains gains_;
 }; // DedicatedEffectState

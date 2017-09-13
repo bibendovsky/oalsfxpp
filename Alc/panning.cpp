@@ -154,9 +154,9 @@ void compute_ambient_gains_mc(
     const ChannelConfig* channel_coeffs,
     const int num_channels,
     const float in_gain,
-    float gains[max_output_channels])
+    float gains[max_channels])
 {
-    for (int i = 0; i < max_output_channels; ++i)
+    for (int i = 0; i < max_channels; ++i)
     {
         if (i < num_channels)
         {
@@ -172,7 +172,7 @@ void compute_ambient_gains_mc(
 void compute_ambient_gains_bf(
     const int num_channels,
     const float in_gain,
-    float gains[max_output_channels])
+    float gains[max_channels])
 {
     auto gain = 0.0F;
 
@@ -186,7 +186,7 @@ void compute_ambient_gains_bf(
 
     gains[0] = gain * 1.414213562F * in_gain;
 
-    for (int i = 1; i < max_output_channels; i++)
+    for (int i = 1; i < max_channels; i++)
     {
         gains[i] = 0.0F;
     }
@@ -226,9 +226,9 @@ void compute_panning_gains_mc(
     const int num_coeffs,
     const float coeffs[max_ambi_coeffs],
     const float in_gain,
-    float gains[max_output_channels])
+    float gains[max_channels])
 {
-    for (int i = 0; i < max_output_channels; ++i)
+    for (int i = 0; i < max_channels; ++i)
     {
         if (i < num_channels)
         {
@@ -252,9 +252,9 @@ void compute_panning_gains_bf(
     const int num_channels,
     const float coeffs[max_ambi_coeffs],
     const float in_gain,
-    float gains[max_output_channels])
+    float gains[max_channels])
 {
-    for (int i = 0; i < max_output_channels; ++i)
+    for (int i = 0; i < max_channels; ++i)
     {
         if (i < num_channels)
         {
@@ -290,7 +290,7 @@ void compute_first_order_gains_mc(
     int num_channels,
     const float mtx[4],
     float in_gain,
-    float gains[max_output_channels])
+    float gains[max_channels])
 {
     for (int i = 0; i < num_channels; ++i)
     {
@@ -316,9 +316,9 @@ void compute_first_order_gains_bf(
     const int num_channels,
     const float mtx[4],
     const float in_gain,
-    float gains[max_output_channels])
+    float gains[max_channels])
 {
-    for (int i = 0; i < max_output_channels; ++i)
+    for (int i = 0; i < max_channels; ++i)
     {
         if (i < num_channels)
         {
@@ -346,7 +346,7 @@ static void set_channel_map(
 {
     int i;
 
-    for (i = 0; i < max_output_channels && device_channels[i] != ChannelId::invalid; ++i)
+    for (i = 0; i < max_channels && device_channels[i] != ChannelId::invalid; ++i)
     {
         if (device_channels[i] == ChannelId::lfe)
         {

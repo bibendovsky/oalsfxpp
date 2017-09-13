@@ -140,7 +140,7 @@ protected:
 
         for (int i = 0; i < 4; ++i)
         {
-            for (int j = 0; j < max_output_channels; ++j)
+            for (int j = 0; j < max_channels; ++j)
             {
                 early_.current_gains[i][j] = 0.0F;
                 early_.pan_gains[i][j] = 0.0F;
@@ -478,7 +478,7 @@ private:
     {
         using Offsets = MdArray<int, 4, 2>;
         using Coeffs = std::array<float, 4>;
-        using Gains = MdArray<float, 4, max_output_channels>;
+        using Gains = MdArray<float, 4, max_channels>;
 
         // A Gerzon vector all-pass filter is used to simulate initial
         // diffusion.  The spread from this filter also helps smooth out the
@@ -530,7 +530,7 @@ private:
 
         using Filters = std::array<Filter, 4>;
         using Offsets = MdArray<int, 4, 2>;
-        using Gains = MdArray<float, 4, max_output_channels>;
+        using Gains = MdArray<float, 4, max_channels>;
 
 
         // Attenuation to compensate for the modal density and decay rate of

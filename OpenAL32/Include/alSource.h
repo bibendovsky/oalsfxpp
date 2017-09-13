@@ -11,7 +11,7 @@ struct ALsource
     {
         struct Channel
         {
-            using Gains = std::array<float, max_output_channels>;
+            using Gains = std::array<float, max_channels>;
 
             FilterState low_pass_;
             FilterState high_pass_;
@@ -29,7 +29,7 @@ struct ALsource
             }
         }; // Channel
 
-        using Channels = std::array<Channel, max_input_channels>;
+        using Channels = std::array<Channel, max_channels>;
 
 
         float gain_;

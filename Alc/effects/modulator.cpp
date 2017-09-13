@@ -161,7 +161,7 @@ private:
     static constexpr auto waveform_frac_mask = waveform_frac_one - 1;
 
 
-    using Gains = MdArray<float, max_effect_channels, max_output_channels>;
+    using Gains = MdArray<float, max_effect_channels, max_channels>;
     using Filters = std::array<FilterState, max_effect_channels>;
 
     using ModulateFunc = float (*)(

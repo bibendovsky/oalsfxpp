@@ -188,7 +188,7 @@ protected:
 
 
 private:
-    using Gains = MdArray<float, max_effect_channels, max_output_channels>;
+    using Gains = MdArray<float, max_effect_channels, max_channels>;
 
 
     // Effect gains for each channel

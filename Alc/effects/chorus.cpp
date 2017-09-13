@@ -279,7 +279,7 @@ private:
     using SampleBuffer = EffectSampleBuffer;
     using SampleBuffers = std::array<SampleBuffer, 2>;
 
-    using Gains = MdArray<float, 2, max_output_channels>;
+    using Gains = MdArray<float, 2, max_channels>;
 
 
     SampleBuffers sample_buffers_;

@@ -244,7 +244,7 @@ private:
     // The maximum number of sample frames per update.
     static constexpr auto max_update_samples = 256;
 
-    using Gains = MdArray<float, max_effect_channels, max_output_channels>;
+    using Gains = MdArray<float, max_effect_channels, max_channels>;
     using Filters = MdArray<FilterState, 4, max_effect_channels>;
     using SampleBuffers = MdArray<float, 4, max_effect_channels, max_update_samples>;
 

@@ -10,9 +10,6 @@
 #include <vector>
 
 
-constexpr auto max_input_channels = 8;
-
-
 enum class EffectType
 {
     null,
@@ -39,7 +36,7 @@ constexpr int count_of(const T&)
 
 
 constexpr auto default_output_rate = 44100;
-constexpr auto max_output_channels = 8;
+constexpr auto max_channels = 8;
 
 // The maximum number of Ambisonics coefficients. For a given order (o), the
 // size needed will be (o+1)**2, thus zero-order has 1, first-order has 4,
@@ -132,7 +129,7 @@ using ChannelConfig = std::array<float, max_ambi_coeffs>;
 
 union AmbiConfig
 {
-    using Coeffs = std::array<ChannelConfig, max_output_channels>;
+    using Coeffs = std::array<ChannelConfig, max_channels>;
 
 
     // Ambisonic coefficients for mixing to the dry buffer.
@@ -153,7 +150,7 @@ using SampleBuffers = std::vector<SampleBuffer>;
 
 struct ALCdevice_struct
 {
-    using ChannelNames = std::array<ChannelId, max_output_channels>;
+    using ChannelNames = std::array<ChannelId, max_channels>;
 
     struct AmbiOutput
     {

@@ -195,7 +195,7 @@ static void calc_panning_and_filters(
             // Special-case LFE
             if (chans[c].channel == ChannelId::lfe)
             {
-                for (int j = 0; j < max_output_channels; ++j)
+                for (int j = 0; j < max_channels; ++j)
                 {
                     source->direct_.channels_[c].target_gains_[j] = 0.0F;
                 }

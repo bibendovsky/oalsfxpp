@@ -219,7 +219,7 @@ protected:
 
 private:
     using Taps = std::array<Tap, 2>;
-    using Gains = MdArray<float, 2, max_output_channels>;
+    using Gains = MdArray<float, 2, max_channels>;
 
 
     EffectSampleBuffer sample_buffer_;
