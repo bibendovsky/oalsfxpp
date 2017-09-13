@@ -18,65 +18,66 @@
  * Or go to http://www.gnu.org/copyleft/lgpl.html
  */
 
+
 #include "config.h"
 #include "alSource.h"
 #include "mixer_defs.h"
 
 
-static MixerFunc mix_samples = mix_c;
-
-
-static const float *do_filters(
+static const float* do_filters(
     FilterState* lp_filter,
     FilterState* hp_filter,
-    float* dst,
-    const float* src,
-    int num_samples,
-    ActiveFilters type)
+    float* dst_samples,
+    const float* src_samples,
+    const int sample_count,
+    const ActiveFilters filter_type)
 {
-    int i;
-    switch(type)
+    switch (filter_type)
     {
-        case ActiveFilters::none:
-            lp_filter->process_pass_through(num_samples, src);
-            hp_filter->process_pass_through(num_samples, src);
-            break;
+    case ActiveFilters::none:
+        lp_filter->process_pass_through(sample_count, src_samples);
+        hp_filter->process_pass_through(sample_count, src_samples);
+        break;
 
-        case ActiveFilters::low_pass:
-            lp_filter->process(num_samples, src, dst);
-            hp_filter->process_pass_through(num_samples, dst);
-            return dst;
+    case ActiveFilters::low_pass:
+        lp_filter->process(sample_count, src_samples, dst_samples);
+        hp_filter->process_pass_through(sample_count, dst_samples);
+        return dst_samples;
 
-        case ActiveFilters::high_pass:
-            lp_filter->process_pass_through(num_samples, src);
-            hp_filter->process(num_samples, src, dst);
-            return dst;
+    case ActiveFilters::high_pass:
+        lp_filter->process_pass_through(sample_count, src_samples);
+        hp_filter->process(sample_count, src_samples, dst_samples);
+        return dst_samples;
 
-        case ActiveFilters::band_pass:
-            for(i = 0;i < num_samples;)
-            {
-                float temp[256];
-                int todo = std::min(256, num_samples-i);
+    case ActiveFilters::band_pass:
+        for (int i = 0; i < sample_count; )
+        {
+            float temp[256];
 
-                lp_filter->process(todo, src+i, temp);
-                hp_filter->process(todo, temp, dst+i);
-                i += todo;
-            }
-            return dst;
+            const auto todo = std::min(256, sample_count - i);
+
+            lp_filter->process(todo, src_samples + i, temp);
+            hp_filter->process(todo, temp, dst_samples + i);
+
+            i += todo;
+        }
+
+        return dst_samples;
     }
-    return src;
+
+    return src_samples;
 }
 
-bool mix_source(ALsource* source, ALCdevice* device, int samples_to_do)
+void mix_source(
+    ALsource* source,
+    ALCdevice* device,
+    const int sample_count)
 {
-    int chan;
     const auto channel_count = device->channel_count_;
 
-    for (chan = 0; chan < channel_count; ++chan)
+    for (int chan = 0; chan < channel_count; ++chan)
     {
-        const float* samples;
-
-        for (int i = 0; i < samples_to_do; ++i)
+        for (int i = 0; i < sample_count; ++i)
         {
             device->resampled_data_[i] = device->source_samples_[(i * channel_count) + chan];
         }
@@ -84,17 +85,17 @@ bool mix_source(ALsource* source, ALCdevice* device, int samples_to_do)
 
         auto parms = &source->direct_.channels_[chan];
 
-        samples = do_filters(
+        auto samples = do_filters(
             &parms->low_pass_,
             &parms->high_pass_,
             device->filtered_data_.data(),
             device->resampled_data_.data(),
-            samples_to_do,
+            sample_count,
             source->direct_.filter_type_);
 
         parms->current_gains_ = parms->target_gains_;
 
-        mix_samples(
+        mix_c(
             samples,
             source->direct_.channel_count_,
             *source->direct_.buffers_,
@@ -102,7 +103,7 @@ bool mix_source(ALsource* source, ALCdevice* device, int samples_to_do)
             parms->target_gains_.data(),
             0,
             0,
-            samples_to_do);
+            sample_count);
 
         if (!source->aux_.buffers_)
         {
@@ -116,12 +117,12 @@ bool mix_source(ALsource* source, ALCdevice* device, int samples_to_do)
             &parms->high_pass_,
             device->filtered_data_.data(),
             device->resampled_data_.data(),
-            samples_to_do,
+            sample_count,
             source->aux_.filter_type_);
 
         parms->current_gains_ = parms->target_gains_;
 
-        mix_samples(
+        mix_c(
             samples,
             source->aux_.channel_count_,
             *source->aux_.buffers_,
@@ -129,8 +130,6 @@ bool mix_source(ALsource* source, ALCdevice* device, int samples_to_do)
             parms->target_gains_.data(),
             0,
             0,
-            samples_to_do);
+            sample_count);
     }
-
-    return true;
 }

@@ -5,67 +5,77 @@
 
 void mix_c(
     const float* data,
-    int out_chans,
-    SampleBuffers& out_buffer,
+    const int channel_count,
+    SampleBuffers& dst_buffers,
     float* current_gains,
     const float* target_gains,
-    int counter,
-    int out_pos,
-    int buffer_size)
+    const int counter,
+    const int dst_position,
+    const int buffer_size)
 {
-    float gain, delta, step;
-    int c;
+    const auto delta = ((counter > 0) ? 1.0F / static_cast<float>(counter) : 0.0F);
 
-    delta = (counter > 0) ? 1.0f/(float)counter : 0.0f;
-
-    for(c = 0;c < out_chans;c++)
+    for (int c = 0; c < channel_count; ++c)
     {
-        int pos = 0;
-        gain = current_gains[c];
-        step = (target_gains[c] - gain) * delta;
-        if(fabsf(step) > FLT_EPSILON)
+        auto pos = 0;
+        auto gain = current_gains[c];
+        const auto step = (target_gains[c] - gain) * delta;
+
+        if (std::abs(step) > FLT_EPSILON)
         {
-            int minsize = std::min(buffer_size, counter);
-            for(;pos < minsize;pos++)
+            const auto size = std::min(buffer_size, counter);
+
+            for ( ; pos < size; ++pos)
             {
-                out_buffer[c][out_pos+pos] += data[pos]*gain;
+                dst_buffers[c][dst_position + pos] += data[pos] * gain;
                 gain += step;
             }
-            if(pos == counter)
+
+            if (pos == counter)
+            {
                 gain = target_gains[c];
+            }
+
             current_gains[c] = gain;
         }
 
-        if(!(fabsf(gain) > silence_threshold_gain))
+        if (!(std::abs(gain) > silence_threshold_gain))
+        {
             continue;
-        for(;pos < buffer_size;pos++)
-            out_buffer[c][out_pos+pos] += data[pos]*gain;
+        }
+
+        for ( ; pos < buffer_size; ++pos)
+        {
+            dst_buffers[c][dst_position + pos] += data[pos] * gain;
+        }
     }
 }
 
-/* Basically the inverse of the above. Rather than one input going to multiple
- * outputs (each with its own gain), it's multiple inputs (each with its own
- * gain) going to one output. This applies one row (vs one column) of a matrix
- * transform. And as the matrices are more or less static once set up, no
- * stepping is necessary.
- */
+// Basically the inverse of the above. Rather than one input going to multiple
+// outputs (each with its own gain), it's multiple inputs (each with its own
+// gain) going to one output. This applies one row (vs one column) of a matrix
+// transform. And as the matrices are more or less static once set up, no
+// stepping is necessary.
 void mix_row_c(
-    float* out_buffer,
+    float* dst_buffer,
     const float* gains,
-    const SampleBuffers& data,
-    int in_chans,
-    int in_pos,
-    int buffer_size)
+    const SampleBuffers& src_buffers,
+    const int channel_count,
+    const int src_position,
+    const int buffer_size)
 {
-    int c, i;
-
-    for(c = 0;c < in_chans;c++)
+    for (int c = 0; c < channel_count; ++c)
     {
-        float gain = gains[c];
-        if(!(fabsf(gain) > silence_threshold_gain))
-            continue;
+        const auto gain = gains[c];
 
-        for(i = 0;i < buffer_size;i++)
-            out_buffer[i] += data[c][in_pos+i] * gain;
+        if (!(std::abs(gain) > silence_threshold_gain))
+        {
+            continue;
+        }
+
+        for (int i = 0; i < buffer_size; ++i)
+        {
+            dst_buffer[i] += src_buffers[c][src_position + i] * gain;
+        }
     }
 }

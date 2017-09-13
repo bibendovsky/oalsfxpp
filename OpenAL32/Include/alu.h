@@ -59,21 +59,21 @@ enum class ActiveFilters
 
 using MixerFunc = void (*)(
     const float* data,
-    int out_chans,
-    SampleBuffers& out_buffer,
+    const int channel_count,
+    SampleBuffers& dst_buffers,
     float* current_gains,
     const float* target_gains,
-    int counter,
-    int out_pos,
-    int buffer_size);
+    const int counter,
+    const int dst_position,
+    const int buffer_size);
 
 using RowMixerFunc = void (*)(
-    float* out_buffer,
+    float* dst_buffer,
     const float* gains,
-    const SampleBuffers& data,
-    int in_chans,
-    int in_pos,
-    int buffer_size);
+    const SampleBuffers& src_buffers,
+    const int channel_count,
+    const int src_position,
+    const int buffer_size);
 
 
 constexpr auto max_mix_gain = 16.0F; // +24dB
@@ -179,10 +179,10 @@ void compute_first_order_gains_bf(
     const float in_gain,
     float out_gains[max_channels]);
 
-bool mix_source(
+void mix_source(
     ALsource* source,
     ALCdevice* device,
-    int samples_to_do);
+    const int samples_to_do);
 
 void alu_mix_data(
     ALCdevice* device,
