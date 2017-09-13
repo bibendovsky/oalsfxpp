@@ -145,7 +145,11 @@ struct BFChannelConfig
     int index_;
 
 
-    void reset();
+    void reset()
+    {
+        scale_ = 0.0F;
+        index_ = 0;
+    }
 }; // BFChannelConfig
 
 union AmbiConfig
@@ -161,7 +165,18 @@ union AmbiConfig
     Map map_;
 
 
-    void reset();
+    void reset()
+    {
+        for (auto& coeff : coeffs_)
+        {
+            coeff.fill(0.0F);
+        }
+
+        for (auto& map_item : map_)
+        {
+            map_item.reset();
+        }
+    }
 }; // AmbiConfig
 
 

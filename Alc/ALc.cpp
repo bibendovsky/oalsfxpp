@@ -26,25 +26,6 @@
 ALCdevice* g_device = nullptr;
 
 
-void AmbiConfig::reset()
-{
-    for (auto& coeff : coeffs_)
-    {
-        coeff.fill(0.0F);
-    }
-
-    for (auto& map_item : map_)
-    {
-        map_item.reset();
-    }
-}
-
-void BFChannelConfig::reset()
-{
-    scale_ = 0.0F;
-    index_ = 0;
-}
-
 // Sets the default channel order used by WaveFormatEx.
 void set_default_wfx_channel_order(
     ALCdevice* device)
@@ -174,7 +155,7 @@ ALCdevice* alcOpenDevice()
 
     auto device = new ALCdevice{};
 
-    if(!device)
+    if (!device)
     {
         return nullptr;
     }
