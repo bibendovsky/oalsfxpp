@@ -260,24 +260,22 @@ static void calc_panning_and_filters(
                 static_cast<int>(source->direct_.filter_type_) | static_cast<int>(ActiveFilters::high_pass));
         }
 
-        al_filter_state_set_params(
-            &source->direct_.channels_[0].low_pass_,
+        source->direct_.channels_[0].low_pass_.set_params(
             FilterType::high_shelf,
             gain_hf,
             hf_scale,
-            calc_rcp_q_from_slope(gain_hf, 1.0F));
+            FilterState::calc_rcp_q_from_slope(gain_hf, 1.0F));
 
-        al_filter_state_set_params(
-            &source->direct_.channels_[0].high_pass_,
+        source->direct_.channels_[0].high_pass_.set_params(
             FilterType::low_shelf,
             gain_lf,
             lf_scale,
-            calc_rcp_q_from_slope(gain_lf, 1.0F));
+            FilterState::calc_rcp_q_from_slope(gain_lf, 1.0F));
 
         for (int c = 1; c < num_channels; ++c)
         {
-            al_filter_state_copy_params(&source->direct_.channels_[c].low_pass_, &source->direct_.channels_[0].low_pass_);
-            al_filter_state_copy_params(&source->direct_.channels_[c].high_pass_, &source->direct_.channels_[0].high_pass_);
+            FilterState::copy_params(source->direct_.channels_[c].low_pass_, source->direct_.channels_[0].low_pass_);
+            FilterState::copy_params(source->direct_.channels_[c].high_pass_, source->direct_.channels_[0].high_pass_);
         }
     }
 
@@ -301,24 +299,22 @@ static void calc_panning_and_filters(
                 static_cast<int>(source->aux_.filter_type_) | static_cast<int>(ActiveFilters::high_pass));
         }
 
-        al_filter_state_set_params(
-            &source->aux_.channels_[0].low_pass_,
+        source->aux_.channels_[0].low_pass_.set_params(
             FilterType::high_shelf,
             gain_hf,
             hf_scale,
-            calc_rcp_q_from_slope(gain_hf, 1.0F));
+            FilterState::calc_rcp_q_from_slope(gain_hf, 1.0F));
 
-        al_filter_state_set_params(
-            &source->aux_.channels_[0].high_pass_,
+        source->aux_.channels_[0].high_pass_.set_params(
             FilterType::low_shelf,
             gain_lf,
             lf_scale,
-            calc_rcp_q_from_slope(gain_lf, 1.0F));
+            FilterState::calc_rcp_q_from_slope(gain_lf, 1.0F));
 
         for (int c = 1; c < num_channels; ++c)
         {
-            al_filter_state_copy_params(&source->aux_.channels_[c].low_pass_, &source->aux_.channels_[0].low_pass_);
-            al_filter_state_copy_params(&source->aux_.channels_[c].high_pass_, &source->aux_.channels_[0].high_pass_);
+            FilterState::copy_params(source->aux_.channels_[c].low_pass_, source->aux_.channels_[0].low_pass_);
+            FilterState::copy_params(source->aux_.channels_[c].high_pass_, source->aux_.channels_[0].high_pass_);
         }
     }
 }

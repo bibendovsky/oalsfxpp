@@ -68,8 +68,8 @@ protected:
 
         for (int i = 0; i < 4; ++i)
         {
-            al_filter_state_clear(&filters_[i].lp);
-            al_filter_state_clear(&filters_[i].hp);
+            filters_[i].lp.clear();
+            filters_[i].hp.clear();
         }
 
         delay_.reset();
@@ -204,28 +204,26 @@ protected:
         // killing most of the signal.
         const auto gain_hf = std::max(props->reverb_.gain_hf_, 0.001F);
 
-        al_filter_state_set_params(
-            &filters_[0].lp,
+        filters_[0].lp.set_params(
             FilterType::high_shelf,
             gain_hf,
             hf_scale,
-            calc_rcp_q_from_slope(gain_hf, 1.0F));
+            FilterState::calc_rcp_q_from_slope(gain_hf, 1.0F));
 
         const auto lf_scale = props->reverb_.lf_reference_ / frequency;
 
         const auto gain_lf = std::max(props->reverb_.gain_lf_, 0.001F);
 
-        al_filter_state_set_params(
-            &filters_[0].hp,
+        filters_[0].hp.set_params(
             FilterType::low_shelf,
             gain_lf,
             lf_scale,
-            calc_rcp_q_from_slope(gain_lf, 1.0F));
+            FilterState::calc_rcp_q_from_slope(gain_lf, 1.0F));
 
         for (int i = 1; i < 4; ++i)
         {
-            al_filter_state_copy_params(&filters_[i].lp, &filters_[0].lp);
-            al_filter_state_copy_params(&filters_[i].hp, &filters_[0].hp);
+            FilterState::copy_params(filters_[i].lp, filters_[0].lp);
+            FilterState::copy_params(filters_[i].hp, filters_[0].hp);
         }
 
         // Update the main effect delay and associated taps.
@@ -2036,7 +2034,7 @@ private:
         {
             // Low-pass filter the incoming samples (use the early buffer as temp
             // storage).
-            al_filter_state_process_c(&filters_[c].lp, early[0].data(), input[c].data(), todo);
+            filters_[c].lp.process(early[0].data(), input[c].data(), todo);
 
             // Feed the initial delay line.
             for (int i = 0; i < todo; ++i)
@@ -2082,8 +2080,8 @@ private:
         {
             // Band-pass the incoming samples. Use the early output lines for temp
             // storage.
-            al_filter_state_process_c(&filters_[c].lp, early[0].data(), input[c].data(), todo);
-            al_filter_state_process_c(&filters_[c].hp, early[1].data(), early[0].data(), todo);
+            filters_[c].lp.process(early[0].data(), input[c].data(), todo);
+            filters_[c].hp.process(early[1].data(), early[0].data(), todo);
 
             // Feed the initial delay line.
             for (int i = 0; i < todo; i++)

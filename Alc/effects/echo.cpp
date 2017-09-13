@@ -63,7 +63,7 @@ protected:
         taps_[1].delay = 0;
         offset_ = 0;
 
-        al_filter_state_clear(&filter_);
+        filter_.clear();
     }
 
     void EchoEffectState::do_destruct() final
@@ -122,12 +122,11 @@ protected:
 
         effect_gain = std::max(1.0F - props->echo_.damping_, 0.0625F); // Limit -24dB
 
-        al_filter_state_set_params(
-            &filter_,
+        filter_.set_params(
             FilterType::high_shelf,
             effect_gain,
             lp_frequency_reference / frequency,
-            calc_rcp_q_from_slope(effect_gain, 1.0F));
+            FilterState::calc_rcp_q_from_slope(effect_gain, 1.0F));
 
         effect_gain = 1.0F;
 

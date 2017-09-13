@@ -24,9 +24,6 @@
     <ClCompile Include="OpenAL32\alEffect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OpenAL32\alFilter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="OpenAL32\alSource.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

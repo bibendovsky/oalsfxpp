@@ -48,8 +48,8 @@ public:
 protected:
     void DistortionEffectState::do_construct() final
     {
-        al_filter_state_clear(&low_pass_);
-        al_filter_state_clear(&band_pass_);
+        low_pass_.clear();
+        band_pass_.clear();
     }
 
     void DistortionEffectState::do_destruct() final
@@ -84,24 +84,22 @@ protected:
 
         // Multiply sampling frequency by the amount of oversampling done during
         // processing.
-        al_filter_state_set_params(
-            &low_pass_,
+        low_pass_.set_params(
             FilterType::low_pass,
             1.0F,
             cutoff / (frequency * 4.0F),
-            calc_rcp_q_from_bandwidth(cutoff / (frequency * 4.0F), bandwidth));
+            FilterState::calc_rcp_q_from_bandwidth(cutoff / (frequency * 4.0F), bandwidth));
 
         cutoff = props->distortion_.eq_center_;
 
         // Convert bandwidth in Hz to octaves.
         bandwidth = props->distortion_.eq_bandwidth_ / (cutoff * 0.67F);
 
-        al_filter_state_set_params(
-            &band_pass_,
+        band_pass_.set_params(
             FilterType::band_pass,
             1.0F,
             cutoff / (frequency * 4.0F),
-            calc_rcp_q_from_bandwidth(cutoff / (frequency * 4.0F), bandwidth));
+            FilterState::calc_rcp_q_from_bandwidth(cutoff / (frequency * 4.0F), bandwidth));
 
         compute_ambient_gains(device, 1.0F, gains_.data());
     }
@@ -141,7 +139,7 @@ protected:
             // perform buffer interpolation and lowpass cutoff for oversampling
             // (which is fortunately first step of distortion). So combine three
             // operations into the one.
-            al_filter_state_process_c(&low_pass_, buffer[1], buffer[0], td * 4);
+            low_pass_.process(buffer[1], buffer[0], td * 4);
 
             // Second step, do distortion using waveshaper function to emulate
             // signal processing during tube overdriving. Three steps of
@@ -159,7 +157,7 @@ protected:
             }
 
             // Third step, do bandpass filtering of distorted signal.
-            al_filter_state_process_c(&band_pass_, buffer[1], buffer[0], td * 4);
+            band_pass_.process(buffer[1], buffer[0], td * 4);
 
             for (int kt = 0; kt < channel_count; ++kt)
             {

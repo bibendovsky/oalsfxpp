@@ -51,7 +51,7 @@ protected:
 
         for (int i = 0; i < max_effect_channels; ++i)
         {
-            al_filter_state_clear(&filters_[i]);
+            filters_[i].clear();
         }
     }
 
@@ -125,7 +125,7 @@ protected:
 
             for (int j = 0; j < max_effect_channels; ++j)
             {
-                al_filter_state_process_c(&filters_[j], temps[0], &src_samples[j][base], td);
+                filters_[j].process(temps[0], &src_samples[j][base], td);
                 process_func_(temps[1], temps[0], index_, step_, td);
 
                 for (int k = 0; k < channel_count; ++k)

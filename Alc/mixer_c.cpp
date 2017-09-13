@@ -3,46 +3,6 @@
 #include "alu.h"
 
 
-void al_filter_state_process_c(FilterState* filter, float* dst, const float* src, int num_samples)
-{
-    int i;
-    if(num_samples > 1)
-    {
-        dst[0] = filter->b0_ * src[0] +
-                 filter->b1_ * filter->x_[0] +
-                 filter->b2_ * filter->x_[1] -
-                 filter->a1_ * filter->y_[0] -
-                 filter->a2_ * filter->y_[1];
-        dst[1] = filter->b0_ * src[1] +
-                 filter->b1_ * src[0] +
-                 filter->b2_ * filter->x_[0] -
-                 filter->a1_ * dst[0] -
-                 filter->a2_ * filter->y_[0];
-        for(i = 2;i < num_samples;i++)
-            dst[i] = filter->b0_ * src[i] +
-                     filter->b1_ * src[i-1] +
-                     filter->b2_ * src[i-2] -
-                     filter->a1_ * dst[i-1] -
-                     filter->a2_ * dst[i-2];
-        filter->x_[0] = src[i-1];
-        filter->x_[1] = src[i-2];
-        filter->y_[0] = dst[i-1];
-        filter->y_[1] = dst[i-2];
-    }
-    else if(num_samples == 1)
-    {
-        dst[0] = filter->b0_ * src[0] +
-                 filter->b1_ * filter->x_[0] +
-                 filter->b2_ * filter->x_[1] -
-                 filter->a1_ * filter->y_[0] -
-                 filter->a2_ * filter->y_[1];
-        filter->x_[1] = filter->x_[0];
-        filter->x_[0] = src[0];
-        filter->y_[1] = filter->y_[0];
-        filter->y_[0] = dst[0];
-    }
-}
-
 void mix_c(
     const float* data,
     int out_chans,
