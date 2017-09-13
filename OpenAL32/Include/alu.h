@@ -101,9 +101,6 @@ float lerp(
 void alu_init_renderer(
     ALCdevice* device);
 
-void alu_init_effect_panning(
-    EffectSlot* slot);
-
 // Calculates ambisonic coefficients based on a direction vector. The vector
 // must be normalized (unit length), and the spread is the angular width of the
 // sound (0...tau).

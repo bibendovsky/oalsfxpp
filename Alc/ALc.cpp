@@ -170,7 +170,6 @@ ALCdevice* alcOpenDevice()
     g_source = new ALsource{};
 
     g_effect_slot = new EffectSlot{};
-    alu_init_effect_panning(g_effect_slot);
 
     g_effect = new Effect{};
     g_effect->initialize();

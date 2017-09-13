@@ -514,10 +514,3 @@ void alu_init_renderer(
 
     init_panning(device);
 }
-
-void alu_init_effect_panning(
-    EffectSlot* slot)
-{
-    slot->channel_count_ = 0;
-    slot->channel_count_ = max_effect_channels;
-}

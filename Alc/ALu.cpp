@@ -224,7 +224,7 @@ static void calc_panning_and_filters(
             if (slot)
             {
                 compute_panning_gains_bf(
-                    slot->channel_count_,
+                    max_effect_channels,
                     coeffs,
                     wet_gain,
                     source->aux_.channels_[c].target_gains_.data());
@@ -335,7 +335,7 @@ static void calc_non_attn_source_params(
     else
     {
         source->aux_.buffers_ = &send_slot->wet_buffer_;
-        source->aux_.channel_count_ = send_slot->channel_count_;
+        source->aux_.channel_count_ = max_effect_channels;
     }
 
     // Calculate gains
@@ -421,7 +421,7 @@ void alu_mix_data(
 
         auto slot = g_effect_slot;
 
-        for (int c = 0; c < slot->channel_count_; ++c)
+        for (int c = 0; c < max_effect_channels; ++c)
         {
             std::fill_n(slot->wet_buffer_[c].begin(), samples_to_do, 0.0F);
         }

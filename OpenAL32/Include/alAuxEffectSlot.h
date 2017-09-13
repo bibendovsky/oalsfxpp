@@ -18,8 +18,6 @@ struct EffectSlot
     EffectStateUPtr effect_state_;
     bool is_props_updated_;
 
-    int channel_count_;
-
     // Wet buffer configuration is ACN channel order with N3D scaling:
     // * Channel 0 is the unattenuated mono signal.
     // * Channel 1 is OpenAL -X
@@ -37,7 +35,6 @@ struct EffectSlot
         effect_{},
         effect_state_{},
         is_props_updated_{},
-        channel_count_{},
         wet_buffer_{SampleBuffers::size_type{max_effect_channels}}
     {
         initialize();
