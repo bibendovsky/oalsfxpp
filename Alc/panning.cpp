@@ -328,16 +328,16 @@ void compute_first_order_gains_bf(
     }
 }
 
-struct ChannelMap
+struct ChannelPanning
 {
     ChannelId name;
     ChannelConfig config;
-}; // ChannelMap
+}; // ChannelPanning
 
 static void set_channel_map(
     const ChannelId* device_channels,
     ChannelConfig* ambi_coeffs,
-    const ChannelMap* channel_map,
+    const ChannelPanning* channel_panning,
     const int count,
     int* out_count)
 {
@@ -357,14 +357,14 @@ static void set_channel_map(
 
         for (int j = 0; j < count; ++j)
         {
-            if (device_channels[i] != channel_map[j].name)
+            if (device_channels[i] != channel_panning[j].name)
             {
                 continue;
             }
 
             for (int k = 0; k < max_ambi_coeffs; ++k)
             {
-                ambi_coeffs[i][k] = channel_map[j].config[k];
+                ambi_coeffs[i][k] = channel_panning[j].config[k];
             }
 
             break;
@@ -374,23 +374,23 @@ static void set_channel_map(
     *out_count = i;
 }
 
-static const ChannelMap mono_cfg[1] = {
+static const ChannelPanning mono_panning[1] = {
     {ChannelId::front_center, {1.0F}},
 };
 
-static const ChannelMap stereo_cfg[2] = {
+static const ChannelPanning stereo_panning[2] = {
     {ChannelId::front_left, {5.00000000E-1F, 2.88675135E-1F, 0.0F, 1.19573156E-1F}},
     {ChannelId::front_right, {5.00000000E-1F, -2.88675135E-1F, 0.0F, 1.19573156E-1F}},
 };
 
-static const ChannelMap quad_cfg[4] = {
+static const ChannelPanning quad_panning[4] = {
     {ChannelId::back_left, {3.53553391E-1F, 2.04124145E-1F, 0.0F, -2.04124145E-1F}},
     {ChannelId::front_left, {3.53553391E-1F, 2.04124145E-1F, 0.0F, 2.04124145E-1F}},
     {ChannelId::front_right, {3.53553391E-1F, -2.04124145E-1F, 0.0F, 2.04124145E-1F}},
     {ChannelId::back_right, {3.53553391E-1F, -2.04124145E-1F, 0.0F, -2.04124145E-1F}},
 };
 
-static const ChannelMap x5_1_side_cfg[5] = {
+static const ChannelPanning x5_1_side_panning[5] = {
     {ChannelId::side_left, {3.33001372E-1F, 1.89085671E-1F, 0.0F, -2.00041334E-1F, -2.12309737E-2F, 0.0F, 0.0F, 0.0F, -1.14573483E-2F}},
     {ChannelId::front_left, {1.47751298E-1F, 1.28994110E-1F, 0.0F, 1.15190495E-1F, 7.44949143E-2F, 0.0F, 0.0F, 0.0F, -6.47739980E-3F}},
     {ChannelId::front_center, {7.73595729E-2F, 0.00000000E+0F, 0.0F, 9.71390298E-2F, 0.00000000E+0F, 0.0F, 0.0F, 0.0F, 5.18625335E-2F}},
@@ -398,7 +398,7 @@ static const ChannelMap x5_1_side_cfg[5] = {
     {ChannelId::side_right, {3.33001372E-1F, -1.89085671E-1F, 0.0F, -2.00041334E-1F, 2.12309737E-2F, 0.0F, 0.0F, 0.0F, -1.14573483E-2F}},
 };
 
-static const ChannelMap x5_1_rear_cfg[5] = {
+static const ChannelPanning x5_1_rear_panning[5] = {
     {ChannelId::back_left, {3.33001372E-1F, 1.89085671E-1F, 0.0F, -2.00041334E-1F, -2.12309737E-2F, 0.0F, 0.0F, 0.0F, -1.14573483E-2F}},
     {ChannelId::front_left, {1.47751298E-1F, 1.28994110E-1F, 0.0F, 1.15190495E-1F, 7.44949143E-2F, 0.0F, 0.0F, 0.0F, -6.47739980E-3F}},
     {ChannelId::front_center, {7.73595729E-2F, 0.00000000E+0F, 0.0F, 9.71390298E-2F, 0.00000000E+0F, 0.0F, 0.0F, 0.0F, 5.18625335E-2F}},
@@ -406,7 +406,7 @@ static const ChannelMap x5_1_rear_cfg[5] = {
     {ChannelId::back_right, {3.33001372E-1F, -1.89085671E-1F, 0.0F, -2.00041334E-1F, 2.12309737E-2F, 0.0F, 0.0F, 0.0F, -1.14573483E-2F}},
 };
 
-static const ChannelMap x6_1_cfg[6] = {
+static const ChannelPanning x6_1_panning[6] = {
     {ChannelId::side_left, {2.04462744E-1F, 2.17178497E-1F, 0.0F, -4.39990188E-2F, -2.60787329E-2F, 0.0F, 0.0F, 0.0F, -6.87238843E-2F}},
     {ChannelId::front_left, {1.18130342E-1F, 9.34633906E-2F, 0.0F, 1.08553749E-1F, 6.80658795E-2F, 0.0F, 0.0F, 0.0F, 1.08999485E-2F}},
     {ChannelId::front_center, {7.73595729E-2F, 0.00000000E+0F, 0.0F, 9.71390298E-2F, 0.00000000E+0F, 0.0F, 0.0F, 0.0F, 5.18625335E-2F}},
@@ -415,7 +415,7 @@ static const ChannelMap x6_1_cfg[6] = {
     {ChannelId::back_center, {2.50001688E-1F, 0.00000000E+0F, 0.0F, -2.50000094E-1F, 0.00000000E+0F, 0.0F, 0.0F, 0.0F, 6.05133395E-2F}},
 };
 
-static const ChannelMap x7_1_cfg[6] = {
+static const ChannelPanning x7_1_panning[6] = {
     {ChannelId::back_left, {2.04124145E-1F, 1.08880247E-1F, 0.0F, -1.88586120E-1F, -1.29099444E-1F, 0.0F, 0.0F, 0.0F, 7.45355993E-2F, 3.73460789E-2F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.00000000E+0F}},
     {ChannelId::side_left, {2.04124145E-1F, 2.17760495E-1F, 0.0F, 0.00000000E+0F, 0.00000000E+0F, 0.0F, 0.0F, 0.0F, -1.49071198E-1F, -3.73460789E-2F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.00000000E+0F}},
     {ChannelId::front_left, {2.04124145E-1F, 1.08880247E-1F, 0.0F, 1.88586120E-1F, 1.29099444E-1F, 0.0F, 0.0F, 0.0F, 7.45355993E-2F, 3.73460789E-2F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.00000000E+0F}},
@@ -427,51 +427,51 @@ static const ChannelMap x7_1_cfg[6] = {
 static void init_panning(
     ALCdevice* device)
 {
-    const ChannelMap *channel_map = nullptr;
+    const ChannelPanning *channel_map = nullptr;
     auto coeff_count = 0;
     auto count = 0;
 
     switch (device->channel_format_)
     {
     case ChannelFormat::mono:
-        count = count_of(mono_cfg);
-        channel_map = mono_cfg;
+        count = count_of(mono_panning);
+        channel_map = mono_panning;
         coeff_count = 1;
         break;
 
     case ChannelFormat::stereo:
-        count = count_of(stereo_cfg);
-        channel_map = stereo_cfg;
+        count = count_of(stereo_panning);
+        channel_map = stereo_panning;
         coeff_count = 4;
         break;
 
     case ChannelFormat::quad:
-        count = count_of(quad_cfg);
-        channel_map = quad_cfg;
+        count = count_of(quad_panning);
+        channel_map = quad_panning;
         coeff_count = 4;
         break;
 
     case ChannelFormat::five_point_one:
-        count = count_of(x5_1_side_cfg);
-        channel_map = x5_1_side_cfg;
+        count = count_of(x5_1_side_panning);
+        channel_map = x5_1_side_panning;
         coeff_count = 9;
         break;
 
     case ChannelFormat::five_point_one_rear:
-        count = count_of(x5_1_rear_cfg);
-        channel_map = x5_1_rear_cfg;
+        count = count_of(x5_1_rear_panning);
+        channel_map = x5_1_rear_panning;
         coeff_count = 9;
         break;
 
     case ChannelFormat::six_point_one:
-        count = count_of(x6_1_cfg);
-        channel_map = x6_1_cfg;
+        count = count_of(x6_1_panning);
+        channel_map = x6_1_panning;
         coeff_count = 9;
         break;
 
     case ChannelFormat::seven_point_one:
-        count = count_of(x7_1_cfg);
-        channel_map = x7_1_cfg;
+        count = count_of(x7_1_panning);
+        channel_map = x7_1_panning;
         coeff_count = 16;
         break;
     }
