@@ -1541,7 +1541,7 @@ private:
 
         for (int i = 0; i < max_effect_channels; ++i)
         {
-            compute_first_order_gains(device, transform.m_[i], gain*early_gain, early_.pan_gains[i].data());
+            compute_first_order_gains(device->channel_count_, device->foa_, transform.m_[i], gain*early_gain, early_.pan_gains[i].data());
         }
 
         rot = get_transform_from_vector(late_reverb_pan);
@@ -1550,7 +1550,7 @@ private:
 
         for (int i = 0; i < max_effect_channels; ++i)
         {
-            compute_first_order_gains(device, transform.m_[i], gain*late_gain, late_.pan_gains[i].data());
+            compute_first_order_gains(device->channel_count_, device->foa_, transform.m_[i], gain * late_gain, late_.pan_gains[i].data());
         }
     }
 

@@ -185,7 +185,7 @@ static void calc_panning_and_filters(
 
         calc_angle_coeffs(channel_map[c].angle, channel_map[c].elevation, spread, coeffs);
 
-        compute_panning_gains(device, coeffs, dry_gain, source->direct_.channels_[c].target_gains_.data());
+        compute_panning_gains(device->channel_count_, device->dry_, coeffs, dry_gain, source->direct_.channels_[c].target_gains_.data());
 
         const auto slot = send_slot;
 

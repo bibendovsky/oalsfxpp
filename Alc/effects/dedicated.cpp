@@ -99,7 +99,7 @@ protected:
                 dst_buffers_ = &device->sample_buffers_;
                 dst_channel_count_ = device->channel_count_;
 
-                compute_panning_gains(device, coeffs, gain, gains_.data());
+                compute_panning_gains(device->channel_count_, device->dry_, coeffs, gain, gains_.data());
             }
         }
     }

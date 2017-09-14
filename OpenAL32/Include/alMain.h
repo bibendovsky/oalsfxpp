@@ -210,21 +210,21 @@ using SampleBuffer = std::array<float, max_sample_buffer_size>;
 using SampleBuffers = std::vector<SampleBuffer>;
 
 
+struct AmbiOutput
+{
+    AmbiConfig ambi_;
+
+    // Number of coefficients in each Ambi.Coeffs to mix together (4 for
+    // first-order, 9 for second-order, etc). If the count is 0, Ambi.Map
+    // is used instead to map each output to a coefficient index.
+    //
+    // Will only be 4 or 0 (first-order ambisonics output).
+    int coeff_count_;
+}; // AmbiOutput
+
 struct ALCdevice
 {
     using ChannelNames = std::array<ChannelId, max_channels>;
-
-    struct AmbiOutput
-    {
-        AmbiConfig ambi_;
-
-        // Number of coefficients in each Ambi.Coeffs to mix together (4 for
-        // first-order, 9 for second-order, etc). If the count is 0, Ambi.Map
-        // is used instead to map each output to a coefficient index.
-        //
-        // Will only be 4 or 0 (first-order ambisonics output).
-        int coeff_count_;
-    }; // AmbiOutput
 
 
     int frequency_;

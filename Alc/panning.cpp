@@ -134,19 +134,18 @@ void calc_angle_coeffs(
 }
 
 void compute_ambient_gains(
-    const ALCdevice* device,
+    const int channel_count,
+    const AmbiOutput& amb_output,
     const float in_gain,
     float* const out_gains)
 {
-    const auto& dry = device->dry_;
-
-    if (dry.coeff_count_ > 0)
+    if (amb_output.coeff_count_ > 0)
     {
-        compute_ambient_gains_mc(dry.ambi_.coeffs_.data(), device->channel_count_, in_gain, out_gains);
+        compute_ambient_gains_mc(amb_output.ambi_.coeffs_.data(), channel_count, in_gain, out_gains);
     }
     else
     {
-        compute_ambient_gains_bf(device->channel_count_, in_gain, out_gains);
+        compute_ambient_gains_bf(channel_count, in_gain, out_gains);
     }
 }
 
@@ -193,19 +192,18 @@ void compute_ambient_gains_bf(
 }
 
 void compute_panning_gains(
-    const ALCdevice* device,
+    const int channel_count,
+    const AmbiOutput& amb_output,
     const float* const coeffs,
     const float in_gain,
     float* const out_gains)
 {
-    const auto& dry = device->dry_;
-
-    if (dry.coeff_count_ > 0)
+    if (amb_output.coeff_count_ > 0)
     {
         compute_panning_gains_mc(
-            dry.ambi_.coeffs_.data(),
-            device->channel_count_,
-            dry.coeff_count_,
+            amb_output.ambi_.coeffs_.data(),
+            channel_count,
+            amb_output.coeff_count_,
             coeffs,
             in_gain,
             out_gains);
@@ -213,7 +211,7 @@ void compute_panning_gains(
     else
     {
         compute_panning_gains_bf(
-            device->channel_count_,
+            channel_count,
             coeffs,
             in_gain,
             out_gains);
@@ -268,20 +266,19 @@ void compute_panning_gains_bf(
 }
 
 void compute_first_order_gains(
-    const ALCdevice* device,
+    const int channel_count,
+    const AmbiOutput& amb_output,
     const float* const matrix,
     const float in_gain,
     float* const out_gains)
 {
-    const auto& foa_out = device->foa_;
-
-    if (foa_out.coeff_count_ > 0)
+    if (amb_output.coeff_count_ > 0)
     {
-        compute_first_order_gains_mc(foa_out.ambi_.coeffs_.data(), device->channel_count_, matrix, in_gain, out_gains);
+        compute_first_order_gains_mc(amb_output.ambi_.coeffs_.data(), channel_count, matrix, in_gain, out_gains);
     }
     else
     {
-        compute_first_order_gains_bf(device->channel_count_, matrix, in_gain, out_gains);
+        compute_first_order_gains_bf(channel_count, matrix, in_gain, out_gains);
     }
 }
 

@@ -113,7 +113,8 @@ void calc_angle_coeffs(
 
 // Computes channel gains for ambient, omni-directional sounds.
 void compute_ambient_gains(
-    const ALCdevice* device,
+    const int channel_count,
+    const AmbiOutput& amb_output,
     const float in_gain,
     float* const out_gains);
 
@@ -131,7 +132,8 @@ void compute_ambient_gains_bf(
 // Computes panning gains using the given channel decoder coefficients and the
 // pre-calculated direction or angle coefficients.
 void compute_panning_gains(
-    const ALCdevice* device,
+    const int channel_count,
+    const AmbiOutput& amb_output,
     const float* const coeffs,
     const float in_gain,
     float* const out_gains);
@@ -154,7 +156,8 @@ void compute_panning_gains_bf(
 // a 1x4 'slice' of a transform matrix for the input channel, used to scale and
 // orient the sound samples.
 void compute_first_order_gains(
-    const ALCdevice* device,
+    const int channel_count,
+    const AmbiOutput& amb_output,
     const float* const matrix,
     const float in_gain,
     float* const out_gains);

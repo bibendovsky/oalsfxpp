@@ -124,9 +124,9 @@ protected:
 
         // Gains for left and right sides
         calc_angle_coeffs(-pi_2, 0.0F, 0.0F, coeffs);
-        compute_panning_gains(device, coeffs, 1.0F, gains_[0].data());
+        compute_panning_gains(device->channel_count_, device->dry_, coeffs, 1.0F, gains_[0].data());
         calc_angle_coeffs(pi_2, 0.0F, 0.0F, coeffs);
-        compute_panning_gains(device, coeffs, 1.0F, gains_[1].data());
+        compute_panning_gains(device->channel_count_, device->dry_, coeffs, 1.0F, gains_[1].data());
 
         const auto phase = props->flanger_.phase_;
         const auto rate = props->flanger_.rate_;
