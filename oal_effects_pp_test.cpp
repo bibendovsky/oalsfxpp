@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <iostream>
 #include <string>
-#include "config.h"
 #include "alMain.h"
 #include "alEffect.h"
 #include "alAuxEffectSlot.h"

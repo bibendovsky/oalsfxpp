@@ -21,7 +21,6 @@
 
 #include <algorithm>
 #include <array>
-#include "config.h"
 #include "alAuxEffectSlot.h"
 #include "alFilter.h"
 
