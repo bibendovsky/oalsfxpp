@@ -119,7 +119,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Alc\ALu.cpp" />
     <ClCompile Include="Alc\effects\chorus.cpp" />
     <ClCompile Include="Alc\effects\compressor.cpp" />
     <ClCompile Include="Alc\effects\dedicated.cpp" />

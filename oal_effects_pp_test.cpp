@@ -6,13 +6,6 @@
 #include "oalsfxpp_api_impl.h"
 
 
-void alu_mix_data(
-    ALCdevice* device,
-    void* dst_buffer,
-    const int sample_count,
-    const float* src_samples);
-
-
 int main()
 {
     const char* src_file_name = "f:\\temp\\rev\\in.raw";
@@ -252,7 +245,7 @@ int main()
             const int write_sample_count = sample_count < remain ? sample_count : remain;
             const int write_size = write_sample_count * 4 * channel_count;
 
-            alu_mix_data(g_device, dst_buffer, sample_count, &src_buffer_f32[offset]);
+            ApiImpl::alu_mix_data(g_device, dst_buffer, sample_count, &src_buffer_f32[offset]);
 
             if (fwrite(dst_buffer, 1, write_size, dst_stream) != write_size)
             {

@@ -23,13 +23,6 @@ extern Effect* g_effect;
 extern EffectSlot* g_effect_slot;
 
 
-void alu_mix_data(
-    ALCdevice* device,
-    void* dst_buffer,
-    const int sample_count,
-    const float* src_samples);
-
-
 constexpr auto max_effect_channels = 4;
 
 constexpr auto max_mix_gain = 16.0F; // +24dB
