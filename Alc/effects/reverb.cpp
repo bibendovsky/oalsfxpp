@@ -603,7 +603,7 @@ private:
     // back left). It's not quite opposite, since the A-Format results in a
     // tetrahedron, but it's close enough. Should the model be extended to 8-lines
     // in the future, true opposites can be used.
-    static constexpr aluMatrixf b2a = {{
+    static constexpr Mat4F b2a = {{
         { 0.288675134595F,  0.288675134595F,  0.288675134595F,  0.288675134595F },
         { 0.288675134595F, -0.288675134595F, -0.288675134595F,  0.288675134595F },
         { 0.288675134595F,  0.288675134595F, -0.288675134595F, -0.288675134595F },
@@ -611,7 +611,7 @@ private:
     }};
 
     // Converts A-Format to B-Format.
-    static constexpr aluMatrixf a2b = {{
+    static constexpr Mat4F a2b = {{
         { 0.866025403785F,  0.866025403785F,  0.866025403785F,  0.866025403785F },
         { 0.866025403785F, -0.866025403785F,  0.866025403785F, -0.866025403785F },
         { 0.866025403785F, -0.866025403785F, -0.866025403785F,  0.866025403785F },
@@ -1422,22 +1422,25 @@ private:
         }
     }
 
-    static void matrix_mult(
-        aluMatrixf& res,
-        const aluMatrixf& m1,
-        const aluMatrixf& m2)
+    static Mat4F matrix_mult(
+        const Mat4F& a,
+        const Mat4F& b)
     {
+        Mat4F result;
+
         for (int col = 0; col < 4; ++col)
         {
             for (int row = 0;row < 4; ++row)
             {
-                res.m_[row][col] =
-                    (m1.m_[row][0] * m2.m_[0][col]) +
-                    (m1.m_[row][1] * m2.m_[1][col]) +
-                    (m1.m_[row][2] * m2.m_[2][col]) +
-                    (m1.m_[row][3] * m2.m_[3][col]);
+                result(row, col) =
+                    (a(row, 0) * b(0, col)) +
+                    (a(row, 1) * b(1, col)) +
+                    (a(row, 2) * b(2, col)) +
+                    (a(row, 3) * b(3, col));
             }
         }
+
+        return result;
     }
 
     // Creates a transform matrix given a reverb vector. This works by creating a
@@ -1448,39 +1451,31 @@ private:
     // This isn't technically correct since the vector is supposed to define the
     // aperture and not rotate the perceived soundfield, but in practice it's
     // probably good enough.
-    static aluMatrixf get_transform_from_vector(
+    static Mat4F get_transform_from_vector(
         const float* vec)
     {
-        aluMatrixf zfocus;
-        aluMatrixf xrot;
-        aluMatrixf yrot;
-        aluMatrixf tmp1;
-        aluMatrixf tmp2;
-
-        const auto length = std::sqrt((vec[0]*vec[0]) + (vec[1]*vec[1]) + (vec[2]*vec[2]));
+        const auto length = std::sqrt((vec[0] * vec[0]) + (vec[1] * vec[1]) + (vec[2] * vec[2]));
 
         // Define a Z-focus (X in Ambisonics) transform, given the panning vector
         // length.
         const auto sa = std::sin(std::min(length, 1.0F) * (pi / 4.0F));
 
-        alu_matrix_f_set(
-            &zfocus,
-            1.0F / (1.0F + sa), 0.0F, 0.0F, (sa / (1.0F + sa)) / 1.732050808F,
-            0.0F, std::sqrt((1.0F - sa) / (1.0F + sa)), 0.0F, 0.0F,
-            0.0F, 0.0F, std::sqrt((1.0F - sa) / (1.0F + sa)), 0.0F,
-            (sa / (1.0F + sa)) * 1.732050808F, 0.0F, 0.0F, 1.0F / (1.0F + sa)
-        );
+        const auto zfocus = Mat4F{{
+            {1.0F / (1.0F + sa), 0.0F, 0.0F, (sa / (1.0F + sa)) / 1.732050808F,},
+            {0.0F, std::sqrt((1.0F - sa) / (1.0F + sa)), 0.0F, 0.0F,},
+            {0.0F, 0.0F, std::sqrt((1.0F - sa) / (1.0F + sa)), 0.0F,},
+            {(sa / (1.0F + sa)) * 1.732050808F, 0.0F, 0.0F, 1.0F / (1.0F + sa),}
+        }};
 
         // Define rotation around X (Y in Ambisonics)
         auto a = std::atan2(vec[1], std::sqrt((vec[0] * vec[0]) + (vec[2] * vec[2])));
 
-        alu_matrix_f_set(
-            &xrot,
-            1.0F, 0.0F, 0.0F, 0.0F,
-            0.0F, 1.0F, 0.0F, 0.0F,
-            0.0F, 0.0F,  std::cos(a), std::sin(a),
-            0.0F, 0.0F, -std::sin(a), std::cos(a)
-        );
+        const auto xrot = Mat4F{{
+            {1.0F, 0.0F, 0.0F, 0.0F,},
+            {0.0F, 1.0F, 0.0F, 0.0F,},
+            {0.0F, 0.0F,  std::cos(a), std::sin(a),},
+            {0.0F, 0.0F, -std::sin(a), std::cos(a),},
+        }};
 
         // Define rotation around Y (Z in Ambisonics). NOTE: EFX's reverb vectors
         // use a right-handled coordinate system, compared to the rest of OpenAL
@@ -1489,42 +1484,41 @@ private:
         // cancelling it out.
         a = std::atan2(-vec[0], vec[2]);
 
-        alu_matrix_f_set(
-            &yrot,
-            1.0F, 0.0F, 0.0F, 0.0F,
-            0.0F, std::cos(a), 0.0F, std::sin(a),
-            0.0F, 0.0F, 1.0F, 0.0F,
-            0.0F, -std::sin(a), 0.0F, std::cos(a)
-        );
+        const auto yrot = Mat4F{{
+            {1.0F, 0.0F, 0.0F, 0.0F,},
+            {0.0F, std::cos(a), 0.0F, std::sin(a),},
+            {0.0F, 0.0F, 1.0F, 0.0F,},
+            {0.0F, -std::sin(a), 0.0F, std::cos(a),},
+        }};
 
         // Define a matrix that first focuses on Z, then rotates around X then Y to
         // focus the output in the direction of the vector.
-        matrix_mult(tmp1, xrot, zfocus);
-        matrix_mult(tmp2, yrot, tmp1);
-
-        return tmp2;
+        return matrix_mult(yrot, matrix_mult(xrot, zfocus));
     }
 
     // Note: res is transposed.
-    static void matrix_mult_t(
-        aluMatrixf& res,
-        const aluMatrixf& m1,
-        const aluMatrixf& m2)
+    static Mat4F matrix_mult_t(
+        const Mat4F& a,
+        const Mat4F& b)
     {
+        Mat4F result;
+
         for (int col = 0; col < 4; ++col)
         {
             for (int row = 0; row < 4; ++row)
             {
-                res.m_[col][row] =
-                    (m1.m_[row][0] * m2.m_[0][col]) +
-                    (m1.m_[row][1] * m2.m_[1][col]) +
-                    (m1.m_[row][2] * m2.m_[2][col]) +
-                    (m1.m_[row][3] * m2.m_[3][col]);
+                result(col, row) =
+                    (a(row, 0) * b(0, col)) +
+                    (a(row, 1) * b(1, col)) +
+                    (a(row, 2) * b(2, col)) +
+                    (a(row, 3) * b(3, col));
             }
         }
+
+        return result;
     }
 
-    /* Update the early and late 3D panning gains. */
+    // Update the early and late 3D panning gains.
     void update_3d_panning(
         ALCdevice* const device,
         const float* reflections_pan,
@@ -1533,8 +1527,8 @@ private:
         const float early_gain,
         const float late_gain)
     {
-        aluMatrixf transform;
-        aluMatrixf rot;
+        Mat4F transform;
+        Mat4F rot;
 
         dst_buffers_ = &device->sample_buffers_;
         dst_channel_count_ = device->channel_count_;
@@ -1542,7 +1536,7 @@ private:
         // Create a matrix that first converts A-Format to B-Format, then rotates
         // the B-Format soundfield according to the panning vector.
         rot = get_transform_from_vector(reflections_pan);
-        matrix_mult_t(transform, rot, a2b);
+        transform = matrix_mult_t(rot, a2b);
         memset(&early_.pan_gains, 0, sizeof(early_.pan_gains));
 
         for (int i = 0; i < max_effect_channels; ++i)
@@ -1551,7 +1545,7 @@ private:
         }
 
         rot = get_transform_from_vector(late_reverb_pan);
-        matrix_mult_t(transform, rot, a2b);
+        transform = matrix_mult_t(rot, a2b);
         memset(&late_.pan_gains, 0, sizeof(late_.pan_gains));
 
         for (int i = 0; i < max_effect_channels; ++i)
@@ -1561,9 +1555,9 @@ private:
     }
 
 
-    /**************************************
-     *  Effect Processing                 *
-     **************************************/
+    //
+    // Effect Processing
+    //
 
     // Basic delay line input/output routines.
     static float delay_line_out(

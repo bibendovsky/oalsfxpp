@@ -108,7 +108,7 @@ protected:
 
         for (int i = 0; i < max_effect_channels; ++i)
         {
-            compute_first_order_gains(device, identity_matrix_f.m_[i], 1.0F, gains_[i].data());
+            compute_first_order_gains(device, mat4f_identity.m_[i], 1.0F, gains_[i].data());
         }
     }
 

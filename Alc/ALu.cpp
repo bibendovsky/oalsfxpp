@@ -39,53 +39,6 @@ float lerp(
     return val1 + ((val2 - val1) * mu);
 }
 
-
-void alu_matrix_f_set_row(
-    aluMatrixf* matrix,
-    const int row,
-    const float m0,
-    const float m1,
-    const float m2,
-    const float m3)
-{
-    matrix->m_[row][0] = m0;
-    matrix->m_[row][1] = m1;
-    matrix->m_[row][2] = m2;
-    matrix->m_[row][3] = m3;
-}
-
-void alu_matrix_f_set(
-    aluMatrixf* matrix,
-    const float m00,
-    const float m01,
-    const float m02,
-    const float m03,
-    const float m10,
-    const float m11,
-    const float m12,
-    const float m13,
-    const float m20,
-    const float m21,
-    const float m22,
-    const float m23,
-    const float m30,
-    const float m31,
-    const float m32,
-    const float m33)
-{
-    alu_matrix_f_set_row(matrix, 0, m00, m01, m02, m03);
-    alu_matrix_f_set_row(matrix, 1, m10, m11, m12, m13);
-    alu_matrix_f_set_row(matrix, 2, m20, m21, m22, m23);
-    alu_matrix_f_set_row(matrix, 3, m30, m31, m32, m33);
-}
-
-const aluMatrixf identity_matrix_f = {{
-    { 1.0f, 0.0f, 0.0f, 0.0f },
-    { 0.0f, 1.0f, 0.0f, 0.0f },
-    { 0.0f, 0.0f, 1.0f, 0.0f },
-    { 0.0f, 0.0f, 0.0f, 1.0f },
-}};
-
 static bool calc_effect_slot_params(
     EffectSlot* slot,
     ALCdevice* device)

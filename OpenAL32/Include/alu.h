@@ -12,41 +12,34 @@ struct ALvoice;
 struct EffectSlot;
 
 
-struct aluMatrixf
+struct Mat4F
 {
     using Items = float[4][4];
 
     Items m_;
-}; // aluMatrixf
 
-extern const aluMatrixf identity_matrix_f;
 
-void alu_matrix_f_set_row(
-    aluMatrixf* matrix,
-    const int row,
-    const float m0,
-    const float m1,
-    const float m2,
-    const float m3);
+    float& operator()(
+        const int row_index,
+        const int column_index)
+    {
+        return m_[row_index][column_index];
+    }
 
-void alu_matrix_f_set(
-    aluMatrixf* matrix,
-    const float m00,
-    const float m01,
-    const float m02,
-    const float m03,
-    const float m10,
-    const float m11,
-    const float m12,
-    const float m13,
-    const float m20,
-    const float m21,
-    const float m22,
-    const float m23,
-    const float m30,
-    const float m31,
-    const float m32,
-    const float m33);
+    const float& operator()(
+        const int row_index,
+        const int column_index) const
+    {
+        return m_[row_index][column_index];
+    }
+}; // Mat4F
+
+constexpr Mat4F mat4f_identity = {{
+    {1.0F, 0.0F, 0.0F, 0.0F,},
+    {0.0F, 1.0F, 0.0F, 0.0F,},
+    {0.0F, 0.0F, 1.0F, 0.0F,},
+    {0.0F, 0.0F, 0.0F, 1.0F,},
+}};
 
 enum class ActiveFilters
 {
