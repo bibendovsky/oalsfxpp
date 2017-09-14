@@ -139,7 +139,6 @@
     <ClInclude Include="OpenAL32\Include\alAuxEffectSlot.h" />
     <ClInclude Include="OpenAL32\Include\alEffect.h" />
     <ClInclude Include="OpenAL32\Include\alMain.h" />
-    <ClInclude Include="OpenAL32\Include\alSource.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -6,7 +6,6 @@
 #include "alMain.h"
 #include "alEffect.h"
 #include "alAuxEffectSlot.h"
-#include "alSource.h"
 #include "oalsfxpp_api_impl.h"
 
 

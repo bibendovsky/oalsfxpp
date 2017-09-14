@@ -68,9 +68,6 @@
     <ClInclude Include="OpenAL32\Include\alMain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OpenAL32\Include\alSource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="oalsfxpp_api_impl.h">
       <Filter>Header Files</Filter>
     </ClInclude>

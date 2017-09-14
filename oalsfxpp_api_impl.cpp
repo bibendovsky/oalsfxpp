@@ -2,7 +2,6 @@
 #include <new>
 #include "alEffect.h"
 #include "alAuxEffectSlot.h"
-#include "alSource.h"
 
 
 ALCdevice* g_device = nullptr;
