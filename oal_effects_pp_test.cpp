@@ -13,8 +13,8 @@
 
 void alu_mix_data(
     ALCdevice* device,
-    void* OutBuffer,
-    const int NumSamples,
+    void* dst_buffer,
+    const int sample_count,
     const float* src_samples);
 
 

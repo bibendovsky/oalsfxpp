@@ -24,11 +24,12 @@
 #include "alSource.h"
 
 
-struct ChannelMap {
-    enum ChannelId channel;
+struct ChannelMap
+{
+    ChannelId channel_id;
     float angle;
     float elevation;
-};
+}; // ChannelMap
 
 float lerp(
     const float val1,
@@ -162,45 +163,45 @@ static void calc_panning_and_filters(
     const ALCdevice* device)
 {
     const auto frequency = device->frequency_;
-    const ChannelMap* chans = nullptr;
+    const ChannelMap* channel_map = nullptr;
     auto channel_count = 0;
     auto downmix_gain = 1.0F;
 
     switch (device->channel_format_)
     {
     case ChannelFormat::mono:
-        chans = mono_map;
+        channel_map = mono_map;
         channel_count = 1;
         break;
 
     case ChannelFormat::stereo:
-        chans = stereo_map;
+        channel_map = stereo_map;
         channel_count = 2;
         downmix_gain = 1.0F / 2.0F;
         break;
 
     case ChannelFormat::quad:
-        chans = quad_map;
+        channel_map = quad_map;
         channel_count = 4;
         downmix_gain = 1.0F / 4.0F;
         break;
 
     case ChannelFormat::five_point_one:
-        chans = x5_1_map;
+        channel_map = x5_1_map;
         channel_count = 6;
         // NOTE: Excludes LFE.
         downmix_gain = 1.0F / 5.0F;
         break;
 
     case ChannelFormat::six_point_one:
-        chans = x6_1_map;
+        channel_map = x6_1_map;
         channel_count = 7;
         // NOTE: Excludes LFE.
         downmix_gain = 1.0F / 6.0F;
         break;
 
     case ChannelFormat::seven_point_one:
-        chans = x7_1_map;
+        channel_map = x7_1_map;
         channel_count = 8;
         // NOTE: Excludes LFE.
         downmix_gain = 1.0F / 7.0F;
@@ -208,134 +209,119 @@ static void calc_panning_and_filters(
     }
 
     // Non-HRTF rendering. Use normal panning to the output.
+    for (int c = 0; c < channel_count; ++c)
     {
-        for (int c = 0; c < channel_count; ++c)
+        float coeffs[max_ambi_coeffs];
+
+        // Special-case LFE
+        if (channel_map[c].channel_id == ChannelId::lfe)
         {
-            float coeffs[max_ambi_coeffs];
+            source->direct_.channels_[c].target_gains_.fill(0.0F);
 
-            // Special-case LFE
-            if (chans[c].channel == ChannelId::lfe)
+            const auto idx = get_channel_index(device->channel_names_, channel_map[c].channel_id);
+
+            if (idx != -1)
             {
-                for (int j = 0; j < max_channels; ++j)
-                {
-                    source->direct_.channels_[c].target_gains_[j] = 0.0F;
-                }
-
-                const auto idx = get_channel_index(device->channel_names_, chans[c].channel);
-
-                if (idx != -1)
-                {
-                    source->direct_.channels_[c].target_gains_[idx] = dry_gain;
-                }
-
-                for (int j = 0; j < max_effect_channels; ++j)
-                {
-                    source->aux_.channels_[c].target_gains_[j] = 0.0F;
-                }
-
-                continue;
+                source->direct_.channels_[c].target_gains_[idx] = dry_gain;
             }
 
-            calc_angle_coeffs(chans[c].angle, chans[c].elevation, spread, coeffs);
+            source->aux_.channels_[c].target_gains_.fill(0.0F);
 
-            compute_panning_gains(device, coeffs, dry_gain, source->direct_.channels_[c].target_gains_.data());
+            continue;
+        }
 
-            const auto slot = send_slot;
+        calc_angle_coeffs(channel_map[c].angle, channel_map[c].elevation, spread, coeffs);
 
-            if (slot)
-            {
-                compute_panning_gains_bf(
-                    max_effect_channels,
-                    coeffs,
-                    wet_gain,
-                    source->aux_.channels_[c].target_gains_.data());
-            }
-            else
-            {
-                for (int j = 0; j < max_effect_channels; ++j)
-                {
-                    source->aux_.channels_[c].target_gains_[j] = 0.0F;
-                }
-            }
+        compute_panning_gains(device, coeffs, dry_gain, source->direct_.channels_[c].target_gains_.data());
+
+        const auto slot = send_slot;
+
+        if (slot)
+        {
+            compute_panning_gains_bf(
+                max_effect_channels,
+                coeffs,
+                wet_gain,
+                source->aux_.channels_[c].target_gains_.data());
+        }
+        else
+        {
+            source->aux_.channels_[c].target_gains_.fill(0.0F);
         }
     }
 
+    auto hf_scale = source->direct_.hf_reference_ / frequency;
+    auto lf_scale = source->direct_.lf_reference_ / frequency;
+    auto gain_hf = std::max(dry_gain_hf, 0.001F); // Limit -60dB
+    auto gain_lf = std::max(dry_gain_lf, 0.001F);
+
+    source->direct_.filter_type_ = ActiveFilters::none;
+
+    if (gain_hf != 1.0F)
     {
-        const auto hf_scale = source->direct_.hf_reference_ / frequency;
-        const auto lf_scale = source->direct_.lf_reference_ / frequency;
-        const auto gain_hf = std::max(dry_gain_hf, 0.001F); // Limit -60dB
-        const auto gain_lf = std::max(dry_gain_lf, 0.001F);
-
-        source->direct_.filter_type_ = ActiveFilters::none;
-
-        if (gain_hf != 1.0F)
-        {
-            source->direct_.filter_type_ = static_cast<ActiveFilters>(
-                static_cast<int>(source->direct_.filter_type_) | static_cast<int>(ActiveFilters::low_pass));
-        }
-
-        if (gain_lf != 1.0F)
-        {
-            source->direct_.filter_type_ = static_cast<ActiveFilters>(
-                static_cast<int>(source->direct_.filter_type_) | static_cast<int>(ActiveFilters::high_pass));
-        }
-
-        source->direct_.channels_[0].low_pass_.set_params(
-            FilterType::high_shelf,
-            gain_hf,
-            hf_scale,
-            FilterState::calc_rcp_q_from_slope(gain_hf, 1.0F));
-
-        source->direct_.channels_[0].high_pass_.set_params(
-            FilterType::low_shelf,
-            gain_lf,
-            lf_scale,
-            FilterState::calc_rcp_q_from_slope(gain_lf, 1.0F));
-
-        for (int c = 1; c < channel_count; ++c)
-        {
-            FilterState::copy_params(source->direct_.channels_[0].low_pass_, source->direct_.channels_[c].low_pass_);
-            FilterState::copy_params(source->direct_.channels_[0].high_pass_, source->direct_.channels_[c].high_pass_);
-        }
+        source->direct_.filter_type_ = static_cast<ActiveFilters>(
+            static_cast<int>(source->direct_.filter_type_) | static_cast<int>(ActiveFilters::low_pass));
     }
 
+    if (gain_lf != 1.0F)
     {
-        const auto hf_scale = source->aux_.hf_reference_ / frequency;
-        const auto lf_scale = source->aux_.lf_reference_ / frequency;
-        const auto gain_hf = std::max(wet_gain_hf, 0.001F);
-        const auto gain_lf = std::max(wet_gain_lf, 0.001F);
+        source->direct_.filter_type_ = static_cast<ActiveFilters>(
+            static_cast<int>(source->direct_.filter_type_) | static_cast<int>(ActiveFilters::high_pass));
+    }
 
-        source->aux_.filter_type_ = ActiveFilters::none;
+    source->direct_.channels_[0].low_pass_.set_params(
+        FilterType::high_shelf,
+        gain_hf,
+        hf_scale,
+        FilterState::calc_rcp_q_from_slope(gain_hf, 1.0F));
 
-        if (gain_hf != 1.0F)
-        {
-            source->aux_.filter_type_ = static_cast<ActiveFilters>(
-                static_cast<int>(source->aux_.filter_type_) | static_cast<int>(ActiveFilters::low_pass));
-        }
+    source->direct_.channels_[0].high_pass_.set_params(
+        FilterType::low_shelf,
+        gain_lf,
+        lf_scale,
+        FilterState::calc_rcp_q_from_slope(gain_lf, 1.0F));
 
-        if (gain_lf != 1.0F)
-        {
-            source->aux_.filter_type_ = static_cast<ActiveFilters>(
-                static_cast<int>(source->aux_.filter_type_) | static_cast<int>(ActiveFilters::high_pass));
-        }
+    for (int c = 1; c < channel_count; ++c)
+    {
+        FilterState::copy_params(source->direct_.channels_[0].low_pass_, source->direct_.channels_[c].low_pass_);
+        FilterState::copy_params(source->direct_.channels_[0].high_pass_, source->direct_.channels_[c].high_pass_);
+    }
 
-        source->aux_.channels_[0].low_pass_.set_params(
-            FilterType::high_shelf,
-            gain_hf,
-            hf_scale,
-            FilterState::calc_rcp_q_from_slope(gain_hf, 1.0F));
+    hf_scale = source->aux_.hf_reference_ / frequency;
+    lf_scale = source->aux_.lf_reference_ / frequency;
+    gain_hf = std::max(wet_gain_hf, 0.001F);
+    gain_lf = std::max(wet_gain_lf, 0.001F);
 
-        source->aux_.channels_[0].high_pass_.set_params(
-            FilterType::low_shelf,
-            gain_lf,
-            lf_scale,
-            FilterState::calc_rcp_q_from_slope(gain_lf, 1.0F));
+    source->aux_.filter_type_ = ActiveFilters::none;
 
-        for (int c = 1; c < channel_count; ++c)
-        {
-            FilterState::copy_params(source->aux_.channels_[0].low_pass_, source->aux_.channels_[c].low_pass_);
-            FilterState::copy_params(source->aux_.channels_[0].high_pass_, source->aux_.channels_[c].high_pass_);
-        }
+    if (gain_hf != 1.0F)
+    {
+        source->aux_.filter_type_ = static_cast<ActiveFilters>(
+            static_cast<int>(source->aux_.filter_type_) | static_cast<int>(ActiveFilters::low_pass));
+    }
+
+    if (gain_lf != 1.0F)
+    {
+        source->aux_.filter_type_ = static_cast<ActiveFilters>(
+            static_cast<int>(source->aux_.filter_type_) | static_cast<int>(ActiveFilters::high_pass));
+    }
+
+    source->aux_.channels_[0].low_pass_.set_params(
+        FilterType::high_shelf,
+        gain_hf,
+        hf_scale,
+        FilterState::calc_rcp_q_from_slope(gain_hf, 1.0F));
+
+    source->aux_.channels_[0].high_pass_.set_params(
+        FilterType::low_shelf,
+        gain_lf,
+        lf_scale,
+        FilterState::calc_rcp_q_from_slope(gain_lf, 1.0F));
+
+    for (int c = 1; c < channel_count; ++c)
+    {
+        FilterState::copy_params(source->aux_.channels_[0].low_pass_, source->aux_.channels_[c].low_pass_);
+        FilterState::copy_params(source->aux_.channels_[0].high_pass_, source->aux_.channels_[c].high_pass_);
     }
 }
 
@@ -367,7 +353,7 @@ static void calc_non_attn_source_params(
     const auto dry_gain_hf = source->direct_.gain_hf_;
     const auto dry_gain_lf = source->direct_.gain_lf_;
 
-    static const float dir[3] = {0.0F, 0.0F, -1.0F};
+    constexpr float dir[3] = {0.0F, 0.0F, -1.0F};
 
     const auto wet_gain = std::min(source->aux_.gain_, max_mix_gain);
     const auto wet_gain_hf = source->aux_.gain_hf_;
@@ -403,35 +389,35 @@ static void update_context_sources(
 }
 
 static void write_f32(
-    const SampleBuffers* in_buffer,
-    void* out_buffer,
+    const SampleBuffers* src_buffers,
+    void* dst_buffer,
     const int offset,
-    const int samples_to_do,
-    const int num_chans)
+    const int sample_count,
+    const int channel_count)
 {
-    for (int j = 0; j < num_chans; ++j)
+    for (int j = 0; j < channel_count; ++j)
     {
-        const auto in = (*in_buffer)[j].data();
-        auto out = static_cast<float*>(out_buffer) + (offset * num_chans) + j;
+        const auto in = (*src_buffers)[j].data();
+        auto out = static_cast<float*>(dst_buffer) + (offset * channel_count) + j;
 
-        for (int i = 0; i < samples_to_do; ++i)
+        for (int i = 0; i < sample_count; ++i)
         {
-            out[i * num_chans] = in[i];
+            out[i * channel_count] = in[i];
         }
     }
 }
 
 void alu_mix_data(
     ALCdevice* device,
-    void* out_buffer,
-    const int num_samples,
+    void* dst_buffer,
+    const int sample_count,
     const float* src_samples)
 {
     device->source_samples_ = src_samples;
 
-    for (int samples_done = 0; samples_done < num_samples; )
+    for (int samples_done = 0; samples_done < sample_count; )
     {
-        const auto samples_to_do = std::min(num_samples - samples_done, max_sample_buffer_size);
+        const auto samples_to_do = std::min(sample_count - samples_done, max_sample_buffer_size);
 
         for (int c = 0; c < device->channel_count_; ++c)
         {
@@ -455,12 +441,12 @@ void alu_mix_data(
 
         state->process(samples_to_do, slot->wet_buffer_, *state->dst_buffers_, state->dst_channel_count_);
 
-        if (out_buffer)
+        if (dst_buffer)
         {
             auto buffers = &device->sample_buffers_;
             const auto channels = device->channel_count_;
 
-            write_f32(buffers, out_buffer, samples_done, samples_to_do, channels);
+            write_f32(buffers, dst_buffer, samples_done, samples_to_do, channels);
         }
 
         samples_done += samples_to_do;

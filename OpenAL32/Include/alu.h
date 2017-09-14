@@ -179,15 +179,10 @@ void compute_first_order_gains_bf(
     const float in_gain,
     float out_gains[max_channels]);
 
-void mix_source(
-    ALsource* source,
-    ALCdevice* device,
-    const int samples_to_do);
-
 void alu_mix_data(
     ALCdevice* device,
-    void* out_buffer,
-    const int num_samples,
+    void* dst_buffer,
+    const int sample_count,
     const float* src_samples);
 
 
