@@ -1,5 +1,7 @@
 #include "oalsfxpp_api_impl.h"
 #include <new>
+#include "alEffect.h"
+#include "alAuxEffectSlot.h"
 #include "alSource.h"
 
 

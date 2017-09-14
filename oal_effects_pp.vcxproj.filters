@@ -59,9 +59,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="common\math_defs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="OpenAL32\Include\alAuxEffectSlot.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -75,9 +72,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OpenAL32\Include\alSource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="OpenAL32\Include\alu.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="oalsfxpp_api_impl.h">

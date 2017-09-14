@@ -20,7 +20,8 @@
 
 
 #include "config.h"
-#include "alu.h"
+#include "alFilter.h"
+#include "alAuxEffectSlot.h"
 
 
 class ModulatorEffectState :
@@ -91,7 +92,7 @@ protected:
         }
 
         // Custom filter coeffs, which match the old version instead of a low-shelf.
-        const auto cw = std::cos(tau * props->modulator_.high_pass_cutoff_ / device->frequency_);
+        const auto cw = std::cos(Math::tau * props->modulator_.high_pass_cutoff_ / device->frequency_);
         const auto a = (2.0F - cw) - std::sqrt(std::pow(2.0F - cw, 2.0F) - 1.0F);
 
         for (int i = 0; i < max_effect_channels; ++i)
@@ -108,7 +109,7 @@ protected:
 
         for (int i = 0; i < max_effect_channels; ++i)
         {
-            compute_first_order_gains(device->channel_count_, device->foa_, mat4f_identity.m_[i], 1.0F, gains_[i].data());
+            Panning::compute_first_order_gains(device->channel_count_, device->foa_, mat4f_identity.m_[i], 1.0F, gains_[i].data());
         }
     }
 
@@ -185,7 +186,7 @@ private:
     static float sin_func(
         const int index)
     {
-        return std::sin(index * (tau / waveform_frac_one) - pi) * 0.5F + 0.5F;
+        return std::sin(index * (Math::tau / waveform_frac_one) - Math::pi) * 0.5F + 0.5F;
     }
 
     static float saw_func(

@@ -22,7 +22,7 @@
 #include <array>
 #include "config.h"
 #include "alFilter.h"
-#include "alu.h"
+#include "alAuxEffectSlot.h"
 
 
 class DedicatedEffectState :
@@ -94,12 +94,12 @@ protected:
             {
                 float coeffs[max_ambi_coeffs];
 
-                calc_angle_coeffs(0.0F, 0.0F, 0.0F, coeffs);
+                Panning::calc_angle_coeffs(0.0F, 0.0F, 0.0F, coeffs);
 
                 dst_buffers_ = &device->sample_buffers_;
                 dst_channel_count_ = device->channel_count_;
 
-                compute_panning_gains(device->channel_count_, device->dry_, coeffs, gain, gains_.data());
+                Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, gain, gains_.data());
             }
         }
     }

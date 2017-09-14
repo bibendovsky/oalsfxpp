@@ -135,14 +135,12 @@
     <ClCompile Include="oal_effects_pp_test.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="common\math_defs.h" />
     <ClInclude Include="oalsfxpp_api_impl.h" />
     <ClInclude Include="OpenAL32\Include\alAuxEffectSlot.h" />
     <ClInclude Include="OpenAL32\Include\alEffect.h" />
     <ClInclude Include="OpenAL32\Include\alFilter.h" />
     <ClInclude Include="OpenAL32\Include\alMain.h" />
     <ClInclude Include="OpenAL32\Include\alSource.h" />
-    <ClInclude Include="OpenAL32\Include\alu.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

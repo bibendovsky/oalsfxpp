@@ -22,7 +22,8 @@
 #include <algorithm>
 #include <vector>
 #include "config.h"
-#include "alu.h"
+#include "alFilter.h"
+#include "alAuxEffectSlot.h"
 
 
 class EchoEffectState :
@@ -131,12 +132,12 @@ protected:
         effect_gain = 1.0F;
 
         // First tap panning
-        calc_angle_coeffs(-pi_2 * lrpan, 0.0F, spread, coeffs);
-        compute_panning_gains(device->channel_count_, device->dry_, coeffs, effect_gain, gains_[0].data());
+        Panning::calc_angle_coeffs(-Math::pi_2 * lrpan, 0.0F, spread, coeffs);
+        Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, effect_gain, gains_[0].data());
 
         // Second tap panning
-        calc_angle_coeffs(pi_2 * lrpan, 0.0F, spread, coeffs);
-        compute_panning_gains(device->channel_count_, device->dry_, coeffs, effect_gain, gains_[1].data());
+        Panning::calc_angle_coeffs(Math::pi_2 * lrpan, 0.0F, spread, coeffs);
+        Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, effect_gain, gains_[1].data());
     }
 
     void EchoEffectState::do_process(

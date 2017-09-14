@@ -22,7 +22,8 @@
 #include <algorithm>
 #include <array>
 #include "config.h"
-#include "alu.h"
+#include "alAuxEffectSlot.h"
+#include "alFilter.h"
 
 
 class DistortionEffectState :
@@ -73,7 +74,7 @@ protected:
         attenuation_ = props->distortion_.gain_;
 
         // Store waveshaper edge settings.
-        auto edge = std::sin(props->distortion_.edge_ * (pi_2));
+        auto edge = std::sin(props->distortion_.edge_ * (Math::pi_2));
         edge = std::min(edge, 0.99F);
         edge_coeff_ = 2.0F * edge / (1.0F - edge);
 
@@ -101,7 +102,7 @@ protected:
             cutoff / (frequency * 4.0F),
             FilterState::calc_rcp_q_from_bandwidth(cutoff / (frequency * 4.0F), bandwidth));
 
-        compute_ambient_gains(device->channel_count_, device->dry_, 1.0F, gains_.data());
+        Panning::compute_ambient_gains(device->channel_count_, device->dry_, 1.0F, gains_.data());
     }
 
     void DistortionEffectState::do_process(

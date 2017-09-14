@@ -21,7 +21,7 @@
 
 #include <algorithm>
 #include "config.h"
-#include "alu.h"
+#include "alAuxEffectSlot.h"
 
 
 class CompressorEffectState :
@@ -79,7 +79,7 @@ protected:
 
         for (int i = 0; i < 4; ++i)
         {
-            compute_first_order_gains(device->channel_count_, device->foa_, mat4f_identity.m_[i], 1.0F, gains_[i].data());
+            Panning::compute_first_order_gains(device->channel_count_, device->foa_, mat4f_identity.m_[i], 1.0F, gains_[i].data());
         }
     }
 
@@ -127,7 +127,7 @@ protected:
 
                     // Apply the inverse of the gain control to normalize/compress
                     // the volume.
-                    const auto output = 1.0F / clamp(gain_control_, 0.5F, 2.0F);
+                    const auto output = 1.0F / Math::clamp(gain_control_, 0.5F, 2.0F);
 
                     for (int j = 0; j < 4; ++j)
                     {
@@ -154,7 +154,7 @@ protected:
                         gain_control_ = std::max(gain_control_ - release_rate_, amplitude);
                     }
 
-                    const auto output = 1.0F / clamp(gain_control_, 0.5F, 2.0F);
+                    const auto output = 1.0F / Math::clamp(gain_control_, 0.5F, 2.0F);
 
                     for (int j = 0; j < 4; ++j)
                     {

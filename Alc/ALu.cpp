@@ -21,6 +21,7 @@
 
 #include <algorithm>
 #include "oalsfxpp_api_impl.h"
+#include "alAuxEffectSlot.h"
 #include "alSource.h"
 
 
@@ -30,14 +31,6 @@ struct ChannelMap
     float angle;
     float elevation;
 }; // ChannelMap
-
-float lerp(
-    const float val1,
-    const float val2,
-    const float mu)
-{
-    return val1 + ((val2 - val1) * mu);
-}
 
 static bool calc_effect_slot_params(
     EffectSlot* slot,
@@ -60,45 +53,45 @@ static const ChannelMap mono_map[1] = {
 };
 
 static const ChannelMap stereo_map[2] = {
-    {ChannelId::front_left, deg_to_rad(-30.0F), deg_to_rad(0.0F)},
-    {ChannelId::front_right, deg_to_rad(30.0F), deg_to_rad(0.0F)}
+    {ChannelId::front_left, Math::deg_to_rad(-30.0F), Math::deg_to_rad(0.0F)},
+    {ChannelId::front_right, Math::deg_to_rad(30.0F), Math::deg_to_rad(0.0F)}
 };
 
 static const ChannelMap quad_map[4] = {
-    {ChannelId::front_left, deg_to_rad(-45.0F), deg_to_rad(0.0F)},
-    {ChannelId::front_right, deg_to_rad(45.0F), deg_to_rad(0.0F)},
-    {ChannelId::back_left, deg_to_rad(-135.0F), deg_to_rad(0.0F)},
-    {ChannelId::back_right, deg_to_rad(135.0F), deg_to_rad(0.0F)}
+    {ChannelId::front_left, Math::deg_to_rad(-45.0F), Math::deg_to_rad(0.0F)},
+    {ChannelId::front_right, Math::deg_to_rad(45.0F), Math::deg_to_rad(0.0F)},
+    {ChannelId::back_left, Math::deg_to_rad(-135.0F), Math::deg_to_rad(0.0F)},
+    {ChannelId::back_right, Math::deg_to_rad(135.0F), Math::deg_to_rad(0.0F)}
 };
 
 static const ChannelMap x5_1_map[6] = {
-    {ChannelId::front_left, deg_to_rad(-30.0F), deg_to_rad(0.0F)},
-    {ChannelId::front_right, deg_to_rad(30.0F), deg_to_rad(0.0F)},
-    {ChannelId::front_center, deg_to_rad(0.0F), deg_to_rad(0.0F)},
+    {ChannelId::front_left, Math::deg_to_rad(-30.0F), Math::deg_to_rad(0.0F)},
+    {ChannelId::front_right, Math::deg_to_rad(30.0F), Math::deg_to_rad(0.0F)},
+    {ChannelId::front_center, Math::deg_to_rad(0.0F), Math::deg_to_rad(0.0F)},
     {ChannelId::lfe, 0.0F, 0.0F},
-    {ChannelId::side_left, deg_to_rad(-110.0F), deg_to_rad(0.0F)},
-    {ChannelId::side_right, deg_to_rad(110.0F), deg_to_rad(0.0F)}
+    {ChannelId::side_left, Math::deg_to_rad(-110.0F), Math::deg_to_rad(0.0F)},
+    {ChannelId::side_right, Math::deg_to_rad(110.0F), Math::deg_to_rad(0.0F)}
 };
 
 static const ChannelMap x6_1_map[7] = {
-    {ChannelId::front_left, deg_to_rad(-30.0F), deg_to_rad(0.0F)},
-    {ChannelId::front_right, deg_to_rad(30.0F), deg_to_rad(0.0F)},
-    {ChannelId::front_center, deg_to_rad(0.0F), deg_to_rad(0.0F)},
+    {ChannelId::front_left, Math::deg_to_rad(-30.0F), Math::deg_to_rad(0.0F)},
+    {ChannelId::front_right, Math::deg_to_rad(30.0F), Math::deg_to_rad(0.0F)},
+    {ChannelId::front_center, Math::deg_to_rad(0.0F), Math::deg_to_rad(0.0F)},
     {ChannelId::lfe, 0.0F, 0.0F},
-    {ChannelId::back_center, deg_to_rad(180.0F), deg_to_rad(0.0F)},
-    {ChannelId::side_left, deg_to_rad(-90.0F), deg_to_rad(0.0F)},
-    {ChannelId::side_right, deg_to_rad(90.0F), deg_to_rad(0.0F)}
+    {ChannelId::back_center, Math::deg_to_rad(180.0F), Math::deg_to_rad(0.0F)},
+    {ChannelId::side_left, Math::deg_to_rad(-90.0F), Math::deg_to_rad(0.0F)},
+    {ChannelId::side_right, Math::deg_to_rad(90.0F), Math::deg_to_rad(0.0F)}
 };
 
 static const ChannelMap x7_1_map[8] = {
-    {ChannelId::front_left, deg_to_rad(-30.0F), deg_to_rad(0.0F)},
-    {ChannelId::front_right, deg_to_rad(30.0F), deg_to_rad(0.0F)},
-    {ChannelId::front_center, deg_to_rad(0.0F), deg_to_rad(0.0F)},
+    {ChannelId::front_left, Math::deg_to_rad(-30.0F), Math::deg_to_rad(0.0F)},
+    {ChannelId::front_right, Math::deg_to_rad(30.0F), Math::deg_to_rad(0.0F)},
+    {ChannelId::front_center, Math::deg_to_rad(0.0F), Math::deg_to_rad(0.0F)},
     {ChannelId::lfe, 0.0F, 0.0F},
-    {ChannelId::back_left, deg_to_rad(-150.0F), deg_to_rad(0.0F)},
-    {ChannelId::back_right, deg_to_rad(150.0F), deg_to_rad(0.0F)},
-    {ChannelId::side_left, deg_to_rad(-90.0F), deg_to_rad(0.0F)},
-    {ChannelId::side_right, deg_to_rad(90.0F), deg_to_rad(0.0F)}
+    {ChannelId::back_left, Math::deg_to_rad(-150.0F), Math::deg_to_rad(0.0F)},
+    {ChannelId::back_right, Math::deg_to_rad(150.0F), Math::deg_to_rad(0.0F)},
+    {ChannelId::side_left, Math::deg_to_rad(-90.0F), Math::deg_to_rad(0.0F)},
+    {ChannelId::side_right, Math::deg_to_rad(90.0F), Math::deg_to_rad(0.0F)}
 };
 
 static void calc_panning_and_filters(
@@ -183,15 +176,15 @@ static void calc_panning_and_filters(
             continue;
         }
 
-        calc_angle_coeffs(channel_map[c].angle, channel_map[c].elevation, spread, coeffs);
+        Panning::calc_angle_coeffs(channel_map[c].angle, channel_map[c].elevation, spread, coeffs);
 
-        compute_panning_gains(device->channel_count_, device->dry_, coeffs, dry_gain, source->direct_.channels_[c].target_gains_.data());
+        Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, dry_gain, source->direct_.channels_[c].target_gains_.data());
 
         const auto slot = send_slot;
 
         if (slot)
         {
-            compute_panning_gains_bf(
+            Panning::compute_panning_gains_bf(
                 max_effect_channels,
                 coeffs,
                 wet_gain,

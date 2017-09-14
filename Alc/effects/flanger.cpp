@@ -23,7 +23,8 @@
 #include <array>
 #include <vector>
 #include "config.h"
-#include "alu.h"
+#include "alFilter.h"
+#include "alAuxEffectSlot.h"
 
 
 class FlangerEffectState :
@@ -123,10 +124,10 @@ protected:
         depth_ = props->flanger_.depth_ * delay_;
 
         // Gains for left and right sides
-        calc_angle_coeffs(-pi_2, 0.0F, 0.0F, coeffs);
-        compute_panning_gains(device->channel_count_, device->dry_, coeffs, 1.0F, gains_[0].data());
-        calc_angle_coeffs(pi_2, 0.0F, 0.0F, coeffs);
-        compute_panning_gains(device->channel_count_, device->dry_, coeffs, 1.0F, gains_[1].data());
+        Panning::calc_angle_coeffs(-Math::pi_2, 0.0F, 0.0F, coeffs);
+        Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, 1.0F, gains_[0].data());
+        Panning::calc_angle_coeffs(Math::pi_2, 0.0F, 0.0F, coeffs);
+        Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, 1.0F, gains_[1].data());
 
         const auto phase = props->flanger_.phase_;
         const auto rate = props->flanger_.rate_;
@@ -149,7 +150,7 @@ protected:
                 break;
 
             case Waveform::sinusoid:
-                lfo_scale_ = tau / lfo_range_;
+                lfo_scale_ = Math::tau / lfo_range_;
                 break;
             }
 

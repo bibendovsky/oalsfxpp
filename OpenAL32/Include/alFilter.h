@@ -4,7 +4,6 @@
 
 #include <cassert>
 #include "alMain.h"
-#include "math_defs.h"
 
 
 // Filters implementation is based on the "Cookbook formulae for audio
@@ -91,7 +90,7 @@ struct FilterState
         assert(gain > 0.00001F);
 
 
-        const auto w0 = tau * freq_mult;
+        const auto w0 = Math::tau * freq_mult;
         const auto sin_w0 = std::sin(w0);
         const auto cos_w0 = std::cos(w0);
         const auto alpha = sin_w0 / 2.0F * rcp_q;
@@ -302,7 +301,7 @@ struct FilterState
         const float freq_mult,
         const float bandwidth)
     {
-        const auto w0 = tau * freq_mult;
+        const auto w0 = Math::tau * freq_mult;
         return 2.0F * std::sinh(std::log(2.0F) / 2.0F * bandwidth * w0 / std::sin(w0));
     }
 }; // FilterState

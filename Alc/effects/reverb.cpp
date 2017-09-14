@@ -24,6 +24,7 @@
 #include <array>
 #include <vector>
 #include "oalsfxpp_api_impl.h"
+#include "alAuxEffectSlot.h"
 
 
 class ReverbEffectState :
@@ -254,12 +255,12 @@ protected:
         }
 
         // Calculate the LF/HF decay times.
-        const auto lf_decay_time = clamp(
+        const auto lf_decay_time = Math::clamp(
             props->reverb_.decay_time_ * props->reverb_.decay_lf_ratio_,
             EffectProps::Reverb::min_decay_time,
             EffectProps::Reverb::max_decay_time);
 
-        const auto hf_decay_time = clamp(
+        const auto hf_decay_time = Math::clamp(
             props->reverb_.decay_time_ * hf_ratio,
             EffectProps::Reverb::min_decay_time,
             EffectProps::Reverb::max_decay_time);
@@ -274,8 +275,8 @@ protected:
             lf_decay_time,
             props->reverb_.decay_time_,
             hf_decay_time,
-            tau * lf_scale,
-            tau * hf_scale,
+            Math::tau * lf_scale,
+            Math::tau * hf_scale,
             props->reverb_.echo_time_,
             props->reverb_.echo_depth_,
             frequency);
@@ -902,7 +903,7 @@ private:
         // Using the limit calculated above, apply the upper bound to the HF
         // ratio. Also need to limit the result to a minimum of 0.1, just like
         // the HF ratio parameter.
-        return clamp(limit_ratio, 0.1F, hf_ratio);
+        return Math::clamp(limit_ratio, 0.1F, hf_ratio);
     }
 
     // Calculates the first-order high-pass coefficients following the I3DL2
@@ -1058,8 +1059,8 @@ private:
         }
 
         const auto g = std::max(0.001F, gain);
-        const auto rw = pi - w;
-        const auto p = std::sin((0.5F * rw) - (0.25F * pi)) / std::sin((0.5F * rw) + (0.25F * pi));
+        const auto rw = Math::pi - w;
+        const auto p = std::sin((0.5F * rw) - (0.25F * Math::pi)) / std::sin((0.5F * rw) + (0.25F * Math::pi));
         const auto n = (g + 1.0F) / (g - 1.0F);
         const auto alpha = n + std::sqrt((n * n) - 1.0F);
         const auto beta0 = (1.0F + g + (1.0F - g) * alpha) / 2.0F;
@@ -1130,7 +1131,7 @@ private:
         }
 
         const auto g = std::max(0.001F, gain);
-        const auto p = std::sin((0.5F * w) - (0.25F * pi)) / std::sin((0.5F * w) + (0.25F * pi));
+        const auto p = std::sin((0.5F * w) - (0.25F * Math::pi)) / std::sin((0.5F * w) + (0.25F * Math::pi));
         const auto n = (g + 1.0F) / (g - 1.0F);
         const auto alpha = n + std::sqrt((n * n) - 1.0F);
         const auto beta0 = (1.0F + g + (1.0F - g) * alpha) / 2.0F;
@@ -1361,7 +1362,7 @@ private:
                   late_line_lengths[2] + late_line_lengths[3]) / 4.0F * multiplier;
 
         // Include the echo transformation (see below).
-        length = lerp(length, echo_time, echo_depth);
+        length = Math::lerp(length, echo_time, echo_depth);
 
         length += (late_allpass_lengths[0] + late_allpass_lengths[1] +
                    late_allpass_lengths[2] + late_allpass_lengths[3]) / 4.0F * multiplier;
@@ -1373,14 +1374,14 @@ private:
 
         band_weights[0] = lf_w;
         band_weights[1] = hf_w - lf_w;
-        band_weights[2] = tau - hf_w;
+        band_weights[2] = Math::tau - hf_w;
 
         late_.density_gain = calc_density_gain(
             calc_decay_coeff(
                 length,
                 ((band_weights[0] * lf_decay_time) +
                     (band_weights[1] * mf_decay_time) +
-                    (band_weights[2] * hf_decay_time)) / tau)
+                    (band_weights[2] * hf_decay_time)) / Math::tau)
         );
 
         for (int i = 0; i < 4; ++i)
@@ -1395,7 +1396,7 @@ private:
             // applies the echo transformation.  As the EAX echo depth approaches
             // 1, the line lengths approach a length equal to the echoTime.  This
             // helps to produce distinct echoes along the tail.
-            length = lerp(late_line_lengths[i] * multiplier, echo_time, echo_depth);
+            length = Math::lerp(late_line_lengths[i] * multiplier, echo_time, echo_depth);
 
             // Calculate the delay offset for each delay line.
             late_.offsets[i][1] = static_cast<int>(length * frequency);
@@ -1403,7 +1404,7 @@ private:
             // Approximate the absorption that the vector all-pass would exhibit
             // given the current diffusion so we don't have to process a full T60
             // filter for each of its four lines.
-            length += lerp(late_allpass_lengths[i],
+            length += Math::lerp(late_allpass_lengths[i],
                 (late_allpass_lengths[0] + late_allpass_lengths[1] +
                     late_allpass_lengths[2] + late_allpass_lengths[3]) / 4.0F,
                 diffusion) * multiplier;
@@ -1458,7 +1459,7 @@ private:
 
         // Define a Z-focus (X in Ambisonics) transform, given the panning vector
         // length.
-        const auto sa = std::sin(std::min(length, 1.0F) * (pi / 4.0F));
+        const auto sa = std::sin(std::min(length, 1.0F) * (Math::pi / 4.0F));
 
         const auto zfocus = Mat4F{{
             {1.0F / (1.0F + sa), 0.0F, 0.0F, (sa / (1.0F + sa)) / 1.732050808F,},
@@ -1541,7 +1542,7 @@ private:
 
         for (int i = 0; i < max_effect_channels; ++i)
         {
-            compute_first_order_gains(device->channel_count_, device->foa_, transform.m_[i], gain*early_gain, early_.pan_gains[i].data());
+            Panning::compute_first_order_gains(device->channel_count_, device->foa_, transform.m_[i], gain*early_gain, early_.pan_gains[i].data());
         }
 
         rot = get_transform_from_vector(late_reverb_pan);
@@ -1550,7 +1551,7 @@ private:
 
         for (int i = 0; i < max_effect_channels; ++i)
         {
-            compute_first_order_gains(device->channel_count_, device->foa_, transform.m_[i], gain * late_gain, late_.pan_gains[i].data());
+            Panning::compute_first_order_gains(device->channel_count_, device->foa_, transform.m_[i], gain * late_gain, late_.pan_gains[i].data());
         }
     }
 
@@ -1577,7 +1578,7 @@ private:
         const int c,
         const float mu)
     {
-        return lerp(delay->lines[off0 & delay->mask][c], delay->lines[off1 & delay->mask][c], mu);
+        return Math::lerp(delay->lines[off0 & delay->mask][c], delay->lines[off1 & delay->mask][c], mu);
     }
 
     static float delay_out_faded(
@@ -1656,7 +1657,7 @@ private:
         {
             // Calculate the sinus rhythm (dependent on modulation time and the
             // sampling rate).
-            const auto sinus = std::sin(tau * index / mod_.range);
+            const auto sinus = std::sin(Math::tau * index / mod_.range);
 
             // Step the modulation index forward, keeping it bound to its range.
             index = (index + 1) % mod_.range;
@@ -1664,7 +1665,7 @@ private:
             // The depth determines the range over which to read the input samples
             // from, so it must be filtered to reduce the distortion caused by even
             // small parameter changes.
-            range = lerp(range, mod_.depth, mod_.coeff);
+            range = Math::lerp(range, mod_.depth, mod_.coeff);
 
             // Calculate the read offset.
             delays[i] = std::lround(range * sinus);
