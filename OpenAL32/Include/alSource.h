@@ -2,7 +2,7 @@
 #define _AL_SOURCE_H_
 
 
-#include "alFilter.h"
+#include "alMain.h"
 
 
 struct ALsource

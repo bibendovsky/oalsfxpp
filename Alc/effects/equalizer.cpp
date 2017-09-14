@@ -19,7 +19,6 @@
  */
 
 
-#include "alFilter.h"
 #include "alAuxEffectSlot.h"
 
 

@@ -20,7 +20,6 @@
 
 
 #include <array>
-#include "alFilter.h"
 #include "alAuxEffectSlot.h"
 
 

@@ -22,7 +22,6 @@
 #include <algorithm>
 #include <array>
 #include "alAuxEffectSlot.h"
-#include "alFilter.h"
 
 
 class DistortionEffectState :
