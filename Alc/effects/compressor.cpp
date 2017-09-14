@@ -20,7 +20,7 @@
 
 
 #include <algorithm>
-#include "alAuxEffectSlot.h"
+#include "alMain.h"
 
 
 class CompressorEffectState :

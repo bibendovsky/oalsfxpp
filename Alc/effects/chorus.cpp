@@ -22,7 +22,7 @@
 #include <algorithm>
 #include <array>
 #include <vector>
-#include "alAuxEffectSlot.h"
+#include "alMain.h"
 
 
 class ChorusEffectState :

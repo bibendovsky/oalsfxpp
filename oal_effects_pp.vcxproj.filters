@@ -45,9 +45,6 @@
     <ClCompile Include="Alc\effects\null.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Alc\panning.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Alc\effects\reverb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -59,12 +56,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="OpenAL32\Include\alAuxEffectSlot.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="OpenAL32\Include\alEffect.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="OpenAL32\Include\alMain.h">
       <Filter>Header Files</Filter>
     </ClInclude>

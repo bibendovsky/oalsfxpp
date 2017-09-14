@@ -24,7 +24,6 @@
 #include <array>
 #include <vector>
 #include "oalsfxpp_api_impl.h"
-#include "alAuxEffectSlot.h"
 
 
 class ReverbEffectState :

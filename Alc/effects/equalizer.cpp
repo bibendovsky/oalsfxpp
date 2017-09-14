@@ -19,7 +19,7 @@
  */
 
 
-#include "alAuxEffectSlot.h"
+#include "alMain.h"
 
 
 /*  The document  "Effects Extension Guide.pdf"  says that low and high  *

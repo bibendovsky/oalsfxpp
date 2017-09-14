@@ -19,7 +19,7 @@
  */
 
 
-#include "alAuxEffectSlot.h"
+#include "alMain.h"
 
 
 class ModulatorEffectState :

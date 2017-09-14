@@ -130,14 +130,11 @@
     <ClCompile Include="Alc\effects\modulator.cpp" />
     <ClCompile Include="Alc\effects\null.cpp" />
     <ClCompile Include="Alc\effects\reverb.cpp" />
-    <ClCompile Include="Alc\panning.cpp" />
     <ClCompile Include="oalsfxpp_api_impl.cpp" />
     <ClCompile Include="oal_effects_pp_test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="oalsfxpp_api_impl.h" />
-    <ClInclude Include="OpenAL32\Include\alAuxEffectSlot.h" />
-    <ClInclude Include="OpenAL32\Include\alEffect.h" />
     <ClInclude Include="OpenAL32\Include\alMain.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

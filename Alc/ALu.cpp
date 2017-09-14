@@ -21,7 +21,6 @@
 
 #include <algorithm>
 #include "oalsfxpp_api_impl.h"
-#include "alAuxEffectSlot.h"
 
 
 struct ChannelMap

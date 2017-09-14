@@ -21,7 +21,7 @@
 
 #include <algorithm>
 #include <vector>
-#include "alAuxEffectSlot.h"
+#include "alMain.h"
 
 
 class EchoEffectState :

@@ -20,7 +20,7 @@
 
 
 #include <array>
-#include "alAuxEffectSlot.h"
+#include "alMain.h"
 
 
 class DedicatedEffectState :

@@ -21,7 +21,7 @@
 
 #include <algorithm>
 #include <array>
-#include "alAuxEffectSlot.h"
+#include "alMain.h"
 
 
 class DistortionEffectState :

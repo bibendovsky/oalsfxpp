@@ -3,9 +3,6 @@
 #include <cstdint>
 #include <iostream>
 #include <string>
-#include "alMain.h"
-#include "alEffect.h"
-#include "alAuxEffectSlot.h"
 #include "oalsfxpp_api_impl.h"
 
 
