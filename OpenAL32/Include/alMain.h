@@ -290,24 +290,6 @@ struct AmbiConfig
 using SampleBuffer = std::array<float, max_sample_buffer_size>;
 using SampleBuffers = std::vector<SampleBuffer>;
 
-using MixerFunc = void (*)(
-    const float* data,
-    const int channel_count,
-    SampleBuffers& dst_buffers,
-    float* current_gains,
-    const float* target_gains,
-    const int counter,
-    const int dst_position,
-    const int buffer_size);
-
-using RowMixerFunc = void (*)(
-    float* dst_buffer,
-    const float* gains,
-    const SampleBuffers& src_buffers,
-    const int channel_count,
-    const int src_position,
-    const int buffer_size);
-
 struct AmbiOutput
 {
     AmbiConfig ambi_;
