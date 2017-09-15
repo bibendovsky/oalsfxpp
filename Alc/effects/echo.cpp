@@ -131,11 +131,11 @@ protected:
 
         // First tap panning
         Panning::calc_angle_coeffs(-Math::pi_2 * lrpan, 0.0F, spread, coeffs);
-        Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, effect_gain, taps_gains_[0].data());
+        Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, effect_gain, taps_gains_[0]);
 
         // Second tap panning
         Panning::calc_angle_coeffs(Math::pi_2 * lrpan, 0.0F, spread, coeffs);
-        Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, effect_gain, taps_gains_[1].data());
+        Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, effect_gain, taps_gains_[1]);
     }
 
     void EchoEffectState::do_process(

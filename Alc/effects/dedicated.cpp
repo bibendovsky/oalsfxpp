@@ -97,7 +97,7 @@ protected:
                 dst_buffers_ = &device->sample_buffers_;
                 dst_channel_count_ = device->channel_count_;
 
-                Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, gain, gains_.data());
+                Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, gain, gains_);
             }
         }
     }

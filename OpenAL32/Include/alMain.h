@@ -499,7 +499,7 @@ struct Panning
         const int channel_count,
         const AmbiOutput& amb_output,
         const float in_gain,
-        float* const out_gains)
+        Gains& out_gains)
     {
         if (amb_output.coeff_count_ > 0)
         {
@@ -513,43 +513,24 @@ struct Panning
 
     static void compute_ambient_gains_mc(
         const ChannelConfig* channel_coeffs,
-        const int num_channels,
-        const float in_gain,
-        float gains[max_channels])
+        const int channel_count,
+        const float src_gain,
+        Gains& dst_gains)
     {
         for (int i = 0; i < max_channels; ++i)
         {
-            if (i < num_channels)
-            {
-                gains[i] = channel_coeffs[i][0] * 1.414213562F * in_gain;
-            }
-            else
-            {
-                gains[i] = 0.0F;
-            }
+            dst_gains[i] = (i < channel_count ? channel_coeffs[i][0] * 1.414213562F * src_gain : 0.0F);
         }
     }
 
     static void compute_ambient_gains_bf(
-        const int num_channels,
-        const float in_gain,
-        float gains[max_channels])
+        const int channel_count,
+        const float src_gain,
+        Gains& dst_gains)
     {
-        auto gain = 0.0F;
-
-        for (int i = 0; i < num_channels; ++i)
+        for (int i = 0; i < max_channels; ++i)
         {
-            if (i == 0)
-            {
-                gain += 1.0F;
-            }
-        }
-
-        gains[0] = gain * 1.414213562F * in_gain;
-
-        for (int i = 1; i < max_channels; i++)
-        {
-            gains[i] = 0.0F;
+            dst_gains[i] = (i == 0 ? 1.414213562F * src_gain : 0.0F);
         }
     }
 
@@ -560,7 +541,7 @@ struct Panning
         const AmbiOutput& amb_output,
         const AmbiCoeffs& coeffs,
         const float in_gain,
-        float* const out_gains)
+        Gains& out_gains)
     {
         if (amb_output.coeff_count_ > 0)
         {
@@ -584,48 +565,41 @@ struct Panning
 
     static void compute_panning_gains_mc(
         const ChannelConfig* channel_coeffs,
-        const int num_channels,
-        const int num_coeffs,
+        const int channel_count,
+        const int coeff_count,
         const AmbiCoeffs& coeffs,
-        const float in_gain,
-        float gains[max_channels])
+        const float src_gain,
+        Gains& dst_gains)
     {
         for (int i = 0; i < max_channels; ++i)
         {
-            if (i < num_channels)
+            if (i < channel_count)
             {
                 auto gain = 0.0F;
 
-                for (int j = 0; j < num_coeffs; ++j)
+                for (int j = 0; j < coeff_count; ++j)
                 {
                     gain += channel_coeffs[i][j] * coeffs[j];
                 }
 
-                gains[i] = Math::clamp(gain, 0.0F, 1.0F) * in_gain;
+                dst_gains[i] = Math::clamp(gain, 0.0F, 1.0F) * src_gain;
             }
             else
             {
-                gains[i] = 0.0F;
+                dst_gains[i] = 0.0F;
             }
         }
     }
 
     static void compute_panning_gains_bf(
-        const int num_channels,
+        const int channel_count,
         const AmbiCoeffs& coeffs,
-        const float in_gain,
-        float gains[max_channels])
+        const float src_gain,
+        Gains& dst_gains)
     {
         for (int i = 0; i < max_channels; ++i)
         {
-            if (i < num_channels)
-            {
-                gains[i] = coeffs[i] * in_gain;
-            }
-            else
-            {
-                gains[i] = 0.0F;
-            }
+            dst_gains[i] = (i < channel_count ? coeffs[i] * src_gain : 0.0F);
         }
     }
 
@@ -637,7 +611,7 @@ struct Panning
         const AmbiOutput& amb_output,
         const float* const matrix,
         const float in_gain,
-        float* const out_gains)
+        Gains& out_gains)
     {
         if (amb_output.coeff_count_ > 0)
         {
@@ -651,47 +625,40 @@ struct Panning
 
     static void compute_first_order_gains_mc(
         const ChannelConfig* channel_coeffs,
-        int num_channels,
-        const float mtx[4],
-        float in_gain,
-        float gains[max_channels])
+        int channel_count,
+        const float matrix[4],
+        float src_gain,
+        Gains& dst_gains)
     {
-        for (int i = 0; i < num_channels; ++i)
+        for (int i = 0; i < max_channels; ++i)
         {
-            if (i < num_channels)
+            if (i < channel_count)
             {
                 auto gain = 0.0F;
 
                 for (int j = 0; j < 4; ++j)
                 {
-                    gain += channel_coeffs[i][j] * mtx[j];
+                    gain += channel_coeffs[i][j] * matrix[j];
                 }
 
-                gains[i] = Math::clamp(gain, 0.0F, 1.0F) * in_gain;
+                dst_gains[i] = Math::clamp(gain, 0.0F, 1.0F) * src_gain;
             }
             else
             {
-                gains[i] = 0.0F;
+                dst_gains[i] = 0.0F;
             }
         }
     }
 
     static void compute_first_order_gains_bf(
-        const int num_channels,
-        const float mtx[4],
-        const float in_gain,
-        float gains[max_channels])
+        const int channel_count,
+        const float matrix[4],
+        const float src_gain,
+        Gains& dst_gains)
     {
         for (int i = 0; i < max_channels; ++i)
         {
-            if (i < num_channels)
-            {
-                gains[i] = mtx[i] * in_gain;
-            }
-            else
-            {
-                gains[i] = 0.0F;
-            }
+            dst_gains[i] = (i < channel_count ? matrix[i] * src_gain : 0.0F);
         }
     }
 

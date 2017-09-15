@@ -100,7 +100,11 @@ protected:
             cutoff / (frequency * 4.0F),
             FilterState::calc_rcp_q_from_bandwidth(cutoff / (frequency * 4.0F), bandwidth));
 
-        Panning::compute_ambient_gains(device->channel_count_, device->dry_, 1.0F, gains_.data());
+        Panning::compute_ambient_gains(
+            device->channel_count_,
+            device->dry_,
+            1.0F,
+            gains_);
     }
 
     void DistortionEffectState::do_process(

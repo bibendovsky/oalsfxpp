@@ -120,7 +120,12 @@ protected:
 
         for (int i = 0; i < max_effect_channels; ++i)
         {
-            Panning::compute_first_order_gains(device->channel_count_, device->foa_, mat4f_identity.m_[i], 1.0F, channels_gains_[i].data());
+            Panning::compute_first_order_gains(
+                device->channel_count_,
+                device->foa_,
+                mat4f_identity.m_[i],
+                1.0F,
+                channels_gains_[i]);
         }
 
         // Calculate coefficients for the each type of filter. Note that the shelf

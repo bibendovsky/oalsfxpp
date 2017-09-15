@@ -123,9 +123,9 @@ protected:
 
         // Gains for left and right sides
         Panning::calc_angle_coeffs(-Math::pi_2, 0.0F, 0.0F, coeffs);
-        Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, 1.0F, sides_gains_[0].data());
+        Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, 1.0F, sides_gains_[0]);
         Panning::calc_angle_coeffs(Math::pi_2, 0.0F, 0.0F, coeffs);
-        Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, 1.0F, sides_gains_[1].data());
+        Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, 1.0F, sides_gains_[1]);
 
         const auto phase = props->chorus_.phase_;
         const auto rate = props->chorus_.rate_;

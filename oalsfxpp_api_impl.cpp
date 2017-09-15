@@ -394,7 +394,7 @@ void ApiImpl::calc_panning_and_filters(
             device_->dry_,
             coeffs,
             dry_gain,
-            source_->direct_.channels_[c].target_gains_.data());
+            source_->direct_.channels_[c].target_gains_);
 
         const auto slot = send_slot;
 
@@ -404,7 +404,7 @@ void ApiImpl::calc_panning_and_filters(
                 max_effect_channels,
                 coeffs,
                 wet_gain,
-                source_->aux_.channels_[c].target_gains_.data());
+                source_->aux_.channels_[c].target_gains_);
         }
         else
         {
