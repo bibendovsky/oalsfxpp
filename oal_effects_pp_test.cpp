@@ -210,7 +210,7 @@ int main()
 
     if (is_succeed)
     {
-        g_effect_slot->initialize_effect(g_device);
+        g_effect_slot->set_effect(g_device, g_effect);
     }
 
     if (is_succeed)
