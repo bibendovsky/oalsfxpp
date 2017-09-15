@@ -129,7 +129,8 @@ constexpr Mat4F mat4f_identity = {{
 
 
 template<typename T>
-constexpr int count_of(const T&)
+constexpr int get_array_extents(
+    const T&)
 {
     static_assert(std::rank_v<T> == 1, "Expected an one-dimensional array.");
     return static_cast<int>(std::extent_v<T>);
@@ -1870,43 +1871,43 @@ struct ALCdevice
         switch (channel_format_)
         {
         case ChannelFormat::mono:
-            count = count_of(Panning::mono_panning);
+            count = get_array_extents(Panning::mono_panning);
             channel_map = Panning::mono_panning;
             coeff_count = 1;
             break;
 
         case ChannelFormat::stereo:
-            count = count_of(Panning::stereo_panning);
+            count = get_array_extents(Panning::stereo_panning);
             channel_map = Panning::stereo_panning;
             coeff_count = 4;
             break;
 
         case ChannelFormat::quad:
-            count = count_of(Panning::quad_panning);
+            count = get_array_extents(Panning::quad_panning);
             channel_map = Panning::quad_panning;
             coeff_count = 4;
             break;
 
         case ChannelFormat::five_point_one:
-            count = count_of(Panning::x5_1_side_panning);
+            count = get_array_extents(Panning::x5_1_side_panning);
             channel_map = Panning::x5_1_side_panning;
             coeff_count = 9;
             break;
 
         case ChannelFormat::five_point_one_rear:
-            count = count_of(Panning::x5_1_rear_panning);
+            count = get_array_extents(Panning::x5_1_rear_panning);
             channel_map = Panning::x5_1_rear_panning;
             coeff_count = 9;
             break;
 
         case ChannelFormat::six_point_one:
-            count = count_of(Panning::x6_1_panning);
+            count = get_array_extents(Panning::x6_1_panning);
             channel_map = Panning::x6_1_panning;
             coeff_count = 9;
             break;
 
         case ChannelFormat::seven_point_one:
-            count = count_of(Panning::x7_1_panning);
+            count = get_array_extents(Panning::x7_1_panning);
             channel_map = Panning::x7_1_panning;
             coeff_count = 16;
             break;
