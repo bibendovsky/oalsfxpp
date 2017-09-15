@@ -79,7 +79,7 @@ protected:
     {
         auto max_len = static_cast<int>(EffectProps::Chorus::max_delay * 2.0F * device->frequency_) + 1;
 
-        max_len = next_power_of_2(max_len);
+        max_len = Math::next_power_of_2(max_len);
 
         if (max_len != buffer_length_)
         {

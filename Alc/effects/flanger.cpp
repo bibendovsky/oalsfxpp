@@ -78,7 +78,7 @@ protected:
         ALCdevice* device) final
     {
         auto maxlen = static_cast<int>(EffectProps::Flanger::max_delay * 2.0F * device->frequency_) + 1;
-        maxlen = next_power_of_2(maxlen);
+        maxlen = Math::next_power_of_2(maxlen);
 
         if (maxlen != buffer_length_)
         {

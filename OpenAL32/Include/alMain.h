@@ -77,6 +77,25 @@ struct Math
     {
         return val1 + ((val2 - val1) * mu);
     }
+
+    // Find the next power-of-2 for non-power-of-2 numbers.
+    static int next_power_of_2(
+        const int value)
+    {
+        auto new_value = value;
+
+        if (new_value > 0)
+        {
+            new_value -= 1;
+            new_value |= new_value >> 1;
+            new_value |= new_value >> 2;
+            new_value |= new_value >> 4;
+            new_value |= new_value >> 8;
+            new_value |= new_value >> 16;
+        }
+
+        return new_value + 1;
+    }
 }; // Math
 
 struct Mat4F
@@ -159,23 +178,6 @@ struct MdArray<T, TExtent>
 template<typename T, std::size_t... TExtents>
 using MdArray = typename detail::MdArray<T, TExtents...>::Type;
 
-
-// Find the next power-of-2 for non-power-of-2 numbers.
-inline int next_power_of_2(
-    int value)
-{
-    if (value > 0)
-    {
-        value -= 1;
-        value |= value >> 1;
-        value |= value >> 2;
-        value |= value >> 4;
-        value |= value >> 8;
-        value |= value >> 16;
-    }
-
-    return value + 1;
-}
 
 enum class ChannelId
 {

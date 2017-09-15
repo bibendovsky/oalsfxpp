@@ -77,7 +77,7 @@ protected:
         // wrapped using a mask instead of a modulo
         auto maxlen = static_cast<int>(EffectProps::Echo::max_delay * device->frequency_) + 1;
         maxlen += static_cast<int>(EffectProps::Echo::max_lr_delay * device->frequency_) + 1;
-        maxlen = next_power_of_2(maxlen);
+        maxlen = Math::next_power_of_2(maxlen);
 
         if (maxlen != buffer_length_)
         {

@@ -774,7 +774,7 @@ private:
         // All line lengths are powers of 2, calculated from their lengths in
         // seconds, rounded up.
         sample_count = static_cast<int>(std::ceil(length * frequency));
-        sample_count = next_power_of_2(sample_count + extra);
+        sample_count = Math::next_power_of_2(sample_count + extra);
 
         delay.initialize(sample_count);
     }
