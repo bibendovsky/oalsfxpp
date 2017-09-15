@@ -30,7 +30,7 @@ public:
     CompressorEffectState()
         :
         EffectState{},
-        gains_{},
+        channels_gains_{},
         is_enabled_{},
         attack_rate_{},
         release_rate_{},
@@ -78,7 +78,7 @@ protected:
 
         for (int i = 0; i < 4; ++i)
         {
-            Panning::compute_first_order_gains(device->channel_count_, device->foa_, mat4f_identity.m_[i], 1.0F, gains_[i].data());
+            Panning::compute_first_order_gains(device->channel_count_, device->foa_, mat4f_identity.m_[i], 1.0F, channels_gains_[i].data());
         }
     }
 
@@ -167,7 +167,7 @@ protected:
             {
                 for (int k = 0; k < channel_count; ++k)
                 {
-                    const auto channel_gain = gains_[j][k];
+                    const auto channel_gain = channels_gains_[j][k];
 
                     if (!(std::abs(channel_gain) > silence_threshold_gain))
                     {
@@ -187,11 +187,11 @@ protected:
 
 
 private:
-    using Gains = MdArray<float, max_effect_channels, max_channels>;
+    using ChannelsGains = std::array<Gains, max_effect_channels>;
 
 
     // Effect gains for each channel
-    Gains gains_;
+    ChannelsGains channels_gains_;
 
     // Effect parameters
     bool is_enabled_;

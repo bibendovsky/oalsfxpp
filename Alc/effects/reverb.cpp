@@ -417,7 +417,7 @@ private:
     static constexpr auto fade_samples = 128;
 
 
-    using Gains = MdArray<float, 4, max_channels>;
+    using ChannelsGains = std::array<Gains, 4>;
 
 
     struct DelayLineI
@@ -494,8 +494,8 @@ private:
         Coeffs coeffs;
 
         // The gain for each output channel based on 3D panning.
-        Gains current_gains;
-        Gains pan_gains;
+        ChannelsGains current_gains;
+        ChannelsGains pan_gains;
     }; // Early
 
     struct Mod
@@ -548,8 +548,8 @@ private:
         VecAllpass vec_ap;
 
         // The gain for each output channel based on 3D panning.
-        Gains current_gains;
-        Gains pan_gains;
+        ChannelsGains current_gains;
+        ChannelsGains pan_gains;
     }; // Late
 
     using Taps = MdArray<int, 4, 2>;
@@ -1445,7 +1445,7 @@ private:
     }
 
     static void clear_gains(
-        Gains& gains)
+        ChannelsGains& gains)
     {
         for (auto& gain : gains)
         {

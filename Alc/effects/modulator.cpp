@@ -32,7 +32,7 @@ public:
         process_func_{},
         index_{},
         step_{},
-        gains_{},
+        channels_gains_{},
         filters_{}
     {
     }
@@ -107,7 +107,7 @@ protected:
 
         for (int i = 0; i < max_effect_channels; ++i)
         {
-            Panning::compute_first_order_gains(device->channel_count_, device->foa_, mat4f_identity.m_[i], 1.0F, gains_[i].data());
+            Panning::compute_first_order_gains(device->channel_count_, device->foa_, mat4f_identity.m_[i], 1.0F, channels_gains_[i].data());
         }
     }
 
@@ -129,7 +129,7 @@ protected:
 
                 for (int k = 0; k < channel_count; ++k)
                 {
-                    const auto gain = gains_[j][k];
+                    const auto gain = channels_gains_[j][k];
 
                     if (!(std::abs(gain) > silence_threshold_gain))
                     {
@@ -160,7 +160,7 @@ private:
     static constexpr auto waveform_frac_mask = waveform_frac_one - 1;
 
 
-    using Gains = MdArray<float, max_effect_channels, max_channels>;
+    using ChannelsGains = std::array<Gains, max_effect_channels>;
     using Filters = std::array<FilterState, max_effect_channels>;
 
     using ModulateFunc = float (*)(
@@ -177,7 +177,7 @@ private:
     ProcessFunc process_func_;
     int index_;
     int step_;
-    Gains gains_;
+    ChannelsGains channels_gains_;
     Filters filters_;
 
 

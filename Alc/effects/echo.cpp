@@ -41,7 +41,7 @@ public:
         buffer_length_{},
         taps_{},
         offset_{},
-        gains_{},
+        taps_gains_{},
         feed_gain_{},
         filter_{}
     {
@@ -131,11 +131,11 @@ protected:
 
         // First tap panning
         Panning::calc_angle_coeffs(-Math::pi_2 * lrpan, 0.0F, spread, coeffs);
-        Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, effect_gain, gains_[0].data());
+        Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, effect_gain, taps_gains_[0].data());
 
         // Second tap panning
         Panning::calc_angle_coeffs(Math::pi_2 * lrpan, 0.0F, spread, coeffs);
-        Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, effect_gain, gains_[1].data());
+        Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, effect_gain, taps_gains_[1].data());
     }
 
     void EchoEffectState::do_process(
@@ -185,7 +185,7 @@ protected:
 
             for (int k = 0; k < channel_count; ++k)
             {
-                auto channel_gain = gains_[0][k];
+                auto channel_gain = taps_gains_[0][k];
 
                 if (std::abs(channel_gain) > silence_threshold_gain)
                 {
@@ -195,7 +195,7 @@ protected:
                     }
                 }
 
-                channel_gain = gains_[1][k];
+                channel_gain = taps_gains_[1][k];
 
                 if (std::abs(channel_gain) > silence_threshold_gain)
                 {
@@ -218,7 +218,7 @@ protected:
 
 private:
     using Taps = std::array<Tap, 2>;
-    using Gains = MdArray<float, 2, max_channels>;
+    using TapsGains = std::array<Gains, 2>;
 
 
     EffectSampleBuffer sample_buffer_;
@@ -231,7 +231,7 @@ private:
     int offset_;
 
     // The panning gains for the two taps
-    Gains gains_;
+    TapsGains taps_gains_;
 
     float feed_gain_;
 

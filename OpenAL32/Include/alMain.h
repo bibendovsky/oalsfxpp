@@ -132,6 +132,7 @@ constexpr auto max_ambi_coeffs = (max_ambi_order + 1) * (max_ambi_order + 1);
 constexpr auto max_sample_buffer_size = 2048;
 
 using AmbiCoeffs = std::array<float, max_ambi_coeffs>;
+using Gains = std::array<float, max_channels>;
 
 
 namespace detail
@@ -1041,8 +1042,6 @@ struct ALsource
     {
         struct Channel
         {
-            using Gains = std::array<float, max_channels>;
-
             FilterState low_pass_;
             FilterState high_pass_;
             Gains current_gains_;

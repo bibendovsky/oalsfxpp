@@ -182,9 +182,6 @@ protected:
 
 
 private:
-    using Gains = std::array<float, max_channels>;
-
-
     // Effect gains for each channel
     Gains gains_;
 

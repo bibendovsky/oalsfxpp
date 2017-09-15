@@ -71,7 +71,7 @@ public:
     EqualizerEffectState()
         :
         EffectState{},
-        gains_{},
+        channels_gains_{},
         filter_{},
         sample_buffer_{}
     {
@@ -120,7 +120,7 @@ protected:
 
         for (int i = 0; i < max_effect_channels; ++i)
         {
-            Panning::compute_first_order_gains(device->channel_count_, device->foa_, mat4f_identity.m_[i], 1.0F, gains_[i].data());
+            Panning::compute_first_order_gains(device->channel_count_, device->foa_, mat4f_identity.m_[i], 1.0F, channels_gains_[i].data());
         }
 
         // Calculate coefficients for the each type of filter. Note that the shelf
@@ -220,7 +220,7 @@ protected:
             {
                 for (int kt = 0; kt < channel_count; ++kt)
                 {
-                    const auto gain = gains_[ft][kt];
+                    const auto gain = channels_gains_[ft][kt];
 
                     if (!(std::abs(gain) > silence_threshold_gain))
                     {
@@ -243,13 +243,13 @@ private:
     // The maximum number of sample frames per update.
     static constexpr auto max_update_samples = 256;
 
-    using Gains = MdArray<float, max_effect_channels, max_channels>;
+    using ChannelsGains = std::array<Gains, max_effect_channels>;
     using Filters = MdArray<FilterState, 4, max_effect_channels>;
     using SampleBuffers = MdArray<float, 4, max_effect_channels, max_update_samples>;
 
 
     // Effect gains for each channel
-    Gains gains_;
+    ChannelsGains channels_gains_;
 
     // Effect parameters
     Filters filter_;

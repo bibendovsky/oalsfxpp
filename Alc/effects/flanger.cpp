@@ -38,7 +38,7 @@ public:
         lfo_range_{},
         lfo_scale_{},
         lfo_disp_{},
-        gains_{},
+        sides_gains_{},
         waveform_{},
         delay_{},
         depth_{},
@@ -123,9 +123,9 @@ protected:
 
         // Gains for left and right sides
         Panning::calc_angle_coeffs(-Math::pi_2, 0.0F, 0.0F, coeffs);
-        Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, 1.0F, gains_[0].data());
+        Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, 1.0F, sides_gains_[0].data());
         Panning::calc_angle_coeffs(Math::pi_2, 0.0F, 0.0F, coeffs);
-        Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, 1.0F, gains_[1].data());
+        Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, 1.0F, sides_gains_[1].data());
 
         const auto phase = props->flanger_.phase_;
         const auto rate = props->flanger_.rate_;
@@ -241,7 +241,7 @@ protected:
 
             for (int c = 0; c < channel_count; ++c)
             {
-                auto gain = gains_[0][c];
+                auto gain = sides_gains_[0][c];
 
                 if (std::abs(gain) > silence_threshold_gain)
                 {
@@ -251,7 +251,7 @@ protected:
                     }
                 }
 
-                gain = gains_[1][c];
+                gain = sides_gains_[1][c];
 
                 if (std::abs(gain) > silence_threshold_gain)
                 {
@@ -276,7 +276,7 @@ private:
 
     using SampleBuffer = EffectSampleBuffer;
     using SampleBuffers = std::array<SampleBuffer, 2>;
-    using Gains = MdArray<float, 2, max_channels>;
+    using SidesGains = std::array<Gains, 2>;
 
 
     SampleBuffers sample_buffers_;
@@ -287,7 +287,7 @@ private:
     int lfo_disp_;
 
     // Gains for left and right sides
-    Gains gains_;
+    SidesGains sides_gains_;
 
     // effect parameters
     Waveform waveform_;
