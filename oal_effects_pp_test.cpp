@@ -107,11 +107,13 @@ int main()
         src_buffer_f32[i] = (float)(src_buffer16[i]) / 32768.0F;
     }
 
+    ApiImpl api;
+
     if (is_succeed)
     {
         const auto channel_format = channel_count_to_channel_format(channel_count);
 
-        ApiImpl::initialize(channel_format, sampling_rate);
+        api.initialize(channel_format, sampling_rate);
     }
 
     if (is_succeed)
@@ -205,12 +207,12 @@ int main()
             }
         }
 
-        g_effect->initialize(effect_type);
+        api.effect_->initialize(effect_type);
     }
 
     if (is_succeed)
     {
-        g_effect_slot->set_effect(g_device, g_effect);
+        api.effect_slot_->set_effect(api.device_, api.effect_);
     }
 
     if (is_succeed)
@@ -245,7 +247,7 @@ int main()
             const int write_sample_count = sample_count < remain ? sample_count : remain;
             const int write_size = write_sample_count * 4 * channel_count;
 
-            ApiImpl::alu_mix_data(g_device, dst_buffer, sample_count, &src_buffer_f32[offset]);
+            api.alu_mix_data(api.device_, dst_buffer, sample_count, &src_buffer_f32[offset]);
 
             if (fwrite(dst_buffer, 1, write_size, dst_stream) != write_size)
             {
@@ -258,7 +260,7 @@ int main()
         }
     }
 
-    ApiImpl::uninitialize();
+    api.uninitialize();
 
     free(dst_buffer);
     free(src_buffer);

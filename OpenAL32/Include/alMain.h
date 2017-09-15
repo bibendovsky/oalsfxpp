@@ -17,12 +17,6 @@ struct Effect;
 struct EffectSlot;
 
 
-extern ALCdevice* g_device;
-extern ALsource* g_source;
-extern Effect* g_effect;
-extern EffectSlot* g_effect_slot;
-
-
 constexpr auto max_effect_channels = 4;
 
 constexpr auto max_mix_gain = 16.0F; // +24dB

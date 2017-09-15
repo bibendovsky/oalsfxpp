@@ -2,39 +2,35 @@
 #include <new>
 
 
-ALCdevice* g_device = nullptr;
-ALsource* g_source = nullptr;
-Effect* g_effect = nullptr;
-EffectSlot* g_effect_slot = nullptr;
-
-
 bool ApiImpl::initialize(
     const ChannelFormat channel_format,
     const int sampling_rate)
 {
-    g_device = new (std::nothrow) ALCdevice{};
-    g_source = new (std::nothrow) ALsource{};
-    g_effect = new (std::nothrow) Effect{};
-    g_effect_slot = new (std::nothrow) EffectSlot{};
+    uninitialize();
 
-    if (!g_device || !g_source || !g_effect || !g_effect_slot)
+    device_ = new (std::nothrow) ALCdevice{};
+    source_ = new (std::nothrow) ALsource{};
+    effect_ = new (std::nothrow) Effect{};
+    effect_slot_ = new (std::nothrow) EffectSlot{};
+
+    if (!device_ || !source_ || !effect_ || !effect_slot_)
     {
         uninitialize();
         return false;
     }
 
-    g_device->initialize(channel_format, sampling_rate);
-    g_effect->initialize();
+    device_->initialize(channel_format, sampling_rate);
+    effect_->initialize();
 
-    auto effect_state = g_effect_slot->effect_state_.get();
-    effect_state->dst_buffers_ = &g_device->sample_buffers_;
-    effect_state->dst_channel_count_ = g_device->channel_count_;
-    effect_state->update_device(g_device);
-    g_effect_slot->is_props_updated_ = true;
+    auto effect_state = effect_slot_->effect_state_.get();
+    effect_state->dst_buffers_ = &device_->sample_buffers_;
+    effect_state->dst_channel_count_ = device_->channel_count_;
+    effect_state->update_device(device_);
+    effect_slot_->is_props_updated_ = true;
 
-    auto source = g_source;
+    auto source = source_;
 
-    for (int i = 0; i < g_device->channel_count_; ++i)
+    for (int i = 0; i < device_->channel_count_; ++i)
     {
         source->direct_.channels_[i].reset();
         source->aux_.channels_[i].reset();
@@ -45,10 +41,17 @@ bool ApiImpl::initialize(
 
 void ApiImpl::uninitialize()
 {
-    delete g_effect;
-    delete g_effect_slot;
-    delete g_source;
-    delete g_device;
+    delete effect_;
+    effect_ = nullptr;
+
+    delete effect_slot_;
+    effect_slot_ = nullptr;
+
+    delete source_;
+    source_ = nullptr;
+
+    delete device_;
+    device_ = nullptr;
 }
 
 void ApiImpl::mix_c(
@@ -118,7 +121,7 @@ void ApiImpl::alu_mix_data(
 
         update_context_sources(device);
 
-        auto slot = g_effect_slot;
+        auto slot = effect_slot_;
 
         for (int c = 0; c < max_effect_channels; ++c)
         {
@@ -126,7 +129,7 @@ void ApiImpl::alu_mix_data(
         }
 
         // source processing
-        ApiImpl::mix_source(g_source, device, samples_to_do);
+        ApiImpl::mix_source(source_, device, samples_to_do);
 
         // effect slot processing
         auto state = slot->effect_state_.get();
@@ -483,7 +486,7 @@ void ApiImpl::calc_non_attn_source_params(
     source->direct_.buffers_ = &device->sample_buffers_;
     source->direct_.channel_count_ = device->channel_count_;
 
-    auto send_slot = g_effect_slot;
+    auto send_slot = effect_slot_;
 
     if (!send_slot || send_slot->effect_.type_ == EffectType::null)
     {
@@ -528,8 +531,8 @@ void ApiImpl::calc_non_attn_source_params(
 void ApiImpl::update_context_sources(
     ALCdevice* device)
 {
-    auto slot = g_effect_slot;
-    auto source = g_source;
+    auto slot = effect_slot_;
+    auto source = source_;
 
     const auto is_props_updated = calc_effect_slot_params(slot, device);
 

@@ -8,11 +8,17 @@
 class ApiImpl
 {
 public:
-    static bool initialize(
+    ALCdevice* device_;
+    ALsource* source_;
+    Effect* effect_;
+    EffectSlot* effect_slot_;
+
+
+    bool initialize(
         const ChannelFormat channel_format,
         const int sampling_rate);
 
-    static void uninitialize();
+    void uninitialize();
 
 
     static void mix_source(
@@ -38,7 +44,7 @@ public:
         const int dst_position,
         const int buffer_size);
 
-    static void alu_mix_data(
+    void alu_mix_data(
         ALCdevice* device,
         void* dst_buffer,
         const int sample_count,
@@ -126,11 +132,11 @@ private:
         EffectSlot* send_slot,
         const ALCdevice* device);
 
-    static void calc_non_attn_source_params(
+    void calc_non_attn_source_params(
         ALsource* source,
         ALCdevice* device);
 
-    static void update_context_sources(
+    void update_context_sources(
         ALCdevice* device);
 
     static void write_f32(
