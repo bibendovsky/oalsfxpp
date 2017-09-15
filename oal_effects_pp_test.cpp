@@ -247,7 +247,7 @@ int main()
             const int write_sample_count = sample_count < remain ? sample_count : remain;
             const int write_size = write_sample_count * 4 * channel_count;
 
-            api.alu_mix_data(api.device_, dst_buffer, sample_count, &src_buffer_f32[offset]);
+            api.alu_mix_data(dst_buffer, sample_count, &src_buffer_f32[offset]);
 
             if (fwrite(dst_buffer, 1, write_size, dst_stream) != write_size)
             {

@@ -14,6 +14,8 @@ public:
     EffectSlot* effect_slot_;
 
 
+    ApiImpl();
+
     bool initialize(
         const ChannelFormat channel_format,
         const int sampling_rate);
@@ -21,9 +23,7 @@ public:
     void uninitialize();
 
 
-    static void mix_source(
-        ALsource* source,
-        ALCdevice* device,
+    void mix_source(
         const int sample_count);
 
     static void mix_row_c(
@@ -45,7 +45,6 @@ public:
         const int buffer_size);
 
     void alu_mix_data(
-        ALCdevice* device,
         void* dst_buffer,
         const int sample_count,
         const float* src_samples);
@@ -114,12 +113,10 @@ private:
         const int sample_count,
         const ActiveFilters filter_type);
 
-    static bool calc_effect_slot_params(
-        EffectSlot* slot,
-        ALCdevice* device);
+    bool calc_effect_slot_params(
+        EffectSlot* slot);
 
-    static void calc_panning_and_filters(
-        ALsource* source,
+    void calc_panning_and_filters(
         const float distance,
         const float* dir,
         const float spread,
@@ -129,15 +126,11 @@ private:
         const float wet_gain,
         const float wet_gain_lf,
         const float wet_gain_hf,
-        EffectSlot* send_slot,
-        const ALCdevice* device);
+        EffectSlot* send_slot);
 
-    void calc_non_attn_source_params(
-        ALsource* source,
-        ALCdevice* device);
+    void calc_non_attn_source_params();
 
-    void update_context_sources(
-        ALCdevice* device);
+    void update_context_sources();
 
     static void write_f32(
         const SampleBuffers* src_buffers,
