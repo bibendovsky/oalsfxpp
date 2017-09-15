@@ -417,6 +417,9 @@ private:
     static constexpr auto fade_samples = 128;
 
 
+    using Gains = MdArray<float, 4, max_channels>;
+
+
     struct DelayLineI
     {
         using Line = std::array<float, 4>;
@@ -476,7 +479,6 @@ private:
     {
         using Offsets = MdArray<int, 4, 2>;
         using Coeffs = std::array<float, 4>;
-        using Gains = MdArray<float, 4, max_channels>;
 
         // A Gerzon vector all-pass filter is used to simulate initial
         // diffusion.  The spread from this filter also helps smooth out the
@@ -528,7 +530,6 @@ private:
 
         using Filters = std::array<Filter, 4>;
         using Offsets = MdArray<int, 4, 2>;
-        using Gains = MdArray<float, 4, max_channels>;
 
 
         // Attenuation to compensate for the modal density and decay rate of
@@ -1443,6 +1444,15 @@ private:
         return result;
     }
 
+    static void clear_gains(
+        Gains& gains)
+    {
+        for (auto& gain : gains)
+        {
+            gain.fill(0.0F);
+        }
+    }
+
     // Creates a transform matrix given a reverb vector. This works by creating a
     // Z-focus transform, then a rotate transform around X, then Y, to place the
     // focal point in the direction of the vector, using the vector length as a
@@ -1537,7 +1547,7 @@ private:
         // the B-Format soundfield according to the panning vector.
         rot = get_transform_from_vector(reflections_pan);
         transform = matrix_mult_t(rot, a2b);
-        memset(&early_.pan_gains, 0, sizeof(early_.pan_gains));
+        clear_gains(early_.pan_gains);
 
         for (int i = 0; i < max_effect_channels; ++i)
         {
@@ -1546,7 +1556,7 @@ private:
 
         rot = get_transform_from_vector(late_reverb_pan);
         transform = matrix_mult_t(rot, a2b);
-        memset(&late_.pan_gains, 0, sizeof(late_.pan_gains));
+        clear_gains(late_.pan_gains);
 
         for (int i = 0; i < max_effect_channels; ++i)
         {

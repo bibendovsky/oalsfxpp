@@ -1,7 +1,7 @@
 #ifndef AL_MAIN_H
 #define AL_MAIN_H
 
-#include <cstring>
+
 #include <cassert>
 #include <cmath>
 
