@@ -93,7 +93,7 @@ protected:
         const EffectSlot* slot,
         const EffectProps* props) final
     {
-        float coeffs[max_ambi_coeffs];
+        AmbiCoeffs coeffs;
         float effect_gain, lrpan, spread;
 
         const auto frequency = device->frequency_;

@@ -368,7 +368,7 @@ void ApiImpl::calc_panning_and_filters(
     // Non-HRTF rendering. Use normal panning to the output.
     for (int c = 0; c < channel_count; ++c)
     {
-        float coeffs[max_ambi_coeffs];
+        AmbiCoeffs coeffs;
 
         // Special-case LFE
         if (channel_map[c].channel_id == ChannelId::lfe)

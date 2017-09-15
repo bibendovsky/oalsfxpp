@@ -131,6 +131,8 @@ constexpr auto max_ambi_coeffs = (max_ambi_order + 1) * (max_ambi_order + 1);
 // for mixing, as well as the maximum number of samples per mixing iteration.
 constexpr auto max_sample_buffer_size = 2048;
 
+using AmbiCoeffs = std::array<float, max_ambi_coeffs>;
+
 
 namespace detail
 {
@@ -379,7 +381,7 @@ struct Panning
     static void calc_direction_coeffs(
         const float dir[3],
         const float spread,
-        float coeffs[max_ambi_coeffs])
+        AmbiCoeffs& coeffs)
     {
         // Convert from OpenAL coords to Ambisonics.
         const auto x = -dir[2];
@@ -480,7 +482,7 @@ struct Panning
         const float azimuth,
         const float elevation,
         const float spread,
-        float coeffs[max_ambi_coeffs])
+        AmbiCoeffs& coeffs)
     {
         float dir[3] = {
             std::sin(azimuth) * std::cos(elevation),
@@ -555,7 +557,7 @@ struct Panning
     static void compute_panning_gains(
         const int channel_count,
         const AmbiOutput& amb_output,
-        const float* const coeffs,
+        const AmbiCoeffs& coeffs,
         const float in_gain,
         float* const out_gains)
     {
@@ -583,7 +585,7 @@ struct Panning
         const ChannelConfig* channel_coeffs,
         const int num_channels,
         const int num_coeffs,
-        const float coeffs[max_ambi_coeffs],
+        const AmbiCoeffs& coeffs,
         const float in_gain,
         float gains[max_channels])
     {
@@ -609,7 +611,7 @@ struct Panning
 
     static void compute_panning_gains_bf(
         const int num_channels,
-        const float coeffs[max_ambi_coeffs],
+        const AmbiCoeffs& coeffs,
         const float in_gain,
         float gains[max_channels])
     {

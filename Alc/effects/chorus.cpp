@@ -119,7 +119,7 @@ protected:
         // The LFO depth is scaled to be relative to the sample delay.
         depth_ = props->chorus_.depth_ * delay_;
 
-        float coeffs[max_ambi_coeffs];
+        AmbiCoeffs coeffs;
 
         // Gains for left and right sides
         Panning::calc_angle_coeffs(-Math::pi_2, 0.0F, 0.0F, coeffs);

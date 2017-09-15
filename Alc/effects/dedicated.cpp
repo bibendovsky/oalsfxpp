@@ -90,7 +90,7 @@ protected:
             }
             else
             {
-                float coeffs[max_ambi_coeffs];
+                AmbiCoeffs coeffs;
 
                 Panning::calc_angle_coeffs(0.0F, 0.0F, 0.0F, coeffs);
 

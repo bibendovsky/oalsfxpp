@@ -102,7 +102,7 @@ protected:
         const EffectProps* props) final
     {
         const auto frequency = static_cast<float>(device->frequency_);
-        float coeffs[max_ambi_coeffs];
+        AmbiCoeffs coeffs;
 
         switch (props->flanger_.waveform_)
         {
