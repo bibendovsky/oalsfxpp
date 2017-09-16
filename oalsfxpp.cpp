@@ -127,10 +127,12 @@ void ApiImpl::alu_mix_data(
 
         if (dst_buffer)
         {
-            auto buffers = &device_.sample_buffers_;
-            const auto channels = device_.channel_count_;
-
-            write_f32(buffers, dst_buffer, samples_done, samples_to_do, channels);
+            write_f32(
+                device_.sample_buffers_,
+                dst_buffer,
+                samples_done,
+                samples_to_do,
+                device_.channel_count_);
         }
 
         samples_done += samples_to_do;
@@ -511,7 +513,7 @@ void ApiImpl::update_context_sources()
 }
 
 void ApiImpl::write_f32(
-    const SampleBuffers* src_buffers,
+    const SampleBuffers& src_buffers,
     void* dst_buffer,
     const int offset,
     const int sample_count,
@@ -519,12 +521,12 @@ void ApiImpl::write_f32(
 {
     for (int j = 0; j < channel_count; ++j)
     {
-        const auto in = (*src_buffers)[j].data();
+        const auto& src_buffer = src_buffers[j];
         auto out = static_cast<float*>(dst_buffer) + (offset * channel_count) + j;
 
         for (int i = 0; i < sample_count; ++i)
         {
-            out[i * channel_count] = in[i];
+            out[i * channel_count] = src_buffer[i];
         }
     }
 }

@@ -132,7 +132,7 @@ private:
     void update_context_sources();
 
     static void write_f32(
-        const SampleBuffers* src_buffers,
+        const SampleBuffers& src_buffers,
         void* dst_buffer,
         const int offset,
         const int sample_count,
