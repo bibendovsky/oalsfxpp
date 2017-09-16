@@ -7,6 +7,7 @@ ApiImpl::ApiImpl()
     device_{},
     source_{},
     effect_{},
+    effect_status_{},
     effect_slot_{}
 {
 }
@@ -20,6 +21,7 @@ bool ApiImpl::initialize(
     device_.initialize(channel_format, sampling_rate);
     source_.initialize();
     effect_.set_type_and_defaults(EffectType::null);
+    effect_status_.set_all();
     effect_slot_.initialize();
 
 

@@ -5,12 +5,32 @@
 #include "alMain.h"
 
 
+struct EffectStatus
+{
+    bool is_type_changed_;
+    bool is_props_changed_;
+
+
+    void reset()
+    {
+        is_type_changed_ = false;
+        is_props_changed_ = false;
+    }
+
+    void set_all()
+    {
+        is_type_changed_ = true;
+        is_props_changed_ = true;
+    }
+}; // EffectStatus
+
 class ApiImpl
 {
 public:
     ALCdevice device_;
     ALsource source_;
     Effect effect_;
+    EffectStatus effect_status_;
     EffectSlot effect_slot_;
 
 
