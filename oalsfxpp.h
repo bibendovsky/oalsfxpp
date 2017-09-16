@@ -8,10 +8,10 @@
 class ApiImpl
 {
 public:
-    ALCdevice* device_;
-    ALsource* source_;
-    Effect* effect_;
-    EffectSlot* effect_slot_;
+    ALCdevice device_;
+    ALsource source_;
+    Effect effect_;
+    EffectSlot effect_slot_;
 
 
     ApiImpl();
@@ -114,7 +114,7 @@ private:
         const ActiveFilters filter_type);
 
     bool calc_effect_slot_params(
-        EffectSlot* slot);
+        EffectSlot& effect_slot);
 
     void calc_panning_and_filters(
         const float distance,
@@ -125,8 +125,7 @@ private:
         const float dry_gain_lf,
         const float wet_gain,
         const float wet_gain_lf,
-        const float wet_gain_hf,
-        EffectSlot* send_slot);
+        const float wet_gain_hf);
 
     void calc_non_attn_source_params();
 

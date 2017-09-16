@@ -56,27 +56,27 @@ protected:
     }
 
     void DistortionEffectState::do_update_device(
-        ALCdevice* device) final
+        ALCdevice& device) final
     {
         static_cast<void>(device);
     }
 
     void DistortionEffectState::do_update(
-        ALCdevice* device,
-        const EffectSlot* slot,
-        const EffectProps* props) final
+        ALCdevice& device,
+        const EffectSlot& effect_slot,
+        const EffectProps& effect_props) final
     {
-        const auto frequency = static_cast<float>(device->frequency_);
+        const auto frequency = static_cast<float>(device.frequency_);
 
         // Store distorted signal attenuation settings.
-        attenuation_ = props->distortion_.gain_;
+        attenuation_ = effect_props.distortion_.gain_;
 
         // Store waveshaper edge settings.
-        auto edge = std::sin(props->distortion_.edge_ * (Math::pi_2));
+        auto edge = std::sin(effect_props.distortion_.edge_ * (Math::pi_2));
         edge = std::min(edge, 0.99F);
         edge_coeff_ = 2.0F * edge / (1.0F - edge);
 
-        auto cutoff = props->distortion_.low_pass_cutoff_;
+        auto cutoff = effect_props.distortion_.low_pass_cutoff_;
 
         // Bandwidth value is constant in octaves.
         auto bandwidth = (cutoff / 2.0F) / (cutoff * 0.67F);
@@ -89,10 +89,10 @@ protected:
             cutoff / (frequency * 4.0F),
             FilterState::calc_rcp_q_from_bandwidth(cutoff / (frequency * 4.0F), bandwidth));
 
-        cutoff = props->distortion_.eq_center_;
+        cutoff = effect_props.distortion_.eq_center_;
 
         // Convert bandwidth in Hz to octaves.
-        bandwidth = props->distortion_.eq_bandwidth_ / (cutoff * 0.67F);
+        bandwidth = effect_props.distortion_.eq_bandwidth_ / (cutoff * 0.67F);
 
         band_pass_.set_params(
             FilterType::band_pass,
@@ -101,8 +101,8 @@ protected:
             FilterState::calc_rcp_q_from_bandwidth(cutoff / (frequency * 4.0F), bandwidth));
 
         Panning::compute_ambient_gains(
-            device->channel_count_,
-            device->dry_,
+            device.channel_count_,
+            device.dry_,
             1.0F,
             gains_);
     }

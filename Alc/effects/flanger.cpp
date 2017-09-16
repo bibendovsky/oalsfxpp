@@ -75,9 +75,9 @@ protected:
     }
 
     void FlangerEffectState::do_update_device(
-        ALCdevice* device) final
+        ALCdevice& device) final
     {
-        auto maxlen = static_cast<int>(EffectProps::Flanger::max_delay * 2.0F * device->frequency_) + 1;
+        auto maxlen = static_cast<int>(EffectProps::Flanger::max_delay * 2.0F * device.frequency_) + 1;
         maxlen = Math::next_power_of_2(maxlen);
 
         if (maxlen != buffer_length_)
@@ -97,14 +97,14 @@ protected:
     }
 
     void FlangerEffectState::do_update(
-        ALCdevice* device,
-        const EffectSlot* slot,
-        const EffectProps* props) final
+        ALCdevice& device,
+        const EffectSlot& effect_slot,
+        const EffectProps& effect_props) final
     {
-        const auto frequency = static_cast<float>(device->frequency_);
+        const auto frequency = static_cast<float>(device.frequency_);
         AmbiCoeffs coeffs;
 
-        switch (props->flanger_.waveform_)
+        switch (effect_props.flanger_.waveform_)
         {
         case EffectProps::Flanger::waveform_triangle:
             waveform_ = Waveform::triangle;
@@ -115,20 +115,20 @@ protected:
             break;
         }
 
-        feedback_ = props->flanger_.feedback_;
-        delay_ = static_cast<int>(props->flanger_.delay_ * frequency);
+        feedback_ = effect_props.flanger_.feedback_;
+        delay_ = static_cast<int>(effect_props.flanger_.delay_ * frequency);
 
         // The LFO depth is scaled to be relative to the sample delay.
-        depth_ = props->flanger_.depth_ * delay_;
+        depth_ = effect_props.flanger_.depth_ * delay_;
 
         // Gains for left and right sides
         Panning::calc_angle_coeffs(-Math::pi_2, 0.0F, 0.0F, coeffs);
-        Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, 1.0F, sides_gains_[0]);
+        Panning::compute_panning_gains(device.channel_count_, device.dry_, coeffs, 1.0F, sides_gains_[0]);
         Panning::calc_angle_coeffs(Math::pi_2, 0.0F, 0.0F, coeffs);
-        Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, 1.0F, sides_gains_[1]);
+        Panning::compute_panning_gains(device.channel_count_, device.dry_, coeffs, 1.0F, sides_gains_[1]);
 
-        const auto phase = props->flanger_.phase_;
-        const auto rate = props->flanger_.rate_;
+        const auto phase = effect_props.flanger_.phase_;
+        const auto rate = effect_props.flanger_.rate_;
 
         if (!(rate > 0.0F))
         {

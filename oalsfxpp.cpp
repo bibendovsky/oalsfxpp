@@ -17,32 +17,24 @@ bool ApiImpl::initialize(
 {
     uninitialize();
 
-    device_ = new (std::nothrow) ALCdevice{};
-    source_ = new (std::nothrow) ALsource{};
-    effect_ = new (std::nothrow) Effect{};
-    effect_slot_ = new (std::nothrow) EffectSlot{};
+    device_.initialize(channel_format, sampling_rate);
+    source_.initialize();
+    effect_.initialize();
+    effect_slot_.initialize();
 
-    if (!device_ || !source_ || !effect_ || !effect_slot_)
-    {
-        uninitialize();
-        return false;
-    }
 
-    device_->initialize(channel_format, sampling_rate);
-    effect_->initialize();
-
-    auto effect_state = effect_slot_->effect_state_.get();
-    effect_state->dst_buffers_ = &device_->sample_buffers_;
-    effect_state->dst_channel_count_ = device_->channel_count_;
+    auto effect_state = effect_slot_.effect_state_.get();
+    effect_state->dst_buffers_ = &device_.sample_buffers_;
+    effect_state->dst_channel_count_ = device_.channel_count_;
     effect_state->update_device(device_);
-    effect_slot_->is_props_updated_ = true;
+    effect_slot_.is_props_updated_ = true;
 
     auto source = source_;
 
-    for (int i = 0; i < device_->channel_count_; ++i)
+    for (int i = 0; i < device_.channel_count_; ++i)
     {
-        source->direct_.channels_[i].reset();
-        source->aux_.channels_[i].reset();
+        source.direct_.channels_[i].reset();
+        source.aux_.channels_[i].reset();
     }
 
     return true;
@@ -50,17 +42,8 @@ bool ApiImpl::initialize(
 
 void ApiImpl::uninitialize()
 {
-    delete effect_;
-    effect_ = nullptr;
-
-    delete effect_slot_;
-    effect_slot_ = nullptr;
-
-    delete source_;
-    source_ = nullptr;
-
-    delete device_;
-    device_ = nullptr;
+    effect_slot_.uninitialize();
+    device_.uninitialize();
 }
 
 void ApiImpl::mix_c(
@@ -116,38 +99,36 @@ void ApiImpl::alu_mix_data(
         const int sample_count,
         const float* src_samples)
 {
-    device_->source_samples_ = src_samples;
+    device_.source_samples_ = src_samples;
 
     for (int samples_done = 0; samples_done < sample_count; )
     {
         const auto samples_to_do = std::min(sample_count - samples_done, max_sample_buffer_size);
 
-        for (int c = 0; c < device_->channel_count_; ++c)
+        for (int c = 0; c < device_.channel_count_; ++c)
         {
-            std::fill_n(device_->sample_buffers_[c].begin(), samples_to_do, 0.0F);
+            std::fill_n(device_.sample_buffers_[c].begin(), samples_to_do, 0.0F);
         }
 
         update_context_sources();
 
-        auto slot = effect_slot_;
-
         for (int c = 0; c < max_effect_channels; ++c)
         {
-            std::fill_n(slot->wet_buffer_[c].begin(), samples_to_do, 0.0F);
+            std::fill_n(effect_slot_.wet_buffer_[c].begin(), samples_to_do, 0.0F);
         }
 
         // source processing
         mix_source(samples_to_do);
 
         // effect slot processing
-        auto state = slot->effect_state_.get();
+        auto state = effect_slot_.effect_state_.get();
 
-        state->process(samples_to_do, slot->wet_buffer_, *state->dst_buffers_, state->dst_channel_count_);
+        state->process(samples_to_do, effect_slot_.wet_buffer_, *state->dst_buffers_, state->dst_channel_count_);
 
         if (dst_buffer)
         {
-            auto buffers = &device_->sample_buffers_;
-            const auto channels = device_->channel_count_;
+            auto buffers = &device_.sample_buffers_;
+            const auto channels = device_.channel_count_;
 
             write_f32(buffers, dst_buffer, samples_done, samples_to_do, channels);
         }
@@ -159,59 +140,59 @@ void ApiImpl::alu_mix_data(
 void ApiImpl::mix_source(
     const int sample_count)
 {
-    const auto channel_count = device_->channel_count_;
+    const auto channel_count = device_.channel_count_;
 
     for (int chan = 0; chan < channel_count; ++chan)
     {
         for (int i = 0; i < sample_count; ++i)
         {
-            device_->resampled_data_[i] = device_->source_samples_[(i * channel_count) + chan];
+            device_.resampled_data_[i] = device_.source_samples_[(i * channel_count) + chan];
         }
 
 
-        auto parms = &source_->direct_.channels_[chan];
+        auto parms = &source_.direct_.channels_[chan];
 
         auto samples = apply_filters(
             &parms->low_pass_,
             &parms->high_pass_,
-            device_->filtered_data_.data(),
-            device_->resampled_data_.data(),
+            device_.filtered_data_.data(),
+            device_.resampled_data_.data(),
             sample_count,
-            source_->direct_.filter_type_);
+            source_.direct_.filter_type_);
 
         parms->current_gains_ = parms->target_gains_;
 
         mix_c(
             samples,
-            source_->direct_.channel_count_,
-            *source_->direct_.buffers_,
+            source_.direct_.channel_count_,
+            *source_.direct_.buffers_,
             parms->current_gains_.data(),
             parms->target_gains_.data(),
             0,
             0,
             sample_count);
 
-        if (!source_->aux_.buffers_)
+        if (!source_.aux_.buffers_)
         {
             continue;
         }
 
-        parms = &source_->aux_.channels_[chan];
+        parms = &source_.aux_.channels_[chan];
 
         samples = apply_filters(
             &parms->low_pass_,
             &parms->high_pass_,
-            device_->filtered_data_.data(),
-            device_->resampled_data_.data(),
+            device_.filtered_data_.data(),
+            device_.resampled_data_.data(),
             sample_count,
-            source_->aux_.filter_type_);
+            source_.aux_.filter_type_);
 
         parms->current_gains_ = parms->target_gains_;
 
         mix_c(
             samples,
-            source_->aux_.channel_count_,
-            *source_->aux_.buffers_,
+            source_.aux_.channel_count_,
+            *source_.aux_.buffers_,
             parms->current_gains_.data(),
             parms->target_gains_.data(),
             0,
@@ -294,15 +275,15 @@ const float* ApiImpl::apply_filters(
 }
 
 bool ApiImpl::calc_effect_slot_params(
-    EffectSlot* slot)
+    EffectSlot& effect_slot)
 {
-    if (!slot->is_props_updated_)
+    if (!effect_slot.is_props_updated_)
     {
         return false;
     }
 
-    slot->is_props_updated_ = false;
-    slot->effect_state_->update(device_, slot, &slot->effect_.props_);
+    effect_slot.is_props_updated_ = false;
+    effect_slot.effect_state_->update(device_, effect_slot, effect_slot.effect_.props_);
 
     return true;
 }
@@ -316,15 +297,14 @@ void ApiImpl::calc_panning_and_filters(
     const float dry_gain_lf,
     const float wet_gain,
     const float wet_gain_lf,
-    const float wet_gain_hf,
-    EffectSlot* send_slot)
+    const float wet_gain_hf)
 {
-    const auto frequency = device_->frequency_;
+    const auto frequency = device_.frequency_;
     const ChannelMap* channel_map = nullptr;
     auto channel_count = 0;
     auto downmix_gain = 1.0F;
 
-    switch (device_->channel_format_)
+    switch (device_.channel_format_)
     {
     case ChannelFormat::mono:
         channel_map = mono_map;
@@ -373,16 +353,16 @@ void ApiImpl::calc_panning_and_filters(
         // Special-case LFE
         if (channel_map[c].channel_id == ChannelId::lfe)
         {
-            source_->direct_.channels_[c].target_gains_.fill(0.0F);
+            source_.direct_.channels_[c].target_gains_.fill(0.0F);
 
-            const auto idx = device_->get_channel_index(channel_map[c].channel_id);
+            const auto idx = device_.get_channel_index(channel_map[c].channel_id);
 
             if (idx != -1)
             {
-                source_->direct_.channels_[c].target_gains_[idx] = dry_gain;
+                source_.direct_.channels_[c].target_gains_[idx] = dry_gain;
             }
 
-            source_->aux_.channels_[c].target_gains_.fill(0.0F);
+            source_.aux_.channels_[c].target_gains_.fill(0.0F);
 
             continue;
         }
@@ -390,54 +370,45 @@ void ApiImpl::calc_panning_and_filters(
         Panning::calc_angle_coeffs(channel_map[c].angle, channel_map[c].elevation, spread, coeffs);
 
         Panning::compute_panning_gains(
-            device_->channel_count_,
-            device_->dry_,
+            device_.channel_count_,
+            device_.dry_,
             coeffs,
             dry_gain,
-            source_->direct_.channels_[c].target_gains_);
+            source_.direct_.channels_[c].target_gains_);
 
-        const auto slot = send_slot;
-
-        if (slot)
-        {
-            Panning::compute_panning_gains_bf(
-                max_effect_channels,
-                coeffs,
-                wet_gain,
-                source_->aux_.channels_[c].target_gains_);
-        }
-        else
-        {
-            source_->aux_.channels_[c].target_gains_.fill(0.0F);
-        }
+        Panning::compute_panning_gains_bf(
+            max_effect_channels,
+            coeffs,
+            wet_gain,
+            source_.aux_.channels_[c].target_gains_);
     }
 
-    auto hf_scale = source_->direct_.hf_reference_ / frequency;
-    auto lf_scale = source_->direct_.lf_reference_ / frequency;
+    auto hf_scale = source_.direct_.hf_reference_ / frequency;
+    auto lf_scale = source_.direct_.lf_reference_ / frequency;
     auto gain_hf = std::max(dry_gain_hf, 0.001F); // Limit -60dB
     auto gain_lf = std::max(dry_gain_lf, 0.001F);
 
-    source_->direct_.filter_type_ = ActiveFilters::none;
+    source_.direct_.filter_type_ = ActiveFilters::none;
 
     if (gain_hf != 1.0F)
     {
-        source_->direct_.filter_type_ = static_cast<ActiveFilters>(
-            static_cast<int>(source_->direct_.filter_type_) | static_cast<int>(ActiveFilters::low_pass));
+        source_.direct_.filter_type_ = static_cast<ActiveFilters>(
+            static_cast<int>(source_.direct_.filter_type_) | static_cast<int>(ActiveFilters::low_pass));
     }
 
     if (gain_lf != 1.0F)
     {
-        source_->direct_.filter_type_ = static_cast<ActiveFilters>(
-            static_cast<int>(source_->direct_.filter_type_) | static_cast<int>(ActiveFilters::high_pass));
+        source_.direct_.filter_type_ = static_cast<ActiveFilters>(
+            static_cast<int>(source_.direct_.filter_type_) | static_cast<int>(ActiveFilters::high_pass));
     }
 
-    source_->direct_.channels_[0].low_pass_.set_params(
+    source_.direct_.channels_[0].low_pass_.set_params(
         FilterType::high_shelf,
         gain_hf,
         hf_scale,
         FilterState::calc_rcp_q_from_slope(gain_hf, 1.0F));
 
-    source_->direct_.channels_[0].high_pass_.set_params(
+    source_.direct_.channels_[0].high_pass_.set_params(
         FilterType::low_shelf,
         gain_lf,
         lf_scale,
@@ -445,36 +416,36 @@ void ApiImpl::calc_panning_and_filters(
 
     for (int c = 1; c < channel_count; ++c)
     {
-        FilterState::copy_params(source_->direct_.channels_[0].low_pass_, source_->direct_.channels_[c].low_pass_);
-        FilterState::copy_params(source_->direct_.channels_[0].high_pass_, source_->direct_.channels_[c].high_pass_);
+        FilterState::copy_params(source_.direct_.channels_[0].low_pass_, source_.direct_.channels_[c].low_pass_);
+        FilterState::copy_params(source_.direct_.channels_[0].high_pass_, source_.direct_.channels_[c].high_pass_);
     }
 
-    hf_scale = source_->aux_.hf_reference_ / frequency;
-    lf_scale = source_->aux_.lf_reference_ / frequency;
+    hf_scale = source_.aux_.hf_reference_ / frequency;
+    lf_scale = source_.aux_.lf_reference_ / frequency;
     gain_hf = std::max(wet_gain_hf, 0.001F);
     gain_lf = std::max(wet_gain_lf, 0.001F);
 
-    source_->aux_.filter_type_ = ActiveFilters::none;
+    source_.aux_.filter_type_ = ActiveFilters::none;
 
     if (gain_hf != 1.0F)
     {
-        source_->aux_.filter_type_ = static_cast<ActiveFilters>(
-            static_cast<int>(source_->aux_.filter_type_) | static_cast<int>(ActiveFilters::low_pass));
+        source_.aux_.filter_type_ = static_cast<ActiveFilters>(
+            static_cast<int>(source_.aux_.filter_type_) | static_cast<int>(ActiveFilters::low_pass));
     }
 
     if (gain_lf != 1.0F)
     {
-        source_->aux_.filter_type_ = static_cast<ActiveFilters>(
-            static_cast<int>(source_->aux_.filter_type_) | static_cast<int>(ActiveFilters::high_pass));
+        source_.aux_.filter_type_ = static_cast<ActiveFilters>(
+            static_cast<int>(source_.aux_.filter_type_) | static_cast<int>(ActiveFilters::high_pass));
     }
 
-    source_->aux_.channels_[0].low_pass_.set_params(
+    source_.aux_.channels_[0].low_pass_.set_params(
         FilterType::high_shelf,
         gain_hf,
         hf_scale,
         FilterState::calc_rcp_q_from_slope(gain_hf, 1.0F));
 
-    source_->aux_.channels_[0].high_pass_.set_params(
+    source_.aux_.channels_[0].high_pass_.set_params(
         FilterType::low_shelf,
         gain_lf,
         lf_scale,
@@ -482,42 +453,40 @@ void ApiImpl::calc_panning_and_filters(
 
     for (int c = 1; c < channel_count; ++c)
     {
-        FilterState::copy_params(source_->aux_.channels_[0].low_pass_, source_->aux_.channels_[c].low_pass_);
-        FilterState::copy_params(source_->aux_.channels_[0].high_pass_, source_->aux_.channels_[c].high_pass_);
+        FilterState::copy_params(source_.aux_.channels_[0].low_pass_, source_.aux_.channels_[c].low_pass_);
+        FilterState::copy_params(source_.aux_.channels_[0].high_pass_, source_.aux_.channels_[c].high_pass_);
     }
 }
 
 void ApiImpl::calc_non_attn_source_params()
 {
-    source_->direct_.buffers_ = &device_->sample_buffers_;
-    source_->direct_.channel_count_ = device_->channel_count_;
+    source_.direct_.buffers_ = &device_.sample_buffers_;
+    source_.direct_.channel_count_ = device_.channel_count_;
 
-    auto send_slot = effect_slot_;
-
-    if (!send_slot || send_slot->effect_.type_ == EffectType::null)
+    if (effect_slot_.effect_.type_ == EffectType::null)
     {
-        source_->aux_.buffers_ = nullptr;
-        source_->aux_.channel_count_ = 0;
+        source_.aux_.buffers_ = nullptr;
+        source_.aux_.channel_count_ = 0;
     }
     else
     {
-        source_->aux_.buffers_ = &send_slot->wet_buffer_;
-        source_->aux_.channel_count_ = max_effect_channels;
+        source_.aux_.buffers_ = &effect_slot_.wet_buffer_;
+        source_.aux_.channel_count_ = max_effect_channels;
     }
 
     // Calculate gains
     auto dry_gain = 1.0F;
-    dry_gain *= source_->direct_.gain_;
+    dry_gain *= source_.direct_.gain_;
     dry_gain = std::min(dry_gain, max_mix_gain);
 
-    const auto dry_gain_hf = source_->direct_.gain_hf_;
-    const auto dry_gain_lf = source_->direct_.gain_lf_;
+    const auto dry_gain_hf = source_.direct_.gain_hf_;
+    const auto dry_gain_lf = source_.direct_.gain_lf_;
 
     constexpr float dir[3] = {0.0F, 0.0F, -1.0F};
 
-    const auto wet_gain = std::min(source_->aux_.gain_, max_mix_gain);
-    const auto wet_gain_hf = source_->aux_.gain_hf_;
-    const auto wet_gain_lf = source_->aux_.gain_lf_;
+    const auto wet_gain = std::min(source_.aux_.gain_, max_mix_gain);
+    const auto wet_gain_hf = source_.aux_.gain_hf_;
+    const auto wet_gain_lf = source_.aux_.gain_lf_;
 
     calc_panning_and_filters(
         0.0F,
@@ -528,18 +497,14 @@ void ApiImpl::calc_non_attn_source_params()
         dry_gain_lf,
         wet_gain,
         wet_gain_lf,
-        wet_gain_hf,
-        send_slot);
+        wet_gain_hf);
 }
 
 void ApiImpl::update_context_sources()
 {
-    auto slot = effect_slot_;
-    auto source = source_;
+    const auto is_props_updated = calc_effect_slot_params(effect_slot_);
 
-    const auto is_props_updated = calc_effect_slot_params(slot);
-
-    if (source && is_props_updated)
+    if (is_props_updated)
     {
         calc_non_attn_source_params();
     }

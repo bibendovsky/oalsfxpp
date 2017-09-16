@@ -57,30 +57,30 @@ protected:
     }
 
     void CompressorEffectState::do_update_device(
-        ALCdevice* device) final
+        ALCdevice& device) final
     {
-        const auto attackTime = device->frequency_ * 0.2F; // 200ms Attack
-        const auto releaseTime = device->frequency_ * 0.4F; // 400ms Release
+        const auto attackTime = device.frequency_ * 0.2F; // 200ms Attack
+        const auto releaseTime = device.frequency_ * 0.4F; // 400ms Release
 
         attack_rate_ = 1.0F / attackTime;
         release_rate_ = 1.0F / releaseTime;
     }
 
     void CompressorEffectState::do_update(
-        ALCdevice* device,
-        const EffectSlot* slot,
-        const EffectProps* props) final
+        ALCdevice& device,
+        const EffectSlot& effect_slot,
+        const EffectProps& effect_props) final
     {
-        is_enabled_ = props->compressor_.on_off_;
+        is_enabled_ = effect_props.compressor_.on_off_;
 
-        dst_buffers_ = &device->sample_buffers_;
-        dst_channel_count_ = device->channel_count_;
+        dst_buffers_ = &device.sample_buffers_;
+        dst_channel_count_ = device.channel_count_;
 
         for (int i = 0; i < 4; ++i)
         {
             Panning::compute_first_order_gains(
-                device->channel_count_,
-                device->foa_,
+                device.channel_count_,
+                device.foa_,
                 mat4f_identity.m_[i],
                 1.0F,
                 channels_gains_[i]);

@@ -1576,17 +1576,17 @@ public:
     }
 
     void update_device(
-        ALCdevice* device)
+        ALCdevice& device)
     {
         do_update_device(device);
     }
 
     void update(
-        ALCdevice* device,
-        const EffectSlot* slot,
-        const EffectProps *props)
+        ALCdevice& device,
+        const EffectSlot& effect_slot,
+        const EffectProps& props)
     {
-        do_update(device, slot, props);
+        do_update(device, effect_slot, props);
     }
 
     void process(
@@ -1626,12 +1626,12 @@ protected:
     virtual void do_destruct() = 0;
 
     virtual void do_update_device(
-        ALCdevice* device) = 0;
+        ALCdevice& device) = 0;
 
     virtual void do_update(
-        ALCdevice* device,
-        const EffectSlot* slot,
-        const EffectProps *props) = 0;
+        ALCdevice& device,
+        const EffectSlot& effect_slot,
+        const EffectProps& props) = 0;
 
     virtual void do_process(
         const int sample_count,
@@ -2003,23 +2003,23 @@ struct EffectSlot
     }
 
     void set_effect(
-        ALCdevice* device,
-        Effect* effect)
+        ALCdevice& device,
+        Effect& effect)
     {
-        if (effect_.type_ != effect->type_)
+        if (effect_.type_ != effect.type_)
         {
-            effect_state_.reset(EffectStateFactory::create_by_type(effect->type_));
+            effect_state_.reset(EffectStateFactory::create_by_type(effect.type_));
 
-            effect_state_->dst_buffers_ = &device->sample_buffers_;
-            effect_state_->dst_channel_count_ = device->channel_count_;
+            effect_state_->dst_buffers_ = &device.sample_buffers_;
+            effect_state_->dst_channel_count_ = device.channel_count_;
             effect_state_->update_device(device);
 
-            effect_.type_ = effect->type_;
-            effect_.props_ = effect->props_;
+            effect_.type_ = effect.type_;
+            effect_.props_ = effect.props_;
         }
         else
         {
-            effect_.props_ = effect->props_;
+            effect_.props_ = effect.props_;
         }
 
         is_props_updated_ = true;

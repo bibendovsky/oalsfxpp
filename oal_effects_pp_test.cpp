@@ -207,12 +207,12 @@ int main()
             }
         }
 
-        api.effect_->initialize(effect_type);
+        api.effect_.initialize(effect_type);
     }
 
     if (is_succeed)
     {
-        api.effect_slot_->set_effect(api.device_, api.effect_);
+        api.effect_slot_.set_effect(api.device_, api.effect_);
     }
 
     if (is_succeed)

@@ -50,42 +50,42 @@ protected:
     }
 
     void DedicatedEffectState::do_update_device(
-        ALCdevice* device) final
+        ALCdevice& device) final
     {
         static_cast<void>(device);
     }
 
     void DedicatedEffectState::do_update(
-        ALCdevice* device,
-        const EffectSlot* slot,
-        const EffectProps* props)
+        ALCdevice& device,
+        const EffectSlot& effect_slot,
+        const EffectProps& effect_props)
     {
         gains_.fill(0.0F);
 
-        const auto gain = props->dedicated_.gain_;
+        const auto gain = effect_props.dedicated_.gain_;
 
-        if (slot->effect_.type_ == EffectType::dedicated_low_frequency)
+        if (effect_slot.effect_.type_ == EffectType::dedicated_low_frequency)
         {
-            const auto idx = device->get_channel_index(ChannelId::lfe);
+            const auto idx = device.get_channel_index(ChannelId::lfe);
 
             if (idx != -1)
             {
-                dst_buffers_ = &device->sample_buffers_;
-                dst_channel_count_ = device->channel_count_;
+                dst_buffers_ = &device.sample_buffers_;
+                dst_channel_count_ = device.channel_count_;
                 gains_[idx] = gain;
             }
         }
-        else if (slot->effect_.type_ == EffectType::dedicated_dialog)
+        else if (effect_slot.effect_.type_ == EffectType::dedicated_dialog)
         {
-            const auto idx = device->get_channel_index(ChannelId::front_center);
+            const auto idx = device.get_channel_index(ChannelId::front_center);
 
             // Dialog goes to the front-center speaker if it exists, otherwise it
             // plays from the front-center location.
 
             if (idx != -1)
             {
-                dst_buffers_ = &device->sample_buffers_;
-                dst_channel_count_ = device->channel_count_;
+                dst_buffers_ = &device.sample_buffers_;
+                dst_channel_count_ = device.channel_count_;
                 gains_[idx] = gain;
             }
             else
@@ -94,10 +94,10 @@ protected:
 
                 Panning::calc_angle_coeffs(0.0F, 0.0F, 0.0F, coeffs);
 
-                dst_buffers_ = &device->sample_buffers_;
-                dst_channel_count_ = device->channel_count_;
+                dst_buffers_ = &device.sample_buffers_;
+                dst_channel_count_ = device.channel_count_;
 
-                Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, gain, gains_);
+                Panning::compute_panning_gains(device.channel_count_, device.dry_, coeffs, gain, gains_);
             }
         }
     }

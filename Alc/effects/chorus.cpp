@@ -75,9 +75,9 @@ protected:
     }
 
     void ChorusEffectState::do_update_device(
-        ALCdevice* device) final
+        ALCdevice& device) final
     {
-        auto max_len = static_cast<int>(EffectProps::Chorus::max_delay * 2.0F * device->frequency_) + 1;
+        auto max_len = static_cast<int>(EffectProps::Chorus::max_delay * 2.0F * device.frequency_) + 1;
 
         max_len = Math::next_power_of_2(max_len);
 
@@ -96,13 +96,13 @@ protected:
     }
 
     void ChorusEffectState::do_update(
-        ALCdevice* device,
-        const EffectSlot* slot,
-        const EffectProps* props) final
+        ALCdevice& device,
+        const EffectSlot& effect_slot,
+        const EffectProps& effect_props) final
     {
-        const auto frequency = static_cast<float>(device->frequency_);
+        const auto frequency = static_cast<float>(device.frequency_);
 
-        switch (props->chorus_.waveform_)
+        switch (effect_props.chorus_.waveform_)
         {
         case EffectProps::Chorus::waveform_triangle:
             waveform_ = Waveform::triangle;
@@ -113,22 +113,22 @@ protected:
             break;
         }
 
-        feedback_ = props->chorus_.feedback_;
-        delay_ = static_cast<int>(props->chorus_.delay_ * frequency);
+        feedback_ = effect_props.chorus_.feedback_;
+        delay_ = static_cast<int>(effect_props.chorus_.delay_ * frequency);
 
         // The LFO depth is scaled to be relative to the sample delay.
-        depth_ = props->chorus_.depth_ * delay_;
+        depth_ = effect_props.chorus_.depth_ * delay_;
 
         AmbiCoeffs coeffs;
 
         // Gains for left and right sides
         Panning::calc_angle_coeffs(-Math::pi_2, 0.0F, 0.0F, coeffs);
-        Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, 1.0F, sides_gains_[0]);
+        Panning::compute_panning_gains(device.channel_count_, device.dry_, coeffs, 1.0F, sides_gains_[0]);
         Panning::calc_angle_coeffs(Math::pi_2, 0.0F, 0.0F, coeffs);
-        Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, 1.0F, sides_gains_[1]);
+        Panning::compute_panning_gains(device.channel_count_, device.dry_, coeffs, 1.0F, sides_gains_[1]);
 
-        const auto phase = props->chorus_.phase_;
-        const auto rate = props->chorus_.rate_;
+        const auto phase = effect_props.chorus_.phase_;
+        const auto rate = effect_props.chorus_.rate_;
 
         if (!(rate > 0.0F))
         {

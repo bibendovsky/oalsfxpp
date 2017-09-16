@@ -71,12 +71,12 @@ protected:
     }
 
     void EchoEffectState::do_update_device(
-        ALCdevice* device) final
+        ALCdevice& device) final
     {
         // Use the next power of 2 for the buffer length, so the tap offsets can be
         // wrapped using a mask instead of a modulo
-        auto maxlen = static_cast<int>(EffectProps::Echo::max_delay * device->frequency_) + 1;
-        maxlen += static_cast<int>(EffectProps::Echo::max_lr_delay * device->frequency_) + 1;
+        auto maxlen = static_cast<int>(EffectProps::Echo::max_delay * device.frequency_) + 1;
+        maxlen += static_cast<int>(EffectProps::Echo::max_lr_delay * device.frequency_) + 1;
         maxlen = Math::next_power_of_2(maxlen);
 
         if (maxlen != buffer_length_)
@@ -89,20 +89,20 @@ protected:
     }
 
     void EchoEffectState::do_update(
-        ALCdevice* device,
-        const EffectSlot* slot,
-        const EffectProps* props) final
+        ALCdevice& device,
+        const EffectSlot& effect_slot,
+        const EffectProps& effect_props) final
     {
         AmbiCoeffs coeffs;
         float effect_gain, lrpan, spread;
 
-        const auto frequency = device->frequency_;
+        const auto frequency = device.frequency_;
 
-        taps_[0].delay = static_cast<int>(props->echo_.delay_ * frequency) + 1;
-        taps_[1].delay = static_cast<int>(props->echo_.lr_delay_ * frequency);
+        taps_[0].delay = static_cast<int>(effect_props.echo_.delay_ * frequency) + 1;
+        taps_[1].delay = static_cast<int>(effect_props.echo_.lr_delay_ * frequency);
         taps_[1].delay += taps_[0].delay;
 
-        spread = props->echo_.spread_;
+        spread = effect_props.echo_.spread_;
 
         if (spread < 0.0F)
         {
@@ -117,9 +117,9 @@ protected:
         // spread (where 0 = point, tau = omni).
         spread = std::asin(1.0F - std::abs(spread)) * 4.0F;
 
-        feed_gain_ = props->echo_.feedback_;
+        feed_gain_ = effect_props.echo_.feedback_;
 
-        effect_gain = std::max(1.0F - props->echo_.damping_, 0.0625F); // Limit -24dB
+        effect_gain = std::max(1.0F - effect_props.echo_.damping_, 0.0625F); // Limit -24dB
 
         filter_.set_params(
             FilterType::high_shelf,
@@ -131,11 +131,11 @@ protected:
 
         // First tap panning
         Panning::calc_angle_coeffs(-Math::pi_2 * lrpan, 0.0F, spread, coeffs);
-        Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, effect_gain, taps_gains_[0]);
+        Panning::compute_panning_gains(device.channel_count_, device.dry_, coeffs, effect_gain, taps_gains_[0]);
 
         // Second tap panning
         Panning::calc_angle_coeffs(Math::pi_2 * lrpan, 0.0F, spread, coeffs);
-        Panning::compute_panning_gains(device->channel_count_, device->dry_, coeffs, effect_gain, taps_gains_[1]);
+        Panning::compute_panning_gains(device.channel_count_, device.dry_, coeffs, effect_gain, taps_gains_[1]);
     }
 
     void EchoEffectState::do_process(

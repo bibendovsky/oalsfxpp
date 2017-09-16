@@ -59,21 +59,21 @@ protected:
     }
 
     void ModulatorEffectState::do_update_device(
-        ALCdevice* device) final
+        ALCdevice& device) final
     {
         static_cast<void>(device);
     }
 
     void ModulatorEffectState::do_update(
-        ALCdevice* device,
-        const EffectSlot* slot,
-        const EffectProps* props) final
+        ALCdevice& device,
+        const EffectSlot& effect_slot,
+        const EffectProps& effect_props) final
     {
-        if (props->modulator_.waveform_ == EffectProps::Modulator::waveform_sinusoid)
+        if (effect_props.modulator_.waveform_ == EffectProps::Modulator::waveform_sinusoid)
         {
             process_func_ = modulate_sin;
         }
-        else if (props->modulator_.waveform_ == EffectProps::Modulator::waveform_sawtooth)
+        else if (effect_props.modulator_.waveform_ == EffectProps::Modulator::waveform_sawtooth)
         {
             process_func_ = modulate_saw;
         }
@@ -82,7 +82,7 @@ protected:
             process_func_ = modulate_square;
         }
 
-        step_ = static_cast<int>(props->modulator_.frequency_ * waveform_frac_one / device->frequency_);
+        step_ = static_cast<int>(effect_props.modulator_.frequency_ * waveform_frac_one / device.frequency_);
 
         if (step_ == 0)
         {
@@ -90,7 +90,7 @@ protected:
         }
 
         // Custom filter coeffs, which match the old version instead of a low-shelf.
-        const auto cw = std::cos(Math::tau * props->modulator_.high_pass_cutoff_ / device->frequency_);
+        const auto cw = std::cos(Math::tau * effect_props.modulator_.high_pass_cutoff_ / device.frequency_);
         const auto a = (2.0F - cw) - std::sqrt(std::pow(2.0F - cw, 2.0F) - 1.0F);
 
         for (int i = 0; i < max_effect_channels; ++i)
@@ -102,14 +102,14 @@ protected:
             filters_[i].a2_ = 0.0F;
         }
 
-        dst_buffers_ = &device->sample_buffers_;
-        dst_channel_count_ = device->channel_count_;
+        dst_buffers_ = &device.sample_buffers_;
+        dst_channel_count_ = device.channel_count_;
 
         for (int i = 0; i < max_effect_channels; ++i)
         {
             Panning::compute_first_order_gains(
-                device->channel_count_,
-                device->foa_,
+                device.channel_count_,
+                device.foa_,
                 mat4f_identity.m_[i],
                 1.0F,
                 channels_gains_[i]);
