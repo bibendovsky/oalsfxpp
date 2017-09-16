@@ -375,7 +375,7 @@ void ApiImpl::calc_panning_and_filters(
         {
             source_->direct_.channels_[c].target_gains_.fill(0.0F);
 
-            const auto idx = get_channel_index(device_->channel_names_, channel_map[c].channel_id);
+            const auto idx = device_->get_channel_index(channel_map[c].channel_id);
 
             if (idx != -1)
             {

@@ -1732,7 +1732,7 @@ struct EffectStateDeleter
 
 struct ALCdevice
 {
-    using ChannelNames = std::array<ChannelId, max_channels>;
+    using ChannelIds = std::array<ChannelId, max_channels>;
 
 
     int frequency_;
@@ -1740,7 +1740,7 @@ struct ALCdevice
     ChannelFormat channel_format_;
 
     int channel_count_;
-    ChannelNames channel_names_;
+    ChannelIds channel_ids_;
     SampleBuffers sample_buffers_;
 
     // Temp storage used for each source when mixing.
@@ -1779,63 +1779,63 @@ struct ALCdevice
 
     void set_default_wfx_channel_order()
     {
-        channel_names_.fill(ChannelId::invalid);
+        channel_ids_.fill(ChannelId::invalid);
 
         switch (channel_format_)
         {
         case ChannelFormat::mono:
-            channel_names_[0] = ChannelId::front_center;
+            channel_ids_[0] = ChannelId::front_center;
             break;
 
         case ChannelFormat::stereo:
-            channel_names_[0] = ChannelId::front_left;
-            channel_names_[1] = ChannelId::front_right;
+            channel_ids_[0] = ChannelId::front_left;
+            channel_ids_[1] = ChannelId::front_right;
             break;
 
         case ChannelFormat::quad:
-            channel_names_[0] = ChannelId::front_left;
-            channel_names_[1] = ChannelId::front_right;
-            channel_names_[2] = ChannelId::back_left;
-            channel_names_[3] = ChannelId::back_right;
+            channel_ids_[0] = ChannelId::front_left;
+            channel_ids_[1] = ChannelId::front_right;
+            channel_ids_[2] = ChannelId::back_left;
+            channel_ids_[3] = ChannelId::back_right;
             break;
 
         case ChannelFormat::five_point_one:
-            channel_names_[0] = ChannelId::front_left;
-            channel_names_[1] = ChannelId::front_right;
-            channel_names_[2] = ChannelId::front_center;
-            channel_names_[3] = ChannelId::lfe;
-            channel_names_[4] = ChannelId::side_left;
-            channel_names_[5] = ChannelId::side_right;
+            channel_ids_[0] = ChannelId::front_left;
+            channel_ids_[1] = ChannelId::front_right;
+            channel_ids_[2] = ChannelId::front_center;
+            channel_ids_[3] = ChannelId::lfe;
+            channel_ids_[4] = ChannelId::side_left;
+            channel_ids_[5] = ChannelId::side_right;
             break;
 
         case ChannelFormat::five_point_one_rear:
-            channel_names_[0] = ChannelId::front_left;
-            channel_names_[1] = ChannelId::front_right;
-            channel_names_[2] = ChannelId::front_center;
-            channel_names_[3] = ChannelId::lfe;
-            channel_names_[4] = ChannelId::back_left;
-            channel_names_[5] = ChannelId::back_right;
+            channel_ids_[0] = ChannelId::front_left;
+            channel_ids_[1] = ChannelId::front_right;
+            channel_ids_[2] = ChannelId::front_center;
+            channel_ids_[3] = ChannelId::lfe;
+            channel_ids_[4] = ChannelId::back_left;
+            channel_ids_[5] = ChannelId::back_right;
             break;
 
         case ChannelFormat::six_point_one:
-            channel_names_[0] = ChannelId::front_left;
-            channel_names_[1] = ChannelId::front_right;
-            channel_names_[2] = ChannelId::front_center;
-            channel_names_[3] = ChannelId::lfe;
-            channel_names_[4] = ChannelId::back_center;
-            channel_names_[5] = ChannelId::side_left;
-            channel_names_[6] = ChannelId::side_right;
+            channel_ids_[0] = ChannelId::front_left;
+            channel_ids_[1] = ChannelId::front_right;
+            channel_ids_[2] = ChannelId::front_center;
+            channel_ids_[3] = ChannelId::lfe;
+            channel_ids_[4] = ChannelId::back_center;
+            channel_ids_[5] = ChannelId::side_left;
+            channel_ids_[6] = ChannelId::side_right;
             break;
 
         case ChannelFormat::seven_point_one:
-            channel_names_[0] = ChannelId::front_left;
-            channel_names_[1] = ChannelId::front_right;
-            channel_names_[2] = ChannelId::front_center;
-            channel_names_[3] = ChannelId::lfe;
-            channel_names_[4] = ChannelId::back_left;
-            channel_names_[5] = ChannelId::back_right;
-            channel_names_[6] = ChannelId::side_left;
-            channel_names_[7] = ChannelId::side_right;
+            channel_ids_[0] = ChannelId::front_left;
+            channel_ids_[1] = ChannelId::front_right;
+            channel_ids_[2] = ChannelId::front_center;
+            channel_ids_[3] = ChannelId::lfe;
+            channel_ids_[4] = ChannelId::back_left;
+            channel_ids_[5] = ChannelId::back_right;
+            channel_ids_[6] = ChannelId::side_left;
+            channel_ids_[7] = ChannelId::side_right;
             break;
         }
     }
@@ -1896,7 +1896,7 @@ struct ALCdevice
         }
 
         Panning::set_channel_map(
-            channel_names_.data(),
+            channel_ids_.data(),
             dry_.ambi_.coeffs_.data(),
             channel_map,
             count,
@@ -1917,6 +1917,31 @@ struct ALCdevice
         }
 
         foa_.coeff_count_ = 4;
+    }
+
+    // Returns the index for the given channel name (e.g. FrontCenter), or -1 if it
+    // doesn't exist.
+    int get_channel_index(
+        const ChannelId channel_id_to_find)
+    {
+        const auto it_begin = channel_ids_.cbegin();
+        const auto it_end = channel_ids_.cbegin();
+
+        const auto it = std::find_if(
+            it_begin,
+            it_end,
+            [=](const ChannelId channel_id)
+            {
+                return channel_id == channel_id_to_find;
+            }
+        );
+
+        if (it == it_end)
+        {
+            return -1;
+        }
+
+        return static_cast<int>(it - it_begin);
     }
 }; // ALCdevice
 
@@ -2000,28 +2025,6 @@ struct EffectSlot
         is_props_updated_ = true;
     }
 }; // EffectSlot
-
-
-// Returns the index for the given channel name (e.g. FrontCenter), or -1 if it
-// doesn't exist.
-inline int get_channel_index(
-    const ALCdevice::ChannelNames& names,
-    const ChannelId chan)
-{
-    auto i = 0;
-
-    for (const auto& name : names)
-    {
-        if(name == chan)
-        {
-            return i;
-        }
-
-        i += 1;
-    }
-
-    return -1;
-}
 
 
 #endif
