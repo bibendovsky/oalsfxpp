@@ -1441,7 +1441,7 @@ struct Effect
     }
 
     void set(
-        const EffectType type = EffectType::null)
+        const EffectType type)
     {
         switch (type)
         {
