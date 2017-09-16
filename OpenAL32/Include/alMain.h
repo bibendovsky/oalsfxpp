@@ -70,6 +70,15 @@ struct Math
         return std::min(max_value, std::max(min_value, value));
     }
 
+    template<typename T>
+    static void clamp_i(
+        T& value,
+        const T min_value,
+        const T max_value)
+    {
+        value = clamp(value, min_value, max_value);
+    }
+
     static float lerp(
         const float val1,
         const float val2,
@@ -1058,6 +1067,349 @@ union EffectProps
     using Pan = std::array<float, 3>;
 
 
+    struct Chorus
+    {
+        static constexpr auto waveform_sinusoid = 0;
+        static constexpr auto waveform_triangle = 1;
+
+        static constexpr auto min_waveform = waveform_sinusoid;
+        static constexpr auto max_waveform = waveform_triangle;
+        static constexpr auto default_waveform = waveform_triangle;
+
+        static constexpr auto min_phase = -180;
+        static constexpr auto max_phase = 180;
+        static constexpr auto default_phase = 90;
+
+        static constexpr auto min_rate = 0.0F;
+        static constexpr auto max_rate = 10.0F;
+        static constexpr auto default_rate = 1.1F;
+
+        static constexpr auto min_depth = 0.0F;
+        static constexpr auto max_depth = 1.0F;
+        static constexpr auto default_depth = 0.1F;
+
+        static constexpr auto min_feedback = -1.0F;
+        static constexpr auto max_feedback = 1.0F;
+        static constexpr auto default_feedback = 0.25F;
+
+        static constexpr auto min_delay = 0.0F;
+        static constexpr auto max_delay = 0.016F;
+        static constexpr auto default_delay = 0.016F;
+
+
+        int waveform_;
+        int phase_;
+        float rate_;
+        float depth_;
+        float feedback_;
+        float delay_;
+
+
+        void set_defaults()
+        {
+            waveform_ = default_waveform;
+            phase_ = default_phase;
+            rate_ = default_rate;
+            depth_ = default_depth;
+            feedback_ = default_feedback;
+            delay_ = default_delay;
+        }
+
+        void normalize()
+        {
+            Math::clamp_i(waveform_, min_waveform, max_waveform);
+            Math::clamp_i(phase_, min_phase, max_phase);
+            Math::clamp_i(rate_, min_rate, max_rate);
+            Math::clamp_i(depth_, min_depth, max_depth);
+            Math::clamp_i(feedback_, min_feedback, max_feedback);
+            Math::clamp_i(delay_, min_delay, max_delay);
+        }
+    }; // Chorus
+
+    struct Compressor
+    {
+        static constexpr auto min_on_off = false;
+        static constexpr auto max_on_off = true;
+        static constexpr auto default_on_off = true;
+
+
+        bool on_off_;
+
+
+        void set_defaults()
+        {
+            on_off_ = default_on_off;
+        }
+
+        void normalize()
+        {
+        }
+    }; // Compressor
+
+    struct Dedicated
+    {
+        static constexpr auto min_gain = 0.0F;
+        static constexpr auto max_gain = 1.0F;
+        static constexpr auto default_gain = 1.0F;
+
+
+        float gain_;
+
+
+        void set_defaults()
+        {
+            gain_ = default_gain;
+        }
+
+        void normalize()
+        {
+            Math::clamp_i(gain_, EffectProps::Dedicated::min_gain, EffectProps::Dedicated::max_gain);
+        }
+    }; // Dedicated
+
+    struct Distortion
+    {
+        static constexpr auto min_edge = 0.0F;
+        static constexpr auto max_edge = 1.0F;
+        static constexpr auto default_edge = 0.2F;
+
+        static constexpr auto min_gain = 0.01F;
+        static constexpr auto max_gain = 1.0F;
+        static constexpr auto default_gain = 0.05F;
+
+        static constexpr auto min_low_pass_cutoff = 80.0F;
+        static constexpr auto max_low_pass_cutoff = 24000.0F;
+        static constexpr auto default_low_pass_cutoff = 8000.0F;
+
+        static constexpr auto min_eq_center = 80.0F;
+        static constexpr auto max_eq_center = 24000.0F;
+        static constexpr auto default_eq_center = 3600.0F;
+
+        static constexpr auto min_eq_bandwidth = 80.0F;
+        static constexpr auto max_eq_bandwidth = 24000.0F;
+        static constexpr auto default_eq_bandwidth = 3600.0F;
+
+
+        float edge_;
+        float gain_;
+        float low_pass_cutoff_;
+        float eq_center_;
+        float eq_bandwidth_;
+
+
+        void set_defaults()
+        {
+            edge_ = default_edge;
+            gain_ = default_gain;
+            low_pass_cutoff_ = default_low_pass_cutoff;
+            eq_center_ = default_eq_center;
+            eq_bandwidth_ = default_eq_bandwidth;
+        }
+
+        void normalize()
+        {
+            Math::clamp_i(edge_, min_edge, max_edge);
+            Math::clamp_i(gain_, min_gain, max_gain);
+            Math::clamp_i(low_pass_cutoff_, min_low_pass_cutoff, max_low_pass_cutoff);
+            Math::clamp_i(eq_center_, min_eq_center, max_eq_center);
+            Math::clamp_i(eq_bandwidth_, min_eq_bandwidth, max_eq_bandwidth);
+        }
+    }; // Distortion
+
+    struct Echo
+    {
+        static constexpr auto min_delay = 0.0F;
+        static constexpr auto max_delay = 0.207F;
+        static constexpr auto default_delay = 0.1F;
+
+        static constexpr auto min_lr_delay = 0.0F;
+        static constexpr auto max_lr_delay = 0.404F;
+        static constexpr auto default_lr_delay = 0.1F;
+
+        static constexpr auto min_damping = 0.0F;
+        static constexpr auto max_damping = 0.99F;
+        static constexpr auto default_damping = 0.5F;
+
+        static constexpr auto min_feedback = 0.0F;
+        static constexpr auto max_feedback = 1.0F;
+        static constexpr auto default_feedback = 0.5F;
+
+        static constexpr auto min_spread = -1.0F;
+        static constexpr auto max_spread = 1.0F;
+        static constexpr auto default_spread = -1.0F;
+
+
+        float delay_;
+        float lr_delay_;
+
+        float damping_;
+        float feedback_;
+
+        float spread_;
+
+
+        void set_defaults()
+        {
+            delay_ = default_delay;
+            lr_delay_ = default_lr_delay;
+            damping_ = default_damping;
+            feedback_ = default_feedback;
+            spread_ = default_spread;
+        }
+
+        void normalize()
+        {
+            Math::clamp_i(delay_, min_delay, max_delay);
+            Math::clamp_i(lr_delay_, min_lr_delay, max_lr_delay);
+            Math::clamp_i(damping_, min_damping, max_damping);
+            Math::clamp_i(feedback_, min_feedback, max_feedback);
+            Math::clamp_i(spread_, min_spread, max_spread);
+        }
+    }; // Echo
+
+    struct Equalizer
+    {
+        static constexpr auto min_low_gain = 0.126F;
+        static constexpr auto max_low_gain = 7.943F;
+        static constexpr auto default_low_gain = 1.0F;
+
+        static constexpr auto min_low_cutoff = 50.0F;
+        static constexpr auto max_low_cutoff = 800.0F;
+        static constexpr auto default_low_cutoff = 200.0F;
+
+        static constexpr auto min_mid1_gain = 0.126F;
+        static constexpr auto max_mid1_gain = 7.943F;
+        static constexpr auto default_mid1_gain = 1.0F;
+
+        static constexpr auto min_mid1_center = 200.0F;
+        static constexpr auto max_mid1_center = 3000.0F;
+        static constexpr auto default_mid1_center = 500.0F;
+
+        static constexpr auto min_mid1_width = 0.01F;
+        static constexpr auto max_mid1_width = 1.0F;
+        static constexpr auto default_mid1_width = 1.0F;
+
+        static constexpr auto min_mid2_gain = 0.126F;
+        static constexpr auto max_mid2_gain = 7.943F;
+        static constexpr auto default_mid2_gain = 1.0F;
+
+        static constexpr auto min_mid2_center = 1000.0F;
+        static constexpr auto max_mid2_center = 8000.0F;
+        static constexpr auto default_mid2_center = 3000.0F;
+
+        static constexpr auto min_mid2_width = 0.01F;
+        static constexpr auto max_mid2_width = 1.0F;
+        static constexpr auto default_mid2_width = 1.0F;
+
+        static constexpr auto min_high_gain = 0.126F;
+        static constexpr auto max_high_gain = 7.943F;
+        static constexpr auto default_high_gain = 1.0F;
+
+        static constexpr auto min_high_cutoff = 4000.0F;
+        static constexpr auto max_high_cutoff = 16000.0F;
+        static constexpr auto default_high_cutoff = 6000.0F;
+
+
+        float low_cutoff_;
+        float low_gain_;
+        float mid1_center_;
+        float mid1_gain_;
+        float mid1_width_;
+        float mid2_center_;
+        float mid2_gain_;
+        float mid2_width_;
+        float high_cutoff_;
+        float high_gain_;
+
+
+        void set_defaults()
+        {
+            low_cutoff_ = default_low_cutoff;
+            low_gain_ = default_high_gain;
+            mid1_center_ = default_mid1_center;
+            mid1_gain_ = default_mid1_gain;
+            mid1_width_ = default_mid1_width;
+            mid2_center_ = default_mid2_center;
+            mid2_gain_ = default_mid2_gain;
+            mid2_width_ = default_mid2_width;
+            high_cutoff_ = default_high_cutoff;
+            high_gain_ = default_high_gain;
+        }
+
+        void normalize()
+        {
+            Math::clamp_i(low_cutoff_, min_low_cutoff, max_low_cutoff);
+            Math::clamp_i(low_gain_, min_high_gain, max_high_gain);
+            Math::clamp_i(mid1_center_, min_mid1_center, max_mid1_center);
+            Math::clamp_i(mid1_gain_, min_mid1_gain, max_mid1_gain);
+            Math::clamp_i(mid1_width_, min_mid1_width, max_mid1_width);
+            Math::clamp_i(mid2_center_, min_mid2_center, max_mid2_center);
+            Math::clamp_i(mid2_gain_, max_mid2_gain, max_mid2_gain);
+            Math::clamp_i(mid2_width_, min_mid2_width, max_mid2_width);
+            Math::clamp_i(high_cutoff_, min_high_cutoff, max_high_cutoff);
+            Math::clamp_i(high_gain_, min_high_gain, max_high_gain);
+        }
+    }; // Equalizer
+
+    struct Flanger
+    {
+        static constexpr auto waveform_sinusoid = 0;
+        static constexpr auto waveform_triangle = 1;
+
+        static constexpr auto min_waveform = waveform_sinusoid;
+        static constexpr auto max_waveform = waveform_triangle;
+        static constexpr auto default_waveform = waveform_triangle;
+
+        static constexpr auto min_phase = -180;
+        static constexpr auto max_phase = 180;
+        static constexpr auto default_phase = 0;
+
+        static constexpr auto min_rate = 0.0F;
+        static constexpr auto max_rate = 10.0F;
+        static constexpr auto default_rate = 0.27F;
+
+        static constexpr auto min_depth = 0.0F;
+        static constexpr auto max_depth = 1.0F;
+        static constexpr auto default_depth = 1.0F;
+
+        static constexpr auto min_feedback = -1.0F;
+        static constexpr auto max_feedback = 1.0F;
+        static constexpr auto default_feedback = -0.5F;
+
+        static constexpr auto min_delay = 0.0F;
+        static constexpr auto max_delay = 0.004F;
+        static constexpr auto default_delay = 0.002F;
+
+
+        int waveform_;
+        int phase_;
+        float rate_;
+        float depth_;
+        float feedback_;
+        float delay_;
+
+
+        void set_defaults()
+        {
+            waveform_ = default_waveform;
+            phase_ = default_phase;
+            rate_ = default_rate;
+            depth_ = default_depth;
+            feedback_ = default_feedback;
+            delay_ = default_delay;
+        }
+
+        void normalize()
+        {
+            Math::clamp_i(waveform_, min_waveform, max_waveform);
+            Math::clamp_i(phase_, min_phase, max_phase);
+            Math::clamp_i(rate_, min_rate, max_rate);
+            Math::clamp_i(depth_, min_depth, max_depth);
+            Math::clamp_i(feedback_, min_feedback, max_feedback);
+            Math::clamp_i(delay_, min_delay, max_delay);
+        }
+    }; // Flanger
+
     struct Reverb
     {
         static constexpr auto min_density = 0.0F;
@@ -1100,6 +1452,8 @@ union EffectProps
         static constexpr auto max_reflections_delay = 0.3F;
         static constexpr auto default_reflections_delay = 0.007F;
 
+        static constexpr auto min_reflections_pan_xyz = -1.0F;
+        static constexpr auto max_reflections_pan_xyz = 1.0F;
         static constexpr auto default_reflections_pan_xyz = 0.0F;
 
         static constexpr auto min_late_reverb_gain = 0.0F;
@@ -1110,6 +1464,8 @@ union EffectProps
         static constexpr auto max_late_reverb_delay = 0.1F;
         static constexpr auto default_late_reverb_delay = 0.011F;
 
+        static constexpr auto min_late_reverb_pan_xyz = -1.0F;
+        static constexpr auto max_late_reverb_pan_xyz = 1.0F;
         static constexpr auto default_late_reverb_pan_xyz = 0.0F;
 
         static constexpr auto min_echo_time = 0.075F;
@@ -1175,210 +1531,66 @@ union EffectProps
         float modulation_depth_;
         float hf_reference_;
         float lf_reference_;
+
+
+        void set_defaults()
+        {
+            density_ = default_density;
+            diffusion_ = default_diffusion;
+            gain_ = default_gain;
+            gain_hf_ = default_gain_hf;
+            gain_lf_ = default_gain_lf;
+            decay_time_ = default_decay_time;
+            decay_hf_ratio_ = default_decay_hf_ratio;
+            decay_lf_ratio_ = default_decay_lf_ratio;
+            reflections_gain_ = default_reflections_gain;
+            reflections_delay_ = default_reflections_delay;
+            reflections_pan_.fill(default_reflections_pan_xyz);
+            late_reverb_gain_ = default_late_reverb_gain;
+            late_reverb_delay_ = default_late_reverb_delay;
+            late_reverb_pan_.fill(default_late_reverb_pan_xyz);
+            echo_time_ = default_echo_time;
+            echo_depth_ = default_echo_depth;
+            modulation_time_ = default_modulation_time;
+            modulation_depth_ = default_modulation_depth;
+            air_absorption_gain_hf_ = default_air_absorption_gain_hf;
+            hf_reference_ = default_hf_reference;
+            lf_reference_ = default_lf_reference;
+            room_rolloff_factor_ = default_room_rolloff_factor;
+            decay_hf_limit_ = default_decay_hf_limit;
+        }
+
+        void normalize()
+        {
+            Math::clamp_i(density_, min_density, max_density);
+            Math::clamp_i(diffusion_, min_diffusion, max_diffusion);
+            Math::clamp_i(gain_, min_gain, max_gain);
+            Math::clamp_i(gain_hf_, min_gain_hf, max_gain_hf);
+            Math::clamp_i(gain_lf_, min_gain_lf, max_gain_lf);
+            Math::clamp_i(decay_time_, min_decay_time, max_decay_time);
+            Math::clamp_i(decay_hf_ratio_, min_decay_hf_ratio, max_decay_hf_ratio);
+            Math::clamp_i(decay_lf_ratio_, min_decay_lf_ratio, max_decay_lf_ratio);
+            Math::clamp_i(reflections_gain_, min_reflections_gain, max_reflections_gain);
+            Math::clamp_i(reflections_delay_, min_reflections_delay, max_reflections_delay);
+            Math::clamp_i(reflections_pan_[0], min_reflections_pan_xyz, max_reflections_pan_xyz);
+            Math::clamp_i(reflections_pan_[1], min_reflections_pan_xyz, max_reflections_pan_xyz);
+            Math::clamp_i(reflections_pan_[2], min_reflections_pan_xyz, max_reflections_pan_xyz);
+            Math::clamp_i(late_reverb_gain_, min_late_reverb_gain, max_late_reverb_gain);
+            Math::clamp_i(late_reverb_delay_, min_late_reverb_delay, max_late_reverb_delay);
+            Math::clamp_i(late_reverb_pan_[0], min_late_reverb_pan_xyz, max_late_reverb_pan_xyz);
+            Math::clamp_i(late_reverb_pan_[1], min_late_reverb_pan_xyz, max_late_reverb_pan_xyz);
+            Math::clamp_i(late_reverb_pan_[2], min_late_reverb_pan_xyz, max_late_reverb_pan_xyz);
+            Math::clamp_i(echo_time_, min_echo_time, max_echo_time);
+            Math::clamp_i(echo_depth_, min_echo_depth, max_echo_depth);
+            Math::clamp_i(modulation_time_, min_modulation_time, max_modulation_time);
+            Math::clamp_i(modulation_depth_, min_modulation_depth, max_modulation_depth);
+            Math::clamp_i(air_absorption_gain_hf_, min_air_absorption_gain_hf, max_air_absorption_gain_hf);
+            Math::clamp_i(hf_reference_, min_hf_reference, max_hf_reference);
+            Math::clamp_i(lf_reference_, min_lf_reference, max_lf_reference);
+            Math::clamp_i(room_rolloff_factor_, min_room_rolloff_factor, max_room_rolloff_factor);
+            Math::clamp_i(decay_hf_limit_, min_decay_hf_limit, max_decay_hf_limit);
+        }
     }; // Reverb
-
-    struct Chorus
-    {
-        static constexpr auto waveform_sinusoid = 0;
-        static constexpr auto waveform_triangle = 1;
-
-        static constexpr auto min_waveform = waveform_sinusoid;
-        static constexpr auto max_waveform = waveform_triangle;
-        static constexpr auto default_waveform = waveform_triangle;
-
-        static constexpr auto min_phase = -180;
-        static constexpr auto max_phase = 180;
-        static constexpr auto default_phase = 90;
-
-        static constexpr auto min_rate = 0.0F;
-        static constexpr auto max_rate = 10.0F;
-        static constexpr auto default_rate = 1.1F;
-
-        static constexpr auto min_depth = 0.0F;
-        static constexpr auto max_depth = 1.0F;
-        static constexpr auto default_depth = 0.1F;
-
-        static constexpr auto min_feedback = -1.0F;
-        static constexpr auto max_feedback = 1.0F;
-        static constexpr auto default_feedback = 0.25F;
-
-        static constexpr auto min_delay = 0.0F;
-        static constexpr auto max_delay = 0.016F;
-        static constexpr auto default_delay = 0.016F;
-
-
-        int waveform_;
-        int phase_;
-        float rate_;
-        float depth_;
-        float feedback_;
-        float delay_;
-    }; // Chorus
-
-    struct Compressor
-    {
-        static constexpr auto min_on_off = false;
-        static constexpr auto max_on_off = true;
-        static constexpr auto default_on_off = true;
-
-
-        bool on_off_;
-    }; // Compressor
-
-    struct Distortion
-    {
-        static constexpr auto min_edge = 0.0F;
-        static constexpr auto max_edge = 1.0F;
-        static constexpr auto default_edge = 0.2F;
-
-        static constexpr auto min_gain = 0.01F;
-        static constexpr auto max_gain = 1.0F;
-        static constexpr auto default_gain = 0.05F;
-
-        static constexpr auto min_low_pass_cutoff = 80.0F;
-        static constexpr auto max_low_pass_cutoff = 24000.0F;
-        static constexpr auto default_low_pass_cutoff = 8000.0F;
-
-        static constexpr auto min_eq_center = 80.0F;
-        static constexpr auto max_eq_center = 24000.0F;
-        static constexpr auto default_eq_center = 3600.0F;
-
-        static constexpr auto min_eq_bandwidth = 80.0F;
-        static constexpr auto max_eq_bandwidth = 24000.0F;
-        static constexpr auto default_eq_bandwidth = 3600.0F;
-
-
-        float edge_;
-        float gain_;
-        float low_pass_cutoff_;
-        float eq_center_;
-        float eq_bandwidth_;
-    }; // Distortion
-
-    struct Echo
-    {
-        static constexpr auto min_delay = 0.0F;
-        static constexpr auto max_delay = 0.207F;
-        static constexpr auto default_delay = 0.1F;
-
-        static constexpr auto min_lr_delay = 0.0F;
-        static constexpr auto max_lr_delay = 0.404F;
-        static constexpr auto default_lr_delay = 0.1F;
-
-        static constexpr auto min_damping = 0.0F;
-        static constexpr auto max_damping = 0.99F;
-        static constexpr auto default_damping = 0.5F;
-
-        static constexpr auto min_feedback = 0.0F;
-        static constexpr auto max_feedback = 1.0F;
-        static constexpr auto default_feedback = 0.5F;
-
-        static constexpr auto min_spread = -1.0F;
-        static constexpr auto max_spread = 1.0F;
-        static constexpr auto default_spread = -1.0F;
-
-
-        float delay_;
-        float lr_delay_;
-
-        float damping_;
-        float feedback_;
-
-        float spread_;
-    }; // Echo
-
-    struct Equalizer
-    {
-        static constexpr auto min_low_gain = 0.126F;
-        static constexpr auto max_low_gain = 7.943F;
-        static constexpr auto default_low_gain = 1.0F;
-
-        static constexpr auto min_low_cutoff = 50.0F;
-        static constexpr auto max_low_cutoff = 800.0F;
-        static constexpr auto default_low_cutoff = 200.0F;
-
-        static constexpr auto min_mid1_gain = 0.126F;
-        static constexpr auto max_mid1_gain = 7.943F;
-        static constexpr auto default_mid1_gain = 1.0F;
-
-        static constexpr auto min_mid1_center = 200.0F;
-        static constexpr auto max_mid1_center = 3000.0F;
-        static constexpr auto default_mid1_center = 500.0F;
-
-        static constexpr auto min_mid1_width = 0.01F;
-        static constexpr auto max_mid1_width = 1.0F;
-        static constexpr auto default_mid1_width = 1.0F;
-
-        static constexpr auto min_mid2_gain = 0.126F;
-        static constexpr auto max_mid2_gain = 7.943F;
-        static constexpr auto default_mid2_gain = 1.0F;
-
-        static constexpr auto min_mid2_center = 1000.0F;
-        static constexpr auto max_mid2_center = 8000.0F;
-        static constexpr auto default_mid2_center = 3000.0F;
-
-        static constexpr auto min_mid2_width = 0.01F;
-        static constexpr auto max_mid2_width = 1.0F;
-        static constexpr auto default_mid2_width = 1.0F;
-
-        static constexpr auto min_high_gain = 0.126F;
-        static constexpr auto max_high_gain = 7.943F;
-        static constexpr auto default_high_gain = 1.0F;
-
-        static constexpr auto min_high_cutoff = 4000.0F;
-        static constexpr auto max_high_cutoff = 16000.0F;
-        static constexpr auto default_high_cutoff = 6000.0F;
-
-
-        float low_cutoff_;
-        float low_gain_;
-        float mid1_center_;
-        float mid1_gain_;
-        float mid1_width_;
-        float mid2_center_;
-        float mid2_gain_;
-        float mid2_width_;
-        float high_cutoff_;
-        float high_gain_;
-    }; // Equalizer
-
-    struct Flanger
-    {
-        static constexpr auto waveform_sinusoid = 0;
-        static constexpr auto waveform_triangle = 1;
-
-        static constexpr auto min_waveform = waveform_sinusoid;
-        static constexpr auto max_waveform = waveform_triangle;
-        static constexpr auto default_waveform = waveform_triangle;
-
-        static constexpr auto min_phase = -180;
-        static constexpr auto max_phase = 180;
-        static constexpr auto default_phase = 0;
-
-        static constexpr auto min_rate = 0.0F;
-        static constexpr auto max_rate = 10.0F;
-        static constexpr auto default_rate = 0.27F;
-
-        static constexpr auto min_depth = 0.0F;
-        static constexpr auto max_depth = 1.0F;
-        static constexpr auto default_depth = 1.0F;
-
-        static constexpr auto min_feedback = -1.0F;
-        static constexpr auto max_feedback = 1.0F;
-        static constexpr auto default_feedback = -0.5F;
-
-        static constexpr auto min_delay = 0.0F;
-        static constexpr auto max_delay = 0.004F;
-        static constexpr auto default_delay = 0.002F;
-
-
-        int waveform_;
-        int phase_;
-        float rate_;
-        float depth_;
-        float feedback_;
-        float delay_;
-    }; // Flanger
 
     struct Modulator
     {
@@ -1402,17 +1614,22 @@ union EffectProps
         float frequency_;
         float high_pass_cutoff_;
         int waveform_;
+
+
+        void set_defaults()
+        {
+            frequency_ = default_frequency;
+            high_pass_cutoff_ = default_high_pass_cutoff;
+            waveform_ = default_waveform;
+        }
+
+        void normalize()
+        {
+            Math::clamp_i(frequency_, min_frequency, max_frequency);
+            Math::clamp_i(high_pass_cutoff_, min_high_pass_cutoff, max_high_pass_cutoff);
+            Math::clamp_i(waveform_, min_waveform, max_waveform);
+        }
     }; // Modulator
-
-    struct Dedicated
-    {
-        static constexpr auto min_gain = 0.0F;
-        static constexpr auto max_gain = 1.0F;
-        static constexpr auto default_gain = 1.0F;
-
-
-        float gain_;
-    }; // Dedicated
 
 
     Reverb reverb_;
@@ -1433,118 +1650,106 @@ struct Effect
     EffectProps props_;
 
 
-    Effect()
-        :
-        type_{},
-        props_{}
+    void set_defaults()
     {
-    }
-
-    void set(
-        const EffectType type)
-    {
-        switch (type)
+        switch (type_)
         {
-        case EffectType::reverb:
-        case EffectType::eax_reverb:
-            props_.reverb_.density_ = EffectProps::Reverb::default_density;
-            props_.reverb_.diffusion_ = EffectProps::Reverb::default_diffusion;
-            props_.reverb_.gain_ = EffectProps::Reverb::default_gain;
-            props_.reverb_.gain_hf_ = EffectProps::Reverb::default_gain_hf;
-            props_.reverb_.gain_lf_ = EffectProps::Reverb::default_gain_lf;
-            props_.reverb_.decay_time_ = EffectProps::Reverb::default_decay_time;
-            props_.reverb_.decay_hf_ratio_ = EffectProps::Reverb::default_decay_hf_ratio;
-            props_.reverb_.decay_lf_ratio_ = EffectProps::Reverb::default_decay_lf_ratio;
-            props_.reverb_.reflections_gain_ = EffectProps::Reverb::default_reflections_gain;
-            props_.reverb_.reflections_delay_ = EffectProps::Reverb::default_reflections_delay;
-            props_.reverb_.reflections_pan_[0] = EffectProps::Reverb::default_reflections_pan_xyz;
-            props_.reverb_.reflections_pan_[1] = EffectProps::Reverb::default_reflections_pan_xyz;
-            props_.reverb_.reflections_pan_[2] = EffectProps::Reverb::default_reflections_pan_xyz;
-            props_.reverb_.late_reverb_gain_ = EffectProps::Reverb::default_late_reverb_gain;
-            props_.reverb_.late_reverb_delay_ = EffectProps::Reverb::default_late_reverb_delay;
-            props_.reverb_.late_reverb_pan_[0] = EffectProps::Reverb::default_late_reverb_pan_xyz;
-            props_.reverb_.late_reverb_pan_[1] = EffectProps::Reverb::default_late_reverb_pan_xyz;
-            props_.reverb_.late_reverb_pan_[2] = EffectProps::Reverb::default_late_reverb_pan_xyz;
-            props_.reverb_.echo_time_ = EffectProps::Reverb::default_echo_time;
-            props_.reverb_.echo_depth_ = EffectProps::Reverb::default_echo_depth;
-            props_.reverb_.modulation_time_ = EffectProps::Reverb::default_modulation_time;
-            props_.reverb_.modulation_depth_ = EffectProps::Reverb::default_modulation_depth;
-            props_.reverb_.air_absorption_gain_hf_ = EffectProps::Reverb::default_air_absorption_gain_hf;
-            props_.reverb_.hf_reference_ = EffectProps::Reverb::default_hf_reference;
-            props_.reverb_.lf_reference_ = EffectProps::Reverb::default_lf_reference;
-            props_.reverb_.room_rolloff_factor_ = EffectProps::Reverb::default_room_rolloff_factor;
-            props_.reverb_.decay_hf_limit_ = EffectProps::Reverb::default_decay_hf_limit;
-            break;
-
         case EffectType::chorus:
-            props_.chorus_.waveform_ = EffectProps::Chorus::default_waveform;
-            props_.chorus_.phase_ = EffectProps::Chorus::default_phase;
-            props_.chorus_.rate_ = EffectProps::Chorus::default_rate;
-            props_.chorus_.depth_ = EffectProps::Chorus::default_depth;
-            props_.chorus_.feedback_ = EffectProps::Chorus::default_feedback;
-            props_.chorus_.delay_ = EffectProps::Chorus::default_delay;
+            props_.chorus_.set_defaults();
             break;
 
         case EffectType::compressor:
-            props_.compressor_.on_off_ = EffectProps::Compressor::default_on_off;
-            break;
-
-        case EffectType::distortion:
-            props_.distortion_.edge_ = EffectProps::Distortion::default_edge;
-            props_.distortion_.gain_ = EffectProps::Distortion::default_gain;
-            props_.distortion_.low_pass_cutoff_ = EffectProps::Distortion::default_low_pass_cutoff;
-            props_.distortion_.eq_center_ = EffectProps::Distortion::default_eq_center;
-            props_.distortion_.eq_bandwidth_ = EffectProps::Distortion::default_eq_bandwidth;
-            break;
-
-        case EffectType::echo:
-            props_.echo_.delay_ = EffectProps::Echo::default_delay;
-            props_.echo_.lr_delay_ = EffectProps::Echo::default_lr_delay;
-            props_.echo_.damping_ = EffectProps::Echo::default_damping;
-            props_.echo_.feedback_ = EffectProps::Echo::default_feedback;
-            props_.echo_.spread_ = EffectProps::Echo::default_spread;
-            break;
-
-        case EffectType::equalizer:
-            props_.equalizer_.low_cutoff_ = EffectProps::Equalizer::default_low_cutoff;
-            props_.equalizer_.low_gain_ = EffectProps::Equalizer::default_high_gain;
-            props_.equalizer_.mid1_center_ = EffectProps::Equalizer::default_mid1_center;
-            props_.equalizer_.mid1_gain_ = EffectProps::Equalizer::default_mid1_gain;
-            props_.equalizer_.mid1_width_ = EffectProps::Equalizer::default_mid1_width;
-            props_.equalizer_.mid2_center_ = EffectProps::Equalizer::default_mid2_center;
-            props_.equalizer_.mid2_gain_ = EffectProps::Equalizer::default_mid2_gain;
-            props_.equalizer_.mid2_width_ = EffectProps::Equalizer::default_mid2_width;
-            props_.equalizer_.high_cutoff_ = EffectProps::Equalizer::default_high_cutoff;
-            props_.equalizer_.high_gain_ = EffectProps::Equalizer::default_high_gain;
-            break;
-
-        case EffectType::flanger:
-            props_.flanger_.waveform_ = EffectProps::Flanger::default_waveform;
-            props_.flanger_.phase_ = EffectProps::Flanger::default_phase;
-            props_.flanger_.rate_ = EffectProps::Flanger::default_rate;
-            props_.flanger_.depth_ = EffectProps::Flanger::default_depth;
-            props_.flanger_.feedback_ = EffectProps::Flanger::default_feedback;
-            props_.flanger_.delay_ = EffectProps::Flanger::default_delay;
-            break;
-
-        case EffectType::ring_modulator:
-            props_.modulator_.frequency_ = EffectProps::Modulator::default_frequency;
-            props_.modulator_.high_pass_cutoff_ = EffectProps::Modulator::default_high_pass_cutoff;
-            props_.modulator_.waveform_ = EffectProps::Modulator::default_waveform;
+            props_.compressor_.set_defaults();
             break;
 
         case EffectType::dedicated_dialog:
         case EffectType::dedicated_low_frequency:
-            props_.dedicated_.gain_ = EffectProps::Dedicated::default_gain;
+            props_.dedicated_.set_defaults();
+            break;
+
+        case EffectType::distortion:
+            props_.distortion_.set_defaults();
+            break;
+
+        case EffectType::echo:
+            props_.echo_.set_defaults();
+            break;
+
+        case EffectType::equalizer:
+            props_.equalizer_.set_defaults();
+            break;
+
+        case EffectType::flanger:
+            props_.flanger_.set_defaults();
+            break;
+
+        case EffectType::eax_reverb:
+        case EffectType::reverb:
+            props_.reverb_.set_defaults();
+            break;
+
+        case EffectType::ring_modulator:
+            props_.modulator_.set_defaults();
             break;
 
         default:
             break;
         }
-
-        type_ = type;
     }
 
+    void set_type_and_defaults(
+        const EffectType effect_type)
+    {
+        type_ = effect_type;
+        set_defaults();
+    }
+
+    void set_normalize()
+    {
+        switch (type_)
+        {
+        case EffectType::chorus:
+            props_.chorus_.normalize();
+            break;
+
+        case EffectType::compressor:
+            props_.compressor_.normalize();
+            break;
+
+        case EffectType::dedicated_dialog:
+        case EffectType::dedicated_low_frequency:
+            props_.dedicated_.normalize();
+            break;
+
+        case EffectType::distortion:
+            props_.distortion_.normalize();
+            break;
+
+        case EffectType::echo:
+            props_.echo_.normalize();
+            break;
+
+        case EffectType::equalizer:
+            props_.equalizer_.normalize();
+            break;
+
+        case EffectType::flanger:
+            props_.flanger_.normalize();
+            break;
+
+        case EffectType::eax_reverb:
+        case EffectType::reverb:
+            props_.reverb_.normalize();
+            break;
+
+        case EffectType::ring_modulator:
+            props_.modulator_.normalize();
+            break;
+
+        default:
+            break;
+        }
+    }
 }; // Effect
 
 class EffectState
