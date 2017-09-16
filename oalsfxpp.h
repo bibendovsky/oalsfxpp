@@ -1,5 +1,5 @@
-#ifndef OALSFXPP_API_IMPL_INCLUDED
-#define OALSFXPP_API_IMPL_INCLUDED
+#ifndef OALSFXPP_INCLUDED
+#define OALSFXPP_INCLUDED
 
 
 #include "alMain.h"
@@ -141,4 +141,4 @@ private:
 }; // ApiImpl
 
 
-#endif // OALSFXPP_API_IMPL_INCLUDED
+#endif // OALSFXPP_INCLUDED

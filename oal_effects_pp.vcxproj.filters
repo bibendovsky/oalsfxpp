@@ -48,7 +48,7 @@
     <ClCompile Include="oal_effects_pp_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="oalsfxpp_api_impl.cpp">
+    <ClCompile Include="oalsfxpp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -56,7 +56,7 @@
     <ClInclude Include="OpenAL32\Include\alMain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="oalsfxpp_api_impl.h">
+    <ClInclude Include="oalsfxpp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

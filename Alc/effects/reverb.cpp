@@ -23,7 +23,7 @@
 #include <algorithm>
 #include <array>
 #include <vector>
-#include "oalsfxpp_api_impl.h"
+#include "oalsfxpp.h"
 
 
 class ReverbEffectState :
