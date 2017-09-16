@@ -207,7 +207,7 @@ int main()
             }
         }
 
-        api.effect_.initialize(effect_type);
+        api.effect_.set(effect_type);
     }
 
     if (is_succeed)

@@ -1440,7 +1440,7 @@ struct Effect
     {
     }
 
-    void initialize(
+    void set(
         const EffectType type = EffectType::null)
     {
         switch (type)

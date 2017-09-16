@@ -19,7 +19,7 @@ bool ApiImpl::initialize(
 
     device_.initialize(channel_format, sampling_rate);
     source_.initialize();
-    effect_.initialize();
+    effect_.set();
     effect_slot_.initialize();
 
 
