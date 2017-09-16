@@ -1592,7 +1592,7 @@ union EffectProps
         }
     }; // Reverb
 
-    struct Modulator
+    struct RingModulator
     {
         static constexpr auto min_frequency = 0.0F;
         static constexpr auto max_frequency = 8000.0F;
@@ -1632,15 +1632,15 @@ union EffectProps
     }; // Modulator
 
 
-    Reverb reverb_;
     Chorus chorus_;
     Compressor compressor_;
+    Dedicated dedicated_;
     Distortion distortion_;
     Echo echo_;
     Equalizer equalizer_;
     Flanger flanger_;
-    Modulator modulator_;
-    Dedicated dedicated_;
+    Reverb reverb_;
+    RingModulator ring_modulator_;
 }; // EffectProps
 
 
@@ -1689,7 +1689,7 @@ struct Effect
             break;
 
         case EffectType::ring_modulator:
-            props_.modulator_.set_defaults();
+            props_.ring_modulator_.set_defaults();
             break;
 
         default:
@@ -1743,7 +1743,7 @@ struct Effect
             break;
 
         case EffectType::ring_modulator:
-            props_.modulator_.normalize();
+            props_.ring_modulator_.normalize();
             break;
 
         default:
@@ -1856,17 +1856,15 @@ public:
         case EffectType::null:
             return create_null();
 
-        case EffectType::eax_reverb:
-            return create_reverb();
-
-        case EffectType::reverb:
-            return create_reverb();
-
         case EffectType::chorus:
             return create_chorus();
 
         case EffectType::compressor:
             return create_compressor();
+
+        case EffectType::dedicated_dialog:
+        case EffectType::dedicated_low_frequency:
+            return create_dedicated();
 
         case EffectType::distortion:
             return create_distortion();
@@ -1880,12 +1878,12 @@ public:
         case EffectType::flanger:
             return create_flanger();
 
-        case EffectType::ring_modulator:
-            return create_modulator();
+        case EffectType::eax_reverb:
+        case EffectType::reverb:
+            return create_reverb();
 
-        case EffectType::dedicated_dialog:
-        case EffectType::dedicated_low_frequency:
-            return create_dedicated();
+        case EffectType::ring_modulator:
+            return create_ring_modulator();
 
         default:
             return nullptr;
@@ -1894,6 +1892,7 @@ public:
 
 
 private:
+    static EffectState* create_null();
     static EffectState* create_chorus();
     static EffectState* create_compressor();
     static EffectState* create_dedicated();
@@ -1901,9 +1900,8 @@ private:
     static EffectState* create_echo();
     static EffectState* create_equalizer();
     static EffectState* create_flanger();
-    static EffectState* create_modulator();
-    static EffectState* create_null();
     static EffectState* create_reverb();
+    static EffectState* create_ring_modulator();
 
 
     template<typename T>

@@ -22,11 +22,11 @@
 #include "alMain.h"
 
 
-class ModulatorEffectState :
+class RingModulatorEffectState :
     public EffectState
 {
 public:
-    ModulatorEffectState()
+    RingModulatorEffectState()
         :
         EffectState{},
         process_func_{},
@@ -37,13 +37,13 @@ public:
     {
     }
 
-    virtual ~ModulatorEffectState()
+    virtual ~RingModulatorEffectState()
     {
     }
 
 
 protected:
-    void ModulatorEffectState::do_construct() final
+    void RingModulatorEffectState::do_construct() final
     {
         index_ = 0;
         step_ = 1;
@@ -54,26 +54,26 @@ protected:
         }
     }
 
-    void ModulatorEffectState::do_destruct() final
+    void RingModulatorEffectState::do_destruct() final
     {
     }
 
-    void ModulatorEffectState::do_update_device(
+    void RingModulatorEffectState::do_update_device(
         ALCdevice& device) final
     {
         static_cast<void>(device);
     }
 
-    void ModulatorEffectState::do_update(
+    void RingModulatorEffectState::do_update(
         ALCdevice& device,
         const EffectSlot& effect_slot,
         const EffectProps& effect_props) final
     {
-        if (effect_props.modulator_.waveform_ == EffectProps::Modulator::waveform_sinusoid)
+        if (effect_props.ring_modulator_.waveform_ == EffectProps::RingModulator::waveform_sinusoid)
         {
             process_func_ = modulate_sin;
         }
-        else if (effect_props.modulator_.waveform_ == EffectProps::Modulator::waveform_sawtooth)
+        else if (effect_props.ring_modulator_.waveform_ == EffectProps::RingModulator::waveform_sawtooth)
         {
             process_func_ = modulate_saw;
         }
@@ -82,7 +82,7 @@ protected:
             process_func_ = modulate_square;
         }
 
-        step_ = static_cast<int>(effect_props.modulator_.frequency_ * waveform_frac_one / device.frequency_);
+        step_ = static_cast<int>(effect_props.ring_modulator_.frequency_ * waveform_frac_one / device.frequency_);
 
         if (step_ == 0)
         {
@@ -90,7 +90,7 @@ protected:
         }
 
         // Custom filter coeffs, which match the old version instead of a low-shelf.
-        const auto cw = std::cos(Math::tau * effect_props.modulator_.high_pass_cutoff_ / device.frequency_);
+        const auto cw = std::cos(Math::tau * effect_props.ring_modulator_.high_pass_cutoff_ / device.frequency_);
         const auto a = (2.0F - cw) - std::sqrt(std::pow(2.0F - cw, 2.0F) - 1.0F);
 
         for (int i = 0; i < max_effect_channels; ++i)
@@ -116,7 +116,7 @@ protected:
         }
     }
 
-    void ModulatorEffectState::do_process(
+    void RingModulatorEffectState::do_process(
         const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
@@ -252,7 +252,7 @@ private:
 }; // ModulatorEffectState
 
 
-EffectState* EffectStateFactory::create_modulator()
+EffectState* EffectStateFactory::create_ring_modulator()
 {
-    return create<ModulatorEffectState>();
+    return create<RingModulatorEffectState>();
 }
