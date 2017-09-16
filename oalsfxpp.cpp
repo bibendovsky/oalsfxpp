@@ -95,7 +95,7 @@ void ApiImpl::mix_c(
 }
 
 void ApiImpl::alu_mix_data(
-        void* dst_buffer,
+        float* dst_samples,
         const int sample_count,
         const float* src_samples)
 {
@@ -125,11 +125,11 @@ void ApiImpl::alu_mix_data(
 
         state->process(samples_to_do, effect_slot_.wet_buffer_, *state->dst_buffers_, state->dst_channel_count_);
 
-        if (dst_buffer)
+        if (dst_samples)
         {
             write_f32(
                 device_.sample_buffers_,
-                dst_buffer,
+                dst_samples,
                 samples_done,
                 samples_to_do,
                 device_.channel_count_);
@@ -514,7 +514,7 @@ void ApiImpl::update_context_sources()
 
 void ApiImpl::write_f32(
     const SampleBuffers& src_buffers,
-    void* dst_buffer,
+    float* dst_buffer,
     const int offset,
     const int sample_count,
     const int channel_count)
@@ -522,7 +522,7 @@ void ApiImpl::write_f32(
     for (int j = 0; j < channel_count; ++j)
     {
         const auto& src_buffer = src_buffers[j];
-        auto out = static_cast<float*>(dst_buffer) + (offset * channel_count) + j;
+        auto out = &dst_buffer[(offset * channel_count) + j];
 
         for (int i = 0; i < sample_count; ++i)
         {

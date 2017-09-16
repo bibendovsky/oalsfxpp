@@ -45,7 +45,7 @@ public:
         const int buffer_size);
 
     void alu_mix_data(
-        void* dst_buffer,
+        float* dst_samples,
         const int sample_count,
         const float* src_samples);
 
@@ -133,7 +133,7 @@ private:
 
     static void write_f32(
         const SampleBuffers& src_buffers,
-        void* dst_buffer,
+        float* dst_buffer,
         const int offset,
         const int sample_count,
         const int channel_count);
