@@ -45,10 +45,10 @@
     <ClCompile Include="Alc\effects\reverb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="oal_effects_pp_test.cpp">
+    <ClCompile Include="oalsfxpp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="oalsfxpp.cpp">
+    <ClCompile Include="oalsfxpp_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
