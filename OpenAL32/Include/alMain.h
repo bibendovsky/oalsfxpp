@@ -1124,6 +1124,20 @@ union EffectProps
             Math::clamp_i(feedback_, min_feedback, max_feedback);
             Math::clamp_i(delay_, min_delay, max_delay);
         }
+
+
+        static bool are_equal(
+            const Chorus& a,
+            const Chorus& b)
+        {
+            return
+                a.waveform_ == b.waveform_ &&
+                a.phase_ == b.phase_ &&
+                a.rate_ == b.rate_ &&
+                a.depth_ == b.depth_ &&
+                a.feedback_ == b.feedback_ &&
+                a.delay_ == b.delay_;
+        }
     }; // Chorus
 
     struct Compressor
@@ -1144,6 +1158,15 @@ union EffectProps
         void normalize()
         {
         }
+
+
+        static bool are_equal(
+            const Compressor& a,
+            const Compressor& b)
+        {
+            return
+                a.on_off_ == b.on_off_;
+        }
     }; // Compressor
 
     struct Dedicated
@@ -1163,7 +1186,16 @@ union EffectProps
 
         void normalize()
         {
-            Math::clamp_i(gain_, EffectProps::Dedicated::min_gain, EffectProps::Dedicated::max_gain);
+            Math::clamp_i(gain_, min_gain, max_gain);
+        }
+
+
+        static bool are_equal(
+            const Dedicated& a,
+            const Dedicated& b)
+        {
+            return
+                a.gain_ == b.gain_;
         }
     }; // Dedicated
 
@@ -1213,6 +1245,19 @@ union EffectProps
             Math::clamp_i(low_pass_cutoff_, min_low_pass_cutoff, max_low_pass_cutoff);
             Math::clamp_i(eq_center_, min_eq_center, max_eq_center);
             Math::clamp_i(eq_bandwidth_, min_eq_bandwidth, max_eq_bandwidth);
+        }
+
+
+        static bool are_equal(
+            const Distortion& a,
+            const Distortion& b)
+        {
+            return
+                a.edge_ == b.edge_ &&
+                a.gain_ == b.gain_ &&
+                a.low_pass_cutoff_ == b.low_pass_cutoff_ &&
+                a.eq_center_ == b.eq_center_ &&
+                a.eq_bandwidth_ == b.eq_bandwidth_;
         }
     }; // Distortion
 
@@ -1264,6 +1309,19 @@ union EffectProps
             Math::clamp_i(damping_, min_damping, max_damping);
             Math::clamp_i(feedback_, min_feedback, max_feedback);
             Math::clamp_i(spread_, min_spread, max_spread);
+        }
+
+
+        static bool are_equal(
+            const Echo& a,
+            const Echo& b)
+        {
+            return
+                a.delay_ == b.delay_ &&
+                a.lr_delay_ == b.lr_delay_ &&
+                a.damping_ == b.damping_ &&
+                a.feedback_ == b.feedback_ &&
+                a.spread_ == b.spread_;
         }
     }; // Echo
 
@@ -1349,6 +1407,24 @@ union EffectProps
             Math::clamp_i(high_cutoff_, min_high_cutoff, max_high_cutoff);
             Math::clamp_i(high_gain_, min_high_gain, max_high_gain);
         }
+
+
+        static bool are_equal(
+            const Equalizer& a,
+            const Equalizer& b)
+        {
+            return
+                a.low_cutoff_ == b.low_cutoff_ &&
+                a.low_gain_ == b.low_gain_ &&
+                a.mid1_center_ == b.mid1_center_ &&
+                a.mid1_gain_ == b.mid1_gain_ &&
+                a.mid1_width_ == b.mid1_width_ &&
+                a.mid2_center_ == b.mid2_center_ &&
+                a.mid2_gain_ == b.mid2_gain_ &&
+                a.mid2_width_ == b.mid2_width_ &&
+                a.high_cutoff_ == b.high_cutoff_ &&
+                a.high_gain_ == b.high_gain_;
+        }
     }; // Equalizer
 
     struct Flanger
@@ -1407,6 +1483,20 @@ union EffectProps
             Math::clamp_i(depth_, min_depth, max_depth);
             Math::clamp_i(feedback_, min_feedback, max_feedback);
             Math::clamp_i(delay_, min_delay, max_delay);
+        }
+
+
+        static bool are_equal(
+            const Flanger& a,
+            const Flanger& b)
+        {
+            return
+                a.waveform_ == b.waveform_ &&
+                a.phase_ == b.phase_ &&
+                a.rate_ == b.rate_ &&
+                a.depth_ == b.depth_ &&
+                a.feedback_ == b.feedback_ &&
+                a.delay_ == b.delay_;
         }
     }; // Flanger
 
@@ -1590,6 +1680,37 @@ union EffectProps
             Math::clamp_i(room_rolloff_factor_, min_room_rolloff_factor, max_room_rolloff_factor);
             Math::clamp_i(decay_hf_limit_, min_decay_hf_limit, max_decay_hf_limit);
         }
+
+
+        static bool are_equal(
+            const Reverb& a,
+            const Reverb& b)
+        {
+            return
+                a.density_ == b.density_ &&
+                a.diffusion_ == b.diffusion_ &&
+                a.gain_ == b.gain_ &&
+                a.gain_hf_ == b.gain_hf_ &&
+                a.decay_time_ == b.decay_time_ &&
+                a.decay_hf_ratio_ == b.decay_hf_ratio_ &&
+                a.reflections_gain_ == b.reflections_gain_ &&
+                a.reflections_delay_ == b.reflections_delay_ &&
+                a.late_reverb_gain_ == b.late_reverb_gain_ &&
+                a.late_reverb_delay_ == b.late_reverb_delay_ &&
+                a.air_absorption_gain_hf_ == b.air_absorption_gain_hf_ &&
+                a.room_rolloff_factor_ == b.room_rolloff_factor_ &&
+                a.decay_hf_limit_ == b.decay_hf_limit_ &&
+                a.gain_lf_ == b.gain_lf_ &&
+                a.decay_lf_ratio_ == b.decay_lf_ratio_ &&
+                a.reflections_pan_ == b.reflections_pan_ &&
+                a.late_reverb_pan_ == b.late_reverb_pan_ &&
+                a.echo_time_ == b.echo_time_ &&
+                a.echo_depth_ == b.echo_depth_ &&
+                a.modulation_time_ == b.modulation_time_ &&
+                a.modulation_depth_ == b.modulation_depth_ &&
+                a.hf_reference_ == b.hf_reference_ &&
+                a.lf_reference_ == b.lf_reference_;
+        }
     }; // Reverb
 
     struct RingModulator
@@ -1629,7 +1750,18 @@ union EffectProps
             Math::clamp_i(high_pass_cutoff_, min_high_pass_cutoff, max_high_pass_cutoff);
             Math::clamp_i(waveform_, min_waveform, max_waveform);
         }
-    }; // Modulator
+
+
+        static bool are_equal(
+            const RingModulator& a,
+            const RingModulator& b)
+        {
+            return
+                a.frequency_ == b.frequency_ &&
+                a.high_pass_cutoff_ == b.high_pass_cutoff_ &&
+                a.waveform_ == b.waveform_;
+        }
+    }; // RingModulator
 
 
     Chorus chorus_;
@@ -1692,6 +1824,7 @@ struct Effect
             props_.ring_modulator_.set_defaults();
             break;
 
+        case EffectType::null:
         default:
             break;
         }
@@ -1746,8 +1879,57 @@ struct Effect
             props_.ring_modulator_.normalize();
             break;
 
+        case EffectType::null:
         default:
             break;
+        }
+    }
+
+    static bool are_equal(
+        const Effect& a,
+        const Effect& b)
+    {
+        if (a.type_ != b.type_)
+        {
+            return false;
+        }
+
+        switch (a.type_)
+        {
+        case EffectType::null:
+            return true;
+
+        case EffectType::chorus:
+            return EffectProps::Chorus::are_equal(a.props_.chorus_, b.props_.chorus_);
+
+        case EffectType::compressor:
+            return EffectProps::Compressor::are_equal(a.props_.compressor_, b.props_.compressor_);
+
+        case EffectType::dedicated_dialog:
+        case EffectType::dedicated_low_frequency:
+            return EffectProps::Dedicated::are_equal(a.props_.dedicated_, b.props_.dedicated_);
+
+        case EffectType::distortion:
+            return EffectProps::Distortion::are_equal(a.props_.distortion_, b.props_.distortion_);
+
+        case EffectType::echo:
+            return EffectProps::Echo::are_equal(a.props_.echo_, b.props_.echo_);
+
+        case EffectType::equalizer:
+            return EffectProps::Equalizer::are_equal(a.props_.equalizer_, b.props_.equalizer_);
+
+        case EffectType::flanger:
+            return EffectProps::Flanger::are_equal(a.props_.flanger_, b.props_.flanger_);
+
+        case EffectType::eax_reverb:
+        case EffectType::reverb:
+            return EffectProps::Reverb::are_equal(a.props_.reverb_, b.props_.reverb_);
+
+        case EffectType::ring_modulator:
+            return EffectProps::RingModulator::are_equal(a.props_.ring_modulator_, b.props_.ring_modulator_);
+
+        default:
+            return false;
         }
     }
 }; // Effect
