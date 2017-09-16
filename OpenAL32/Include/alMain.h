@@ -1704,7 +1704,7 @@ struct Effect
         set_defaults();
     }
 
-    void set_normalize()
+    void normalize()
     {
         switch (type_)
         {
