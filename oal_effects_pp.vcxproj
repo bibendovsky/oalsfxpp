@@ -119,22 +119,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Alc\effects\chorus.cpp" />
-    <ClCompile Include="Alc\effects\compressor.cpp" />
-    <ClCompile Include="Alc\effects\dedicated.cpp" />
-    <ClCompile Include="Alc\effects\distortion.cpp" />
-    <ClCompile Include="Alc\effects\echo.cpp" />
-    <ClCompile Include="Alc\effects\equalizer.cpp" />
-    <ClCompile Include="Alc\effects\flanger.cpp" />
-    <ClCompile Include="Alc\effects\modulator.cpp" />
-    <ClCompile Include="Alc\effects\null.cpp" />
-    <ClCompile Include="Alc\effects\reverb.cpp" />
     <ClCompile Include="oalsfxpp.cpp" />
     <ClCompile Include="oalsfxpp_test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="oalsfxpp.h" />
-    <ClInclude Include="OpenAL32\Include\alMain.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

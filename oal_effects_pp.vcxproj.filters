@@ -15,36 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Alc\effects\chorus.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Alc\effects\compressor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Alc\effects\dedicated.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Alc\effects\distortion.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Alc\effects\echo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Alc\effects\equalizer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Alc\effects\flanger.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Alc\effects\modulator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Alc\effects\null.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Alc\effects\reverb.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="oalsfxpp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -53,9 +23,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="OpenAL32\Include\alMain.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="oalsfxpp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
