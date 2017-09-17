@@ -5,36 +5,18 @@
 #include "alMain.h"
 
 
-struct EffectStatus
-{
-    bool is_type_changed_;
-    bool is_props_changed_;
-
-
-    void reset()
-    {
-        is_type_changed_ = false;
-        is_props_changed_ = false;
-    }
-
-    void set_all()
-    {
-        is_type_changed_ = true;
-        is_props_changed_ = true;
-    }
-}; // EffectStatus
-
 class ApiImpl
 {
 public:
     ALCdevice device_;
     ALsource source_;
     Effect effect_;
-    EffectStatus effect_status_;
     EffectSlot effect_slot_;
 
 
     ApiImpl();
+
+    ~ApiImpl();
 
     bool initialize(
         const ChannelFormat channel_format,
@@ -158,6 +140,53 @@ private:
         const int sample_count,
         const int channel_count);
 }; // ApiImpl
+
+class Api
+{
+public:
+    Api();
+
+    Api(
+        const Api& that) = delete;
+
+    Api& operator=(
+        const Api& that) = delete;
+
+    ~Api();
+
+
+    bool initialize(
+        const ChannelFormat channel_format,
+        const int sampling_rate,
+        const int effect_count);
+
+    bool is_initialized() const;
+
+    bool set_effect_type(
+        const int effect_index,
+        const EffectType effect_type);
+
+    bool set_effect_props(
+        const int effect_index,
+        const EffectProps& effect_props);
+
+    bool set_effect(
+        const int effect_index,
+        const Effect& effect);
+
+    bool apply_changes();
+
+    bool mix(
+        const int sample_count,
+        const float* src_samples,
+        float* dst_samples);
+
+    void uninitialize();
+
+
+private:
+    ApiImpl* pimpl_;
+}; // Api
 
 
 #endif // OALSFXPP_INCLUDED

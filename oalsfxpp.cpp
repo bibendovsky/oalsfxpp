@@ -2,14 +2,21 @@
 #include <new>
 
 
+// ==========================================================================
+// ApiImpl
+
 ApiImpl::ApiImpl()
     :
     device_{},
     source_{},
     effect_{},
-    effect_status_{},
     effect_slot_{}
 {
+}
+
+ApiImpl::~ApiImpl()
+{
+    uninitialize();
 }
 
 bool ApiImpl::initialize(
@@ -21,7 +28,6 @@ bool ApiImpl::initialize(
     device_.initialize(channel_format, sampling_rate);
     source_.initialize();
     effect_.set_type_and_defaults(EffectType::null);
-    effect_status_.set_all();
     effect_slot_.initialize();
 
 
@@ -532,3 +538,173 @@ void ApiImpl::write_f32(
         }
     }
 }
+
+// ApiImpl
+// ==========================================================================
+
+
+// ==========================================================================
+// Api
+
+Api::Api()
+    :
+    pimpl_{}
+{
+}
+
+Api::~Api()
+{
+    uninitialize();
+}
+
+bool Api::initialize(
+    const ChannelFormat channel_format,
+    const int sampling_rate,
+    const int effect_count)
+{
+    uninitialize();
+
+    pimpl_ = new (std::nothrow) ApiImpl{};
+
+    if (!pimpl_)
+    {
+        return false;
+    }
+
+    const auto initialize_result = pimpl_->initialize(channel_format, sampling_rate);
+
+    if (!initialize_result)
+    {
+        uninitialize();
+    }
+
+    return initialize_result;
+}
+
+bool Api::is_initialized() const
+{
+    return pimpl_ != nullptr;
+}
+
+bool Api::set_effect_type(
+    const int effect_index,
+    const EffectType effect_type)
+{
+    if (!is_initialized())
+    {
+        return false;
+    }
+
+    if (effect_index < 0)
+    {
+        return false;
+    }
+
+    // TODO Check for max effect index.
+
+    pimpl_->effect_.set_type_and_defaults(effect_type);
+
+    return true;
+}
+
+bool Api::set_effect_props(
+    const int effect_index,
+    const EffectProps& effect_props)
+{
+    if (!is_initialized())
+    {
+        return false;
+    }
+
+    if (effect_index < 0)
+    {
+        return false;
+    }
+
+    // TODO Check for max effect index.
+
+    pimpl_->effect_.props_ = effect_props;
+
+    return true;
+}
+
+bool Api::set_effect(
+    const int effect_index,
+    const Effect& effect)
+{
+    if (!is_initialized())
+    {
+        return false;
+    }
+
+    if (effect_index < 0)
+    {
+        return false;
+    }
+
+    // TODO Check for max effect index.
+
+    pimpl_->effect_ = effect;
+
+    return false;
+}
+
+bool Api::apply_changes()
+{
+    if (!is_initialized())
+    {
+        return false;
+    }
+
+    // TODO Apply multiple effects.
+
+    pimpl_->effect_.normalize();
+
+    if (Effect::are_equal(pimpl_->effect_, pimpl_->effect_slot_.effect_))
+    {
+        return true;
+    }
+
+    pimpl_->effect_slot_.set_effect(pimpl_->device_, pimpl_->effect_);
+
+    return true;
+}
+
+bool Api::mix(
+    const int sample_count,
+    const float* src_samples,
+    float* dst_samples)
+{
+    if (!is_initialized())
+    {
+        return false;
+    }
+
+    if (sample_count == 0)
+    {
+        return true;
+    }
+
+    if (!src_samples)
+    {
+        return false;
+    }
+
+    if (!dst_samples)
+    {
+        return false;
+    }
+
+    pimpl_->alu_mix_data(dst_samples, sample_count, src_samples);
+
+    return true;
+}
+
+void Api::uninitialize()
+{
+    delete pimpl_;
+    pimpl_ = nullptr;
+}
+
+// Api
+// ==========================================================================

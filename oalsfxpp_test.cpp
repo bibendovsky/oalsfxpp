@@ -107,13 +107,13 @@ int main()
         src_buffer_f32[i] = (float)(src_buffer16[i]) / 32768.0F;
     }
 
-    ApiImpl api;
+    Api api;
 
     if (is_succeed)
     {
         const auto channel_format = channel_count_to_channel_format(channel_count);
 
-        api.initialize(channel_format, sampling_rate);
+        is_succeed = api.initialize(channel_format, sampling_rate, 1);
     }
 
     if (is_succeed)
@@ -207,12 +207,8 @@ int main()
             }
         }
 
-        api.effect_.set_type_and_defaults(effect_type);
-    }
-
-    if (is_succeed)
-    {
-        api.effect_slot_.set_effect(api.device_, api.effect_);
+        api.set_effect_type(0, effect_type);
+        api.apply_changes();
     }
 
     if (is_succeed)
@@ -247,7 +243,7 @@ int main()
             const int write_sample_count = sample_count < remain ? sample_count : remain;
             const int write_size = write_sample_count * 4 * channel_count;
 
-            api.alu_mix_data(dst_buffer, sample_count, &src_buffer_f32[offset]);
+            api.mix(sample_count, &src_buffer_f32[offset], dst_buffer);
 
             if (fwrite(dst_buffer, 1, write_size, dst_stream) != write_size)
             {
@@ -259,8 +255,6 @@ int main()
             offset += write_sample_count * channel_count;
         }
     }
-
-    api.uninitialize();
 
     free(dst_buffer);
     free(src_buffer);
