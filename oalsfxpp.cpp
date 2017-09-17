@@ -1,7 +1,9 @@
 #include "oalsfxpp.h"
 #include <cassert>
 #include <cmath>
+#include <algorithm>
 #include <array>
+#include <limits>
 #include <new>
 #include <type_traits>
 #include <vector>
@@ -85,6 +87,11 @@ struct Math
 
         return new_value + 1;
     }
+
+    static constexpr float get_epsilon()
+    {
+        return std::numeric_limits<float>::epsilon();
+    }
 }; // Math
 
 struct Mat4F
@@ -121,8 +128,8 @@ template<typename T>
 constexpr int get_array_extents(
     const T&)
 {
-    static_assert(std::rank_v<T> == 1, "Expected an one-dimensional array.");
-    return static_cast<int>(std::extent_v<T>);
+    static_assert(std::rank<T>::value == 1, "Expected an one-dimensional array.");
+    return static_cast<int>(std::extent<T>::value);
 }
 
 
@@ -148,7 +155,7 @@ namespace detail
 {
 
 
-template<typename T, int TExtent1, std::size_t... TExtents>
+template<typename T, std::size_t TExtent1, std::size_t... TExtents>
 struct MdArray
 {
     using Type = typename std::array<typename MdArray<T, TExtents...>::Type, TExtent1>;
@@ -461,6 +468,8 @@ struct Panning
         const float src_gain,
         Gains& dst_gains)
     {
+        static_cast<void>(channel_count);
+
         for (int i = 0; i < max_channels; ++i)
         {
             dst_gains[i] = (i == 0 ? 1.414213562F * src_gain : 0.0F);
@@ -1771,6 +1780,10 @@ struct ALCdevice
             channel_ids_[6] = ChannelId::side_left;
             channel_ids_[7] = ChannelId::side_right;
             break;
+
+        case ChannelFormat::none:
+        default:
+            break;
         }
     }
 
@@ -1826,6 +1839,10 @@ struct ALCdevice
             count = get_array_extents(Panning::x7_1_panning);
             channel_map = Panning::x7_1_panning;
             coeff_count = 16;
+            break;
+
+        case ChannelFormat::none:
+        default:
             break;
         }
 
@@ -1973,7 +1990,7 @@ public:
     EffectSlot effect_slot_;
 
 
-    ApiImpl::ApiImpl()
+    ApiImpl()
         :
         device_{},
         source_{},
@@ -1982,7 +1999,7 @@ public:
     {
     }
 
-    ApiImpl::~ApiImpl()
+    ~ApiImpl()
     {
         uninitialize();
     }
@@ -2135,7 +2152,7 @@ public:
             auto gain = current_gains[c];
             const auto step = (target_gains[c] - gain) * delta;
 
-            if (std::abs(step) > FLT_EPSILON)
+            if (std::abs(step) > Math::get_epsilon())
             {
                 const auto size = std::min(buffer_size, counter);
 
@@ -2335,10 +2352,12 @@ private:
         const float wet_gain_lf,
         const float wet_gain_hf)
     {
+        static_cast<void>(distance);
+        static_cast<void>(dir);
+
         const auto frequency = device_.frequency_;
         const ChannelMap* channel_map = nullptr;
         auto channel_count = 0;
-        auto downmix_gain = 1.0F;
 
         switch (device_.channel_format_)
         {
@@ -2350,34 +2369,30 @@ private:
         case ChannelFormat::stereo:
             channel_map = stereo_map;
             channel_count = 2;
-            downmix_gain = 1.0F / 2.0F;
             break;
 
         case ChannelFormat::quad:
             channel_map = quad_map;
             channel_count = 4;
-            downmix_gain = 1.0F / 4.0F;
             break;
 
         case ChannelFormat::five_point_one:
             channel_map = x5_1_map;
             channel_count = 6;
-            // NOTE: Excludes LFE.
-            downmix_gain = 1.0F / 5.0F;
             break;
 
         case ChannelFormat::six_point_one:
             channel_map = x6_1_map;
             channel_count = 7;
-            // NOTE: Excludes LFE.
-            downmix_gain = 1.0F / 6.0F;
             break;
 
         case ChannelFormat::seven_point_one:
             channel_map = x7_1_map;
             channel_count = 8;
-            // NOTE: Excludes LFE.
-            downmix_gain = 1.0F / 7.0F;
+            break;
+
+        case ChannelFormat::none:
+        default:
             break;
         }
 
@@ -2777,7 +2792,7 @@ protected:
     }
 
     void do_process(
-        int sample_count,
+        const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
         const int channel_count) final
@@ -2823,7 +2838,7 @@ public:
 
 
 protected:
-    void ChorusEffectState::do_construct() final
+    void do_construct() final
     {
         buffer_length_ = 0;
 
@@ -2837,7 +2852,7 @@ protected:
         waveform_ = Waveform::triangle;
     }
 
-    void ChorusEffectState::do_destruct() final
+    void do_destruct() final
     {
         for (auto& buffer : sample_buffers_)
         {
@@ -2845,7 +2860,7 @@ protected:
         }
     }
 
-    void ChorusEffectState::do_update_device(
+    void do_update_device(
         ALCdevice& device) final
     {
         auto max_len = static_cast<int>(EffectProps::Chorus::max_delay * 2.0F * device.frequency_) + 1;
@@ -2866,11 +2881,13 @@ protected:
         }
     }
 
-    void ChorusEffectState::do_update(
+    void do_update(
         ALCdevice& device,
         const EffectSlot& effect_slot,
         const EffectProps& effect_props) final
     {
+        static_cast<void>(effect_slot);
+
         const auto frequency = static_cast<float>(device.frequency_);
 
         switch (effect_props.chorus_.waveform_)
@@ -2935,7 +2952,7 @@ protected:
         }
     }
 
-    void ChorusEffectState::do_process(
+    void do_process(
         const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
@@ -3129,7 +3146,7 @@ public:
 
 
 protected:
-    void CompressorEffectState::do_construct() final
+    void do_construct() final
     {
         is_enabled_ = true;
         attack_rate_ = 0.0F;
@@ -3137,11 +3154,11 @@ protected:
         gain_control_ = 1.0F;
     }
 
-    void CompressorEffectState::do_destruct() final
+    void do_destruct() final
     {
     }
 
-    void CompressorEffectState::do_update_device(
+    void do_update_device(
         ALCdevice& device) final
     {
         const auto attackTime = device.frequency_ * 0.2F; // 200ms Attack
@@ -3151,11 +3168,13 @@ protected:
         release_rate_ = 1.0F / releaseTime;
     }
 
-    void CompressorEffectState::do_update(
+    void do_update(
         ALCdevice& device,
         const EffectSlot& effect_slot,
         const EffectProps& effect_props) final
     {
+        static_cast<void>(effect_slot);
+
         is_enabled_ = effect_props.compressor_.on_off_;
 
         dst_buffers_ = &device.sample_buffers_;
@@ -3172,7 +3191,7 @@ protected:
         }
     }
 
-    void CompressorEffectState::do_process(
+    void do_process(
         const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
@@ -3314,22 +3333,22 @@ public:
 
 
 protected:
-    void DedicatedEffectState::do_construct() final
+    void do_construct() final
     {
         gains_.fill(0.0F);
     }
 
-    void DedicatedEffectState::do_destruct() final
+    void do_destruct() final
     {
     }
 
-    void DedicatedEffectState::do_update_device(
+    void do_update_device(
         ALCdevice& device) final
     {
         static_cast<void>(device);
     }
 
-    void DedicatedEffectState::do_update(
+    void do_update(
         ALCdevice& device,
         const EffectSlot& effect_slot,
         const EffectProps& effect_props)
@@ -3376,7 +3395,7 @@ protected:
         }
     }
 
-    void DedicatedEffectState::do_process(
+    void do_process(
         const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
@@ -3431,27 +3450,29 @@ public:
 
 
 protected:
-    void DistortionEffectState::do_construct() final
+    void do_construct() final
     {
         low_pass_.clear();
         band_pass_.clear();
     }
 
-    void DistortionEffectState::do_destruct() final
+    void do_destruct() final
     {
     }
 
-    void DistortionEffectState::do_update_device(
+    void do_update_device(
         ALCdevice& device) final
     {
         static_cast<void>(device);
     }
 
-    void DistortionEffectState::do_update(
+    void do_update(
         ALCdevice& device,
         const EffectSlot& effect_slot,
         const EffectProps& effect_props) final
     {
+        static_cast<void>(effect_slot);
+
         const auto frequency = static_cast<float>(device.frequency_);
 
         // Store distorted signal attenuation settings.
@@ -3493,7 +3514,7 @@ protected:
             gains_);
     }
 
-    void DistortionEffectState::do_process(
+    void do_process(
         const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
@@ -3618,7 +3639,7 @@ public:
 
 
 protected:
-    void EchoEffectState::do_construct() final
+    void do_construct() final
     {
         buffer_length_ = 0;
         sample_buffer_ = EffectSampleBuffer{};
@@ -3630,12 +3651,12 @@ protected:
         filter_.clear();
     }
 
-    void EchoEffectState::do_destruct() final
+    void do_destruct() final
     {
         sample_buffer_ = EffectSampleBuffer{};
     }
 
-    void EchoEffectState::do_update_device(
+    void do_update_device(
         ALCdevice& device) final
     {
         // Use the next power of 2 for the buffer length, so the tap offsets can be
@@ -3653,11 +3674,13 @@ protected:
         std::fill(sample_buffer_.begin(), sample_buffer_.end(), 0.0F);
     }
 
-    void EchoEffectState::do_update(
+    void do_update(
         ALCdevice& device,
         const EffectSlot& effect_slot,
         const EffectProps& effect_props) final
     {
+        static_cast<void>(effect_slot);
+
         AmbiCoeffs coeffs;
         float effect_gain, lrpan, spread;
 
@@ -3703,7 +3726,7 @@ protected:
         Panning::compute_panning_gains(device.channel_count_, device.dry_, coeffs, effect_gain, taps_gains_[1]);
     }
 
-    void EchoEffectState::do_process(
+    void do_process(
         const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
@@ -3871,7 +3894,7 @@ public:
 
 
 protected:
-    void EqualizerEffectState::do_construct()
+    void do_construct()
     {
         // Initialize sample history only on filter creation to avoid
         // sound clicks if filter settings were changed in runtime.
@@ -3884,21 +3907,23 @@ protected:
         }
     }
 
-    void EqualizerEffectState::do_destruct()
+    void do_destruct()
     {
     }
 
-    void EqualizerEffectState::do_update_device(
+    void do_update_device(
         ALCdevice& device)
     {
         static_cast<void>(device);
     }
 
-    void EqualizerEffectState::do_update(
+    void do_update(
         ALCdevice& device,
         const EffectSlot& effect_slot,
         const EffectProps& effect_props)
     {
+        static_cast<void>(effect_slot);
+
         const auto frequency = static_cast<float>(device.frequency_);
         float gain;
         float freq_mult;
@@ -3977,7 +4002,7 @@ protected:
         }
     }
 
-    void EqualizerEffectState::do_process(
+    void do_process(
         const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
@@ -4084,7 +4109,7 @@ public:
 
 
 protected:
-    void FlangerEffectState::do_construct() final
+    void do_construct() final
     {
         buffer_length_ = 0;
 
@@ -4098,7 +4123,7 @@ protected:
         waveform_ = Waveform::triangle;
     }
 
-    void FlangerEffectState::do_destruct() final
+    void do_destruct() final
     {
         for (auto& buffer : sample_buffers_)
         {
@@ -4106,7 +4131,7 @@ protected:
         }
     }
 
-    void FlangerEffectState::do_update_device(
+    void do_update_device(
         ALCdevice& device) final
     {
         auto maxlen = static_cast<int>(EffectProps::Flanger::max_delay * 2.0F * device.frequency_) + 1;
@@ -4128,11 +4153,13 @@ protected:
         }
     }
 
-    void FlangerEffectState::do_update(
+    void do_update(
         ALCdevice& device,
         const EffectSlot& effect_slot,
         const EffectProps& effect_props) final
     {
+        static_cast<void>(effect_slot);
+
         const auto frequency = static_cast<float>(device.frequency_);
         AmbiCoeffs coeffs;
 
@@ -4196,7 +4223,7 @@ protected:
         }
     }
 
-    void FlangerEffectState::do_process(
+    void do_process(
         const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
@@ -4389,7 +4416,7 @@ public:
 
 
 protected:
-    void RingModulatorEffectState::do_construct() final
+    void do_construct() final
     {
         index_ = 0;
         step_ = 1;
@@ -4400,21 +4427,23 @@ protected:
         }
     }
 
-    void RingModulatorEffectState::do_destruct() final
+    void do_destruct() final
     {
     }
 
-    void RingModulatorEffectState::do_update_device(
+    void do_update_device(
         ALCdevice& device) final
     {
         static_cast<void>(device);
     }
 
-    void RingModulatorEffectState::do_update(
+    void do_update(
         ALCdevice& device,
         const EffectSlot& effect_slot,
         const EffectProps& effect_props) final
     {
+        static_cast<void>(effect_slot);
+
         if (effect_props.ring_modulator_.waveform_ == EffectProps::RingModulator::waveform_sinusoid)
         {
             process_func_ = modulate_sin;
@@ -4462,7 +4491,7 @@ protected:
         }
     }
 
-    void RingModulatorEffectState::do_process(
+    void do_process(
         const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
@@ -4638,7 +4667,7 @@ public:
 
 
 protected:
-    void ReverbEffectState::do_construct() final
+    void do_construct() final
     {
         is_eax_ = false;
 
@@ -4729,11 +4758,11 @@ protected:
         offset_ = 0;
     }
 
-    void ReverbEffectState::do_destruct() final
+    void do_destruct() final
     {
     }
 
-    void ReverbEffectState::do_update_device(
+    void do_update_device(
         ALCdevice& device) final
     {
         const auto frequency = device.frequency_;
@@ -4757,7 +4786,7 @@ protected:
         }
     }
 
-    void ReverbEffectState::do_update(
+    void do_update(
         ALCdevice& device,
         const EffectSlot& effect_slot,
         const EffectProps& effect_props) final
@@ -4883,7 +4912,7 @@ protected:
         }
     }
 
-    void ReverbEffectState::do_process(
+    void do_process(
         const int sample_count,
         const SampleBuffers& src_samples,
         SampleBuffers& dst_samples,
