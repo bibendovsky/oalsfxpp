@@ -2,7 +2,6 @@
 #include <cassert>
 #include <cmath>
 #include <array>
-#include <memory>
 #include <new>
 #include <type_traits>
 #include <vector>
@@ -2592,7 +2591,7 @@ bool Api::initialize(
 {
     uninitialize();
 
-    pimpl_ = new (std::nothrow) ApiImpl{};
+    pimpl_.reset(new (std::nothrow) ApiImpl{});
 
     if (!pimpl_)
     {
@@ -2730,7 +2729,6 @@ bool Api::mix(
 
 void Api::uninitialize()
 {
-    delete pimpl_;
     pimpl_ = nullptr;
 }
 

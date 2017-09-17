@@ -3,6 +3,7 @@
 
 
 #include <array>
+#include <memory>
 
 
 enum class ChannelFormat
@@ -594,7 +595,10 @@ public:
 
 
 private:
-    ApiImpl* pimpl_;
+    using ApiImplUPtr = std::unique_ptr<ApiImpl>;
+
+
+    ApiImplUPtr pimpl_;
 }; // Api
 
 
