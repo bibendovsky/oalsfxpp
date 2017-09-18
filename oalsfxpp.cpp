@@ -1705,7 +1705,6 @@ struct Device
 
 
     int frequency_;
-    int update_size_;
     ChannelFormat channel_format_;
 
     int channel_count_;
@@ -1734,7 +1733,6 @@ struct Device
         // Set output format
         channel_format_ = channel_format;
         frequency_ = sampling_rate;
-        update_size_ = 1024;
 
         alu_init_renderer();
 
