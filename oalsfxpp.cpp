@@ -13,6 +13,8 @@ struct Device;
 struct EffectSlot;
 
 
+constexpr auto max_channels = 8;
+
 constexpr auto min_effects = 1;
 constexpr auto max_effects = 4;
 
@@ -25,8 +27,54 @@ constexpr auto max_mix_gain = 16.0F; // +24dB
 
 constexpr auto silence_threshold_gain = 0.000'01F; // -100dB
 
+// The maximum number of Ambisonics coefficients. For a given order (o), the
+// size needed will be (o+1)**2, thus zero-order has 1, first-order has 4,
+// second-order has 9, third-order has 16, and fourth-order has 25.
+constexpr auto max_ambi_order = 3;
+constexpr auto max_ambi_coeffs = (max_ambi_order + 1) * (max_ambi_order + 1);
 
-using WetGains = std::array<float, max_effects>;
+// Size for temporary storage of buffer data, in ALfloats. Larger values need
+// more memory, while smaller values may need more iterations. The value needs
+// to be a sensible size, however, as it constrains the max stepping value used
+// for mixing, as well as the maximum number of samples per mixing iteration.
+constexpr auto max_sample_buffer_size = 2048;
+
+
+enum class ChannelId
+{
+    front_left,
+    front_right,
+    front_center,
+    lfe,
+    back_left,
+    back_right,
+    back_center,
+    side_left,
+    side_right,
+
+    invalid,
+}; // ChannelId
+
+enum class FilterType
+{
+    // EFX-style low-pass filter, specifying a gain and reference frequency.
+    high_shelf,
+
+    // EFX-style high-pass filter, specifying a gain and reference frequency.
+    low_shelf,
+
+    // Peaking filter, specifying a gain and reference frequency.
+    peaking,
+
+    // Low-pass cut-off filter, specifying a cut-off frequency.
+    low_pass,
+
+    // High-pass cut-off filter, specifying a cut-off frequency.
+    high_pass,
+
+    // Band-pass filter, specifying a center frequency.
+    band_pass,
+}; // FilterType
 
 enum class ActiveFilters
 {
@@ -35,6 +83,41 @@ enum class ActiveFilters
     high_pass = 2,
     band_pass = low_pass | high_pass
 }; // ActiveFilters
+
+
+using AmbiCoeffs = std::array<float, max_ambi_coeffs>;
+using Gains = std::array<float, max_channels>;
+using WetGains = std::array<float, max_effects>;
+using ChannelConfig = std::array<float, max_ambi_coeffs>;
+using SampleBuffer = std::array<float, max_sample_buffer_size>;
+using SampleBuffers = std::vector<SampleBuffer>;
+using EffectSampleBuffer = std::vector<float>;
+
+
+namespace detail
+{
+
+
+template<typename T, std::size_t TExtent1, std::size_t... TExtents>
+struct MdArray
+{
+    using Type = typename std::array<typename MdArray<T, TExtents...>::Type, TExtent1>;
+};
+
+template<typename T, std::size_t TExtent>
+struct MdArray<T, TExtent>
+{
+    using Type = std::array<T, TExtent>;
+};
+
+
+} // detail
+
+
+// Multidimensional std::array.
+template<typename T, std::size_t... TExtents>
+using MdArray = typename detail::MdArray<T, TExtents...>::Type;
+
 
 struct Math
 {
@@ -139,66 +222,7 @@ constexpr int get_array_extents(
 }
 
 
-constexpr auto max_channels = 8;
-
-// The maximum number of Ambisonics coefficients. For a given order (o), the
-// size needed will be (o+1)**2, thus zero-order has 1, first-order has 4,
-// second-order has 9, third-order has 16, and fourth-order has 25.
-constexpr auto max_ambi_order = 3;
-constexpr auto max_ambi_coeffs = (max_ambi_order + 1) * (max_ambi_order + 1);
-
-// Size for temporary storage of buffer data, in ALfloats. Larger values need
-// more memory, while smaller values may need more iterations. The value needs
-// to be a sensible size, however, as it constrains the max stepping value used
-// for mixing, as well as the maximum number of samples per mixing iteration.
-constexpr auto max_sample_buffer_size = 2048;
-
-using AmbiCoeffs = std::array<float, max_ambi_coeffs>;
-using Gains = std::array<float, max_channels>;
-
-
-namespace detail
-{
-
-
-template<typename T, std::size_t TExtent1, std::size_t... TExtents>
-struct MdArray
-{
-    using Type = typename std::array<typename MdArray<T, TExtents...>::Type, TExtent1>;
-};
-
-template<typename T, std::size_t TExtent>
-struct MdArray<T, TExtent>
-{
-    using Type = std::array<T, TExtent>;
-};
-
-
-} // detail
-
-
-// Multidimensional std::array.
-template<typename T, std::size_t... TExtents>
-using MdArray = typename detail::MdArray<T, TExtents...>::Type;
-
-
-enum class ChannelId
-{
-    front_left,
-    front_right,
-    front_center,
-    lfe,
-    back_left,
-    back_right,
-    back_center,
-    side_left,
-    side_right,
-
-    invalid,
-}; // ChannelId
-
-
-inline int channel_format_to_channel_count(
+int channel_format_to_channel_count(
     const ChannelFormat channel_format)
 {
     switch (channel_format)
@@ -228,8 +252,6 @@ inline int channel_format_to_channel_count(
 }
 
 
-using ChannelConfig = std::array<float, max_ambi_coeffs>;
-
 struct AmbiConfig
 {
     using Coeffs = std::array<ChannelConfig, max_channels>;
@@ -246,10 +268,6 @@ struct AmbiConfig
         }
     }
 }; // AmbiConfig
-
-
-using SampleBuffer = std::array<float, max_sample_buffer_size>;
-using SampleBuffers = std::vector<SampleBuffer>;
 
 struct AmbiOutput
 {
@@ -659,29 +677,6 @@ struct Panning
 // reference frequency, which is the centerpoint of the transition band. This
 // better matches EFX filter design. To set the gain for the shelf itself, use
 // the square root of the desired linear gain (or halve the dB gain).
-
-enum class FilterType
-{
-    // EFX-style low-pass filter, specifying a gain and reference frequency.
-    high_shelf,
-
-    // EFX-style high-pass filter, specifying a gain and reference frequency.
-    low_shelf,
-
-    // Peaking filter, specifying a gain and reference frequency.
-    peaking,
-
-    // Low-pass cut-off filter, specifying a cut-off frequency.
-    low_pass,
-
-    // High-pass cut-off filter, specifying a cut-off frequency.
-    high_pass,
-
-    // Band-pass filter, specifying a center frequency.
-    band_pass,
-}; // FilterType
-
-
 struct FilterState
 {
     float x_[2]; // History of two last input samples
@@ -1007,8 +1002,6 @@ struct Source
         are_props_changed_ = true;
     }
 }; // Source
-
-using EffectSampleBuffer = std::vector<float>;
 
 
 // ==========================================================================
@@ -1689,7 +1682,7 @@ private:
 
         return result;
     }
-};
+}; // EffectStateFactory
 
 struct EffectStateDeleter
 {
@@ -1704,7 +1697,7 @@ struct EffectStateDeleter
         effect_state->destruct();
         delete effect_state;
     }
-};
+}; // EffectStateDeleter
 
 struct Device
 {
@@ -2951,6 +2944,9 @@ int Api::get_max_effect_count()
 // Api
 // ==========================================================================
 
+
+// ==========================================================================
+// Effects
 
 class NullEffectState :
     public EffectState
@@ -5794,8 +5790,8 @@ private:
             return;
         }
 
-        /* Be careful with gains < 0.001, as that causes the coefficient
-         * to head towards 1, which will flatten the signal. */
+        // Be careful with gains < 0.001, as that causes the coefficient
+        // to head towards 1, which will flatten the signal.
         const auto g = std::max(0.001F, gain);
         const auto g2 = g * g;
         const auto cw = std::cos(w);
@@ -6940,3 +6936,6 @@ EffectState* EffectStateFactory::create_reverb()
 {
     return create<ReverbEffectState>();
 }
+
+// Effects
+// ==========================================================================
