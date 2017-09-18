@@ -15,12 +15,20 @@ struct Effect;
 struct EffectSlot;
 
 
+constexpr auto min_effects = 1;
+constexpr auto max_effects = 4;
+
 constexpr auto max_effect_channels = 4;
+
+constexpr auto min_sampling_rate = 8'000;
+constexpr auto max_sampling_rate = 8'000'000;
 
 constexpr auto max_mix_gain = 16.0F; // +24dB
 
-constexpr auto silence_threshold_gain = 0.00001F; // -100dB
+constexpr auto silence_threshold_gain = 0.000'01F; // -100dB
 
+
+using WetGains = std::array<float, max_effects>;
 
 enum class ActiveFilters
 {
@@ -982,28 +990,33 @@ struct Source
         int channel_count_;
     }; // Send
 
+    using Sends = std::vector<Send>;
+
 
     Send direct_;
-    Send aux_;
+    Sends auxes_;
 
 
-    Source()
-    {
-        initialize();
-    }
-
-    void initialize()
+    void initialize(
+        const int effect_count)
     {
         direct_.gain_ = 1.0F;
         direct_.gain_hf_ = 1.0F;
         direct_.hf_reference_ = FilterState::lp_frequency_reference;
         direct_.gain_lf_ = 1.0F;
         direct_.lf_reference_ = FilterState::hp_frequency_reference;
-        aux_.gain_ = 1.0F;
-        aux_.gain_hf_ = 1.0F;
-        aux_.hf_reference_ = FilterState::lp_frequency_reference;
-        aux_.gain_lf_ = 1.0F;
-        aux_.lf_reference_ = FilterState::hp_frequency_reference;
+
+        auxes_.clear();
+        auxes_.resize(effect_count);
+
+        for (auto& aux : auxes_)
+        {
+            aux.gain_ = 1.0F;
+            aux.gain_hf_ = 1.0F;
+            aux.hf_reference_ = FilterState::lp_frequency_reference;
+            aux.gain_lf_ = 1.0F;
+            aux.lf_reference_ = FilterState::hp_frequency_reference;
+        }
     }
 }; // Source
 
@@ -1924,15 +1937,19 @@ struct EffectSlot
         is_props_updated_{},
         wet_buffer_{SampleBuffers::size_type{max_effect_channels}}
     {
-        initialize();
     }
-
 
     EffectSlot(
         const EffectSlot& that) = delete;
 
+    EffectSlot(
+        EffectSlot&& that) = default;
+
     EffectSlot& operator=(
         const EffectSlot& that) = delete;
+
+    EffectSlot& operator=(
+        EffectSlot&& that) = default;
 
     ~EffectSlot()
     {
@@ -1977,6 +1994,14 @@ struct EffectSlot
     }
 }; // EffectSlot
 
+struct EffectContext
+{
+    Effect deferred_effect_;
+    EffectSlot effect_slot_;
+}; // EffectContext
+
+using EffectContexts = std::vector<EffectContext>;
+
 
 // ==========================================================================
 // ApiImpl
@@ -1986,16 +2011,16 @@ class ApiImpl
 public:
     Device device_;
     Source source_;
-    Effect deferred_effect_;
-    EffectSlot effect_slot_;
+    EffectContexts effect_contexts_;
+    int effect_count_;
 
 
     ApiImpl()
         :
         device_{},
         source_{},
-        deferred_effect_{},
-        effect_slot_{}
+        effect_contexts_{},
+        effect_count_{}
     {
     }
 
@@ -2007,28 +2032,57 @@ public:
 
     bool initialize(
         const ChannelFormat channel_format,
-        const int sampling_rate)
+        const int sampling_rate,
+        const int effect_count)
     {
         uninitialize();
 
+        const auto channel_count = channel_format_to_channel_count(channel_format);
+
+        if (channel_count == 0)
+        {
+            return false;
+        }
+
+        if (sampling_rate < min_sampling_rate)
+        {
+            return false;
+        }
+
+        if (effect_count <= 0 || effect_count > max_effects)
+        {
+            return false;
+        }
+
         device_.initialize(channel_format, sampling_rate);
-        source_.initialize();
-        deferred_effect_.set_type_and_defaults(EffectType::null);
-        effect_slot_.initialize();
 
+        effect_count_ = effect_count;
 
-        auto effect_state = effect_slot_.effect_state_.get();
-        effect_state->dst_buffers_ = &device_.sample_buffers_;
-        effect_state->dst_channel_count_ = device_.channel_count_;
-        effect_state->update_device(device_);
-        effect_slot_.is_props_updated_ = true;
+        effect_contexts_.clear();
+        effect_contexts_.resize(effect_count_);
 
-        auto source = source_;
+        for (auto& effect_context : effect_contexts_)
+        {
+            effect_context.deferred_effect_.set_type_and_defaults(EffectType::null);
+            effect_context.effect_slot_.initialize();
+
+            auto effect_state = effect_context.effect_slot_.effect_state_.get();
+            effect_state->dst_buffers_ = &device_.sample_buffers_;
+            effect_state->dst_channel_count_ = device_.channel_count_;
+            effect_state->update_device(device_);
+            effect_context.effect_slot_.is_props_updated_ = true;
+        }
+
+        source_.initialize(effect_count);
 
         for (int i = 0; i < device_.channel_count_; ++i)
         {
-            source.direct_.channels_[i].reset();
-            source.aux_.channels_[i].reset();
+            source_.direct_.channels_[i].reset();
+
+            for (auto& aux : source_.auxes_)
+            {
+                aux.channels_[i].reset();
+            }
         }
 
         return true;
@@ -2036,7 +2090,11 @@ public:
 
     void uninitialize()
     {
-        effect_slot_.uninitialize();
+        for (auto& effect_context : effect_contexts_)
+        {
+            effect_context.effect_slot_.uninitialize();
+        }
+
         device_.uninitialize();
     }
 
@@ -2066,7 +2124,7 @@ public:
 
             parms->current_gains_ = parms->target_gains_;
 
-            mix_c(
+            mix(
                 samples,
                 source_.direct_.channel_count_,
                 *source_.direct_.buffers_,
@@ -2076,32 +2134,35 @@ public:
                 0,
                 sample_count);
 
-            if (!source_.aux_.buffers_)
+            for (auto& aux : source_.auxes_)
             {
-                continue;
+                if (!aux.buffers_)
+                {
+                    continue;
+                }
+
+                parms = &aux.channels_[chan];
+
+                samples = apply_filters(
+                    &parms->low_pass_,
+                    &parms->high_pass_,
+                    device_.filtered_data_.data(),
+                    device_.resampled_data_.data(),
+                    sample_count,
+                    aux.filter_type_);
+
+                parms->current_gains_ = parms->target_gains_;
+
+                mix(
+                    samples,
+                    aux.channel_count_,
+                    *aux.buffers_,
+                    parms->current_gains_.data(),
+                    parms->target_gains_.data(),
+                    0,
+                    0,
+                    sample_count);
             }
-
-            parms = &source_.aux_.channels_[chan];
-
-            samples = apply_filters(
-                &parms->low_pass_,
-                &parms->high_pass_,
-                device_.filtered_data_.data(),
-                device_.resampled_data_.data(),
-                sample_count,
-                source_.aux_.filter_type_);
-
-            parms->current_gains_ = parms->target_gains_;
-
-            mix_c(
-                samples,
-                source_.aux_.channel_count_,
-                *source_.aux_.buffers_,
-                parms->current_gains_.data(),
-                parms->target_gains_.data(),
-                0,
-                0,
-                sample_count);
         }
     }
 
@@ -2110,7 +2171,7 @@ public:
     // gain) going to one output. This applies one row (vs one column) of a matrix
     // transform. And as the matrices are more or less static once set up, no
     // stepping is necessary.
-    static void mix_row_c(
+    static void mix_row(
         float* dst_buffer,
         const float* gains,
         const SampleBuffers& src_buffers,
@@ -2134,7 +2195,7 @@ public:
         }
     }
 
-    static void mix_c(
+    static void mix(
         const float* data,
         const int channel_count,
         SampleBuffers& dst_buffers,
@@ -2182,10 +2243,10 @@ public:
         }
     }
 
-    void alu_mix_data(
-        float* dst_samples,
+    void mix_data(
         const int sample_count,
-        const float* src_samples)
+        const float* src_samples,
+        float* dst_samples)
     {
         device_.source_samples_ = src_samples;
 
@@ -2200,18 +2261,28 @@ public:
 
             update_context_sources();
 
-            for (int c = 0; c < max_effect_channels; ++c)
+            for (auto& effect_context : effect_contexts_)
             {
-                std::fill_n(effect_slot_.wet_buffer_[c].begin(), samples_to_do, 0.0F);
+                for (int c = 0; c < max_effect_channels; ++c)
+                {
+                    std::fill_n(effect_context.effect_slot_.wet_buffer_[c].begin(), samples_to_do, 0.0F);
+                }
             }
 
             // source processing
             mix_source(samples_to_do);
 
             // effect slot processing
-            auto state = effect_slot_.effect_state_.get();
+            for (auto& effect_context : effect_contexts_)
+            {
+                auto state = effect_context.effect_slot_.effect_state_.get();
 
-            state->process(samples_to_do, effect_slot_.wet_buffer_, *state->dst_buffers_, state->dst_channel_count_);
+                state->process(
+                    samples_to_do,
+                    effect_context.effect_slot_.wet_buffer_,
+                    *state->dst_buffers_,
+                    state->dst_channel_count_);
+            }
 
             if (dst_samples)
             {
@@ -2348,9 +2419,9 @@ private:
         const float dry_gain,
         const float dry_gain_hf,
         const float dry_gain_lf,
-        const float wet_gain,
-        const float wet_gain_lf,
-        const float wet_gain_hf)
+        const WetGains& wet_gain,
+        const WetGains& wet_gain_lf,
+        const WetGains& wet_gain_hf)
     {
         static_cast<void>(distance);
         static_cast<void>(dir);
@@ -2413,7 +2484,10 @@ private:
                     source_.direct_.channels_[c].target_gains_[idx] = dry_gain;
                 }
 
-                source_.aux_.channels_[c].target_gains_.fill(0.0F);
+                for (auto& aux : source_.auxes_)
+                {
+                    aux.channels_[c].target_gains_.fill(0.0F);
+                }
 
                 continue;
             }
@@ -2427,11 +2501,14 @@ private:
                 dry_gain,
                 source_.direct_.channels_[c].target_gains_);
 
-            Panning::compute_panning_gains_bf(
-                max_effect_channels,
-                coeffs,
-                wet_gain,
-                source_.aux_.channels_[c].target_gains_);
+            for (int i = 0; i < effect_count_; ++i)
+            {
+                Panning::compute_panning_gains_bf(
+                    max_effect_channels,
+                    coeffs,
+                    wet_gain[i],
+                    source_.auxes_[i].channels_[c].target_gains_);
+            }
         }
 
         auto hf_scale = source_.direct_.hf_reference_ / frequency;
@@ -2471,41 +2548,45 @@ private:
             FilterState::copy_params(source_.direct_.channels_[0].high_pass_, source_.direct_.channels_[c].high_pass_);
         }
 
-        hf_scale = source_.aux_.hf_reference_ / frequency;
-        lf_scale = source_.aux_.lf_reference_ / frequency;
-        gain_hf = std::max(wet_gain_hf, 0.001F);
-        gain_lf = std::max(wet_gain_lf, 0.001F);
-
-        source_.aux_.filter_type_ = ActiveFilters::none;
-
-        if (gain_hf != 1.0F)
+        for (int i = 0; i < effect_count_; ++i)
         {
-            source_.aux_.filter_type_ = static_cast<ActiveFilters>(
-                static_cast<int>(source_.aux_.filter_type_) | static_cast<int>(ActiveFilters::low_pass));
-        }
+            auto& aux = source_.auxes_[i];
+            hf_scale = aux.hf_reference_ / frequency;
+            lf_scale = aux.lf_reference_ / frequency;
+            gain_hf = std::max(wet_gain_hf[i], 0.001F);
+            gain_lf = std::max(wet_gain_lf[i], 0.001F);
 
-        if (gain_lf != 1.0F)
-        {
-            source_.aux_.filter_type_ = static_cast<ActiveFilters>(
-                static_cast<int>(source_.aux_.filter_type_) | static_cast<int>(ActiveFilters::high_pass));
-        }
+            aux.filter_type_ = ActiveFilters::none;
 
-        source_.aux_.channels_[0].low_pass_.set_params(
-            FilterType::high_shelf,
-            gain_hf,
-            hf_scale,
-            FilterState::calc_rcp_q_from_slope(gain_hf, 1.0F));
+            if (gain_hf != 1.0F)
+            {
+                aux.filter_type_ = static_cast<ActiveFilters>(
+                    static_cast<int>(aux.filter_type_) | static_cast<int>(ActiveFilters::low_pass));
+            }
 
-        source_.aux_.channels_[0].high_pass_.set_params(
-            FilterType::low_shelf,
-            gain_lf,
-            lf_scale,
-            FilterState::calc_rcp_q_from_slope(gain_lf, 1.0F));
+            if (gain_lf != 1.0F)
+            {
+                aux.filter_type_ = static_cast<ActiveFilters>(
+                    static_cast<int>(aux.filter_type_) | static_cast<int>(ActiveFilters::high_pass));
+            }
 
-        for (int c = 1; c < channel_count; ++c)
-        {
-            FilterState::copy_params(source_.aux_.channels_[0].low_pass_, source_.aux_.channels_[c].low_pass_);
-            FilterState::copy_params(source_.aux_.channels_[0].high_pass_, source_.aux_.channels_[c].high_pass_);
+            aux.channels_[0].low_pass_.set_params(
+                FilterType::high_shelf,
+                gain_hf,
+                hf_scale,
+                FilterState::calc_rcp_q_from_slope(gain_hf, 1.0F));
+
+            aux.channels_[0].high_pass_.set_params(
+                FilterType::low_shelf,
+                gain_lf,
+                lf_scale,
+                FilterState::calc_rcp_q_from_slope(gain_lf, 1.0F));
+
+            for (int c = 1; c < channel_count; ++c)
+            {
+                FilterState::copy_params(aux.channels_[0].low_pass_, aux.channels_[c].low_pass_);
+                FilterState::copy_params(aux.channels_[0].high_pass_, aux.channels_[c].high_pass_);
+            }
         }
     }
 
@@ -2514,30 +2595,37 @@ private:
         source_.direct_.buffers_ = &device_.sample_buffers_;
         source_.direct_.channel_count_ = device_.channel_count_;
 
-        if (effect_slot_.effect_.type_ == EffectType::null)
+        for (int i = 0; i < effect_count_; ++i)
         {
-            source_.aux_.buffers_ = nullptr;
-            source_.aux_.channel_count_ = 0;
-        }
-        else
-        {
-            source_.aux_.buffers_ = &effect_slot_.wet_buffer_;
-            source_.aux_.channel_count_ = max_effect_channels;
+            if (effect_contexts_[i].effect_slot_.effect_.type_ == EffectType::null)
+            {
+                source_.auxes_[i].buffers_ = nullptr;
+                source_.auxes_[i].channel_count_ = 0;
+            }
+            else
+            {
+                source_.auxes_[i].buffers_ = &effect_contexts_[i].effect_slot_.wet_buffer_;
+                source_.auxes_[i].channel_count_ = max_effect_channels;
+            }
         }
 
         // Calculate gains
-        auto dry_gain = 1.0F;
-        dry_gain *= source_.direct_.gain_;
-        dry_gain = std::min(dry_gain, max_mix_gain);
-
+        const auto dry_gain = std::min(source_.direct_.gain_, max_mix_gain);
         const auto dry_gain_hf = source_.direct_.gain_hf_;
         const auto dry_gain_lf = source_.direct_.gain_lf_;
 
         constexpr float dir[3] = {0.0F, 0.0F, -1.0F};
 
-        const auto wet_gain = std::min(source_.aux_.gain_, max_mix_gain);
-        const auto wet_gain_hf = source_.aux_.gain_hf_;
-        const auto wet_gain_lf = source_.aux_.gain_lf_;
+        auto wet_gain = WetGains{};
+        auto wet_gain_hf = WetGains{};
+        auto wet_gain_lf = WetGains{};
+
+        for (int i = 0; i < effect_count_; ++i)
+        {
+            wet_gain[i] = std::min(source_.auxes_[i].gain_, max_mix_gain);
+            wet_gain_hf[i] = source_.auxes_[i].gain_hf_;
+            wet_gain_lf[i] = source_.auxes_[i].gain_lf_;
+        }
 
         calc_panning_and_filters(
             0.0F,
@@ -2553,7 +2641,12 @@ private:
 
     void update_context_sources()
     {
-        const auto is_props_updated = calc_effect_slot_params(effect_slot_);
+        auto is_props_updated = false;
+
+        for (auto& effect_context : effect_contexts_)
+        {
+            is_props_updated |= calc_effect_slot_params(effect_context.effect_slot_);
+        }
 
         if (is_props_updated)
         {
@@ -2613,7 +2706,7 @@ bool Api::initialize(
         return false;
     }
 
-    const auto initialize_result = pimpl_->initialize(channel_format, sampling_rate);
+    const auto initialize_result = pimpl_->initialize(channel_format, sampling_rate, effect_count);
 
     if (!initialize_result)
     {
@@ -2637,14 +2730,12 @@ bool Api::set_effect_type(
         return false;
     }
 
-    if (effect_index < 0)
+    if (effect_index < 0 || effect_index >= pimpl_->effect_count_)
     {
         return false;
     }
 
-    // TODO Check for max effect index.
-
-    pimpl_->deferred_effect_.set_type_and_defaults(effect_type);
+    pimpl_->effect_contexts_[effect_index].deferred_effect_.set_type_and_defaults(effect_type);
 
     return true;
 }
@@ -2658,14 +2749,14 @@ bool Api::set_effect_props(
         return false;
     }
 
-    if (effect_index < 0)
+    if (effect_index < 0 || effect_index >= pimpl_->effect_count_)
     {
         return false;
     }
 
     // TODO Check for max effect index.
 
-    pimpl_->deferred_effect_.props_ = effect_props;
+    pimpl_->effect_contexts_[effect_index].deferred_effect_.props_ = effect_props;
 
     return true;
 }
@@ -2679,14 +2770,14 @@ bool Api::set_effect(
         return false;
     }
 
-    if (effect_index < 0)
+    if (effect_index < 0 || effect_index >= pimpl_->effect_count_)
     {
         return false;
     }
 
     // TODO Check for max effect index.
 
-    pimpl_->deferred_effect_ = effect;
+    pimpl_->effect_contexts_[effect_index].deferred_effect_ = effect;
 
     return false;
 }
@@ -2698,16 +2789,15 @@ bool Api::apply_changes()
         return false;
     }
 
-    // TODO Apply multiple effects.
-
-    pimpl_->deferred_effect_.normalize();
-
-    if (Effect::are_equal(pimpl_->deferred_effect_, pimpl_->effect_slot_.effect_))
+    for (auto& effect_context : pimpl_->effect_contexts_)
     {
-        return true;
-    }
+        effect_context.deferred_effect_.normalize();
 
-    pimpl_->effect_slot_.set_effect(pimpl_->device_, pimpl_->deferred_effect_);
+        if (!Effect::are_equal(effect_context.deferred_effect_, effect_context.effect_slot_.effect_))
+        {
+            effect_context.effect_slot_.set_effect(pimpl_->device_, effect_context.deferred_effect_);
+        }
+    }
 
     return true;
 }
@@ -2737,7 +2827,7 @@ bool Api::mix(
         return false;
     }
 
-    pimpl_->alu_mix_data(dst_samples, sample_count, src_samples);
+    pimpl_->mix_data(sample_count, src_samples, dst_samples);
 
     return true;
 }
@@ -2745,6 +2835,26 @@ bool Api::mix(
 void Api::uninitialize()
 {
     pimpl_ = nullptr;
+}
+
+int Api::get_min_sampling_rate()
+{
+    return min_sampling_rate;
+}
+
+int Api::get_max_sampling_rate()
+{
+    return max_sampling_rate;
+}
+
+int Api::get_min_effect_count()
+{
+    return min_effects;
+}
+
+int Api::get_max_effect_count()
+{
+    return max_effects;
 }
 
 // Api
@@ -4940,7 +5050,7 @@ protected:
 
             for (int c = 0; c < 4; ++c)
             {
-                ApiImpl::mix_row_c(
+                ApiImpl::mix_row(
                     a_format_samples_[c].data(),
                     b2a.m_[c],
                     src_samples,
@@ -4978,7 +5088,7 @@ protected:
             // B-Format.
             for (int c = 0; c < 4; c++)
             {
-                ApiImpl::mix_c(
+                ApiImpl::mix(
                     early_samples_[c].data(),
                     channel_count,
                     dst_samples,
@@ -4991,7 +5101,7 @@ protected:
 
             for (int c = 0; c < 4; c++)
             {
-                ApiImpl::mix_c(
+                ApiImpl::mix(
                     reverb_samples_[c].data(),
                     channel_count,
                     dst_samples,

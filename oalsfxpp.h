@@ -594,6 +594,15 @@ public:
     void uninitialize();
 
 
+    static int get_min_sampling_rate();
+
+    static int get_max_sampling_rate();
+
+    static int get_min_effect_count();
+
+    static int get_max_effect_count();
+
+
 private:
     using ApiImplUPtr = std::unique_ptr<ApiImpl>;
 
