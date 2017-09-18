@@ -10,8 +10,6 @@
 
 
 struct Device;
-struct Source;
-struct Effect;
 struct EffectSlot;
 
 
@@ -2025,10 +2023,91 @@ struct EffectContext
 using EffectContexts = std::vector<EffectContext>;
 
 
-// ==========================================================================
-// ApiImpl
+struct MixHelpers
+{
+    // Basically the inverse of the "mix". Rather than one input going to multiple
+    // outputs (each with its own gain), it's multiple inputs (each with its own
+    // gain) going to one output. This applies one row (vs one column) of a matrix
+    // transform. And as the matrices are more or less static once set up, no
+    // stepping is necessary.
+    static void mix_row(
+        float* dst_buffer,
+        const float* gains,
+        const SampleBuffers& src_buffers,
+        const int channel_count,
+        const int src_position,
+        const int buffer_size)
+    {
+        for (int c = 0; c < channel_count; ++c)
+        {
+            const auto gain = gains[c];
 
-class ApiImpl
+            if (!(std::abs(gain) > silence_threshold_gain))
+            {
+                continue;
+            }
+
+            for (int i = 0; i < buffer_size; ++i)
+            {
+                dst_buffer[i] += src_buffers[c][src_position + i] * gain;
+            }
+        }
+    }
+
+    static void mix(
+        const float* data,
+        const int channel_count,
+        SampleBuffers& dst_buffers,
+        float* current_gains,
+        const float* target_gains,
+        const int counter,
+        const int dst_position,
+        const int buffer_size)
+    {
+        const auto delta = ((counter > 0) ? 1.0F / static_cast<float>(counter) : 0.0F);
+
+        for (int c = 0; c < channel_count; ++c)
+        {
+            auto pos = 0;
+            auto gain = current_gains[c];
+            const auto step = (target_gains[c] - gain) * delta;
+
+            if (std::abs(step) > Math::get_epsilon())
+            {
+                const auto size = std::min(buffer_size, counter);
+
+                for ( ; pos < size; ++pos)
+                {
+                    dst_buffers[c][dst_position + pos] += data[pos] * gain;
+                    gain += step;
+                }
+
+                if (pos == counter)
+                {
+                    gain = target_gains[c];
+                }
+
+                current_gains[c] = gain;
+            }
+
+            if (!(std::abs(gain) > silence_threshold_gain))
+            {
+                continue;
+            }
+
+            for ( ; pos < buffer_size; ++pos)
+            {
+                dst_buffers[c][dst_position + pos] += data[pos] * gain;
+            }
+        }
+    }
+}; // MixHelpers
+
+
+// ==========================================================================
+// Api::Impl
+
+class Api::Impl
 {
 public:
     Device device_;
@@ -2037,7 +2116,7 @@ public:
     int effect_count_;
 
 
-    ApiImpl()
+    Impl()
         :
         device_{},
         source_{},
@@ -2046,7 +2125,7 @@ public:
     {
     }
 
-    ~ApiImpl()
+    ~Impl()
     {
         uninitialize();
     }
@@ -2146,7 +2225,7 @@ public:
 
             parms->current_gains_ = parms->target_gains_;
 
-            mix(
+            MixHelpers::mix(
                 samples,
                 source_.direct_.channel_count_,
                 *source_.direct_.buffers_,
@@ -2175,7 +2254,7 @@ public:
 
                 parms->current_gains_ = parms->target_gains_;
 
-                mix(
+                MixHelpers::mix(
                     samples,
                     aux.channel_count_,
                     *aux.buffers_,
@@ -2184,83 +2263,6 @@ public:
                     0,
                     0,
                     sample_count);
-            }
-        }
-    }
-
-    // Basically the inverse of the "mix". Rather than one input going to multiple
-    // outputs (each with its own gain), it's multiple inputs (each with its own
-    // gain) going to one output. This applies one row (vs one column) of a matrix
-    // transform. And as the matrices are more or less static once set up, no
-    // stepping is necessary.
-    static void mix_row(
-        float* dst_buffer,
-        const float* gains,
-        const SampleBuffers& src_buffers,
-        const int channel_count,
-        const int src_position,
-        const int buffer_size)
-    {
-        for (int c = 0; c < channel_count; ++c)
-        {
-            const auto gain = gains[c];
-
-            if (!(std::abs(gain) > silence_threshold_gain))
-            {
-                continue;
-            }
-
-            for (int i = 0; i < buffer_size; ++i)
-            {
-                dst_buffer[i] += src_buffers[c][src_position + i] * gain;
-            }
-        }
-    }
-
-    static void mix(
-        const float* data,
-        const int channel_count,
-        SampleBuffers& dst_buffers,
-        float* current_gains,
-        const float* target_gains,
-        const int counter,
-        const int dst_position,
-        const int buffer_size)
-    {
-        const auto delta = ((counter > 0) ? 1.0F / static_cast<float>(counter) : 0.0F);
-
-        for (int c = 0; c < channel_count; ++c)
-        {
-            auto pos = 0;
-            auto gain = current_gains[c];
-            const auto step = (target_gains[c] - gain) * delta;
-
-            if (std::abs(step) > Math::get_epsilon())
-            {
-                const auto size = std::min(buffer_size, counter);
-
-                for ( ; pos < size; ++pos)
-                {
-                    dst_buffers[c][dst_position + pos] += data[pos] * gain;
-                    gain += step;
-                }
-
-                if (pos == counter)
-                {
-                    gain = target_gains[c];
-                }
-
-                current_gains[c] = gain;
-            }
-
-            if (!(std::abs(gain) > silence_threshold_gain))
-            {
-                continue;
-            }
-
-            for ( ; pos < buffer_size; ++pos)
-            {
-                dst_buffers[c][dst_position + pos] += data[pos] * gain;
             }
         }
     }
@@ -2707,9 +2709,9 @@ private:
             }
         }
     }
-}; // ApiImpl
+}; // Impl
 
-// ApiImpl
+// Api::Impl
 // ==========================================================================
 
 
@@ -2734,7 +2736,7 @@ bool Api::initialize(
 {
     uninitialize();
 
-    pimpl_.reset(new (std::nothrow) ApiImpl{});
+    pimpl_.reset(new (std::nothrow) Impl{});
 
     if (!pimpl_)
     {
@@ -5139,7 +5141,7 @@ protected:
 
             for (int c = 0; c < 4; ++c)
             {
-                ApiImpl::mix_row(
+                MixHelpers::mix_row(
                     a_format_samples_[c].data(),
                     b2a.m_[c],
                     src_samples,
@@ -5177,7 +5179,7 @@ protected:
             // B-Format.
             for (int c = 0; c < 4; c++)
             {
-                ApiImpl::mix(
+                MixHelpers::mix(
                     early_samples_[c].data(),
                     channel_count,
                     dst_samples,
@@ -5190,7 +5192,7 @@ protected:
 
             for (int c = 0; c < 4; c++)
             {
-                ApiImpl::mix(
+                MixHelpers::mix(
                     reverb_samples_[c].data(),
                     channel_count,
                     dst_samples,

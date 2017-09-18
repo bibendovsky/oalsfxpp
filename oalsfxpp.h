@@ -582,8 +582,6 @@ inline ChannelFormat channel_count_to_channel_format(
 }
 
 
-class ApiImpl;
-
 class Api
 {
 public:
@@ -644,7 +642,8 @@ public:
 
 
 private:
-    using ApiImplUPtr = std::unique_ptr<ApiImpl>;
+    class Impl;
+    using ApiImplUPtr = std::unique_ptr<Impl>;
 
 
     ApiImplUPtr pimpl_;
