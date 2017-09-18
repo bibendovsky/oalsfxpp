@@ -9,8 +9,8 @@
 #include <vector>
 
 
-struct ALCdevice;
-struct ALsource;
+struct Device;
+struct Source;
 struct Effect;
 struct EffectSlot;
 
@@ -945,7 +945,7 @@ struct FilterState
     }
 }; // FilterState
 
-struct ALsource
+struct Source
 {
     struct Send
     {
@@ -987,7 +987,7 @@ struct ALsource
     Send aux_;
 
 
-    ALsource()
+    Source()
     {
         initialize();
     }
@@ -1005,7 +1005,7 @@ struct ALsource
         aux_.gain_lf_ = 1.0F;
         aux_.lf_reference_ = FilterState::hp_frequency_reference;
     }
-}; // ALsource
+}; // Source
 
 using EffectSampleBuffer = std::vector<float>;
 
@@ -1521,13 +1521,13 @@ public:
     }
 
     void update_device(
-        ALCdevice& device)
+        Device& device)
     {
         do_update_device(device);
     }
 
     void update(
-        ALCdevice& device,
+        Device& device,
         const EffectSlot& effect_slot,
         const EffectProps& props)
     {
@@ -1571,10 +1571,10 @@ protected:
     virtual void do_destruct() = 0;
 
     virtual void do_update_device(
-        ALCdevice& device) = 0;
+        Device& device) = 0;
 
     virtual void do_update(
-        ALCdevice& device,
+        Device& device,
         const EffectSlot& effect_slot,
         const EffectProps& props) = 0;
 
@@ -1673,7 +1673,7 @@ struct EffectStateDeleter
     }
 };
 
-struct ALCdevice
+struct Device
 {
     using ChannelIds = std::array<ChannelId, max_channels>;
 
@@ -1894,7 +1894,7 @@ struct ALCdevice
 
         return static_cast<int>(it - it_begin);
     }
-}; // ALCdevice
+}; // Device
 
 struct EffectSlot
 {
@@ -1954,7 +1954,7 @@ struct EffectSlot
     }
 
     void set_effect(
-        ALCdevice& device,
+        Device& device,
         Effect& effect)
     {
         if (effect_.type_ != effect.type_)
@@ -1984,9 +1984,9 @@ struct EffectSlot
 class ApiImpl
 {
 public:
-    ALCdevice device_;
-    ALsource source_;
-    Effect effect_;
+    Device device_;
+    Source source_;
+    Effect deferred_effect_;
     EffectSlot effect_slot_;
 
 
@@ -1994,7 +1994,7 @@ public:
         :
         device_{},
         source_{},
-        effect_{},
+        deferred_effect_{},
         effect_slot_{}
     {
     }
@@ -2013,7 +2013,7 @@ public:
 
         device_.initialize(channel_format, sampling_rate);
         source_.initialize();
-        effect_.set_type_and_defaults(EffectType::null);
+        deferred_effect_.set_type_and_defaults(EffectType::null);
         effect_slot_.initialize();
 
 
@@ -2644,7 +2644,7 @@ bool Api::set_effect_type(
 
     // TODO Check for max effect index.
 
-    pimpl_->effect_.set_type_and_defaults(effect_type);
+    pimpl_->deferred_effect_.set_type_and_defaults(effect_type);
 
     return true;
 }
@@ -2665,7 +2665,7 @@ bool Api::set_effect_props(
 
     // TODO Check for max effect index.
 
-    pimpl_->effect_.props_ = effect_props;
+    pimpl_->deferred_effect_.props_ = effect_props;
 
     return true;
 }
@@ -2686,7 +2686,7 @@ bool Api::set_effect(
 
     // TODO Check for max effect index.
 
-    pimpl_->effect_ = effect;
+    pimpl_->deferred_effect_ = effect;
 
     return false;
 }
@@ -2700,14 +2700,14 @@ bool Api::apply_changes()
 
     // TODO Apply multiple effects.
 
-    pimpl_->effect_.normalize();
+    pimpl_->deferred_effect_.normalize();
 
-    if (Effect::are_equal(pimpl_->effect_, pimpl_->effect_slot_.effect_))
+    if (Effect::are_equal(pimpl_->deferred_effect_, pimpl_->effect_slot_.effect_))
     {
         return true;
     }
 
-    pimpl_->effect_slot_.set_effect(pimpl_->device_, pimpl_->effect_);
+    pimpl_->effect_slot_.set_effect(pimpl_->device_, pimpl_->deferred_effect_);
 
     return true;
 }
@@ -2776,13 +2776,13 @@ protected:
     }
 
     void do_update_device(
-        ALCdevice& device) final
+        Device& device) final
     {
         static_cast<void>(device);
     }
 
     void do_update(
-        ALCdevice& device,
+        Device& device,
         const EffectSlot& effect_slot,
         const EffectProps& effect_props) final
     {
@@ -2861,7 +2861,7 @@ protected:
     }
 
     void do_update_device(
-        ALCdevice& device) final
+        Device& device) final
     {
         auto max_len = static_cast<int>(EffectProps::Chorus::max_delay * 2.0F * device.frequency_) + 1;
 
@@ -2882,7 +2882,7 @@ protected:
     }
 
     void do_update(
-        ALCdevice& device,
+        Device& device,
         const EffectSlot& effect_slot,
         const EffectProps& effect_props) final
     {
@@ -3159,7 +3159,7 @@ protected:
     }
 
     void do_update_device(
-        ALCdevice& device) final
+        Device& device) final
     {
         const auto attackTime = device.frequency_ * 0.2F; // 200ms Attack
         const auto releaseTime = device.frequency_ * 0.4F; // 400ms Release
@@ -3169,7 +3169,7 @@ protected:
     }
 
     void do_update(
-        ALCdevice& device,
+        Device& device,
         const EffectSlot& effect_slot,
         const EffectProps& effect_props) final
     {
@@ -3343,13 +3343,13 @@ protected:
     }
 
     void do_update_device(
-        ALCdevice& device) final
+        Device& device) final
     {
         static_cast<void>(device);
     }
 
     void do_update(
-        ALCdevice& device,
+        Device& device,
         const EffectSlot& effect_slot,
         const EffectProps& effect_props)
     {
@@ -3461,13 +3461,13 @@ protected:
     }
 
     void do_update_device(
-        ALCdevice& device) final
+        Device& device) final
     {
         static_cast<void>(device);
     }
 
     void do_update(
-        ALCdevice& device,
+        Device& device,
         const EffectSlot& effect_slot,
         const EffectProps& effect_props) final
     {
@@ -3657,7 +3657,7 @@ protected:
     }
 
     void do_update_device(
-        ALCdevice& device) final
+        Device& device) final
     {
         // Use the next power of 2 for the buffer length, so the tap offsets can be
         // wrapped using a mask instead of a modulo
@@ -3675,7 +3675,7 @@ protected:
     }
 
     void do_update(
-        ALCdevice& device,
+        Device& device,
         const EffectSlot& effect_slot,
         const EffectProps& effect_props) final
     {
@@ -3912,13 +3912,13 @@ protected:
     }
 
     void do_update_device(
-        ALCdevice& device)
+        Device& device)
     {
         static_cast<void>(device);
     }
 
     void do_update(
-        ALCdevice& device,
+        Device& device,
         const EffectSlot& effect_slot,
         const EffectProps& effect_props)
     {
@@ -4132,7 +4132,7 @@ protected:
     }
 
     void do_update_device(
-        ALCdevice& device) final
+        Device& device) final
     {
         auto maxlen = static_cast<int>(EffectProps::Flanger::max_delay * 2.0F * device.frequency_) + 1;
         maxlen = Math::next_power_of_2(maxlen);
@@ -4154,7 +4154,7 @@ protected:
     }
 
     void do_update(
-        ALCdevice& device,
+        Device& device,
         const EffectSlot& effect_slot,
         const EffectProps& effect_props) final
     {
@@ -4432,13 +4432,13 @@ protected:
     }
 
     void do_update_device(
-        ALCdevice& device) final
+        Device& device) final
     {
         static_cast<void>(device);
     }
 
     void do_update(
-        ALCdevice& device,
+        Device& device,
         const EffectSlot& effect_slot,
         const EffectProps& effect_props) final
     {
@@ -4763,7 +4763,7 @@ protected:
     }
 
     void do_update_device(
-        ALCdevice& device) final
+        Device& device) final
     {
         const auto frequency = device.frequency_;
 
@@ -4787,7 +4787,7 @@ protected:
     }
 
     void do_update(
-        ALCdevice& device,
+        Device& device,
         const EffectSlot& effect_slot,
         const EffectProps& effect_props) final
     {
@@ -6137,7 +6137,7 @@ private:
 
     // Update the early and late 3D panning gains.
     void update_3d_panning(
-        ALCdevice& device,
+        Device& device,
         const float* reflections_pan,
         const float* late_reverb_pan,
         const float gain,
