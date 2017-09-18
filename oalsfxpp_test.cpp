@@ -111,7 +111,7 @@ int main()
 
     if (is_succeed)
     {
-        const auto channel_format = channel_count_to_channel_format(channel_count);
+        const auto channel_format = Api::channel_count_to_channel_format(channel_count);
 
         is_succeed = api.initialize(channel_format, sampling_rate, 1);
     }

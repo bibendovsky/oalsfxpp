@@ -2941,6 +2941,33 @@ int Api::get_max_effect_count()
     return max_effects;
 }
 
+ChannelFormat Api::channel_count_to_channel_format(
+    const int channel_count)
+{
+    switch (channel_count)
+    {
+    case 1:
+        return ChannelFormat::mono;
+
+    case 2:
+        return ChannelFormat::stereo;
+
+    case 4:
+        return ChannelFormat::quad;
+
+    case 6:
+        return ChannelFormat::five_point_one;
+
+    case 7:
+        return ChannelFormat::six_point_one;
+
+    case 8:
+        return ChannelFormat::seven_point_one;
+
+    default:
+        return ChannelFormat::none;
+    }
+}
 // Api
 // ==========================================================================
 
