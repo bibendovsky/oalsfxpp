@@ -686,10 +686,6 @@ enum class FilterType
 
 struct FilterState
 {
-    static constexpr auto lp_frequency_reference = 5000.0F;
-    static constexpr auto hp_frequency_reference = 250.0F;
-
-
     float x_[2]; // History of two last input samples
     float y_[2]; // History of two last output samples
 
@@ -978,11 +974,8 @@ struct Source
         using Channels = std::array<Channel, max_channels>;
 
 
-        float gain_;
-        float gain_hf_;
-        float hf_reference_;
-        float gain_lf_;
-        float lf_reference_;
+        SendProps props_;
+        SendProps deferred_props_;
 
         ActiveFilters filter_type_;
         Channels channels_;
@@ -995,28 +988,25 @@ struct Source
 
     Send direct_;
     Sends auxes_;
+    bool are_props_changed_;
 
 
     void initialize(
         const int effect_count)
     {
-        direct_.gain_ = 1.0F;
-        direct_.gain_hf_ = 1.0F;
-        direct_.hf_reference_ = FilterState::lp_frequency_reference;
-        direct_.gain_lf_ = 1.0F;
-        direct_.lf_reference_ = FilterState::hp_frequency_reference;
+        direct_.props_.set_defaults();
+        direct_.deferred_props_.set_defaults();
 
         auxes_.clear();
         auxes_.resize(effect_count);
 
         for (auto& aux : auxes_)
         {
-            aux.gain_ = 1.0F;
-            aux.gain_hf_ = 1.0F;
-            aux.hf_reference_ = FilterState::lp_frequency_reference;
-            aux.gain_lf_ = 1.0F;
-            aux.lf_reference_ = FilterState::hp_frequency_reference;
+            aux.props_.set_defaults();
+            aux.deferred_props_.set_defaults();
         }
+
+        are_props_changed_ = true;
     }
 }; // Source
 
@@ -1505,6 +1495,38 @@ bool Effect::are_equal(
 // Effect
 // ==========================================================================
 
+
+// ==========================================================================
+// SendProps
+
+void SendProps::set_defaults()
+{
+    gain_ = default_gain;
+    gain_hf_ = default_gain_hf;
+    gain_lf_ = default_gain_lf;
+}
+
+void SendProps::normalize()
+{
+    Math::clamp_i(gain_, min_gain, max_gain);
+    Math::clamp_i(gain_hf_, min_gain_hf, max_gain_hf);
+    Math::clamp_i(gain_lf_, min_gain_lf, max_gain_lf);
+}
+
+bool SendProps::are_equal(
+    const SendProps& a,
+    const SendProps& b)
+{
+    return
+        a.gain_ == b.gain_ &&
+        a.gain_hf_ == b.gain_hf_ &&
+        a.gain_lf_ == b.gain_lf_;
+}
+
+// SendProps
+// ==========================================================================
+
+
 class EffectState
 {
 public:
@@ -1916,7 +1938,7 @@ struct EffectSlot
 
     Effect effect_;
     EffectStateUPtr effect_state_;
-    bool is_props_updated_;
+    bool is_props_changed_;
 
     // Wet buffer configuration is ACN channel order with N3D scaling:
     // * Channel 0 is the unattenuated mono signal.
@@ -1934,7 +1956,7 @@ struct EffectSlot
         :
         effect_{},
         effect_state_{},
-        is_props_updated_{},
+        is_props_changed_{},
         wet_buffer_{SampleBuffers::size_type{max_effect_channels}}
     {
     }
@@ -1962,7 +1984,7 @@ struct EffectSlot
 
         effect_.type_ = EffectType::null;
         effect_state_.reset(EffectStateFactory::create_by_type(EffectType::null));
-        is_props_updated_ = true;
+        is_props_changed_ = true;
     }
 
     void uninitialize()
@@ -1990,7 +2012,7 @@ struct EffectSlot
             effect_.props_ = effect.props_;
         }
 
-        is_props_updated_ = true;
+        is_props_changed_ = true;
     }
 }; // EffectSlot
 
@@ -2070,7 +2092,7 @@ public:
             effect_state->dst_buffers_ = &device_.sample_buffers_;
             effect_state->dst_channel_count_ = device_.channel_count_;
             effect_state->update_device(device_);
-            effect_context.effect_slot_.is_props_updated_ = true;
+            effect_context.effect_slot_.is_props_changed_ = true;
         }
 
         source_.initialize(effect_count);
@@ -2401,13 +2423,26 @@ private:
     bool calc_effect_slot_params(
         EffectSlot& effect_slot)
     {
-        if (!effect_slot.is_props_updated_)
+        if (!effect_slot.is_props_changed_)
         {
             return false;
         }
 
-        effect_slot.is_props_updated_ = false;
+        effect_slot.is_props_changed_ = false;
         effect_slot.effect_state_->update(device_, effect_slot, effect_slot.effect_.props_);
+
+        return true;
+    }
+
+    bool calc_source_params(
+        Source& source)
+    {
+        if (!source.are_props_changed_)
+        {
+            return false;
+        }
+
+        source.are_props_changed_ = false;
 
         return true;
     }
@@ -2511,8 +2546,8 @@ private:
             }
         }
 
-        auto hf_scale = source_.direct_.hf_reference_ / frequency;
-        auto lf_scale = source_.direct_.lf_reference_ / frequency;
+        const auto hf_scale = SendProps::hp_frequency_reference / frequency;
+        const auto lf_scale = SendProps::lp_frequency_reference / frequency;
         auto gain_hf = std::max(dry_gain_hf, 0.001F); // Limit -60dB
         auto gain_lf = std::max(dry_gain_lf, 0.001F);
 
@@ -2551,8 +2586,6 @@ private:
         for (int i = 0; i < effect_count_; ++i)
         {
             auto& aux = source_.auxes_[i];
-            hf_scale = aux.hf_reference_ / frequency;
-            lf_scale = aux.lf_reference_ / frequency;
             gain_hf = std::max(wet_gain_hf[i], 0.001F);
             gain_lf = std::max(wet_gain_lf[i], 0.001F);
 
@@ -2610,9 +2643,9 @@ private:
         }
 
         // Calculate gains
-        const auto dry_gain = std::min(source_.direct_.gain_, max_mix_gain);
-        const auto dry_gain_hf = source_.direct_.gain_hf_;
-        const auto dry_gain_lf = source_.direct_.gain_lf_;
+        const auto dry_gain = std::min(source_.direct_.props_.gain_, max_mix_gain);
+        const auto dry_gain_hf = source_.direct_.props_.gain_hf_;
+        const auto dry_gain_lf = source_.direct_.props_.gain_lf_;
 
         constexpr float dir[3] = {0.0F, 0.0F, -1.0F};
 
@@ -2622,9 +2655,9 @@ private:
 
         for (int i = 0; i < effect_count_; ++i)
         {
-            wet_gain[i] = std::min(source_.auxes_[i].gain_, max_mix_gain);
-            wet_gain_hf[i] = source_.auxes_[i].gain_hf_;
-            wet_gain_lf[i] = source_.auxes_[i].gain_lf_;
+            wet_gain[i] = std::min(source_.auxes_[i].props_.gain_, max_mix_gain);
+            wet_gain_hf[i] = source_.auxes_[i].props_.gain_hf_;
+            wet_gain_lf[i] = source_.auxes_[i].props_.gain_lf_;
         }
 
         calc_panning_and_filters(
@@ -2647,6 +2680,8 @@ private:
         {
             is_props_updated |= calc_effect_slot_params(effect_context.effect_slot_);
         }
+
+        is_props_updated |= calc_source_params(source_);
 
         if (is_props_updated)
         {
@@ -2754,8 +2789,6 @@ bool Api::set_effect_props(
         return false;
     }
 
-    // TODO Check for max effect index.
-
     pimpl_->effect_contexts_[effect_index].deferred_effect_.props_ = effect_props;
 
     return true;
@@ -2775,11 +2808,41 @@ bool Api::set_effect(
         return false;
     }
 
-    // TODO Check for max effect index.
-
     pimpl_->effect_contexts_[effect_index].deferred_effect_ = effect;
 
     return false;
+}
+
+bool Api::set_send_props(
+    const SendProps& send_props)
+{
+    if (!is_initialized())
+    {
+        return false;
+    }
+
+    pimpl_->source_.direct_.deferred_props_ = send_props;
+
+    return true;
+}
+
+bool Api::set_send_props(
+    const int effect_index,
+    const SendProps& send_props)
+{
+    if (!is_initialized())
+    {
+        return false;
+    }
+
+    if (effect_index < 0 || effect_index >= pimpl_->effect_count_)
+    {
+        return false;
+    }
+
+    pimpl_->source_.auxes_[effect_index].props_ = send_props;
+
+    return true;
 }
 
 bool Api::apply_changes()
@@ -2789,6 +2852,8 @@ bool Api::apply_changes()
         return false;
     }
 
+    // Effects
+    //
     for (auto& effect_context : pimpl_->effect_contexts_)
     {
         effect_context.deferred_effect_.normalize();
@@ -2796,6 +2861,30 @@ bool Api::apply_changes()
         if (!Effect::are_equal(effect_context.deferred_effect_, effect_context.effect_slot_.effect_))
         {
             effect_context.effect_slot_.set_effect(pimpl_->device_, effect_context.deferred_effect_);
+        }
+    }
+
+    // Direct send
+    //
+    auto& source = pimpl_->source_;
+    auto& direct_send = source.direct_;
+    direct_send.deferred_props_.normalize();
+
+    if (!SendProps::are_equal(direct_send.deferred_props_, direct_send.props_))
+    {
+        source.are_props_changed_ = true;
+        direct_send.props_ = direct_send.deferred_props_;
+    }
+
+    // Aux sends
+    //
+    for (auto& aux_send : source.auxes_)
+    {
+        aux_send.deferred_props_.normalize();
+
+        if (!SendProps::are_equal(aux_send.props_, aux_send.deferred_props_))
+        {
+            source.are_props_changed_ = true;
         }
     }
 
@@ -3822,7 +3911,7 @@ protected:
         filter_.set_params(
             FilterType::high_shelf,
             effect_gain,
-            FilterState::lp_frequency_reference / frequency,
+            SendProps::lp_frequency_reference / frequency,
             FilterState::calc_rcp_q_from_slope(effect_gain, 1.0F));
 
         effect_gain = 1.0F;
@@ -5188,7 +5277,7 @@ private:
     {
         FilterState lp;
         FilterState hp; // EAX only
-    }; // Filter
+    }; // FilterProps
 
     using Filters = std::array<Filter, 4>;
 
@@ -5243,7 +5332,7 @@ private:
             // The LF and HF filters keep a state of the last input and last
             // output sample.
             States states;
-        }; // Filter
+        }; // FilterProps
 
         using Filters = std::array<Filter, 4>;
         using Offsets = MdArray<int, 4, 2>;

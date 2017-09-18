@@ -519,6 +519,39 @@ struct Effect
         const Effect& b);
 }; // Effect
 
+struct SendProps
+{
+    static constexpr auto lp_frequency_reference = 5'000.0F;
+    static constexpr auto hp_frequency_reference = 250.0F;
+
+    static constexpr auto min_gain = 0.0F;
+    static constexpr auto max_gain = 1.0F;
+    static constexpr auto default_gain = 1.0F;
+
+    static constexpr auto min_gain_hf = 0.0F;
+    static constexpr auto max_gain_hf = 1.0F;
+    static constexpr auto default_gain_hf = 1.0F;
+
+    static constexpr auto min_gain_lf = 0.0F;
+    static constexpr auto max_gain_lf = 1.0F;
+    static constexpr auto default_gain_lf = 1.0F;
+
+
+    float gain_;
+    float gain_hf_;
+    float gain_lf_;
+
+
+    void set_defaults();
+
+    void normalize();
+
+
+    static bool are_equal(
+        const SendProps& a,
+        const SendProps& b);
+}; // SendProps
+
 
 inline ChannelFormat channel_count_to_channel_format(
     const int channel_count)
@@ -583,6 +616,13 @@ public:
     bool set_effect(
         const int effect_index,
         const Effect& effect);
+
+    bool set_send_props(
+        const SendProps& send_props);
+
+    bool set_send_props(
+        const int effect_index,
+        const SendProps& send_props);
 
     bool apply_changes();
 
