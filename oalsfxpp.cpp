@@ -1152,12 +1152,12 @@ void EffectProps::Equalizer::set_defaults()
 void EffectProps::Equalizer::normalize()
 {
     Math::clamp_i(low_cutoff_, min_low_cutoff, max_low_cutoff);
-    Math::clamp_i(low_gain_, min_high_gain, max_high_gain);
+    Math::clamp_i(low_gain_, min_low_gain, max_low_gain);
     Math::clamp_i(mid1_center_, min_mid1_center, max_mid1_center);
     Math::clamp_i(mid1_gain_, min_mid1_gain, max_mid1_gain);
     Math::clamp_i(mid1_width_, min_mid1_width, max_mid1_width);
     Math::clamp_i(mid2_center_, min_mid2_center, max_mid2_center);
-    Math::clamp_i(mid2_gain_, max_mid2_gain, max_mid2_gain);
+    Math::clamp_i(mid2_gain_, min_mid2_gain, max_mid2_gain);
     Math::clamp_i(mid2_width_, min_mid2_width, max_mid2_width);
     Math::clamp_i(high_cutoff_, min_high_cutoff, max_high_cutoff);
     Math::clamp_i(high_gain_, min_high_gain, max_high_gain);
