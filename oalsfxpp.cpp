@@ -42,6 +42,7 @@ constexpr auto max_sample_buffer_size = 2048;
 
 enum class ChannelId
 {
+    none,
     front_left,
     front_right,
     front_center,
@@ -51,8 +52,6 @@ enum class ChannelId
     back_center,
     side_left,
     side_right,
-
-    invalid,
 }; // ChannelId
 
 enum class FilterType
@@ -637,7 +636,7 @@ struct Panning
     {
         int i;
 
-        for (i = 0; i < max_channels && device_channels[i] != ChannelId::invalid; ++i)
+        for (i = 0; i < max_channels && device_channels[i] != ChannelId::none; ++i)
         {
             if (device_channels[i] == ChannelId::lfe)
             {
@@ -1745,7 +1744,7 @@ struct Device
 
     void set_default_wfx_channel_order()
     {
-        channel_ids_.fill(ChannelId::invalid);
+        channel_ids_.fill(ChannelId::none);
 
         switch (channel_format_)
         {
