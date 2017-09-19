@@ -2098,6 +2098,15 @@ struct MixHelpers
 // ==========================================================================
 // Api::Impl
 
+struct ApiImplErrorMessages
+{
+    static constexpr auto NoError = "";
+    static constexpr auto InvalidChannelFormat = "Invalid channel format.";
+    static constexpr auto SamplingRateOutOfRange = "Sampling rate is out of range.";
+    static constexpr auto EffectCountOutOfRange = "Effect count is out of range.";
+}; // ApiImplErrorMessages
+
+
 class Api::Impl
 {
 public:
@@ -2105,6 +2114,7 @@ public:
     Source source_;
     EffectContexts effect_contexts_;
     int effect_count_;
+    const char* error_message_;
 
 
     Impl()
@@ -2112,7 +2122,8 @@ public:
         device_{},
         source_{},
         effect_contexts_{},
-        effect_count_{}
+        effect_count_{},
+        error_message_{ApiImplErrorMessages::NoError}
     {
     }
 
@@ -2133,16 +2144,19 @@ public:
 
         if (channel_count == 0)
         {
+            error_message_ = ApiImplErrorMessages::InvalidChannelFormat;
             return false;
         }
 
         if (sampling_rate < min_sampling_rate)
         {
+            error_message_ = ApiImplErrorMessages::SamplingRateOutOfRange;
             return false;
         }
 
         if (effect_count <= 0 || effect_count > max_effects)
         {
+            error_message_ = ApiImplErrorMessages::EffectCountOutOfRange;
             return false;
         }
 
@@ -2709,9 +2723,21 @@ private:
 // ==========================================================================
 // Api
 
+struct ApiErrorMessages
+{
+    static constexpr auto NoError = "";
+    static constexpr auto AllocateImpl = "Failed to allocate implementaion class.";
+    static constexpr auto NotInitialized = "Not initialized.";
+    static constexpr auto EffectIndexOutOfRange = "Effect index is out of range.";
+    static constexpr auto NoSrcSamples = "No source samples.";
+    static constexpr auto NoDstSamples = "No destination samples.";
+}; // ApiErrorMessages
+
+
 Api::Api()
     :
-    pimpl_{}
+    pimpl_{},
+    error_message_{ApiErrorMessages::NoError}
 {
 }
 
@@ -2731,6 +2757,7 @@ bool Api::initialize(
 
     if (!pimpl_)
     {
+        error_message_ = ApiErrorMessages::AllocateImpl;
         return false;
     }
 
@@ -2738,6 +2765,7 @@ bool Api::initialize(
 
     if (!initialize_result)
     {
+        error_message_ = pimpl_->error_message_;
         uninitialize();
     }
 
@@ -2755,11 +2783,13 @@ bool Api::set_effect_type(
 {
     if (!is_initialized())
     {
+        error_message_ = ApiErrorMessages::NotInitialized;
         return false;
     }
 
     if (effect_index < 0 || effect_index >= pimpl_->effect_count_)
     {
+        error_message_ = ApiErrorMessages::EffectIndexOutOfRange;
         return false;
     }
 
@@ -2774,11 +2804,13 @@ bool Api::set_effect_props(
 {
     if (!is_initialized())
     {
+        error_message_ = ApiErrorMessages::NotInitialized;
         return false;
     }
 
     if (effect_index < 0 || effect_index >= pimpl_->effect_count_)
     {
+        error_message_ = ApiErrorMessages::EffectIndexOutOfRange;
         return false;
     }
 
@@ -2793,11 +2825,13 @@ bool Api::set_effect(
 {
     if (!is_initialized())
     {
+        error_message_ = ApiErrorMessages::NotInitialized;
         return false;
     }
 
     if (effect_index < 0 || effect_index >= pimpl_->effect_count_)
     {
+        error_message_ = ApiErrorMessages::EffectIndexOutOfRange;
         return false;
     }
 
@@ -2812,11 +2846,13 @@ bool Api::set_send_props(
 {
     if (!is_initialized())
     {
+        error_message_ = ApiErrorMessages::NotInitialized;
         return false;
     }
 
     if (effect_index >= pimpl_->effect_count_)
     {
+        error_message_ = ApiErrorMessages::EffectIndexOutOfRange;
         return false;
     }
 
@@ -2834,6 +2870,7 @@ bool Api::apply_changes()
 {
     if (!is_initialized())
     {
+        error_message_ = ApiErrorMessages::NotInitialized;
         return false;
     }
 
@@ -2883,6 +2920,7 @@ bool Api::mix(
 {
     if (!is_initialized())
     {
+        error_message_ = ApiErrorMessages::NotInitialized;
         return false;
     }
 
@@ -2893,11 +2931,13 @@ bool Api::mix(
 
     if (!src_samples)
     {
+        error_message_ = ApiErrorMessages::NoSrcSamples;
         return false;
     }
 
     if (!dst_samples)
     {
+        error_message_ = ApiErrorMessages::NoDstSamples;
         return false;
     }
 
@@ -2922,6 +2962,11 @@ bool Api::mix(
 void Api::uninitialize()
 {
     pimpl_ = nullptr;
+}
+
+const char* Api::get_error_message() const
+{
+    return pimpl_->error_message_;
 }
 
 int Api::get_min_sampling_rate()

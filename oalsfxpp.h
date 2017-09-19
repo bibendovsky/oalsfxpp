@@ -599,6 +599,8 @@ public:
 
     void uninitialize();
 
+    const char* get_error_message() const;
+
 
     static int get_min_sampling_rate();
 
@@ -618,6 +620,7 @@ private:
 
 
     ApiImplUPtr pimpl_;
+    const char* error_message_;
 }; // Api
 
 
