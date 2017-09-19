@@ -574,6 +574,22 @@ public:
 
     bool is_initialized() const;
 
+    int get_sampling_rate() const;
+
+    ChannelFormat get_channel_format() const;
+
+    int get_channel_count() const;
+
+    int get_effect_count() const;
+
+    bool get_effect(
+        const int effect_index,
+        Effect& effect) const;
+
+    bool get_deferred_effect(
+        const int effect_index,
+        Effect& effect) const;
+
     bool set_effect_type(
         const int effect_index,
         const EffectType effect_type);
@@ -585,6 +601,14 @@ public:
     bool set_effect(
         const int effect_index,
         const Effect& effect);
+
+    bool get_send_props(
+        const int effect_index,
+        SendProps& send_props) const;
+
+    bool get_deferred_send_props(
+        const int effect_index,
+        SendProps& send_props) const;
 
     bool set_send_props(
         const int effect_index,
@@ -620,7 +644,7 @@ private:
 
 
     ApiImplUPtr pimpl_;
-    const char* error_message_;
+    mutable const char* error_message_;
 }; // Api
 
 

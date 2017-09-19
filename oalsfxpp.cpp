@@ -2777,6 +2777,92 @@ bool Api::is_initialized() const
     return pimpl_ != nullptr;
 }
 
+int Api::get_sampling_rate() const
+{
+    if (!is_initialized())
+    {
+        error_message_ = ApiErrorMessages::NotInitialized;
+        return 0;
+    }
+
+    return pimpl_->device_.frequency_;
+}
+
+ChannelFormat Api::get_channel_format() const
+{
+    if (!is_initialized())
+    {
+        error_message_ = ApiErrorMessages::NotInitialized;
+        return ChannelFormat::none;
+    }
+
+    return pimpl_->device_.channel_format_;
+}
+
+int Api::get_channel_count() const
+{
+    if (!is_initialized())
+    {
+        error_message_ = ApiErrorMessages::NotInitialized;
+        return false;
+    }
+
+    return pimpl_->device_.channel_count_;
+}
+
+int Api::get_effect_count() const
+{
+    if (!is_initialized())
+    {
+        error_message_ = ApiErrorMessages::NotInitialized;
+        return false;
+    }
+
+    return pimpl_->effect_count_;
+}
+
+bool Api::get_effect(
+    const int effect_index,
+    Effect& effect) const
+{
+    if (!is_initialized())
+    {
+        error_message_ = ApiErrorMessages::NotInitialized;
+        return false;
+    }
+
+    if (effect_index < 0 || effect_index >= pimpl_->effect_count_)
+    {
+        error_message_ = ApiErrorMessages::EffectIndexOutOfRange;
+        return false;
+    }
+
+    effect = pimpl_->effect_contexts_[effect_index].effect_slot_.effect_;
+
+    return true;
+}
+
+bool Api::get_deferred_effect(
+    const int effect_index,
+    Effect& effect) const
+{
+    if (!is_initialized())
+    {
+        error_message_ = ApiErrorMessages::NotInitialized;
+        return false;
+    }
+
+    if (effect_index < 0 || effect_index >= pimpl_->effect_count_)
+    {
+        error_message_ = ApiErrorMessages::EffectIndexOutOfRange;
+        return false;
+    }
+
+    effect = pimpl_->effect_contexts_[effect_index].deferred_effect_;
+
+    return true;
+}
+
 bool Api::set_effect_type(
     const int effect_index,
     const EffectType effect_type)
@@ -2838,6 +2924,58 @@ bool Api::set_effect(
     pimpl_->effect_contexts_[effect_index].deferred_effect_ = effect;
 
     return false;
+}
+
+bool Api::get_send_props(
+    const int effect_index,
+    SendProps& send_props) const
+{
+    if (!is_initialized())
+    {
+        error_message_ = ApiErrorMessages::NotInitialized;
+        return false;
+    }
+
+    if (effect_index >= pimpl_->effect_count_)
+    {
+        error_message_ = ApiErrorMessages::EffectIndexOutOfRange;
+        return false;
+    }
+
+    const auto& props = (
+        effect_index < 0 ?
+        pimpl_->source_.direct_.props_ :
+        pimpl_->source_.auxes_[effect_index].props_);
+
+    send_props = props;
+
+    return true;
+}
+
+bool Api::get_deferred_send_props(
+    const int effect_index,
+    SendProps& send_props) const
+{
+    if (!is_initialized())
+    {
+        error_message_ = ApiErrorMessages::NotInitialized;
+        return false;
+    }
+
+    if (effect_index >= pimpl_->effect_count_)
+    {
+        error_message_ = ApiErrorMessages::EffectIndexOutOfRange;
+        return false;
+    }
+
+    const auto& props = (
+        effect_index < 0 ?
+        pimpl_->source_.direct_.deferred_props_ :
+        pimpl_->source_.auxes_[effect_index].deferred_props_);
+
+    send_props = props;
+
+    return true;
 }
 
 bool Api::set_send_props(
