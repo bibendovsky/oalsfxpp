@@ -40,6 +40,10 @@ union EffectProps
     using Pan = std::array<float, 3>;
 
 
+    struct Null
+    {
+    }; // Null
+
     struct Chorus
     {
         static constexpr auto waveform_sinusoid = 0;
@@ -417,32 +421,29 @@ union EffectProps
         static constexpr auto default_decay_hf_limit = true;
 
 
-        // Shared reverb properties
         float density_;
         float diffusion_;
         float gain_;
         float gain_hf_;
+        float gain_lf_; // EAX
         float decay_time_;
         float decay_hf_ratio_;
+        float decay_lf_ratio_; // EAX
         float reflections_gain_;
         float reflections_delay_;
+        Pan reflections_pan_; // EAX
         float late_reverb_gain_;
         float late_reverb_delay_;
+        Pan late_reverb_pan_; // EAX
+        float echo_time_; // EAX
+        float echo_depth_; // EAX
+        float modulation_time_; // EAX
+        float modulation_depth_; // EAX
         float air_absorption_gain_hf_;
+        float hf_reference_; // EAX
+        float lf_reference_; // EAX
         float room_rolloff_factor_;
         bool decay_hf_limit_;
-
-        // Additional EAX reverb properties
-        float gain_lf_;
-        float decay_lf_ratio_;
-        Pan reflections_pan_;
-        Pan late_reverb_pan_;
-        float echo_time_;
-        float echo_depth_;
-        float modulation_time_;
-        float modulation_depth_;
-        float hf_reference_;
-        float lf_reference_;
 
 
         void set_defaults();
@@ -551,6 +552,182 @@ struct SendProps
         const SendProps& a,
         const SendProps& b);
 }; // SendProps
+
+struct ReverbPresets
+{
+    struct Default
+    {
+        static const EffectProps::Reverb generic;
+        static const EffectProps::Reverb padded_cell;
+        static const EffectProps::Reverb room;
+        static const EffectProps::Reverb bathroom;
+        static const EffectProps::Reverb living_room;
+        static const EffectProps::Reverb stone_room;
+        static const EffectProps::Reverb auditorium;
+        static const EffectProps::Reverb concert_hall;
+        static const EffectProps::Reverb cave;
+        static const EffectProps::Reverb arena;
+        static const EffectProps::Reverb hangar;
+        static const EffectProps::Reverb carpeted_hallway;
+        static const EffectProps::Reverb hallway;
+        static const EffectProps::Reverb stone_corridor;
+        static const EffectProps::Reverb alley;
+        static const EffectProps::Reverb forest;
+        static const EffectProps::Reverb city;
+        static const EffectProps::Reverb mountains;
+        static const EffectProps::Reverb quarry;
+        static const EffectProps::Reverb plain;
+        static const EffectProps::Reverb parking_lot;
+        static const EffectProps::Reverb sewer_pipe;
+        static const EffectProps::Reverb underwater;
+        static const EffectProps::Reverb drugged;
+        static const EffectProps::Reverb dizzy;
+        static const EffectProps::Reverb psychotic;
+    }; // Default
+
+    struct Castle
+    {
+        static const EffectProps::Reverb small_room;
+        static const EffectProps::Reverb short_passage;
+        static const EffectProps::Reverb medium_room;
+        static const EffectProps::Reverb large_room;
+        static const EffectProps::Reverb long_passage;
+        static const EffectProps::Reverb hall;
+        static const EffectProps::Reverb cupboard;
+        static const EffectProps::Reverb courtyard;
+        static const EffectProps::Reverb alcove;
+    }; // Castle
+
+    struct Factory
+    {
+        static const EffectProps::Reverb small_room;
+        static const EffectProps::Reverb short_passage;
+        static const EffectProps::Reverb medium_room;
+        static const EffectProps::Reverb large_room;
+        static const EffectProps::Reverb long_passage;
+        static const EffectProps::Reverb hall;
+        static const EffectProps::Reverb cupboard;
+        static const EffectProps::Reverb courtyard;
+        static const EffectProps::Reverb alcove;
+    }; // Factory
+
+    struct IcePalace
+    {
+        static const EffectProps::Reverb small_room;
+        static const EffectProps::Reverb short_passage;
+        static const EffectProps::Reverb medium_room;
+        static const EffectProps::Reverb large_room;
+        static const EffectProps::Reverb long_passage;
+        static const EffectProps::Reverb hall;
+        static const EffectProps::Reverb cupboard;
+        static const EffectProps::Reverb courtyard;
+        static const EffectProps::Reverb alcove;
+    }; // IcePalace
+
+    struct SpaceStation
+    {
+        static const EffectProps::Reverb small_room;
+        static const EffectProps::Reverb short_passage;
+        static const EffectProps::Reverb medium_room;
+        static const EffectProps::Reverb large_room;
+        static const EffectProps::Reverb long_passage;
+        static const EffectProps::Reverb hall;
+        static const EffectProps::Reverb cupboard;
+        static const EffectProps::Reverb alcove;
+    }; // SpaceStation
+
+    struct WoodenGaleon
+    {
+        static const EffectProps::Reverb small_room;
+        static const EffectProps::Reverb short_passage;
+        static const EffectProps::Reverb medium_room;
+        static const EffectProps::Reverb large_room;
+        static const EffectProps::Reverb long_passage;
+        static const EffectProps::Reverb hall;
+        static const EffectProps::Reverb cupboard;
+        static const EffectProps::Reverb courtyard;
+        static const EffectProps::Reverb alcove;
+    }; // WoodenGaleon
+
+    struct Sports
+    {
+        static const EffectProps::Reverb empty_stadium;
+        static const EffectProps::Reverb squash_court;
+        static const EffectProps::Reverb small_swimming_pool;
+        static const EffectProps::Reverb large_swimming_pool;
+        static const EffectProps::Reverb gymnasium;
+        static const EffectProps::Reverb full_stadium;
+        static const EffectProps::Reverb stadium_tannoy;
+    }; // Sports
+
+    struct Prefab
+    {
+        static const EffectProps::Reverb workshop;
+        static const EffectProps::Reverb school_room;
+        static const EffectProps::Reverb practise_room;
+        static const EffectProps::Reverb outhouse;
+        static const EffectProps::Reverb caravan;
+    }; // Prefab
+
+    struct Dome
+    {
+        static const EffectProps::Reverb tomb;
+        static const EffectProps::Reverb saint_pauls;
+    }; // Dome
+
+    struct Pipe
+    {
+        static const EffectProps::Reverb small;
+        static const EffectProps::Reverb long_thin;
+        static const EffectProps::Reverb large;
+        static const EffectProps::Reverb resonant;
+    }; // Pipe
+
+    struct Outdoors
+    {
+        static const EffectProps::Reverb backyard;
+        static const EffectProps::Reverb rolling_plains;
+        static const EffectProps::Reverb deep_canyon;
+        static const EffectProps::Reverb creek;
+        static const EffectProps::Reverb valley;
+    }; // Outdoors
+
+    struct Mood
+    {
+        static const EffectProps::Reverb heaven;
+        static const EffectProps::Reverb hell;
+        static const EffectProps::Reverb memory;
+    }; // Mood
+
+    struct Driving
+    {
+        static const EffectProps::Reverb commentator;
+        static const EffectProps::Reverb pit_garage;
+        static const EffectProps::Reverb incar_racer;
+        static const EffectProps::Reverb incar_sports;
+        static const EffectProps::Reverb incar_luxury;
+        static const EffectProps::Reverb full_grand_stand;
+        static const EffectProps::Reverb empty_grand_stand;
+        static const EffectProps::Reverb tunnel;
+    }; // Driving
+
+    struct City
+    {
+        static const EffectProps::Reverb streets;
+        static const EffectProps::Reverb subway;
+        static const EffectProps::Reverb museum;
+        static const EffectProps::Reverb library;
+        static const EffectProps::Reverb underpass;
+        static const EffectProps::Reverb abandoned;
+    }; // City
+
+    struct Misc
+    {
+        static const EffectProps::Reverb dusty_room;
+        static const EffectProps::Reverb chapel;
+        static const EffectProps::Reverb small_water_room;
+    }; // Misc
+}; // ReverbPresets
 
 
 class Api
