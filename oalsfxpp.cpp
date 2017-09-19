@@ -221,36 +221,6 @@ constexpr int get_array_extents(
 }
 
 
-int channel_format_to_channel_count(
-    const ChannelFormat channel_format)
-{
-    switch (channel_format)
-    {
-    case ChannelFormat::mono:
-        return 1;
-
-    case ChannelFormat::stereo:
-        return 2;
-
-    case ChannelFormat::quad:
-        return 4;
-
-    case ChannelFormat::five_point_one:
-    case ChannelFormat::five_point_one_rear:
-        return 6;
-
-    case ChannelFormat::six_point_one:
-        return 7;
-
-    case ChannelFormat::seven_point_one:
-        return 8;
-
-    default:
-        return 0;
-    }
-}
-
-
 struct AmbiConfig
 {
     using Coeffs = std::array<ChannelConfig, max_channels>;
@@ -1916,6 +1886,35 @@ struct Device
 
         return static_cast<int>(it - it_begin);
     }
+
+    static int channel_format_to_channel_count(
+        const ChannelFormat channel_format)
+    {
+        switch (channel_format)
+        {
+        case ChannelFormat::mono:
+            return 1;
+
+        case ChannelFormat::stereo:
+            return 2;
+
+        case ChannelFormat::quad:
+            return 4;
+
+        case ChannelFormat::five_point_one:
+        case ChannelFormat::five_point_one_rear:
+            return 6;
+
+        case ChannelFormat::six_point_one:
+            return 7;
+
+        case ChannelFormat::seven_point_one:
+            return 8;
+
+        default:
+            return 0;
+        }
+    }
 }; // Device
 
 struct EffectSlot
@@ -2138,7 +2137,7 @@ public:
     {
         uninitialize();
 
-        const auto channel_count = channel_format_to_channel_count(channel_format);
+        const auto channel_count = Device::channel_format_to_channel_count(channel_format);
 
         if (channel_count == 0)
         {
@@ -3152,6 +3151,13 @@ ChannelFormat Api::channel_count_to_channel_format(
         return ChannelFormat::none;
     }
 }
+
+int Api::channel_format_to_channel_count(
+    const ChannelFormat channel_format)
+{
+    return Device::channel_format_to_channel_count(channel_format);
+}
+
 // Api
 // ==========================================================================
 

@@ -637,6 +637,9 @@ public:
     static ChannelFormat channel_count_to_channel_format(
         const int channel_count);
 
+    static int channel_format_to_channel_count(
+        const ChannelFormat channel_format);
+
 
 private:
     class Impl;
