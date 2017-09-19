@@ -252,60 +252,194 @@ struct AmbiOutput
 
 struct ChannelPanning
 {
-    ChannelId name;
-    ChannelConfig config;
+    ChannelId name_;
+    ChannelConfig config_;
 }; // ChannelPanning
 
 struct Panning
 {
-    static constexpr ChannelPanning mono_panning[1] = {
-        {ChannelId::front_center, {1.0F}},
+    static constexpr ChannelPanning mono_panning[1] =
+    {
+        {
+            ChannelId::front_center,
+            {1.0F},
+        },
     };
 
-    static constexpr ChannelPanning stereo_panning[2] = {
-        {ChannelId::front_left, {5.00000000E-1F, 2.88675135E-1F, 0.0F, 1.19573156E-1F}},
-        {ChannelId::front_right, {5.00000000E-1F, -2.88675135E-1F, 0.0F, 1.19573156E-1F}},
+    static constexpr ChannelPanning stereo_panning[2] =
+    {
+        {
+            ChannelId::front_left,
+            {5.00000000E-1F, 2.88675135E-1F, 0.0F, 1.19573156E-1F,}
+        },
+
+        {
+            ChannelId::front_right,
+            {5.00000000E-1F, -2.88675135E-1F, 0.0F, 1.19573156E-1F,},
+        },
     };
 
-    static constexpr ChannelPanning quad_panning[4] = {
-        {ChannelId::back_left, {3.53553391E-1F, 2.04124145E-1F, 0.0F, -2.04124145E-1F}},
-        {ChannelId::front_left, {3.53553391E-1F, 2.04124145E-1F, 0.0F, 2.04124145E-1F}},
-        {ChannelId::front_right, {3.53553391E-1F, -2.04124145E-1F, 0.0F, 2.04124145E-1F}},
-        {ChannelId::back_right, {3.53553391E-1F, -2.04124145E-1F, 0.0F, -2.04124145E-1F}},
+    static constexpr ChannelPanning quad_panning[4] =
+    {
+        {
+            ChannelId::back_left,
+            {3.53553391E-1F, 2.04124145E-1F, 0.0F, -2.04124145E-1F,},
+        },
+
+        {
+            ChannelId::front_left,
+            {3.53553391E-1F, 2.04124145E-1F, 0.0F, 2.04124145E-1F,},
+        },
+
+        {
+            ChannelId::front_right,
+            {3.53553391E-1F, -2.04124145E-1F, 0.0F, 2.04124145E-1F,},
+        },
+
+        {
+            ChannelId::back_right,
+            {3.53553391E-1F, -2.04124145E-1F, 0.0F, -2.04124145E-1F,},
+        },
     };
 
-    static constexpr ChannelPanning x5_1_side_panning[5] = {
-        {ChannelId::side_left, {3.33001372E-1F, 1.89085671E-1F, 0.0F, -2.00041334E-1F, -2.12309737E-2F, 0.0F, 0.0F, 0.0F, -1.14573483E-2F}},
-        {ChannelId::front_left, {1.47751298E-1F, 1.28994110E-1F, 0.0F, 1.15190495E-1F, 7.44949143E-2F, 0.0F, 0.0F, 0.0F, -6.47739980E-3F}},
-        {ChannelId::front_center, {7.73595729E-2F, 0.00000000E+0F, 0.0F, 9.71390298E-2F, 0.00000000E+0F, 0.0F, 0.0F, 0.0F, 5.18625335E-2F}},
-        {ChannelId::front_right, {1.47751298E-1F, -1.28994110E-1F, 0.0F, 1.15190495E-1F, -7.44949143E-2F, 0.0F, 0.0F, 0.0F, -6.47739980E-3F}},
-        {ChannelId::side_right, {3.33001372E-1F, -1.89085671E-1F, 0.0F, -2.00041334E-1F, 2.12309737E-2F, 0.0F, 0.0F, 0.0F, -1.14573483E-2F}},
+    static constexpr ChannelPanning x5_1_side_panning[5] =
+    {
+        {
+            ChannelId::side_left,
+            {3.33001372E-1F, 1.89085671E-1F, 0.0F, -2.00041334E-1F, -2.12309737E-2F, 0.0F, 0.0F, 0.0F, -1.14573483E-2F,},
+        },
+
+        {
+            ChannelId::front_left,
+            {1.47751298E-1F, 1.28994110E-1F, 0.0F, 1.15190495E-1F, 7.44949143E-2F, 0.0F, 0.0F, 0.0F, -6.47739980E-3F,},
+        },
+
+        {
+            ChannelId::front_center,
+            {7.73595729E-2F, 0.0F, 0.0F, 9.71390298E-2F, 0.0F, 0.0F, 0.0F, 0.0F, 5.18625335E-2F,},
+        },
+
+        {
+            ChannelId::front_right,
+            {1.47751298E-1F, -1.28994110E-1F, 0.0F, 1.15190495E-1F, -7.44949143E-2F, 0.0F, 0.0F, 0.0F, -6.47739980E-3F,},
+        },
+
+        {
+            ChannelId::side_right,
+            {3.33001372E-1F, -1.89085671E-1F, 0.0F, -2.00041334E-1F, 2.12309737E-2F, 0.0F, 0.0F, 0.0F, -1.14573483E-2F,},
+        },
     };
 
-    static constexpr ChannelPanning x5_1_rear_panning[5] = {
-        {ChannelId::back_left, {3.33001372E-1F, 1.89085671E-1F, 0.0F, -2.00041334E-1F, -2.12309737E-2F, 0.0F, 0.0F, 0.0F, -1.14573483E-2F}},
-        {ChannelId::front_left, {1.47751298E-1F, 1.28994110E-1F, 0.0F, 1.15190495E-1F, 7.44949143E-2F, 0.0F, 0.0F, 0.0F, -6.47739980E-3F}},
-        {ChannelId::front_center, {7.73595729E-2F, 0.00000000E+0F, 0.0F, 9.71390298E-2F, 0.00000000E+0F, 0.0F, 0.0F, 0.0F, 5.18625335E-2F}},
-        {ChannelId::front_right, {1.47751298E-1F, -1.28994110E-1F, 0.0F, 1.15190495E-1F, -7.44949143E-2F, 0.0F, 0.0F, 0.0F, -6.47739980E-3F}},
-        {ChannelId::back_right, {3.33001372E-1F, -1.89085671E-1F, 0.0F, -2.00041334E-1F, 2.12309737E-2F, 0.0F, 0.0F, 0.0F, -1.14573483E-2F}},
+    static constexpr ChannelPanning x5_1_rear_panning[5] =
+    {
+        {
+            ChannelId::back_left,
+            {3.33001372E-1F, 1.89085671E-1F, 0.0F, -2.00041334E-1F, -2.12309737E-2F, 0.0F, 0.0F, 0.0F, -1.14573483E-2F,},
+        },
+
+        {
+            ChannelId::front_left,
+            {1.47751298E-1F, 1.28994110E-1F, 0.0F, 1.15190495E-1F, 7.44949143E-2F, 0.0F, 0.0F, 0.0F, -6.47739980E-3F,},
+        },
+
+        {
+            ChannelId::front_center,
+            {7.73595729E-2F, 0.0F, 0.0F, 9.71390298E-2F, 0.0F, 0.0F, 0.0F, 0.0F, 5.18625335E-2F,},
+        },
+
+        {
+            ChannelId::front_right,
+            {1.47751298E-1F, -1.28994110E-1F, 0.0F, 1.15190495E-1F, -7.44949143E-2F, 0.0F, 0.0F, 0.0F, -6.47739980E-3F,},
+        },
+
+        {
+            ChannelId::back_right,
+            {3.33001372E-1F, -1.89085671E-1F, 0.0F, -2.00041334E-1F, 2.12309737E-2F, 0.0F, 0.0F, 0.0F, -1.14573483E-2F,},
+        },
     };
 
-    static constexpr ChannelPanning x6_1_panning[6] = {
-        {ChannelId::side_left, {2.04462744E-1F, 2.17178497E-1F, 0.0F, -4.39990188E-2F, -2.60787329E-2F, 0.0F, 0.0F, 0.0F, -6.87238843E-2F}},
-        {ChannelId::front_left, {1.18130342E-1F, 9.34633906E-2F, 0.0F, 1.08553749E-1F, 6.80658795E-2F, 0.0F, 0.0F, 0.0F, 1.08999485E-2F}},
-        {ChannelId::front_center, {7.73595729E-2F, 0.00000000E+0F, 0.0F, 9.71390298E-2F, 0.00000000E+0F, 0.0F, 0.0F, 0.0F, 5.18625335E-2F}},
-        {ChannelId::front_right, {1.18130342E-1F, -9.34633906E-2F, 0.0F, 1.08553749E-1F, -6.80658795E-2F, 0.0F, 0.0F, 0.0F, 1.08999485E-2F}},
-        {ChannelId::side_right, {2.04462744E-1F, -2.17178497E-1F, 0.0F, -4.39990188E-2F, 2.60787329E-2F, 0.0F, 0.0F, 0.0F, -6.87238843E-2F}},
-        {ChannelId::back_center, {2.50001688E-1F, 0.00000000E+0F, 0.0F, -2.50000094E-1F, 0.00000000E+0F, 0.0F, 0.0F, 0.0F, 6.05133395E-2F}},
+    static constexpr ChannelPanning x6_1_panning[6] =
+    {
+        {
+            ChannelId::side_left,
+            {2.04462744E-1F, 2.17178497E-1F, 0.0F, -4.39990188E-2F, -2.60787329E-2F, 0.0F, 0.0F, 0.0F, -6.87238843E-2F,},
+        },
+
+        {
+            ChannelId::front_left,
+            {1.18130342E-1F, 9.34633906E-2F, 0.0F, 1.08553749E-1F, 6.80658795E-2F, 0.0F, 0.0F, 0.0F, 1.08999485E-2F,},
+        },
+
+        {
+            ChannelId::front_center,
+            {7.73595729E-2F, 0.0F, 0.0F, 9.71390298E-2F, 0.0F, 0.0F, 0.0F, 0.0F, 5.18625335E-2F,},
+        },
+
+        {
+            ChannelId::front_right,
+            {1.18130342E-1F, -9.34633906E-2F, 0.0F, 1.08553749E-1F, -6.80658795E-2F, 0.0F, 0.0F, 0.0F, 1.08999485E-2F,},
+        },
+
+        {
+            ChannelId::side_right,
+            {2.04462744E-1F, -2.17178497E-1F, 0.0F, -4.39990188E-2F, 2.60787329E-2F, 0.0F, 0.0F, 0.0F, -6.87238843E-2F,},
+        },
+
+        {
+            ChannelId::back_center,
+            {2.50001688E-1F, 0.0F, 0.0F, -2.50000094E-1F, 0.0F, 0.0F, 0.0F, 0.0F, 6.05133395E-2F,},
+        },
     };
 
-    static constexpr ChannelPanning x7_1_panning[6] = {
-        {ChannelId::back_left, {2.04124145E-1F, 1.08880247E-1F, 0.0F, -1.88586120E-1F, -1.29099444E-1F, 0.0F, 0.0F, 0.0F, 7.45355993E-2F, 3.73460789E-2F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.00000000E+0F}},
-        {ChannelId::side_left, {2.04124145E-1F, 2.17760495E-1F, 0.0F, 0.00000000E+0F, 0.00000000E+0F, 0.0F, 0.0F, 0.0F, -1.49071198E-1F, -3.73460789E-2F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.00000000E+0F}},
-        {ChannelId::front_left, {2.04124145E-1F, 1.08880247E-1F, 0.0F, 1.88586120E-1F, 1.29099444E-1F, 0.0F, 0.0F, 0.0F, 7.45355993E-2F, 3.73460789E-2F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.00000000E+0F}},
-        {ChannelId::front_right, {2.04124145E-1F, -1.08880247E-1F, 0.0F, 1.88586120E-1F, -1.29099444E-1F, 0.0F, 0.0F, 0.0F, 7.45355993E-2F, -3.73460789E-2F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.00000000E+0F}},
-        {ChannelId::side_right, {2.04124145E-1F, -2.17760495E-1F, 0.0F, 0.00000000E+0F, 0.00000000E+0F, 0.0F, 0.0F, 0.0F, -1.49071198E-1F, 3.73460789E-2F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.00000000E+0F}},
-        {ChannelId::back_right, {2.04124145E-1F, -1.08880247E-1F, 0.0F, -1.88586120E-1F, 1.29099444E-1F, 0.0F, 0.0F, 0.0F, 7.45355993E-2F, -3.73460789E-2F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.00000000E+0F}},
+    static constexpr ChannelPanning x7_1_panning[6] =
+    {
+        {
+            ChannelId::back_left,
+            {
+                2.04124145E-1F, 1.08880247E-1F, 0.0F, -1.88586120E-1F, -1.29099444E-1F, 0.0F, 0.0F, 0.0F,
+                7.45355993E-2F, 3.73460789E-2F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F,
+            },
+        },
+
+        {
+            ChannelId::side_left,
+            {
+                2.04124145E-1F, 2.17760495E-1F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F,
+                -1.49071198E-1F, -3.73460789E-2F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F,
+            },
+        },
+
+        {
+            ChannelId::front_left,
+            {
+                2.04124145E-1F, 1.08880247E-1F, 0.0F, 1.88586120E-1F, 1.29099444E-1F, 0.0F, 0.0F, 0.0F,
+                7.45355993E-2F, 3.73460789E-2F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F,
+            },
+        },
+
+        {
+            ChannelId::front_right,
+            {
+                2.04124145E-1F, -1.08880247E-1F, 0.0F, 1.88586120E-1F, -1.29099444E-1F, 0.0F, 0.0F, 0.0F,
+                7.45355993E-2F, -3.73460789E-2F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F,
+            },
+        },
+
+        {
+            ChannelId::side_right,
+            {
+                2.04124145E-1F, -2.17760495E-1F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F,
+                -1.49071198E-1F, 3.73460789E-2F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F,
+            },
+        },
+
+        {
+            ChannelId::back_right,
+            {
+                2.04124145E-1F, -1.08880247E-1F, 0.0F, -1.88586120E-1F, 1.29099444E-1F, 0.0F, 0.0F, 0.0F,
+                7.45355993E-2F, -3.73460789E-2F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F,
+            },
+        },
     };
 
 
@@ -418,10 +552,11 @@ struct Panning
         const float spread,
         AmbiCoeffs& coeffs)
     {
-        float dir[3] = {
+        const float dir[3] =
+        {
             std::sin(azimuth) * std::cos(elevation),
             std::sin(elevation),
-            -std::cos(azimuth) * std::cos(elevation)
+            -std::cos(azimuth) * std::cos(elevation),
         };
 
         calc_direction_coeffs(dir, spread, coeffs);
@@ -620,14 +755,14 @@ struct Panning
 
             for (int j = 0; j < count; ++j)
             {
-                if (device_channels[i] != channel_panning[j].name)
+                if (device_channels[i] != channel_panning[j].name_)
                 {
                     continue;
                 }
 
                 for (int k = 0; k < max_ambi_coeffs; ++k)
                 {
-                    ambi_coeffs[i][k] = channel_panning[j].config[k];
+                    ambi_coeffs[i][k] = channel_panning[j].config_[k];
                 }
 
                 break;
@@ -2201,7 +2336,6 @@ public:
         device_.uninitialize();
     }
 
-
     void mix_source(
         const int sample_count)
     {
@@ -2328,55 +2462,61 @@ public:
 private:
     struct ChannelMap
     {
-        ChannelId channel_id;
-        float angle;
-        float elevation;
+        ChannelId channel_id_;
+        float angle_;
+        float elevation_;
     }; // ChannelMap
 
-    static constexpr ChannelMap mono_map[1] = {
-        {ChannelId::front_center, 0.0F, 0.0F}
+    static constexpr ChannelMap mono_map[1] =
+    {
+        {ChannelId::front_center, 0.0F, 0.0F,},
     };
 
-    static constexpr ChannelMap stereo_map[2] = {
-        {ChannelId::front_left, Math::deg_to_rad(-30.0F), Math::deg_to_rad(0.0F)},
-        {ChannelId::front_right, Math::deg_to_rad(30.0F), Math::deg_to_rad(0.0F)}
+    static constexpr ChannelMap stereo_map[2] =
+    {
+        {ChannelId::front_left, Math::deg_to_rad(-30.0F), Math::deg_to_rad(0.0F),},
+        {ChannelId::front_right, Math::deg_to_rad(30.0F), Math::deg_to_rad(0.0F),},
     };
 
-    static constexpr ChannelMap quad_map[4] = {
-        {ChannelId::front_left, Math::deg_to_rad(-45.0F), Math::deg_to_rad(0.0F)},
-        {ChannelId::front_right, Math::deg_to_rad(45.0F), Math::deg_to_rad(0.0F)},
-        {ChannelId::back_left, Math::deg_to_rad(-135.0F), Math::deg_to_rad(0.0F)},
-        {ChannelId::back_right, Math::deg_to_rad(135.0F), Math::deg_to_rad(0.0F)}
+    static constexpr ChannelMap quad_map[4] =
+    {
+        {ChannelId::front_left, Math::deg_to_rad(-45.0F), Math::deg_to_rad(0.0F),},
+        {ChannelId::front_right, Math::deg_to_rad(45.0F), Math::deg_to_rad(0.0F),},
+        {ChannelId::back_left, Math::deg_to_rad(-135.0F), Math::deg_to_rad(0.0F),},
+        {ChannelId::back_right, Math::deg_to_rad(135.0F), Math::deg_to_rad(0.0F),},
     };
 
-    static constexpr ChannelMap x5_1_map[6] = {
-        {ChannelId::front_left, Math::deg_to_rad(-30.0F), Math::deg_to_rad(0.0F)},
-        {ChannelId::front_right, Math::deg_to_rad(30.0F), Math::deg_to_rad(0.0F)},
-        {ChannelId::front_center, Math::deg_to_rad(0.0F), Math::deg_to_rad(0.0F)},
-        {ChannelId::lfe, 0.0F, 0.0F},
-        {ChannelId::side_left, Math::deg_to_rad(-110.0F), Math::deg_to_rad(0.0F)},
-        {ChannelId::side_right, Math::deg_to_rad(110.0F), Math::deg_to_rad(0.0F)}
+    static constexpr ChannelMap x5_1_map[6] =
+    {
+        {ChannelId::front_left, Math::deg_to_rad(-30.0F), Math::deg_to_rad(0.0F),},
+        {ChannelId::front_right, Math::deg_to_rad(30.0F), Math::deg_to_rad(0.0F),},
+        {ChannelId::front_center, Math::deg_to_rad(0.0F), Math::deg_to_rad(0.0F),},
+        {ChannelId::lfe, 0.0F, 0.0F,},
+        {ChannelId::side_left, Math::deg_to_rad(-110.0F), Math::deg_to_rad(0.0F),},
+        {ChannelId::side_right, Math::deg_to_rad(110.0F), Math::deg_to_rad(0.0F),},
     };
 
-    static constexpr ChannelMap x6_1_map[7] = {
-        {ChannelId::front_left, Math::deg_to_rad(-30.0F), Math::deg_to_rad(0.0F)},
-        {ChannelId::front_right, Math::deg_to_rad(30.0F), Math::deg_to_rad(0.0F)},
-        {ChannelId::front_center, Math::deg_to_rad(0.0F), Math::deg_to_rad(0.0F)},
-        {ChannelId::lfe, 0.0F, 0.0F},
-        {ChannelId::back_center, Math::deg_to_rad(180.0F), Math::deg_to_rad(0.0F)},
-        {ChannelId::side_left, Math::deg_to_rad(-90.0F), Math::deg_to_rad(0.0F)},
-        {ChannelId::side_right, Math::deg_to_rad(90.0F), Math::deg_to_rad(0.0F)}
+    static constexpr ChannelMap x6_1_map[7] =
+    {
+        {ChannelId::front_left, Math::deg_to_rad(-30.0F), Math::deg_to_rad(0.0F),},
+        {ChannelId::front_right, Math::deg_to_rad(30.0F), Math::deg_to_rad(0.0F),},
+        {ChannelId::front_center, Math::deg_to_rad(0.0F), Math::deg_to_rad(0.0F),},
+        {ChannelId::lfe, 0.0F, 0.0F,},
+        {ChannelId::back_center, Math::deg_to_rad(180.0F), Math::deg_to_rad(0.0F),},
+        {ChannelId::side_left, Math::deg_to_rad(-90.0F), Math::deg_to_rad(0.0F),},
+        {ChannelId::side_right, Math::deg_to_rad(90.0F), Math::deg_to_rad(0.0F),},
     };
 
-    static constexpr ChannelMap x7_1_map[8] = {
-        {ChannelId::front_left, Math::deg_to_rad(-30.0F), Math::deg_to_rad(0.0F)},
-        {ChannelId::front_right, Math::deg_to_rad(30.0F), Math::deg_to_rad(0.0F)},
-        {ChannelId::front_center, Math::deg_to_rad(0.0F), Math::deg_to_rad(0.0F)},
-        {ChannelId::lfe, 0.0F, 0.0F},
-        {ChannelId::back_left, Math::deg_to_rad(-150.0F), Math::deg_to_rad(0.0F)},
-        {ChannelId::back_right, Math::deg_to_rad(150.0F), Math::deg_to_rad(0.0F)},
-        {ChannelId::side_left, Math::deg_to_rad(-90.0F), Math::deg_to_rad(0.0F)},
-        {ChannelId::side_right, Math::deg_to_rad(90.0F), Math::deg_to_rad(0.0F)}
+    static constexpr ChannelMap x7_1_map[8] =
+    {
+        {ChannelId::front_left, Math::deg_to_rad(-30.0F), Math::deg_to_rad(0.0F),},
+        {ChannelId::front_right, Math::deg_to_rad(30.0F), Math::deg_to_rad(0.0F),},
+        {ChannelId::front_center, Math::deg_to_rad(0.0F), Math::deg_to_rad(0.0F),},
+        {ChannelId::lfe, 0.0F, 0.0F,},
+        {ChannelId::back_left, Math::deg_to_rad(-150.0F), Math::deg_to_rad(0.0F),},
+        {ChannelId::back_right, Math::deg_to_rad(150.0F), Math::deg_to_rad(0.0F),},
+        {ChannelId::side_left, Math::deg_to_rad(-90.0F), Math::deg_to_rad(0.0F),},
+        {ChannelId::side_right, Math::deg_to_rad(90.0F), Math::deg_to_rad(0.0F),},
     };
 
 
@@ -2512,11 +2652,11 @@ private:
             AmbiCoeffs coeffs;
 
             // Special-case LFE
-            if (channel_map[c].channel_id == ChannelId::lfe)
+            if (channel_map[c].channel_id_ == ChannelId::lfe)
             {
                 source_.direct_.channels_[c].target_gains_.fill(0.0F);
 
-                const auto idx = device_.get_channel_index(channel_map[c].channel_id);
+                const auto idx = device_.get_channel_index(channel_map[c].channel_id_);
 
                 if (idx != -1)
                 {
@@ -2531,7 +2671,7 @@ private:
                 continue;
             }
 
-            Panning::calc_angle_coeffs(channel_map[c].angle, channel_map[c].elevation, spread, coeffs);
+            Panning::calc_angle_coeffs(channel_map[c].angle_, channel_map[c].elevation_, spread, coeffs);
 
             Panning::compute_panning_gains(
                 device_.channel_count_,
@@ -3385,7 +3525,7 @@ protected:
             switch (waveform_)
             {
             case Waveform::triangle:
-                GetTriangleDelays(
+                get_triangle_delays(
                     mod_delays[0],
                     offset_ % lfo_range_,
                     lfo_range_,
@@ -3394,7 +3534,7 @@ protected:
                     delay_,
                     todo);
 
-                GetTriangleDelays(
+                get_triangle_delays(
                     mod_delays[1],
                     (offset_ + lfo_disp_) % lfo_range_,
                     lfo_range_,
@@ -3406,7 +3546,7 @@ protected:
                 break;
 
             case Waveform::sinusoid:
-                GetSinusoidDelays(
+                get_sinusoid_delays(
                     mod_delays[0],
                     offset_ % lfo_range_,
                     lfo_range_,
@@ -3415,7 +3555,7 @@ protected:
                     delay_,
                     todo);
 
-                GetSinusoidDelays(
+                get_sinusoid_delays(
                     mod_delays[1],
                     (offset_ + lfo_disp_) % lfo_range_,
                     lfo_range_,
@@ -3499,7 +3639,7 @@ private:
     float feedback_;
 
 
-    static void GetTriangleDelays(
+    static void get_triangle_delays(
         int* delays,
         int offset,
         const int lfo_range,
@@ -3515,7 +3655,7 @@ private:
         }
     }
 
-    static void GetSinusoidDelays(
+    static void get_sinusoid_delays(
         int* delays,
         int offset,
         const int lfo_range,
@@ -4247,48 +4387,46 @@ EffectState* EffectStateFactory::create_echo()
 }
 
 
-/*  The document  "Effects Extension Guide.pdf"  says that low and high  *
- *  frequencies are cutoff frequencies. This is not fully correct, they  *
- *  are corner frequencies for low and high shelf filters. If they were  *
- *  just cutoff frequencies, there would be no need in cutoff frequency  *
- *  gains, which are present.  Documentation for  "Creative Proteus X2"  *
- *  software describes  4-band equalizer functionality in a much better  *
- *  way.  This equalizer seems  to be a predecessor  of  OpenAL  4-band  *
- *  equalizer.  With low and high  shelf filters  we are able to cutoff  *
- *  frequencies below and/or above corner frequencies using attenuation  *
- *  gains (below 1.0) and amplify all low and/or high frequencies using  *
- *  gains above 1.0.                                                     *
- *                                                                       *
- *     Low-shelf       Low Mid Band      High Mid Band     High-shelf    *
- *      corner            center             center          corner      *
- *     frequency        frequency          frequency       frequency     *
- *    50Hz..800Hz     200Hz..3000Hz      1000Hz..8000Hz  4000Hz..16000Hz *
- *                                                                       *
- *          |               |                  |               |         *
- *          |               |                  |               |         *
- *   B -----+            /--+--\            /--+--\            +-----    *
- *   O      |\          |   |   |          |   |   |          /|         *
- *   O      | \        -    |    -        -    |    -        / |         *
- *   S +    |  \      |     |     |      |     |     |      /  |         *
- *   T      |   |    |      |      |    |      |      |    |   |         *
- * ---------+---------------+------------------+---------------+-------- *
- *   C      |   |    |      |      |    |      |      |    |   |         *
- *   U -    |  /      |     |     |      |     |     |      \  |         *
- *   T      | /        -    |    -        -    |    -        \ |         *
- *   O      |/          |   |   |          |   |   |          \|         *
- *   F -----+            \--+--/            \--+--/            +-----    *
- *   F      |               |                  |               |         *
- *          |               |                  |               |         *
- *                                                                       *
- * Gains vary from 0.126 up to 7.943, which means from -18dB attenuation *
- * up to +18dB amplification. Band width varies from 0.01 up to 1.0 in   *
- * octaves for two mid bands.                                            *
- *                                                                       *
- * Implementation is based on the "Cookbook formulae for audio EQ biquad *
- * filter coefficients" by Robert Bristow-Johnson                        *
- * http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt                   */
-
-
+//  The document  "Effects Extension Guide.pdf"  says that low and high
+//  frequencies are cutoff frequencies. This is not fully correct, they
+//  are corner frequencies for low and high shelf filters. If they were
+//  just cutoff frequencies, there would be no need in cutoff frequency
+//  gains, which are present.  Documentation for  "Creative Proteus X2"
+//  software describes  4-band equalizer functionality in a much better
+//  way.  This equalizer seems  to be a predecessor  of  OpenAL  4-band
+//  equalizer.  With low and high  shelf filters  we are able to cutoff
+//  frequencies below and/or above corner frequencies using attenuation
+//  gains (below 1.0) and amplify all low and/or high frequencies using
+//  gains above 1.0.
+//
+//     Low-shelf       Low Mid Band      High Mid Band     High-shelf
+//      corner            center             center          corner
+//     frequency        frequency          frequency       frequency
+//    50Hz..800Hz     200Hz..3000Hz      1000Hz..8000Hz  4000Hz..16000Hz
+//
+//          |               |                  |               |
+//          |               |                  |               |
+//   B -----+            /--+--\            /--+--\            +-----
+//   O      |\          |   |   |          |   |   |          /|
+//   O      | \        -    |    -        -    |    -        / |
+//   S +    |  \      |     |     |      |     |     |      /  |
+//   T      |   |    |      |      |    |      |      |    |   |
+// ---------+---------------+------------------+---------------+--------
+//   C      |   |    |      |      |    |      |      |    |   |
+//   U -    |  /      |     |     |      |     |     |      \  |
+//   T      | /        -    |    -        -    |    -        \ |
+//   O      |/          |   |   |          |   |   |          \|
+//   F -----+            \--+--/            \--+--/            +-----
+//   F      |               |                  |               |
+//          |               |                  |               |
+//
+// Gains vary from 0.126 up to 7.943, which means from -18dB attenuation
+// up to +18dB amplification. Band width varies from 0.01 up to 1.0 in
+// octaves for two mid bands.
+//
+// Implementation is based on the "Cookbook formulae for audio EQ biquad
+// filter coefficients" by Robert Bristow-Johnson
+// http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt/
 class EqualizerEffectState :
     public EffectState
 {
@@ -4657,7 +4795,7 @@ protected:
             switch (waveform_)
             {
             case Waveform::triangle:
-                GetTriangleDelays(
+                get_triangle_delays(
                     mod_delays[0],
                     offset_ % lfo_range_,
                     lfo_range_,
@@ -4666,7 +4804,7 @@ protected:
                     delay_,
                     todo);
 
-                GetTriangleDelays(
+                get_triangle_delays(
                     mod_delays[1],
                     (offset_ + lfo_disp_) % lfo_range_,
                     lfo_range_,
@@ -4678,7 +4816,7 @@ protected:
                 break;
 
             case Waveform::sinusoid:
-                GetSinusoidDelays(
+                get_sinusoid_delays(
                     mod_delays[0],
                     offset_ % lfo_range_,
                     lfo_range_,
@@ -4687,7 +4825,7 @@ protected:
                     delay_,
                     todo);
 
-                GetSinusoidDelays(
+                get_sinusoid_delays(
                     mod_delays[1],
                     (offset_ + lfo_disp_) % lfo_range_,
                     lfo_range_,
@@ -4769,7 +4907,7 @@ private:
     float feedback_;
 
 
-    static void GetTriangleDelays(
+    static void get_triangle_delays(
         int* delays,
         int offset,
         const int lfo_range,
@@ -4785,7 +4923,7 @@ private:
         }
     }
 
-    static void GetSinusoidDelays(
+    static void get_sinusoid_delays(
         int* delays,
         int offset,
         const int lfo_range,
@@ -5087,8 +5225,8 @@ protected:
 
         for (int i = 0; i < 4; ++i)
         {
-            filters_[i].lp.clear();
-            filters_[i].hp.clear();
+            filters_[i].lp_.clear();
+            filters_[i].hp_.clear();
         }
 
         delay_.reset();
@@ -5112,59 +5250,59 @@ protected:
         mix_x_ = 0.0F;
         mix_y_ = 0.0F;
 
-        early_.vec_ap.delay.reset();
-        early_.delay.reset();
+        early_.vec_ap_.delay_.reset();
+        early_.delay_.reset();
 
         for (int i = 0; i < 4; ++i)
         {
-            early_.vec_ap.offsets[i][0] = 0;
-            early_.vec_ap.offsets[i][1] = 0;
-            early_.offsets[i][0] = 0;
-            early_.offsets[i][1] = 0;
-            early_.coeffs[i] = 0.0F;
+            early_.vec_ap_.offsets_[i][0] = 0;
+            early_.vec_ap_.offsets_[i][1] = 0;
+            early_.offsets_[i][0] = 0;
+            early_.offsets_[i][1] = 0;
+            early_.coeffs_[i] = 0.0F;
         }
 
-        mod_.index = 0;
-        mod_.range = 1;
-        mod_.depth = 0.0F;
-        mod_.coeff = 0.0F;
-        mod_.filter = 0.0F;
+        mod_.index_ = 0;
+        mod_.range_ = 1;
+        mod_.depth_ = 0.0F;
+        mod_.coeff_ = 0.0F;
+        mod_.filter_ = 0.0F;
 
-        late_.density_gain = 0.0F;
+        late_.density_gain_ = 0.0F;
 
-        late_.delay.reset();
-        late_.vec_ap.delay.reset();
+        late_.delay_.reset();
+        late_.vec_ap_.delay_.reset();
 
         for (int i = 0; i < 4; ++i)
         {
-            late_.offsets[i][0] = 0;
-            late_.offsets[i][1] = 0;
+            late_.offsets_[i][0] = 0;
+            late_.offsets_[i][1] = 0;
 
-            late_.vec_ap.offsets[i][0] = 0;
-            late_.vec_ap.offsets[i][1] = 0;
+            late_.vec_ap_.offsets_[i][0] = 0;
+            late_.vec_ap_.offsets_[i][1] = 0;
 
             for (int j = 0; j < 3; ++j)
             {
-                late_.filters[i].lf_coeffs[j] = 0.0F;
-                late_.filters[i].hf_coeffs[j] = 0.0F;
+                late_.filters_[i].lf_coeffs_[j] = 0.0F;
+                late_.filters_[i].hf_coeffs_[j] = 0.0F;
             }
 
-            late_.filters[i].mid_coeff = 0.0F;
+            late_.filters_[i].mid_coeff_ = 0.0F;
 
-            late_.filters[i].states[0][0] = 0.0F;
-            late_.filters[i].states[0][1] = 0.0F;
-            late_.filters[i].states[1][0] = 0.0F;
-            late_.filters[i].states[1][1] = 0.0F;
+            late_.filters_[i].states_[0][0] = 0.0F;
+            late_.filters_[i].states_[0][1] = 0.0F;
+            late_.filters_[i].states_[1][0] = 0.0F;
+            late_.filters_[i].states_[1][1] = 0.0F;
         }
 
         for (int i = 0; i < 4; ++i)
         {
             for (int j = 0; j < max_channels; ++j)
             {
-                early_.current_gains[i][j] = 0.0F;
-                early_.pan_gains[i][j] = 0.0F;
-                late_.current_gains[i][j] = 0.0F;
-                late_.pan_gains[i][j] = 0.0F;
+                early_.current_gains_[i][j] = 0.0F;
+                early_.pan_gains_[i][j] = 0.0F;
+                late_.current_gains_[i][j] = 0.0F;
+                late_.pan_gains_[i][j] = 0.0F;
             }
         }
 
@@ -5188,7 +5326,7 @@ protected:
         // is calculated given the current sample rate.  This ensures that the
         // resulting filter response over time is consistent across all sample
         // rates.
-        mod_.coeff = std::pow(modulation_filter_coeff, modulation_filter_const / frequency);
+        mod_.coeff_ = std::pow(modulation_filter_coeff, modulation_filter_const / frequency);
 
         const auto multiplier = 1.0F + line_multiplier;
 
@@ -5223,7 +5361,7 @@ protected:
         // killing most of the signal.
         const auto gain_hf = std::max(effect_props.reverb_.gain_hf_, 0.001F);
 
-        filters_[0].lp.set_params(
+        filters_[0].lp_.set_params(
             FilterType::high_shelf,
             gain_hf,
             hf_scale,
@@ -5233,7 +5371,7 @@ protected:
 
         const auto gain_lf = std::max(effect_props.reverb_.gain_lf_, 0.001F);
 
-        filters_[0].hp.set_params(
+        filters_[0].hp_.set_params(
             FilterType::low_shelf,
             gain_lf,
             lf_scale,
@@ -5241,8 +5379,8 @@ protected:
 
         for (int i = 1; i < 4; ++i)
         {
-            FilterState::copy_params(filters_[0].lp, filters_[i].lp);
-            FilterState::copy_params(filters_[0].hp, filters_[i].hp);
+            FilterState::copy_params(filters_[0].lp_, filters_[i].lp_);
+            FilterState::copy_params(filters_[0].hp_, filters_[i].hp_);
         }
 
         // Update the main effect delay and associated taps.
@@ -5314,11 +5452,11 @@ protected:
         for (int i = 0; i < 4; ++i)
         {
             if (early_delay_taps_[i][1] != early_delay_taps_[i][0] ||
-                early_.vec_ap.offsets[i][1] != early_.vec_ap.offsets[i][0] ||
-                early_.offsets[i][1] != early_.offsets[i][0] ||
+                early_.vec_ap_.offsets_[i][1] != early_.vec_ap_.offsets_[i][0] ||
+                early_.offsets_[i][1] != early_.offsets_[i][0] ||
                 late_delay_taps_[i][1] != late_delay_taps_[i][0] ||
-                late_.vec_ap.offsets[i][1] != late_.vec_ap.offsets[i][0] ||
-                late_.offsets[i][1] != late_.offsets[i][0])
+                late_.vec_ap_.offsets_[i][1] != late_.vec_ap_.offsets_[i][0] ||
+                late_.offsets_[i][1] != late_.offsets_[i][0])
             {
                 fade_count_ = 0;
                 break;
@@ -5379,11 +5517,11 @@ protected:
                     for (int c = 0; c < 4; ++c)
                     {
                         early_delay_taps_[c][0] = early_delay_taps_[c][1];
-                        early_.vec_ap.offsets[c][0] = early_.vec_ap.offsets[c][1];
-                        early_.offsets[c][0] = early_.offsets[c][1];
+                        early_.vec_ap_.offsets_[c][0] = early_.vec_ap_.offsets_[c][1];
+                        early_.offsets_[c][0] = early_.offsets_[c][1];
                         late_delay_taps_[c][0] = late_delay_taps_[c][1];
-                        late_.vec_ap.offsets[c][0] = late_.vec_ap.offsets[c][1];
-                        late_.offsets[c][0] = late_.offsets[c][1];
+                        late_.vec_ap_.offsets_[c][0] = late_.vec_ap_.offsets_[c][1];
+                        late_.offsets_[c][0] = late_.offsets_[c][1];
                     }
                 }
             }
@@ -5396,8 +5534,8 @@ protected:
                     early_samples_[c].data(),
                     channel_count,
                     dst_samples,
-                    early_.current_gains[c].data(),
-                    early_.pan_gains[c].data(),
+                    early_.current_gains_[c].data(),
+                    early_.pan_gains_[c].data(),
                     sample_count - base,
                     base,
                     todo);
@@ -5409,8 +5547,8 @@ protected:
                     reverb_samples_[c].data(),
                     channel_count,
                     dst_samples,
-                    late_.current_gains[c].data(),
-                    late_.pan_gains[c].data(),
+                    late_.current_gains_[c].data(),
+                    late_.pan_gains_[c].data(),
                     sample_count - base,
                     base,
                     todo);
@@ -5448,19 +5586,19 @@ private:
 
         // The delay lines use interleaved samples, with the lengths being powers
         // of 2 to allow the use of bit-masking instead of a modulus for wrapping.
-        int mask;
-        Lines lines;
+        int mask_;
+        Lines lines_;
 
 
         int get_sample_count() const
         {
-            return (mask > 0 ? mask + 1 : 0);
+            return (mask_ > 0 ? mask_ + 1 : 0);
         }
 
         void reset()
         {
-            mask = 0;
-            lines = Lines{};
+            mask_ = 0;
+            lines_ = Lines{};
         }
 
         void initialize(
@@ -5468,15 +5606,15 @@ private:
         {
             if (sample_count == get_sample_count())
             {
-                lines.clear();
-                lines.resize(sample_count);
+                lines_.clear();
+                lines_.resize(sample_count);
                 return;
             }
 
             reset();
 
-            mask = sample_count - 1;
-            lines.resize(sample_count);
+            mask_ = sample_count - 1;
+            lines_.resize(sample_count);
         }
     }; // DelayLineI
 
@@ -5484,14 +5622,14 @@ private:
     {
         using Offsets = MdArray<int, 4, 2>;
 
-        DelayLineI delay;
-        Offsets offsets;
+        DelayLineI delay_;
+        Offsets offsets_;
     }; // VecAllpass
 
     struct Filter
     {
-        FilterState lp;
-        FilterState hp; // EAX only
+        FilterState lp_;
+        FilterState hp_; // EAX only
     }; // FilterProps
 
     using Filters = std::array<Filter, 4>;
@@ -5505,18 +5643,18 @@ private:
         // diffusion.  The spread from this filter also helps smooth out the
         // reverb tail.
         //
-        VecAllpass vec_ap;
+        VecAllpass vec_ap_;
 
         // An echo line is used to complete the second half of the early
         // reflections.
         //
-        DelayLineI delay;
-        Offsets offsets;
-        Coeffs coeffs;
+        DelayLineI delay_;
+        Offsets offsets_;
+        Coeffs coeffs_;
 
         // The gain for each output channel based on 3D panning.
-        ChannelsGains current_gains;
-        ChannelsGains pan_gains;
+        ChannelsGains current_gains_;
+        ChannelsGains pan_gains_;
     }; // Early
 
     struct Mod
@@ -5524,13 +5662,13 @@ private:
         // The vibrato time is tracked with an index over a modulus-wrapped
         // range (in samples).
         //
-        int index;
-        int range;
+        int index_;
+        int range_;
 
         // The depth of frequency change (also in samples) and its filter.
-        float depth;
-        float coeff;
-        float filter;
+        float depth_;
+        float coeff_;
+        float filter_;
     }; // Mod
 
     struct Late
@@ -5540,13 +5678,13 @@ private:
             using Coeffs = std::array<float, 3>;
             using States = MdArray<float, 2, 2>;
 
-            Coeffs lf_coeffs;
-            Coeffs hf_coeffs;
-            float mid_coeff;
+            Coeffs lf_coeffs_;
+            Coeffs hf_coeffs_;
+            float mid_coeff_;
 
             // The LF and HF filters keep a state of the last input and last
             // output sample.
-            States states;
+            States states_;
         }; // FilterProps
 
         using Filters = std::array<Filter, 4>;
@@ -5556,21 +5694,21 @@ private:
         // Attenuation to compensate for the modal density and decay rate of
         // the late lines.
         //
-        float density_gain;
+        float density_gain_;
 
         // A recursive delay line is used fill in the reverb tail.
-        DelayLineI delay;
-        Offsets offsets;
+        DelayLineI delay_;
+        Offsets offsets_;
 
         // T60 decay filters are used to simulate absorption.
-        Filters filters;
+        Filters filters_;
 
         // A Gerzon vector all-pass filter is used to simulate diffusion.
-        VecAllpass vec_ap;
+        VecAllpass vec_ap_;
 
         // The gain for each output channel based on 3D panning.
-        ChannelsGains current_gains;
-        ChannelsGains pan_gains;
+        ChannelsGains current_gains_;
+        ChannelsGains pan_gains_;
     }; // Late
 
     using Taps = MdArray<int, 4, 2>;
@@ -5625,19 +5763,21 @@ private:
     // back left). It's not quite opposite, since the A-Format results in a
     // tetrahedron, but it's close enough. Should the model be extended to 8-lines
     // in the future, true opposites can be used.
-    static constexpr Mat4F b2a = {{
-        { 0.288675134595F,  0.288675134595F,  0.288675134595F,  0.288675134595F },
-        { 0.288675134595F, -0.288675134595F, -0.288675134595F,  0.288675134595F },
-        { 0.288675134595F,  0.288675134595F, -0.288675134595F, -0.288675134595F },
-        { 0.288675134595F, -0.288675134595F,  0.288675134595F, -0.288675134595F },
+    static constexpr Mat4F b2a =
+    {{
+        {0.288675134595F,  0.288675134595F,  0.288675134595F,  0.288675134595F,},
+        {0.288675134595F, -0.288675134595F, -0.288675134595F,  0.288675134595F,},
+        {0.288675134595F,  0.288675134595F, -0.288675134595F, -0.288675134595F,},
+        {0.288675134595F, -0.288675134595F,  0.288675134595F, -0.288675134595F,},
     }};
 
     // Converts A-Format to B-Format.
-    static constexpr Mat4F a2b = {{
-        { 0.866025403785F,  0.866025403785F,  0.866025403785F,  0.866025403785F },
-        { 0.866025403785F, -0.866025403785F,  0.866025403785F, -0.866025403785F },
-        { 0.866025403785F, -0.866025403785F, -0.866025403785F,  0.866025403785F },
-        { 0.866025403785F,  0.866025403785F, -0.866025403785F, -0.866025403785F },
+    static constexpr Mat4F a2b =
+    {{
+        {0.866025403785F,  0.866025403785F,  0.866025403785F,  0.866025403785F,},
+        {0.866025403785F, -0.866025403785F,  0.866025403785F, -0.866025403785F,},
+        {0.866025403785F, -0.866025403785F, -0.866025403785F,  0.866025403785F,},
+        {0.866025403785F,  0.866025403785F, -0.866025403785F, -0.866025403785F,},
     }};
 
     static constexpr auto fade_step = 1.0F / fade_samples;
@@ -5697,7 +5837,7 @@ private:
     // the following taps:
     static constexpr float early_tap_lengths[4] =
     {
-        0.000000e+0F, 1.010676E-3F, 2.126553E-3F, 3.358580E-3F,
+        0.000000E+0F, 1.010676E-3F, 2.126553E-3F, 3.358580E-3F,
     };
 
     // The early all-pass filter lengths are based on the early tap lengths:
@@ -5823,15 +5963,15 @@ private:
 
         // The early vector all-pass line.
         length = early_allpass_lengths[3] * multiplier;
-        initialize_delay_line(length, frequency, 0, early_.vec_ap.delay);
+        initialize_delay_line(length, frequency, 0, early_.vec_ap_.delay_);
 
         // The early reflection line.
         length = early_line_lengths[3] * multiplier;
-        initialize_delay_line(length, frequency, 0, early_.delay);
+        initialize_delay_line(length, frequency, 0, early_.delay_);
 
         // The late vector all-pass line.
         length = late_allpass_lengths[3] * multiplier;
-        initialize_delay_line(length, frequency, 0, late_.vec_ap.delay);
+        initialize_delay_line(length, frequency, 0, late_.vec_ap_.delay_);
 
         // The late delay lines are calculated from the larger of the maximum
         // density line length or the maximum echo time, and includes the maximum
@@ -5843,7 +5983,7 @@ private:
             late_line_lengths[3] * multiplier) +
                 (EffectProps::Reverb::max_modulation_time * modulation_depth_coeff / 2.0F);
 
-        initialize_delay_line(length, frequency, 0, late_.delay);
+        initialize_delay_line(length, frequency, 0, late_.delay_);
     }
 
 
@@ -6276,8 +6416,8 @@ private:
         //
         const auto range = std::max(static_cast<int>(mod_time * frequency), 1);
 
-        mod_.index = static_cast<int>(mod_.index * static_cast<int64_t>(range) / mod_.range);
-        mod_.range = range;
+        mod_.index_ = static_cast<int>(mod_.index_ * static_cast<int64_t>(range) / mod_.range_);
+        mod_.range_ = range;
 
         // The modulation depth effects the scale of the sinus, which changes how
         // much extra delay is added to the delay line. This delay changing over
@@ -6287,7 +6427,7 @@ private:
         // is applied to a sinus value, it needs to be halved for the sinus swing
         // in time (half of it is spent decreasing the frequency, half is spent
         // increasing it).
-        mod_.depth = mod_depth * modulation_depth_coeff * mod_time / 2.0F * frequency;
+        mod_.depth_ = mod_depth * modulation_depth_coeff * mod_time / 2.0F * frequency;
     }
 
     // Update the offsets for the main effect delay line.
@@ -6341,16 +6481,16 @@ private:
             length = early_allpass_lengths[i] * multiplier;
 
             // Calculate the delay offset for each all-pass line.
-            early_.vec_ap.offsets[i][1] = static_cast<int>(length * frequency);
+            early_.vec_ap_.offsets_[i][1] = static_cast<int>(length * frequency);
 
             // Calculate the length (in seconds) of each delay line.
             length = early_line_lengths[i] * multiplier;
 
             // Calculate the delay offset for each delay line.
-            early_.offsets[i][1] = static_cast<int>(length * frequency);
+            early_.offsets_[i][1] = static_cast<int>(length * frequency);
 
             /* Calculate the gain (coefficient) for each line. */
-            early_.coeffs[i] = calc_decay_coeff(length, decay_time);
+            early_.coeffs_[i] = calc_decay_coeff(length, decay_time);
         }
     }
 
@@ -6397,7 +6537,7 @@ private:
         band_weights[1] = hf_w - lf_w;
         band_weights[2] = Math::tau - hf_w;
 
-        late_.density_gain = calc_density_gain(
+        late_.density_gain_ = calc_density_gain(
             calc_decay_coeff(
                 length,
                 ((band_weights[0] * lf_decay_time) +
@@ -6411,7 +6551,7 @@ private:
             length = late_allpass_lengths[i] * multiplier;
 
             // Calculate the delay offset for each all-pass line.
-            late_.vec_ap.offsets[i][1] = static_cast<int>(length * frequency);
+            late_.vec_ap_.offsets_[i][1] = static_cast<int>(length * frequency);
 
             // Calculate the length (in seconds) of each delay line.  This also
             // applies the echo transformation.  As the EAX echo depth approaches
@@ -6420,7 +6560,7 @@ private:
             length = Math::lerp(late_line_lengths[i] * multiplier, echo_time, echo_depth);
 
             // Calculate the delay offset for each delay line.
-            late_.offsets[i][1] = static_cast<int>(length * frequency);
+            late_.offsets_[i][1] = static_cast<int>(length * frequency);
 
             // Approximate the absorption that the vector all-pass would exhibit
             // given the current diffusion so we don't have to process a full T60
@@ -6438,9 +6578,9 @@ private:
                 hf_decay_time,
                 lf_w,
                 hf_w,
-                late_.filters[i].lf_coeffs.data(),
-                late_.filters[i].hf_coeffs.data(),
-                &late_.filters[i].mid_coeff);
+                late_.filters_[i].lf_coeffs_.data(),
+                late_.filters_[i].hf_coeffs_.data(),
+                &late_.filters_[i].mid_coeff_);
         }
     }
 
@@ -6568,7 +6708,7 @@ private:
         // the B-Format soundfield according to the panning vector.
         rot = get_transform_from_vector(reflections_pan);
         transform = matrix_mult_t(rot, a2b);
-        clear_gains(early_.pan_gains);
+        clear_gains(early_.pan_gains_);
 
         for (int i = 0; i < max_effect_channels; ++i)
         {
@@ -6577,12 +6717,12 @@ private:
                 device.foa_,
                 transform.m_[i],
                 gain * early_gain,
-                early_.pan_gains[i]);
+                early_.pan_gains_[i]);
         }
 
         rot = get_transform_from_vector(late_reverb_pan);
         transform = matrix_mult_t(rot, a2b);
-        clear_gains(late_.pan_gains);
+        clear_gains(late_.pan_gains_);
 
         for (int i = 0; i < max_effect_channels; ++i)
         {
@@ -6591,7 +6731,7 @@ private:
                 device.foa_,
                 transform.m_[i],
                 gain * late_gain,
-                late_.pan_gains[i]);
+                late_.pan_gains_[i]);
         }
     }
 
@@ -6606,7 +6746,7 @@ private:
         const int offset,
         const int c)
     {
-        return delay->lines[offset & delay->mask][c];
+        return delay->lines_[offset & delay->mask_][c];
     }
 
     // Cross-faded delay line output routine.  Instead of interpolating the
@@ -6618,7 +6758,7 @@ private:
         const int c,
         const float mu)
     {
-        return Math::lerp(delay->lines[off0 & delay->mask][c], delay->lines[off1 & delay->mask][c], mu);
+        return Math::lerp(delay->lines_[off0 & delay->mask_][c], delay->lines_[off1 & delay->mask_][c], mu);
     }
 
     static float delay_out_faded(
@@ -6657,7 +6797,7 @@ private:
         const int c,
         const float in)
     {
-        delay->lines[offset & delay->mask][c] = in;
+        delay->lines_[offset & delay->mask_][c] = in;
     }
 
     static void delay_line_in4(
@@ -6665,11 +6805,11 @@ private:
         int offset,
         const float in[4])
     {
-        offset &= delay->mask;
+        offset &= delay->mask_;
 
         for (int i = 0; i < 4; ++i)
         {
-            delay->lines[offset][i] = in[i];
+            delay->lines_[offset][i] = in[i];
         }
     }
 
@@ -6678,11 +6818,11 @@ private:
         int offset,
         const float in[4])
     {
-        offset &= delay->mask;
+        offset &= delay->mask_;
 
         for (int i = 0; i < 4; ++i)
         {
-            delay->lines[offset][i] = in[3 - i];
+            delay->lines_[offset][i] = in[3 - i];
         }
     }
 
@@ -6690,29 +6830,29 @@ private:
         int* delays,
         const int todo)
     {
-        auto index = mod_.index;
-        auto range = mod_.filter;
+        auto index = mod_.index_;
+        auto range = mod_.filter_;
 
         for (int i = 0; i < todo; ++i)
         {
             // Calculate the sinus rhythm (dependent on modulation time and the
             // sampling rate).
-            const auto sinus = std::sin(Math::tau * index / mod_.range);
+            const auto sinus = std::sin(Math::tau * index / mod_.range_);
 
             // Step the modulation index forward, keeping it bound to its range.
-            index = (index + 1) % mod_.range;
+            index = (index + 1) % mod_.range_;
 
             // The depth determines the range over which to read the input samples
             // from, so it must be filtered to reduce the distortion caused by even
             // small parameter changes.
-            range = Math::lerp(range, mod_.depth, mod_.coeff);
+            range = Math::lerp(range, mod_.depth_, mod_.coeff_);
 
             // Calculate the read offset.
             delays[i] = std::lround(range * sinus);
         }
 
-        mod_.index = index;
-        mod_.filter = range;
+        mod_.index_ = index;
+        mod_.filter_ = range;
     }
 
     // Applies a scattering matrix to the 4-line (vector) input.  This is used
@@ -6775,6 +6915,7 @@ private:
     //
     // Two static specializations are used for transitional (cross-faded) delay
     // line processing and non-transitional processing.
+    //
     static void vector_allpass_x(
         DelayOutFunc delay_out_func,
         float* vec,
@@ -6792,9 +6933,9 @@ private:
             auto input = vec[i];
 
             vec[i] = delay_out_func(
-                &vap->delay,
-                offset - vap->offsets[i][0],
-                offset - vap->offsets[i][1],
+                &vap->delay_,
+                offset - vap->offsets_[i][0],
+                offset - vap->offsets_[i][1],
                 i,
                 mu) - (feed_coeff * input);
 
@@ -6803,7 +6944,7 @@ private:
 
         vector_partial_scatter(f, x_coeff, y_coeff);
 
-        delay_line_in4(&vap->delay, offset, f);
+        delay_line_in4(&vap->delay_, offset, f);
     }
 
     static void vector_allpass_unfaded(
@@ -6888,16 +7029,16 @@ private:
                     j, fade) * early_delay_coeffs_[j];
             }
 
-            vector_allpass_func(f, current_offset, ap_feed_coeff_, mix_x_, mix_y_, fade, &early_.vec_ap);
+            vector_allpass_func(f, current_offset, ap_feed_coeff_, mix_x_, mix_y_, fade, &early_.vec_ap_);
 
-            delay_line_in4_rev(&early_.delay, current_offset, f);
+            delay_line_in4_rev(&early_.delay_, current_offset, f);
 
             for (int j = 0; j < 4; ++j)
             {
-                f[j] += delay_out_func(&early_.delay,
-                    current_offset - early_.offsets[j][0],
-                    current_offset - early_.offsets[j][1], j, fade
-                ) * early_.coeffs[j];
+                f[j] += delay_out_func(&early_.delay_,
+                    current_offset - early_.offsets_[j][0],
+                    current_offset - early_.offsets_[j][1], j, fade
+                ) * early_.coeffs_[j];
             }
 
             for (int j = 0; j < 4; ++j)
@@ -6953,14 +7094,14 @@ private:
     {
         const auto out = first_order_filter(
             in,
-            late_.filters[index].lf_coeffs.data(),
-            late_.filters[index].states[0].data());
+            late_.filters_[index].lf_coeffs_.data(),
+            late_.filters_[index].states_[0].data());
 
-        return late_.filters[index].mid_coeff *
+        return late_.filters_[index].mid_coeff_ *
             first_order_filter(
                 out,
-                late_.filters[index].hf_coeffs.data(),
-                late_.filters[index].states[1].data());
+                late_.filters_[index].hf_coeffs_.data(),
+                late_.filters_[index].states_[1].data());
     }
 
     // This generates the reverb tail using a modified feed-back delay network
@@ -7001,16 +7142,16 @@ private:
                     current_offset - late_delay_taps_[j][1],
                     j,
                     fade
-                ) * late_.density_gain;
+                ) * late_.density_gain_;
             }
 
             const auto current_delay = current_offset - moddelay[i];
 
             for (int j = 0; j < 4; ++j)
             {
-                f[j] += delay_out_func(&late_.delay,
-                    current_delay - late_.offsets[j][0],
-                    current_delay - late_.offsets[j][1],
+                f[j] += delay_out_func(&late_.delay_,
+                    current_delay - late_.offsets_[j][0],
+                    current_delay - late_.offsets_[j][1],
                     j,
                     fade);
             }
@@ -7020,7 +7161,7 @@ private:
                 f[j] = late_t60_filter(j, f[j]);
             }
 
-            vector_allpass_func(f, current_offset, ap_feed_coeff_, mix_x_, mix_y_, fade, &late_.vec_ap);
+            vector_allpass_func(f, current_offset, ap_feed_coeff_, mix_x_, mix_y_, fade, &late_.vec_ap_);
 
             for (int j = 0; j < 4; ++j)
             {
@@ -7031,7 +7172,7 @@ private:
 
             vector_partial_scatter(f, mix_x_, mix_y_);
 
-            delay_line_in4(&late_.delay, current_offset, f);
+            delay_line_in4(&late_.delay_, current_offset, f);
 
             current_offset += 1;
             fade += fade_step;
@@ -7067,7 +7208,7 @@ private:
         {
             // Low-pass filter the incoming samples (use the early buffer as temp
             // storage).
-            filters_[c].lp.process(todo, input[c].data(), early[0].data());
+            filters_[c].lp_.process(todo, input[c].data(), early[0].data());
 
             // Feed the initial delay line.
             for (int i = 0; i < todo; ++i)
@@ -7113,8 +7254,8 @@ private:
         {
             // Band-pass the incoming samples. Use the early output lines for temp
             // storage.
-            filters_[c].lp.process(todo, input[c].data(), early[0].data());
-            filters_[c].hp.process(todo, early[0].data(), early[1].data());
+            filters_[c].lp_.process(todo, input[c].data(), early[0].data());
+            filters_[c].hp_.process(todo, early[0].data(), early[1].data());
 
             // Feed the initial delay line.
             for (int i = 0; i < todo; i++)
