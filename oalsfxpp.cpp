@@ -1704,10 +1704,9 @@ struct Device
     using ChannelIds = std::array<ChannelId, max_channels>;
 
 
-    int frequency_;
-    ChannelFormat channel_format_;
-
+    int sampling_rate_;
     int channel_count_;
+    ChannelFormat channel_format_;
     ChannelIds channel_ids_;
     SampleBuffers sample_buffers_;
 
@@ -1732,7 +1731,7 @@ struct Device
 
         // Set output format
         channel_format_ = channel_format;
-        frequency_ = sampling_rate;
+        sampling_rate_ = sampling_rate;
 
         alu_init_renderer();
 
@@ -2468,7 +2467,7 @@ private:
         static_cast<void>(distance);
         static_cast<void>(dir);
 
-        const auto frequency = device_.frequency_;
+        const auto frequency = device_.sampling_rate_;
         const ChannelMap* channel_map = nullptr;
         auto channel_count = 0;
 
@@ -2785,7 +2784,7 @@ int Api::get_sampling_rate() const
         return 0;
     }
 
-    return pimpl_->device_.frequency_;
+    return pimpl_->device_.sampling_rate_;
 }
 
 ChannelFormat Api::get_channel_format() const
@@ -3273,7 +3272,7 @@ protected:
     void do_update_device(
         Device& device) final
     {
-        auto max_len = static_cast<int>(EffectProps::Chorus::max_delay * 2.0F * device.frequency_) + 1;
+        auto max_len = static_cast<int>(EffectProps::Chorus::max_delay * 2.0F * device.sampling_rate_) + 1;
 
         max_len = Math::next_power_of_2(max_len);
 
@@ -3298,7 +3297,7 @@ protected:
     {
         static_cast<void>(effect_slot);
 
-        const auto frequency = static_cast<float>(device.frequency_);
+        const auto frequency = static_cast<float>(device.sampling_rate_);
 
         switch (effect_props.chorus_.waveform_)
         {
@@ -3571,8 +3570,8 @@ protected:
     void do_update_device(
         Device& device) final
     {
-        const auto attackTime = device.frequency_ * 0.2F; // 200ms Attack
-        const auto releaseTime = device.frequency_ * 0.4F; // 400ms Release
+        const auto attackTime = device.sampling_rate_ * 0.2F; // 200ms Attack
+        const auto releaseTime = device.sampling_rate_ * 0.4F; // 400ms Release
 
         attack_rate_ = 1.0F / attackTime;
         release_rate_ = 1.0F / releaseTime;
@@ -3883,7 +3882,7 @@ protected:
     {
         static_cast<void>(effect_slot);
 
-        const auto frequency = static_cast<float>(device.frequency_);
+        const auto frequency = static_cast<float>(device.sampling_rate_);
 
         // Store distorted signal attenuation settings.
         attenuation_ = effect_props.distortion_.gain_;
@@ -4071,8 +4070,8 @@ protected:
     {
         // Use the next power of 2 for the buffer length, so the tap offsets can be
         // wrapped using a mask instead of a modulo
-        auto maxlen = static_cast<int>(EffectProps::Echo::max_delay * device.frequency_) + 1;
-        maxlen += static_cast<int>(EffectProps::Echo::max_lr_delay * device.frequency_) + 1;
+        auto maxlen = static_cast<int>(EffectProps::Echo::max_delay * device.sampling_rate_) + 1;
+        maxlen += static_cast<int>(EffectProps::Echo::max_lr_delay * device.sampling_rate_) + 1;
         maxlen = Math::next_power_of_2(maxlen);
 
         if (maxlen != buffer_length_)
@@ -4094,7 +4093,7 @@ protected:
         AmbiCoeffs coeffs;
         float effect_gain, lrpan, spread;
 
-        const auto frequency = device.frequency_;
+        const auto frequency = device.sampling_rate_;
 
         taps_[0].delay = static_cast<int>(effect_props.echo_.delay_ * frequency) + 1;
         taps_[1].delay = static_cast<int>(effect_props.echo_.lr_delay_ * frequency);
@@ -4334,7 +4333,7 @@ protected:
     {
         static_cast<void>(effect_slot);
 
-        const auto frequency = static_cast<float>(device.frequency_);
+        const auto frequency = static_cast<float>(device.sampling_rate_);
         float gain;
         float freq_mult;
 
@@ -4544,7 +4543,7 @@ protected:
     void do_update_device(
         Device& device) final
     {
-        auto maxlen = static_cast<int>(EffectProps::Flanger::max_delay * 2.0F * device.frequency_) + 1;
+        auto maxlen = static_cast<int>(EffectProps::Flanger::max_delay * 2.0F * device.sampling_rate_) + 1;
         maxlen = Math::next_power_of_2(maxlen);
 
         if (maxlen != buffer_length_)
@@ -4570,7 +4569,7 @@ protected:
     {
         static_cast<void>(effect_slot);
 
-        const auto frequency = static_cast<float>(device.frequency_);
+        const auto frequency = static_cast<float>(device.sampling_rate_);
         AmbiCoeffs coeffs;
 
         switch (effect_props.flanger_.waveform_)
@@ -4867,7 +4866,7 @@ protected:
             process_func_ = modulate_square;
         }
 
-        step_ = static_cast<int>(effect_props.ring_modulator_.frequency_ * waveform_frac_one / device.frequency_);
+        step_ = static_cast<int>(effect_props.ring_modulator_.frequency_ * waveform_frac_one / device.sampling_rate_);
 
         if (step_ == 0)
         {
@@ -4875,7 +4874,7 @@ protected:
         }
 
         // Custom filter coeffs, which match the old version instead of a low-shelf.
-        const auto cw = std::cos(Math::tau * effect_props.ring_modulator_.high_pass_cutoff_ / device.frequency_);
+        const auto cw = std::cos(Math::tau * effect_props.ring_modulator_.high_pass_cutoff_ / device.sampling_rate_);
         const auto a = (2.0F - cw) - std::sqrt(std::pow(2.0F - cw, 2.0F) - 1.0F);
 
         for (int i = 0; i < max_effect_channels; ++i)
@@ -5175,7 +5174,7 @@ protected:
     void do_update_device(
         Device& device) final
     {
-        const auto frequency = device.frequency_;
+        const auto frequency = device.sampling_rate_;
 
         // Allocate the delay lines.
         alloc_lines(frequency);
@@ -5210,7 +5209,7 @@ protected:
             is_eax_ = false;
         }
 
-        const auto frequency = device.frequency_;
+        const auto frequency = device.sampling_rate_;
 
         // Calculate the master filters
         const auto hf_scale = effect_props.reverb_.hf_reference_ / frequency;
