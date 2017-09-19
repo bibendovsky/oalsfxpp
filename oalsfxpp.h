@@ -587,9 +587,6 @@ public:
         const Effect& effect);
 
     bool set_send_props(
-        const SendProps& send_props);
-
-    bool set_send_props(
         const int effect_index,
         const SendProps& send_props);
 

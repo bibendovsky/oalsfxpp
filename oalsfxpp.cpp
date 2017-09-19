@@ -2807,19 +2807,6 @@ bool Api::set_effect(
 }
 
 bool Api::set_send_props(
-    const SendProps& send_props)
-{
-    if (!is_initialized())
-    {
-        return false;
-    }
-
-    pimpl_->source_.direct_.deferred_props_ = send_props;
-
-    return true;
-}
-
-bool Api::set_send_props(
     const int effect_index,
     const SendProps& send_props)
 {
@@ -2828,12 +2815,17 @@ bool Api::set_send_props(
         return false;
     }
 
-    if (effect_index < 0 || effect_index >= pimpl_->effect_count_)
+    if (effect_index >= pimpl_->effect_count_)
     {
         return false;
     }
 
-    pimpl_->source_.auxes_[effect_index].props_ = send_props;
+    auto& props = (
+        effect_index < 0 ?
+        pimpl_->source_.direct_.deferred_props_ :
+        pimpl_->source_.auxes_[effect_index].props_);
+
+    props = send_props;
 
     return true;
 }
