@@ -2909,7 +2909,20 @@ bool Api::mix(
         return false;
     }
 
-    pimpl_->mix_data(sample_count, src_samples, dst_samples);
+    const auto channel_count = pimpl_->device_.channel_count_;
+
+    auto buffer_offset = 0;
+    auto remain_count = sample_count;
+
+    while (remain_count > 0)
+    {
+        const auto count = std::min(remain_count, max_sample_buffer_size);
+
+        pimpl_->mix_data(count, &src_samples[buffer_offset], &dst_samples[buffer_offset]);
+
+        buffer_offset += count * channel_count;
+        remain_count -= count;
+    }
 
     return true;
 }

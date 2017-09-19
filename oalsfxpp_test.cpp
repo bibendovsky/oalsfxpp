@@ -98,7 +98,7 @@ int main()
 
     const auto sample_count_all_channels = sample_count * channel_count;
 
-    buffer_f32_samples = ((total_sample_count + (sample_count_all_channels - 1)) / sample_count_all_channels) * sample_count_all_channels;
+    buffer_f32_samples = total_sample_count;
 
     src_buffer_f32 = static_cast<float*>(malloc(sizeof(float) * buffer_f32_samples));
 
@@ -224,7 +224,7 @@ int main()
 
     if (is_succeed)
     {
-        dst_buffer = static_cast<float*>(malloc(sizeof(float) * sample_count * channel_count));
+        dst_buffer = static_cast<float*>(malloc(sizeof(float) * total_sample_count * channel_count));
 
         if (!dst_buffer)
         {
@@ -235,24 +235,17 @@ int main()
 
     if (is_succeed)
     {
-        int remain = (int)(stream_size) / 2;
-        int offset = 0;
+        const auto remain = (int)(stream_size) / 2;
 
-        while (remain > 0 && is_succeed)
+        const int write_sample_count = remain;
+        const int write_size = write_sample_count * 4 * channel_count;
+
+        api.mix(write_sample_count, src_buffer_f32, dst_buffer);
+
+        if (fwrite(dst_buffer, 1, write_size, dst_stream) != write_size)
         {
-            const int write_sample_count = sample_count < remain ? sample_count : remain;
-            const int write_size = write_sample_count * 4 * channel_count;
-
-            api.mix(sample_count, &src_buffer_f32[offset], dst_buffer);
-
-            if (fwrite(dst_buffer, 1, write_size, dst_stream) != write_size)
-            {
-                is_succeed = 0;
-                printf("%s\n", "Failed to write out data.");
-            }
-
-            remain -= write_sample_count * channel_count;
-            offset += write_sample_count * channel_count;
+            is_succeed = 0;
+            printf("%s\n", "Failed to write out data.");
         }
     }
 
