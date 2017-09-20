@@ -3505,6 +3505,16 @@ const char* Api::get_error_message() const
     return pimpl_->error_message_;
 }
 
+int Api::get_min_channels()
+{
+    return 1;
+}
+
+int Api::get_max_channels()
+{
+    return max_channels;
+}
+
 int Api::get_min_sampling_rate()
 {
     return min_sampling_rate;

@@ -803,6 +803,10 @@ public:
     const char* get_error_message() const;
 
 
+    static int get_min_channels();
+
+    static int get_max_channels();
+
     static int get_min_sampling_rate();
 
     static int get_max_sampling_rate();
