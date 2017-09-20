@@ -3525,12 +3525,12 @@ int Api::get_max_sampling_rate()
     return max_sampling_rate;
 }
 
-int Api::get_min_effect_count()
+int Api::get_min_effects()
 {
     return min_effects;
 }
 
-int Api::get_max_effect_count()
+int Api::get_max_effects()
 {
     return max_effects;
 }

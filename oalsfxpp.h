@@ -811,9 +811,9 @@ public:
 
     static int get_max_sampling_rate();
 
-    static int get_min_effect_count();
+    static int get_min_effects();
 
-    static int get_max_effect_count();
+    static int get_max_effects();
 
     static ChannelFormat channel_count_to_channel_format(
         const int channel_count);
