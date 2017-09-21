@@ -6,6 +6,10 @@
 #include <memory>
 
 
+namespace oalsfxpp
+{
+
+
 enum class ChannelFormat
 {
     none,
@@ -893,6 +897,9 @@ private:
     ApiImplUPtr pimpl_;
     mutable const char* error_message_;
 }; // Api
+
+
+} // oalsfxpp
 
 
 #endif // OALSFXPP_INCLUDED

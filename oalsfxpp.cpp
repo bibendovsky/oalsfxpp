@@ -9,6 +9,10 @@
 #include <vector>
 
 
+namespace oalsfxpp
+{
+
+
 struct Device;
 struct EffectSlot;
 
@@ -7568,3 +7572,6 @@ EffectState* EffectStateFactory::create_reverb()
 
 // Effects
 // ==========================================================================
+
+
+} // oalsfxpp

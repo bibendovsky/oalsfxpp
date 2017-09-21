@@ -388,7 +388,8 @@ struct WavFile
                 //
                 const auto channel_count = Endian::little(stream_helper.read<uint16_t>());
 
-                if (channel_count < Api::get_min_channels() || channel_count > Api::get_max_channels())
+                if (channel_count < oalsfxpp::Api::get_min_channels() ||
+                    channel_count > oalsfxpp::Api::get_max_channels())
                 {
                     error_message_ = "Channel count is out of range.";
                     return false;
@@ -398,8 +399,8 @@ struct WavFile
                 //
                 const auto sampling_rate = Endian::little(stream_helper.read<uint32_t>());
 
-                if (sampling_rate < static_cast<uint32_t>(Api::get_min_sampling_rate()) ||
-                    sampling_rate > static_cast<uint32_t>(Api::get_max_sampling_rate()))
+                if (sampling_rate < static_cast<uint32_t>(oalsfxpp::Api::get_min_sampling_rate()) ||
+                    sampling_rate > static_cast<uint32_t>(oalsfxpp::Api::get_max_sampling_rate()))
                 {
                     error_message_ = "Sampling rate is out of range.";
                     return false;
@@ -730,11 +731,11 @@ int main(
         }
     }
 
-    Api api;
+    oalsfxpp::Api api;
 
     if (is_succeed)
     {
-        const auto channel_format = Api::channel_count_to_channel_format(wav_file.get_channel_count());
+        const auto channel_format = oalsfxpp::Api::channel_count_to_channel_format(wav_file.get_channel_count());
 
         is_succeed = api.initialize(channel_format, wav_file.get_sampling_rate(), 1);
 
@@ -763,7 +764,7 @@ int main(
 
         auto effect_number = 0;
         auto effect_number_string = std::string{};
-        auto effect_type = EffectType::null;
+        auto effect_type = oalsfxpp::EffectType::null;
 
         while (effect_number == 0)
         {
@@ -784,51 +785,51 @@ int main(
             switch (effect_number)
             {
             case 1:
-                effect_type = EffectType::eax_reverb;
+                effect_type = oalsfxpp::EffectType::eax_reverb;
                 break;
 
             case 2:
-                effect_type = EffectType::reverb;
+                effect_type = oalsfxpp::EffectType::reverb;
                 break;
 
             case 3:
-                effect_type = EffectType::chorus;
+                effect_type = oalsfxpp::EffectType::chorus;
                 break;
 
             case 4:
-                effect_type = EffectType::compressor;
+                effect_type = oalsfxpp::EffectType::compressor;
                 break;
 
             case 5:
-                effect_type = EffectType::dedicated_dialog;
+                effect_type = oalsfxpp::EffectType::dedicated_dialog;
                 break;
 
             case 6:
-                effect_type = EffectType::dedicated_low_frequency;
+                effect_type = oalsfxpp::EffectType::dedicated_low_frequency;
                 break;
 
             case 7:
-                effect_type = EffectType::distortion;
+                effect_type = oalsfxpp::EffectType::distortion;
                 break;
 
             case 8:
-                effect_type = EffectType::echo;
+                effect_type = oalsfxpp::EffectType::echo;
                 break;
 
             case 9:
-                effect_type = EffectType::equalizer;
+                effect_type = oalsfxpp::EffectType::equalizer;
                 break;
 
             case 10:
-                effect_type = EffectType::flanger;
+                effect_type = oalsfxpp::EffectType::flanger;
                 break;
 
             case 11:
-                effect_type = EffectType::ring_modulator;
+                effect_type = oalsfxpp::EffectType::ring_modulator;
                 break;
 
             case 12:
-                effect_type = EffectType::null;
+                effect_type = oalsfxpp::EffectType::null;
                 break;
 
             default:
