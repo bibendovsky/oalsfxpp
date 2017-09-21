@@ -703,10 +703,19 @@ private:
 }; // WavFile
 
 
-int main()
+int main(
+    int argc,
+    char* argv[])
 {
-    const auto src_file_name = "f:\\temp\\rev\\in.wav";
-    const auto dst_file_name = "f:\\temp\\rev\\out.wav";
+    if (argc != 3)
+    {
+        std::cout << "Usage:" << std::endl;
+        std::cout << "program <src_file_name> <dst_file_name>" << std::endl;
+        return 1;
+    }
+
+    const auto src_file_name = argv[1];
+    const auto dst_file_name = argv[2];
 
     auto is_succeed = true;
 
@@ -737,18 +746,20 @@ int main()
 
     if (is_succeed)
     {
-        std::cout << "1. EAX Reverb\n";
-        std::cout << "2. Reverb\n";
-        std::cout << "3. Chorus\n";
-        std::cout << "4. Compressor\n";
-        std::cout << "5. Dedicated (dialog)\n";
-        std::cout << "6. Dedicated (low frequency)\n";
-        std::cout << "7. Distortion\n";
-        std::cout << "8. Echo\n";
-        std::cout << "9. Equalizer\n";
-        std::cout << "10. Flanger\n";
-        std::cout << "11. Ring modulator\n";
-        std::cout << "12. Null\n" << std::endl;
+        std::cout <<
+            "1. EAX Reverb\n" <<
+            "2. Reverb\n" <<
+            "3. Chorus\n" <<
+            "4. Compressor\n" <<
+            "5. Dedicated (dialog)\n" <<
+            "6. Dedicated (low frequency)\n" <<
+            "7. Distortion\n" <<
+            "8. Echo\n" <<
+            "9. Equalizer\n" <<
+            "10. Flanger\n" <<
+            "11. Ring modulator\n" <<
+            "12. Null\n" <<
+            std::endl;
 
         auto effect_number = 0;
         auto effect_number_string = std::string{};
