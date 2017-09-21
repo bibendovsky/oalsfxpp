@@ -744,80 +744,143 @@ public:
     ~Api();
 
 
+    // Initializes the instance.
+    //
+    // Returns true on success or false otherwise.
     bool initialize(
         const ChannelFormat channel_format,
         const int sampling_rate,
         const int effect_count);
 
+    // Gets instance's initialization flag.
+    //
+    // Returns true if the instance is initialized or false otherwise.
     bool is_initialized() const;
 
+    // Gets a sampling rate.
+    //
+    // Returns a sampling rate or zero on error.
     int get_sampling_rate() const;
 
+    // Gets a channel format.
+    //
+    // Returns a channel format or "none" on error.
     ChannelFormat get_channel_format() const;
 
+    // Gets a channel count.
+    //
+    // Returns a channel count or zero on error.
     int get_channel_count() const;
 
+    // Gets an effect count.
+    //
+    // Returns an effect count or zero on error.
     int get_effect_count() const;
 
+    // Gets the active effect's properties.
+    //
+    // Returns true on success or false otherwise.
     bool get_effect(
         const int effect_index,
         Effect& effect) const;
 
+    // Gets the deferred effect's properties.
+    //
+    // Returns true on success or false otherwise.
     bool get_deferred_effect(
         const int effect_index,
         Effect& effect) const;
 
+    // Sets the deferred effect's properties.
+    //
+    // Returns true on success or false otherwise.
     bool set_effect_type(
         const int effect_index,
         const EffectType effect_type);
 
+    // Sets the deferred effect's properties.
+    //
+    // Returns true on success or false otherwise.
     bool set_effect_props(
         const int effect_index,
         const EffectProps& effect_props);
 
+    // Sets the deferred effect's type and the properties.
+    //
+    // Returns true on success or false otherwise.
     bool set_effect(
         const int effect_index,
         const Effect& effect);
 
+    // Gets the active send's properties.
+    //
+    // Returns true on success or false otherwise.
     bool get_send_props(
         const int effect_index,
         SendProps& send_props) const;
 
+    // Gets the deferred send's properties.
+    //
+    // Returns true on success or false otherwise.
     bool get_deferred_send_props(
         const int effect_index,
         SendProps& send_props) const;
 
+    // Sets the deferred send's properties.
+    //
+    // Returns true on success or false otherwise.
     bool set_send_props(
         const int effect_index,
         const SendProps& send_props);
 
+    // Applies all deferred changes.
+    //
+    // Returns true on success or false otherwise.
     bool apply_changes();
 
+    // Mixes samples from the source buffer into the target one.
+    // !!!WARNING!!! Mixed samples are NOT CLIPPED.
+    //
+    // Returns true on success or false otherwise.
     bool mix(
         const int sample_count,
         const float* src_samples,
         float* dst_samples);
 
+    // Uninitializes the instance.
     void uninitialize();
 
+    // Gets a last error message.
     const char* get_error_message() const;
 
 
+    // Gets the minimum allowed channel count.
     static int get_min_channels();
 
+    // Gets the maximum allowed channel count.
     static int get_max_channels();
 
+    // Gets the minimum allowed sampling rate.
     static int get_min_sampling_rate();
 
+    // Gets the maximum allowed sampling rate.
     static int get_max_sampling_rate();
 
+    // Gets the minimum allowed effect count.
     static int get_min_effects();
 
+    // Gets the maximum allowed effect count.
     static int get_max_effects();
 
+    // Converts the channel count into the channel format.
+    //
+    // Returns a channel format or "none" on error.
     static ChannelFormat channel_count_to_channel_format(
         const int channel_count);
 
+    // Converts the channel format into the channel count.
+    //
+    // Returns a channel count or zero on error.
     static int channel_format_to_channel_count(
         const ChannelFormat channel_format);
 
