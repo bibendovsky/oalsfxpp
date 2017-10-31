@@ -210,6 +210,12 @@ struct Math
     }
 }; // Math
 
+
+constexpr float Math::pi;
+constexpr float Math::pi_2;
+constexpr float Math::tau;
+
+
 struct Mat4F
 {
     using Items = float[4][4];
