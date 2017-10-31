@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
-project(oalsfxpp_test VERSION 1.0.0 LANGUAGES CXX)
+project(oalsfxpp_test VERSION 1.0.1 LANGUAGES CXX)
 
 set(
     sources

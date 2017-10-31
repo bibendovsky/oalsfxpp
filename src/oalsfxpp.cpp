@@ -210,6 +210,12 @@ struct Math
     }
 }; // Math
 
+
+constexpr float Math::pi;
+constexpr float Math::pi_2;
+constexpr float Math::tau;
+
+
 struct Mat4F
 {
     using Items = float[4][4];
@@ -801,6 +807,16 @@ struct Panning
     }
 }; // Panning
 
+
+constexpr ChannelPanning Panning::mono_panning[1];
+constexpr ChannelPanning Panning::stereo_panning[2];
+constexpr ChannelPanning Panning::quad_panning[4];
+constexpr ChannelPanning Panning::x5_1_side_panning[5];
+constexpr ChannelPanning Panning::x5_1_rear_panning[5];
+constexpr ChannelPanning Panning::x6_1_panning[6];
+constexpr ChannelPanning Panning::x7_1_panning[6];
+
+
 // Filters implementation is based on the "Cookbook formulae for audio
 // EQ biquad filter coefficients" by Robert Bristow-Johnson
 // http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt
@@ -1138,6 +1154,257 @@ struct Source
 
 // ==========================================================================
 // EffectProps
+
+constexpr int EffectProps::Chorus::waveform_sinusoid;
+constexpr int EffectProps::Chorus::waveform_triangle;
+
+constexpr int EffectProps::Chorus::min_waveform;
+constexpr int EffectProps::Chorus::max_waveform;
+constexpr int EffectProps::Chorus::default_waveform;
+
+constexpr int EffectProps::Chorus::min_phase;
+constexpr int EffectProps::Chorus::max_phase;
+constexpr int EffectProps::Chorus::default_phase;
+
+constexpr float EffectProps::Chorus::min_rate;
+constexpr float EffectProps::Chorus::max_rate;
+constexpr float EffectProps::Chorus::default_rate;
+
+constexpr float EffectProps::Chorus::min_depth;
+constexpr float EffectProps::Chorus::max_depth;
+constexpr float EffectProps::Chorus::default_depth;
+
+constexpr float EffectProps::Chorus::min_feedback;
+constexpr float EffectProps::Chorus::max_feedback;
+constexpr float EffectProps::Chorus::default_feedback;
+
+constexpr float EffectProps::Chorus::min_delay;
+constexpr float EffectProps::Chorus::max_delay;
+constexpr float EffectProps::Chorus::default_delay;
+
+constexpr bool EffectProps::Compressor::min_on_off;
+constexpr bool EffectProps::Compressor::max_on_off;
+constexpr bool EffectProps::Compressor::default_on_off;
+
+constexpr float EffectProps::Dedicated::min_gain;
+constexpr float EffectProps::Dedicated::max_gain;
+constexpr float EffectProps::Dedicated::default_gain;
+
+constexpr float EffectProps::Distortion::min_edge;
+constexpr float EffectProps::Distortion::max_edge;
+constexpr float EffectProps::Distortion::default_edge;
+
+constexpr float EffectProps::Distortion::min_gain;
+constexpr float EffectProps::Distortion::max_gain;
+constexpr float EffectProps::Distortion::default_gain;
+
+constexpr float EffectProps::Distortion::min_low_pass_cutoff;
+constexpr float EffectProps::Distortion::max_low_pass_cutoff;
+constexpr float EffectProps::Distortion::default_low_pass_cutoff;
+
+constexpr float EffectProps::Distortion::min_eq_center;
+constexpr float EffectProps::Distortion::max_eq_center;
+constexpr float EffectProps::Distortion::default_eq_center;
+
+constexpr float EffectProps::Distortion::min_eq_bandwidth;
+constexpr float EffectProps::Distortion::max_eq_bandwidth;
+constexpr float EffectProps::Distortion::default_eq_bandwidth;
+
+constexpr float EffectProps::Echo::min_delay;
+constexpr float EffectProps::Echo::max_delay;
+constexpr float EffectProps::Echo::default_delay;
+
+constexpr float EffectProps::Echo::min_lr_delay;
+constexpr float EffectProps::Echo::max_lr_delay;
+constexpr float EffectProps::Echo::default_lr_delay;
+
+constexpr float EffectProps::Echo::min_damping;
+constexpr float EffectProps::Echo::max_damping;
+constexpr float EffectProps::Echo::default_damping;
+
+constexpr float EffectProps::Echo::min_feedback;
+constexpr float EffectProps::Echo::max_feedback;
+constexpr float EffectProps::Echo::default_feedback;
+
+constexpr float EffectProps::Echo::min_spread;
+constexpr float EffectProps::Echo::max_spread;
+constexpr float EffectProps::Echo::default_spread;
+
+constexpr float EffectProps::Equalizer::min_low_gain;
+constexpr float EffectProps::Equalizer::max_low_gain;
+constexpr float EffectProps::Equalizer::default_low_gain;
+
+constexpr float EffectProps::Equalizer::min_low_cutoff;
+constexpr float EffectProps::Equalizer::max_low_cutoff;
+constexpr float EffectProps::Equalizer::default_low_cutoff;
+
+constexpr float EffectProps::Equalizer::min_mid1_gain;
+constexpr float EffectProps::Equalizer::max_mid1_gain;
+constexpr float EffectProps::Equalizer::default_mid1_gain;
+
+constexpr float EffectProps::Equalizer::min_mid1_center;
+constexpr float EffectProps::Equalizer::max_mid1_center;
+constexpr float EffectProps::Equalizer::default_mid1_center;
+
+constexpr float EffectProps::Equalizer::min_mid1_width;
+constexpr float EffectProps::Equalizer::max_mid1_width;
+constexpr float EffectProps::Equalizer::default_mid1_width;
+
+constexpr float EffectProps::Equalizer::min_mid2_gain;
+constexpr float EffectProps::Equalizer::max_mid2_gain;
+constexpr float EffectProps::Equalizer::default_mid2_gain;
+
+constexpr float EffectProps::Equalizer::min_mid2_center;
+constexpr float EffectProps::Equalizer::max_mid2_center;
+constexpr float EffectProps::Equalizer::default_mid2_center;
+
+constexpr float EffectProps::Equalizer::min_mid2_width;
+constexpr float EffectProps::Equalizer::max_mid2_width;
+constexpr float EffectProps::Equalizer::default_mid2_width;
+
+constexpr float EffectProps::Equalizer::min_high_gain;
+constexpr float EffectProps::Equalizer::max_high_gain;
+constexpr float EffectProps::Equalizer::default_high_gain;
+
+constexpr float EffectProps::Equalizer::min_high_cutoff;
+constexpr float EffectProps::Equalizer::max_high_cutoff;
+constexpr float EffectProps::Equalizer::default_high_cutoff;
+
+constexpr int EffectProps::Flanger::waveform_sinusoid;
+constexpr int EffectProps::Flanger::waveform_triangle;
+
+constexpr int EffectProps::Flanger::min_waveform;
+constexpr int EffectProps::Flanger::max_waveform;
+constexpr int EffectProps::Flanger::default_waveform;
+
+constexpr int EffectProps::Flanger::min_phase;
+constexpr int EffectProps::Flanger::max_phase;
+constexpr int EffectProps::Flanger::default_phase;
+
+constexpr float EffectProps::Flanger::min_rate;
+constexpr float EffectProps::Flanger::max_rate;
+constexpr float EffectProps::Flanger::default_rate;
+
+constexpr float EffectProps::Flanger::min_depth;
+constexpr float EffectProps::Flanger::max_depth;
+constexpr float EffectProps::Flanger::default_depth;
+
+constexpr float EffectProps::Flanger::min_feedback;
+constexpr float EffectProps::Flanger::max_feedback;
+constexpr float EffectProps::Flanger::default_feedback;
+
+constexpr float EffectProps::Flanger::min_delay;
+constexpr float EffectProps::Flanger::max_delay;
+constexpr float EffectProps::Flanger::default_delay;
+
+constexpr float EffectProps::Reverb::min_density;
+constexpr float EffectProps::Reverb::max_density;
+constexpr float EffectProps::Reverb::default_density;
+
+constexpr float EffectProps::Reverb::min_diffusion;
+constexpr float EffectProps::Reverb::max_diffusion;
+constexpr float EffectProps::Reverb::default_diffusion;
+
+constexpr float EffectProps::Reverb::min_gain;
+constexpr float EffectProps::Reverb::max_gain;
+constexpr float EffectProps::Reverb::default_gain;
+
+constexpr float EffectProps::Reverb::min_gain_hf;
+constexpr float EffectProps::Reverb::max_gain_hf;
+constexpr float EffectProps::Reverb::default_gain_hf;
+
+constexpr float EffectProps::Reverb::min_gain_lf;
+constexpr float EffectProps::Reverb::max_gain_lf;
+constexpr float EffectProps::Reverb::default_gain_lf;
+
+constexpr float EffectProps::Reverb::min_decay_time;
+constexpr float EffectProps::Reverb::max_decay_time;
+constexpr float EffectProps::Reverb::default_decay_time;
+
+constexpr float EffectProps::Reverb::min_decay_hf_ratio;
+constexpr float EffectProps::Reverb::max_decay_hf_ratio;
+constexpr float EffectProps::Reverb::default_decay_hf_ratio;
+
+constexpr float EffectProps::Reverb::min_decay_lf_ratio;
+constexpr float EffectProps::Reverb::max_decay_lf_ratio;
+constexpr float EffectProps::Reverb::default_decay_lf_ratio;
+
+constexpr float EffectProps::Reverb::min_reflections_gain;
+constexpr float EffectProps::Reverb::max_reflections_gain;
+constexpr float EffectProps::Reverb::default_reflections_gain;
+
+constexpr float EffectProps::Reverb::min_reflections_delay;
+constexpr float EffectProps::Reverb::max_reflections_delay;
+constexpr float EffectProps::Reverb::default_reflections_delay;
+
+constexpr float EffectProps::Reverb::min_reflections_pan_xyz;
+constexpr float EffectProps::Reverb::max_reflections_pan_xyz;
+constexpr float EffectProps::Reverb::default_reflections_pan_xyz;
+
+constexpr float EffectProps::Reverb::min_late_reverb_gain;
+constexpr float EffectProps::Reverb::max_late_reverb_gain;
+constexpr float EffectProps::Reverb::default_late_reverb_gain;
+
+constexpr float EffectProps::Reverb::min_late_reverb_delay;
+constexpr float EffectProps::Reverb::max_late_reverb_delay;
+constexpr float EffectProps::Reverb::default_late_reverb_delay;
+
+constexpr float EffectProps::Reverb::min_late_reverb_pan_xyz;
+constexpr float EffectProps::Reverb::max_late_reverb_pan_xyz;
+constexpr float EffectProps::Reverb::default_late_reverb_pan_xyz;
+
+constexpr float EffectProps::Reverb::min_echo_time;
+constexpr float EffectProps::Reverb::max_echo_time;
+constexpr float EffectProps::Reverb::default_echo_time;
+
+constexpr float EffectProps::Reverb::min_echo_depth;
+constexpr float EffectProps::Reverb::max_echo_depth;
+constexpr float EffectProps::Reverb::default_echo_depth;
+
+constexpr float EffectProps::Reverb::min_modulation_time;
+constexpr float EffectProps::Reverb::max_modulation_time;
+constexpr float EffectProps::Reverb::default_modulation_time;
+
+constexpr float EffectProps::Reverb::min_modulation_depth;
+constexpr float EffectProps::Reverb::max_modulation_depth;
+constexpr float EffectProps::Reverb::default_modulation_depth;
+
+constexpr float EffectProps::Reverb::min_air_absorption_gain_hf;
+constexpr float EffectProps::Reverb::max_air_absorption_gain_hf;
+constexpr float EffectProps::Reverb::default_air_absorption_gain_hf;
+
+constexpr float EffectProps::Reverb::min_hf_reference;
+constexpr float EffectProps::Reverb::max_hf_reference;
+constexpr float EffectProps::Reverb::default_hf_reference;
+
+constexpr float EffectProps::Reverb::min_lf_reference;
+constexpr float EffectProps::Reverb::max_lf_reference;
+constexpr float EffectProps::Reverb::default_lf_reference;
+
+constexpr float EffectProps::Reverb::min_room_rolloff_factor;
+constexpr float EffectProps::Reverb::max_room_rolloff_factor;
+constexpr float EffectProps::Reverb::default_room_rolloff_factor;
+
+constexpr bool EffectProps::Reverb::min_decay_hf_limit;
+constexpr bool EffectProps::Reverb::max_decay_hf_limit;
+constexpr bool EffectProps::Reverb::default_decay_hf_limit;
+
+constexpr float EffectProps::RingModulator::min_frequency;
+constexpr float EffectProps::RingModulator::max_frequency;
+constexpr float EffectProps::RingModulator::default_frequency;
+
+constexpr float EffectProps::RingModulator::min_high_pass_cutoff;
+constexpr float EffectProps::RingModulator::max_high_pass_cutoff;
+constexpr float EffectProps::RingModulator::default_high_pass_cutoff;
+
+constexpr int EffectProps::RingModulator::waveform_sinusoid;
+constexpr int EffectProps::RingModulator::waveform_sawtooth;
+constexpr int EffectProps::RingModulator::waveform_square;
+
+constexpr int EffectProps::RingModulator::min_waveform;
+constexpr int EffectProps::RingModulator::max_waveform;
+constexpr int EffectProps::RingModulator::default_waveform;
+
 
 void EffectProps::Chorus::set_defaults()
 {
@@ -1621,6 +1888,22 @@ bool Effect::are_equal(
 
 // ==========================================================================
 // SendProps
+
+constexpr float SendProps::lp_frequency_reference;
+constexpr float SendProps::hp_frequency_reference;
+
+constexpr float SendProps::min_gain;
+constexpr float SendProps::max_gain;
+constexpr float SendProps::default_gain;
+
+constexpr float SendProps::min_gain_hf;
+constexpr float SendProps::max_gain_hf;
+constexpr float SendProps::default_gain_hf;
+
+constexpr float SendProps::min_gain_lf;
+constexpr float SendProps::max_gain_lf;
+constexpr float SendProps::default_gain_lf;
+
 
 void SendProps::set_defaults()
 {
@@ -2521,11 +2804,17 @@ struct MixHelpers
 
 struct ApiImplErrorMessages
 {
-    static constexpr auto NoError = "";
-    static constexpr auto InvalidChannelFormat = "Invalid channel format.";
-    static constexpr auto SamplingRateOutOfRange = "Sampling rate is out of range.";
-    static constexpr auto EffectCountOutOfRange = "Effect count is out of range.";
+    static constexpr auto no_error = "";
+    static constexpr auto invalid_channel_format = "Invalid channel format.";
+    static constexpr auto sampling_rate_out_of_range = "Sampling rate is out of range.";
+    static constexpr auto effect_count_out_of_range = "Effect count is out of range.";
 }; // ApiImplErrorMessages
+
+
+constexpr const char* ApiImplErrorMessages::no_error;
+constexpr const char* ApiImplErrorMessages::invalid_channel_format;
+constexpr const char* ApiImplErrorMessages::sampling_rate_out_of_range;
+constexpr const char* ApiImplErrorMessages::effect_count_out_of_range;
 
 
 class Api::Impl
@@ -2544,7 +2833,7 @@ public:
         source_{},
         effect_contexts_{},
         effect_count_{},
-        error_message_{ApiImplErrorMessages::NoError}
+        error_message_{ApiImplErrorMessages::no_error}
     {
     }
 
@@ -2565,19 +2854,19 @@ public:
 
         if (channel_count == 0)
         {
-            error_message_ = ApiImplErrorMessages::InvalidChannelFormat;
+            error_message_ = ApiImplErrorMessages::invalid_channel_format;
             return false;
         }
 
         if (sampling_rate < min_sampling_rate)
         {
-            error_message_ = ApiImplErrorMessages::SamplingRateOutOfRange;
+            error_message_ = ApiImplErrorMessages::sampling_rate_out_of_range;
             return false;
         }
 
         if (effect_count <= 0 || effect_count > max_effects)
         {
-            error_message_ = ApiImplErrorMessages::EffectCountOutOfRange;
+            error_message_ = ApiImplErrorMessages::effect_count_out_of_range;
             return false;
         }
 
@@ -3142,6 +3431,14 @@ private:
     }
 }; // Impl
 
+
+constexpr Api::Impl::ChannelMap Api::Impl::mono_map[1];
+constexpr Api::Impl::ChannelMap Api::Impl::stereo_map[2];
+constexpr Api::Impl::ChannelMap Api::Impl::quad_map[4];
+constexpr Api::Impl::ChannelMap Api::Impl::x5_1_map[6];
+constexpr Api::Impl::ChannelMap Api::Impl::x6_1_map[7];
+constexpr Api::Impl::ChannelMap Api::Impl::x7_1_map[8];
+
 // Api::Impl
 // ==========================================================================
 
@@ -3151,19 +3448,27 @@ private:
 
 struct ApiErrorMessages
 {
-    static constexpr auto NoError = "";
-    static constexpr auto AllocateImpl = "Failed to allocate implementaion class.";
-    static constexpr auto NotInitialized = "Not initialized.";
-    static constexpr auto EffectIndexOutOfRange = "Effect index is out of range.";
-    static constexpr auto NoSrcSamples = "No source samples.";
-    static constexpr auto NoDstSamples = "No destination samples.";
+    static constexpr auto no_error = "";
+    static constexpr auto allocate_impl = "Failed to allocate implementaion class.";
+    static constexpr auto not_initialized = "Not initialized.";
+    static constexpr auto effect_index_out_of_range = "Effect index is out of range.";
+    static constexpr auto no_src_samples = "No source samples.";
+    static constexpr auto no_dst_samples = "No destination samples.";
 }; // ApiErrorMessages
+
+
+constexpr const char* ApiErrorMessages::no_error;
+constexpr const char* ApiErrorMessages::allocate_impl;
+constexpr const char* ApiErrorMessages::not_initialized;
+constexpr const char* ApiErrorMessages::effect_index_out_of_range;
+constexpr const char* ApiErrorMessages::no_src_samples;
+constexpr const char* ApiErrorMessages::no_dst_samples;
 
 
 Api::Api()
     :
     pimpl_{},
-    error_message_{ApiErrorMessages::NoError}
+    error_message_{ApiErrorMessages::no_error}
 {
 }
 
@@ -3183,7 +3488,7 @@ bool Api::initialize(
 
     if (!pimpl_)
     {
-        error_message_ = ApiErrorMessages::AllocateImpl;
+        error_message_ = ApiErrorMessages::allocate_impl;
         return false;
     }
 
@@ -3207,7 +3512,7 @@ int Api::get_sampling_rate() const
 {
     if (!is_initialized())
     {
-        error_message_ = ApiErrorMessages::NotInitialized;
+        error_message_ = ApiErrorMessages::not_initialized;
         return 0;
     }
 
@@ -3218,7 +3523,7 @@ ChannelFormat Api::get_channel_format() const
 {
     if (!is_initialized())
     {
-        error_message_ = ApiErrorMessages::NotInitialized;
+        error_message_ = ApiErrorMessages::not_initialized;
         return ChannelFormat::none;
     }
 
@@ -3229,7 +3534,7 @@ int Api::get_channel_count() const
 {
     if (!is_initialized())
     {
-        error_message_ = ApiErrorMessages::NotInitialized;
+        error_message_ = ApiErrorMessages::not_initialized;
         return false;
     }
 
@@ -3240,7 +3545,7 @@ int Api::get_effect_count() const
 {
     if (!is_initialized())
     {
-        error_message_ = ApiErrorMessages::NotInitialized;
+        error_message_ = ApiErrorMessages::not_initialized;
         return false;
     }
 
@@ -3253,13 +3558,13 @@ bool Api::get_effect(
 {
     if (!is_initialized())
     {
-        error_message_ = ApiErrorMessages::NotInitialized;
+        error_message_ = ApiErrorMessages::not_initialized;
         return false;
     }
 
     if (effect_index < 0 || effect_index >= pimpl_->effect_count_)
     {
-        error_message_ = ApiErrorMessages::EffectIndexOutOfRange;
+        error_message_ = ApiErrorMessages::effect_index_out_of_range;
         return false;
     }
 
@@ -3274,13 +3579,13 @@ bool Api::get_deferred_effect(
 {
     if (!is_initialized())
     {
-        error_message_ = ApiErrorMessages::NotInitialized;
+        error_message_ = ApiErrorMessages::not_initialized;
         return false;
     }
 
     if (effect_index < 0 || effect_index >= pimpl_->effect_count_)
     {
-        error_message_ = ApiErrorMessages::EffectIndexOutOfRange;
+        error_message_ = ApiErrorMessages::effect_index_out_of_range;
         return false;
     }
 
@@ -3295,13 +3600,13 @@ bool Api::set_effect_type(
 {
     if (!is_initialized())
     {
-        error_message_ = ApiErrorMessages::NotInitialized;
+        error_message_ = ApiErrorMessages::not_initialized;
         return false;
     }
 
     if (effect_index < 0 || effect_index >= pimpl_->effect_count_)
     {
-        error_message_ = ApiErrorMessages::EffectIndexOutOfRange;
+        error_message_ = ApiErrorMessages::effect_index_out_of_range;
         return false;
     }
 
@@ -3316,13 +3621,13 @@ bool Api::set_effect_props(
 {
     if (!is_initialized())
     {
-        error_message_ = ApiErrorMessages::NotInitialized;
+        error_message_ = ApiErrorMessages::not_initialized;
         return false;
     }
 
     if (effect_index < 0 || effect_index >= pimpl_->effect_count_)
     {
-        error_message_ = ApiErrorMessages::EffectIndexOutOfRange;
+        error_message_ = ApiErrorMessages::effect_index_out_of_range;
         return false;
     }
 
@@ -3337,13 +3642,13 @@ bool Api::set_effect(
 {
     if (!is_initialized())
     {
-        error_message_ = ApiErrorMessages::NotInitialized;
+        error_message_ = ApiErrorMessages::not_initialized;
         return false;
     }
 
     if (effect_index < 0 || effect_index >= pimpl_->effect_count_)
     {
-        error_message_ = ApiErrorMessages::EffectIndexOutOfRange;
+        error_message_ = ApiErrorMessages::effect_index_out_of_range;
         return false;
     }
 
@@ -3358,13 +3663,13 @@ bool Api::get_send_props(
 {
     if (!is_initialized())
     {
-        error_message_ = ApiErrorMessages::NotInitialized;
+        error_message_ = ApiErrorMessages::not_initialized;
         return false;
     }
 
     if (effect_index >= pimpl_->effect_count_)
     {
-        error_message_ = ApiErrorMessages::EffectIndexOutOfRange;
+        error_message_ = ApiErrorMessages::effect_index_out_of_range;
         return false;
     }
 
@@ -3384,13 +3689,13 @@ bool Api::get_deferred_send_props(
 {
     if (!is_initialized())
     {
-        error_message_ = ApiErrorMessages::NotInitialized;
+        error_message_ = ApiErrorMessages::not_initialized;
         return false;
     }
 
     if (effect_index >= pimpl_->effect_count_)
     {
-        error_message_ = ApiErrorMessages::EffectIndexOutOfRange;
+        error_message_ = ApiErrorMessages::effect_index_out_of_range;
         return false;
     }
 
@@ -3410,13 +3715,13 @@ bool Api::set_send_props(
 {
     if (!is_initialized())
     {
-        error_message_ = ApiErrorMessages::NotInitialized;
+        error_message_ = ApiErrorMessages::not_initialized;
         return false;
     }
 
     if (effect_index >= pimpl_->effect_count_)
     {
-        error_message_ = ApiErrorMessages::EffectIndexOutOfRange;
+        error_message_ = ApiErrorMessages::effect_index_out_of_range;
         return false;
     }
 
@@ -3434,7 +3739,7 @@ bool Api::apply_changes()
 {
     if (!is_initialized())
     {
-        error_message_ = ApiErrorMessages::NotInitialized;
+        error_message_ = ApiErrorMessages::not_initialized;
         return false;
     }
 
@@ -3484,7 +3789,7 @@ bool Api::mix(
 {
     if (!is_initialized())
     {
-        error_message_ = ApiErrorMessages::NotInitialized;
+        error_message_ = ApiErrorMessages::not_initialized;
         return false;
     }
 
@@ -3495,13 +3800,13 @@ bool Api::mix(
 
     if (!src_samples)
     {
-        error_message_ = ApiErrorMessages::NoSrcSamples;
+        error_message_ = ApiErrorMessages::no_src_samples;
         return false;
     }
 
     if (!dst_samples)
     {
-        error_message_ = ApiErrorMessages::NoDstSamples;
+        error_message_ = ApiErrorMessages::no_dst_samples;
         return false;
     }
 
@@ -4926,6 +5231,8 @@ private:
     SampleBuffers sample_buffer_;
 }; // EqualizerEffectState
 
+constexpr int EqualizerEffectState::max_update_samples;
+
 
 EffectState* EffectStateFactory::create_equalizer()
 {
@@ -5475,7 +5782,12 @@ private:
     {
         modulate(square_func, dst, src, index, step, todo);
     }
-}; // ModulatorEffectState
+}; // RingModulatorEffectState
+
+
+constexpr int RingModulatorEffectState::waveform_frac_bits;
+constexpr int RingModulatorEffectState::waveform_frac_one;
+constexpr int RingModulatorEffectState::waveform_frac_mask;
 
 
 EffectState* EffectStateFactory::create_ring_modulator()
@@ -7587,6 +7899,25 @@ private:
         return fade;
     }
 }; // ReverbEffectState
+
+
+constexpr float ReverbEffectState::speed_of_sound_mps;
+constexpr float ReverbEffectState::reverb_decay_gain;
+constexpr int ReverbEffectState::max_update_samples;
+constexpr int ReverbEffectState::fade_samples;
+
+constexpr Mat4F ReverbEffectState::b2a;
+constexpr Mat4F ReverbEffectState::a2b;
+constexpr float ReverbEffectState::fade_step;
+constexpr float ReverbEffectState::line_multiplier;
+constexpr float ReverbEffectState::early_tap_lengths[4];
+constexpr float ReverbEffectState::early_allpass_lengths[4];
+constexpr float ReverbEffectState::early_line_lengths[4];
+constexpr float ReverbEffectState::late_allpass_lengths[4];
+constexpr float ReverbEffectState::late_line_lengths[4];
+constexpr float ReverbEffectState::modulation_depth_coeff;
+constexpr float ReverbEffectState::modulation_filter_coeff;
+constexpr float ReverbEffectState::modulation_filter_const;
 
 
 EffectState* EffectStateFactory::create_reverb()
