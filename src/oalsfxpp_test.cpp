@@ -174,7 +174,7 @@ struct StreamHelper
     using Stream = std::iostream;
 
 
-    StreamHelper(
+    explicit StreamHelper(
         Stream& stream)
         :
         stream_{stream}
@@ -200,7 +200,7 @@ struct StreamHelper
             return false;
         }
 
-        if (stream_.gcount() != raw_buffer_size)
+        if (static_cast<std::size_t>(stream_.gcount()) != raw_buffer_size)
         {
             return false;
         }
@@ -271,8 +271,9 @@ struct FourCcs
     }
 }; // FourCcs
 
-struct WavFile
+class WavFile
 {
+public:
     using Buffer = std::vector<char>;
     using SampleBuffer = std::vector<float>;
 
@@ -280,6 +281,17 @@ struct WavFile
     static constexpr auto min_format_chunk_size = 16;
     static constexpr auto pcm_format_tag = 1;
 
+
+    WavFile()
+        :
+        channel_count_{},
+        sampling_rate_{},
+        bit_depth_{},
+        sample_count_{},
+        samples_{},
+        error_message_{}
+    {
+    }
 
     bool read(
         const std::string& file_name)
@@ -432,10 +444,12 @@ struct WavFile
                 // Average bytes per sec
                 //
                 const auto avg_bytes_per_sec = Endian::little(stream_helper.read<uint32_t>());
+                static_cast<void>(avg_bytes_per_sec);
 
                 // Block align
                 //
                 const auto block_align = Endian::little(stream_helper.read<uint16_t>());
+                static_cast<void>(block_align);
 
                 // Bit depth
                 //
@@ -725,6 +739,9 @@ private:
         }
     }
 }; // WavFile
+
+
+constexpr int WavFile::max_write_buffer_samples;
 
 
 int main(
